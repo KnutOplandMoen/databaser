@@ -5,8 +5,5 @@ node_modules/
 .DS_Store
 *.log
 
-# Embeddings (regenerated from textbook + notes)
-public/chunks.json
-
 # Textbook PDF (licensed — do not redistribute)
 Databaser bok.pdf
