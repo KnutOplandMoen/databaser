@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL: Joins og subqueries — Kap 3</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 3</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 3: SQL">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 3 · 3B · Forelesning 4</div>
+      <h1>SQL — <em>joins og subqueries</em></h1>
+      <p class="lede">Lærebokas seksjon 3.8 og 4.1. Sett tabeller sammen, og spør om ting i ting.</p>
+      <nav class="toc">
+        <a href="#join-typer"><span>01</span> JOIN-typer</a>
+        <a href="#on-using"><span>02</span> ON vs USING</a>
+        <a href="#self-join"><span>03</span> Self-joins</a>
+        <a href="#subquery"><span>04</span> Subqueries</a>
+        <a href="#exists"><span>05</span> EXISTS · IN · ANY · ALL</a>
+        <a href="#korrelert"><span>06</span> Korrelerte subqueries</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="join-typer">
+    <div class="container">
+      <div class="section-badge">01 · JOIN-typer</div>
+      <h2>Inner og outer</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>INNER JOIN — bare matchende rader</li>
+        <li>LEFT/RIGHT/FULL OUTER JOIN — bevarer ikke-matchede med NULL</li>
+        <li>CROSS JOIN — kartesisk produkt</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="on-using">
+    <div class="container">
+      <div class="section-badge">02 · ON vs USING</div>
+      <h2>To måter å skrive join-betingelsen</h2>
+      <ul>
+        <li>ON — vilkårlig predikat, beholder begge kolonnene</li>
+        <li>USING(col) — kort, fjerner duplikatkolonne</li>
+        <li>NATURAL JOIN — implisitt USING på alle felles attributter</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="self-join">
+    <div class="container">
+      <div class="section-badge">03 · Self-joins</div>
+      <h2>En tabell mot seg selv</h2>
+      <ul>
+        <li>Klassisk eksempel: ansatt → leder</li>
+        <li>Aliaser er obligatoriske</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="subquery">
+    <div class="container">
+      <div class="section-badge">04 · Subqueries</div>
+      <h2>Spørringer i spørringer</h2>
+      <ul>
+        <li>Subquery i SELECT, FROM eller WHERE</li>
+        <li>Skalar-subquery returnerer én verdi</li>
+        <li>Tabell-subquery i FROM (derived table)</li>
+        <li>WITH-klausulen: CTE for lesbarhet</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="exists">
+    <div class="container">
+      <div class="section-badge">05 · EXISTS · IN · ANY · ALL</div>
+      <h2>Operatorer på subquery-resultater</h2>
+      <ul>
+        <li>IN / NOT IN — medlemskap (NULL-feller!)</li>
+        <li>EXISTS / NOT EXISTS — finnes minst én rad</li>
+        <li>x &gt; ANY/SOME (sub) — minst én</li>
+        <li>x &gt; ALL (sub) — alle</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="korrelert">
+    <div class="container">
+      <div class="section-badge">06 · Korrelerte subqueries</div>
+      <h2>Når subqueryen avhenger av ytre rad</h2>
+      <ul>
+        <li>Korrelert vs. ikke-korrelert: ytelseskonsekvens</li>
+        <li>Optimalisator kan ofte skrive om til join</li>
+        <li>NOT EXISTS NOT EXISTS — division i SQL</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

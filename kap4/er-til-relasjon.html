@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER → relasjonsskjema — Kap 4</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 4</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 4 · 4B · Forelesning 8</div>
+      <h1>ER → <em>relasjonsskjema</em></h1>
+      <p class="lede">Lærebokas 6.7, 6.9, 7.1. Mekaniske regler for å oversette diagram til tabeller — og hvor ting går galt.</p>
+      <nav class="toc">
+        <a href="#regler"><span>01</span> Reduksjonsregler</a>
+        <a href="#1n-nm"><span>02</span> 1:N og N:M</a>
+        <a href="#svak-tab"><span>03</span> Svake entiteter</a>
+        <a href="#isa-tab"><span>04</span> ISA-hierarkier</a>
+        <a href="#problemer"><span>05</span> Designproblemer</a>
+        <a href="#motivasjon"><span>06</span> Hvorfor normalformer</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="regler">
+    <div class="container">
+      <div class="section-badge">01 · Reduksjonsregler</div>
+      <h2>Sterk entitet → tabell</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Hver sterk entitet blir en tabell med samme attributter</li>
+        <li>Sammensatte attributter blir flate kolonner</li>
+        <li>Fler-verdige attributter blir egen tabell</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="1n-nm">
+    <div class="container">
+      <div class="section-badge">02 · 1:N og N:M</div>
+      <h2>Relasjoner blir kolonner eller tabeller</h2>
+      <ul>
+        <li>1:1 — fremmednøkkel i én av tabellene</li>
+        <li>1:N — fremmednøkkel på N-siden</li>
+        <li>N:M — egen relasjonstabell med to fremmednøkler</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="svak-tab">
+    <div class="container">
+      <div class="section-badge">03 · Svake entiteter</div>
+      <h2>Identitet arves</h2>
+      <ul>
+        <li>Sammensatt primærnøkkel: eierens nøkkel + diskriminator</li>
+        <li>Fremmednøkkelen er del av primærnøkkelen</li>
+        <li>ON DELETE CASCADE — om eieren slettes, slettes også svake</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="isa-tab">
+    <div class="container">
+      <div class="section-badge">04 · ISA-hierarkier</div>
+      <h2>Tre alternativer</h2>
+      <ul>
+        <li>Én tabell for alt (med diskriminatorkolonne)</li>
+        <li>Tabell per konkret subtype (klassetabell)</li>
+        <li>Tabell per nivå (super + subtabeller)</li>
+        <li>Trade-offs: ledig plass, joins, polymorf spørring</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="problemer">
+    <div class="container">
+      <div class="section-badge">05 · Designproblemer</div>
+      <h2>Anomali</h2>
+      <ul>
+        <li>Oppdateringsanomali — endre ett sted, glem et annet</li>
+        <li>Innsettingsanomali — kan ikke legge inn X uten Y</li>
+        <li>Sletteanomali — sletter X mister man også Y</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="motivasjon">
+    <div class="container">
+      <div class="section-badge">06 · Motivasjon for normalformer</div>
+      <h2>Mekanisk diagnose</h2>
+      <ul>
+        <li>Funksjonelle avhengigheter beskriver hva som <em>må</em> være sant</li>
+        <li>Normalformer = "hvis du ser dette mønsteret, dekomponer"</li>
+        <li>Detaljer i 4C (normalformer)</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

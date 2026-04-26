@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Normalformer — Kap 4</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 4</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 4 · 4C · Forelesning 9</div>
+      <h1><em>Normalformer</em></h1>
+      <p class="lede">Lærebokas 7.1–7.3 og 7.6. Funksjonelle avhengigheter, dekomponering, og veien fra 1NF til BCNF.</p>
+      <nav class="toc">
+        <a href="#fd"><span>01</span> Funksjonelle avhengigheter</a>
+        <a href="#lukning"><span>02</span> Lukning</a>
+        <a href="#dekomp"><span>03</span> Dekomponering</a>
+        <a href="#1nf-3nf"><span>04</span> 1NF · 2NF · 3NF</a>
+        <a href="#bcnf"><span>05</span> BCNF</a>
+        <a href="#oppgave"><span>06</span> Eksempel-arbeid</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="fd">
+    <div class="container">
+      <div class="section-badge">01 · Funksjonelle avhengigheter</div>
+      <h2>X → Y: hvis du vet X, kan du regne ut Y</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>FD = krav på instansene, ikke på enkeltrad</li>
+        <li>Triviell FD (Y ⊆ X) — alltid sann</li>
+        <li>Armstrongs aksiomer: refleksivitet, augmentasjon, transitivitet</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="lukning">
+    <div class="container">
+      <div class="section-badge">02 · Lukning</div>
+      <h2>Hva kan vi utlede</h2>
+      <ul>
+        <li>X⁺ — settet av alle attributter som funksjonelt avhenger av X</li>
+        <li>Algoritme: start med X, legg til Y for hver FD A→B der A ⊆ resultat</li>
+        <li>Bruk: avgjør om K er supernøkkel, om en FD følger</li>
+        <li>Minimal cover (canonical cover)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="dekomp">
+    <div class="container">
+      <div class="section-badge">03 · Dekomponering</div>
+      <h2>Splitt en relasjon i to</h2>
+      <ul>
+        <li>Lossless join — kan vi rekonstruere originalen?</li>
+        <li>Test: skjæringen er supernøkkel for minst én av delene</li>
+        <li>Dependency preservation — kan vi sjekke alle FD lokalt?</li>
+        <li>Trade-off: BCNF gir lossless men kan miste DP; 3NF beholder DP</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="1nf-3nf">
+    <div class="container">
+      <div class="section-badge">04 · 1NF, 2NF, 3NF</div>
+      <h2>Stigen oppover</h2>
+      <ul>
+        <li>1NF — atomære verdier (ingen lister i celler)</li>
+        <li>2NF — ingen partiell avhengighet til primærnøkkelen</li>
+        <li>3NF — ingen transitiv avhengighet til primærnøkkelen</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="bcnf">
+    <div class="container">
+      <div class="section-badge">05 · BCNF</div>
+      <h2>Boyce-Codd: alle FD-er har supernøkkel som venstreside</h2>
+      <ul>
+        <li>Strengere enn 3NF</li>
+        <li>Algoritme: finn FD som bryter, splitt</li>
+        <li>Når man <em>ikke</em> går til BCNF: dependency preservation tapt</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="oppgave">
+    <div class="container">
+      <div class="section-badge">06 · Eksempel-arbeid</div>
+      <h2>Trinn-for-trinn</h2>
+      <ul>
+        <li>Gitt R(A,B,C,D) og FD-mengde — finn nøkler</li>
+        <li>Beregn lukning for kandidater</li>
+        <li>Identifiser brudd på 3NF/BCNF</li>
+        <li>Dekomponer + verifiser lossless join</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

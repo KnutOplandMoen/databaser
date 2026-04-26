@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL: Prosedyrer, triggere, rekursjon — Kap 3</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 3</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 3: SQL">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 3 · 3D · Forelesning 6</div>
+      <h1>Prosedyrer, triggere, <em>rekursjon</em></h1>
+      <p class="lede">Lærebokas 4.5, 4.7, 5.2–5.4. Når SQL alene ikke holder.</p>
+      <nav class="toc">
+        <a href="#funksjoner"><span>01</span> Funksjoner</a>
+        <a href="#prosedyrer"><span>02</span> Stored procedures</a>
+        <a href="#triggere"><span>03</span> Triggere</a>
+        <a href="#rekursiv"><span>04</span> WITH RECURSIVE</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="funksjoner">
+    <div class="container">
+      <div class="section-badge">01 · Funksjoner</div>
+      <h2>CREATE FUNCTION</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Skalar-funksjon — returnerer én verdi</li>
+        <li>Tabellfunksjon — returnerer en relasjon</li>
+        <li>SQL/PSM — prosedyrespråket i SQL-standarden</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="prosedyrer">
+    <div class="container">
+      <div class="section-badge">02 · Stored procedures</div>
+      <h2>CREATE PROCEDURE</h2>
+      <ul>
+        <li>Sekvens av SQL-uttrykk</li>
+        <li>IN, OUT, INOUT-parametre</li>
+        <li>Kontrollflyt: IF, WHILE, FOR-løkker over kursorer</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="triggere">
+    <div class="container">
+      <div class="section-badge">03 · Triggere</div>
+      <h2>CREATE TRIGGER</h2>
+      <ul>
+        <li>BEFORE / AFTER på INSERT / UPDATE / DELETE</li>
+        <li>FOR EACH ROW vs FOR EACH STATEMENT</li>
+        <li>NEW og OLD — referanse til rad før/etter</li>
+        <li>Bruk: integritet, audit-logg, materialiserte views</li>
+        <li>Fallgruver: trigger-kaskader, ytelse</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="rekursiv">
+    <div class="container">
+      <div class="section-badge">04 · WITH RECURSIVE</div>
+      <h2>Rekursive spørringer</h2>
+      <ul>
+        <li>Anker + rekursivt tilfelle, UNION ALL</li>
+        <li>Klassisk eksempel: transitive closure (forfedre, rekkefølge i tre)</li>
+        <li>Stoppkriterier — termineringsproblemer</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

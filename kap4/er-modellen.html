@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER-modellen — Kap 4</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 4</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 4 · 4A · Forelesning 7</div>
+      <h1>ER-<em>modellen</em></h1>
+      <p class="lede">Lærebokas seksjon 6.1–6.6. Tegn problemet før du skriver tabeller.</p>
+      <nav class="toc">
+        <a href="#hvorfor"><span>01</span> Hvorfor ER</a>
+        <a href="#entitet"><span>02</span> Entiteter og attributter</a>
+        <a href="#relasjon"><span>03</span> Relasjoner og kardinalitet</a>
+        <a href="#svak"><span>04</span> Svake entiteter</a>
+        <a href="#isa"><span>05</span> Generalisering / spesialisering</a>
+        <a href="#notasjon"><span>06</span> Diagram-notasjon</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hvorfor">
+    <div class="container">
+      <div class="section-badge">01 · Hvorfor ER</div>
+      <h2>Konseptuelt før logisk</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>ER er konseptuell modell — ikke knyttet til relasjonsmodellen direkte</li>
+        <li>Mål: kommunikasjon med stakeholders, fanger semantikk</li>
+        <li>Senere reduseres til relasjonsskjema (4B)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="entitet">
+    <div class="container">
+      <div class="section-badge">02 · Entiteter og attributter</div>
+      <h2>Tingene i universet ditt</h2>
+      <ul>
+        <li>Entitet — diskret objekt (Student, Bok, Ordre)</li>
+        <li>Entitetsmengde — alle av samme type</li>
+        <li>Attributter: enkle, sammensatte, fler-verdige, derivable</li>
+        <li>Nøkkel-attributt</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="relasjon">
+    <div class="container">
+      <div class="section-badge">03 · Relasjoner og kardinalitet</div>
+      <h2>Hvordan entiteter henger sammen</h2>
+      <ul>
+        <li>Binær, ternær, n-ær relasjon</li>
+        <li>Kardinalitetsforhold: 1:1, 1:N, N:M</li>
+        <li>Total vs. partiell deltakelse</li>
+        <li>Roller når samme entitet inngår to ganger</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="svak">
+    <div class="container">
+      <div class="section-badge">04 · Svake entiteter</div>
+      <h2>Når identitet kommer fra eieren</h2>
+      <ul>
+        <li>Svak entitet — ingen egen primærnøkkel</li>
+        <li>Identifying relationship — peker på sterk eier</li>
+        <li>Diskriminator — gjør instans unik innenfor eier</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="isa">
+    <div class="container">
+      <div class="section-badge">05 · Generalisering / spesialisering</div>
+      <h2>ISA-hierarkier</h2>
+      <ul>
+        <li>Generalisering — felles attributter trekkes opp</li>
+        <li>Disjoint vs. overlapping</li>
+        <li>Total vs. partiell dekning</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="notasjon">
+    <div class="container">
+      <div class="section-badge">06 · Diagram-notasjon</div>
+      <h2>Boks, rombe, ellipse</h2>
+      <ul>
+        <li>Chen-notasjon vs. krones-fot (Crow's foot)</li>
+        <li>UML class diagrams brukes også</li>
+        <li>Lærebokas notasjon i kurset</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

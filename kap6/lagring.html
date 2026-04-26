@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lagring: records, blokker, buffer — Kap 6</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 6</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 6: Lagring og indekser">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 6 · 6A · Forelesning 11</div>
+      <h1>Lagring — <em>records, blokker, buffer</em></h1>
+      <p class="lede">Bratsbergs notater kap 1–8. Hvordan en rad faktisk er bytes på en disk.</p>
+      <nav class="toc">
+        <a href="#arkitektur"><span>01</span> DBMS-arkitektur</a>
+        <a href="#device"><span>02</span> Device og blokker</a>
+        <a href="#record"><span>03</span> Record-format</a>
+        <a href="#block"><span>04</span> Block-format</a>
+        <a href="#buffer"><span>05</span> Database-buffer</a>
+        <a href="#heap"><span>06</span> Heapfiler</a>
+        <a href="#hashing"><span>07</span> Hashing</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="arkitektur">
+    <div class="container">
+      <div class="section-badge">01 · DBMS-arkitektur</div>
+      <h2>Komponentene</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>SQL-kompilator + katalog → algebra-tre</li>
+        <li>Optimizer → plan med kostnad</li>
+        <li>Executor → kjører plan via buffer/lock/log</li>
+        <li>JIT-kompilering i moderne DBMS-er</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="device">
+    <div class="container">
+      <div class="section-badge">02 · Device og blokker</div>
+      <h2>Disk er enheten</h2>
+      <ul>
+        <li>HDD (rotating) vs. SSD (flash) — forskjellig layout</li>
+        <li>Raw partition vs. fil i filsystem</li>
+        <li>BlockId = (deviceId, offset)</li>
+        <li>16 KiB er typisk blokkstørrelse</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="record">
+    <div class="container">
+      <div class="section-badge">03 · Record-format</div>
+      <h2>Tre måter å pakke en rad</h2>
+      <ul>
+        <li>Fixed length — alle attributter på fast offset</li>
+        <li>Record vector — pekere til hvert felt (variabel lengde)</li>
+        <li>Delimiter — spesielle tegn som markerer slutt på felt/record</li>
+        <li>Row store vs. column store</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="block">
+    <div class="container">
+      <div class="section-badge">04 · Block-format</div>
+      <h2>Slot directory</h2>
+      <ul>
+        <li>Records vokser fra start, slot directory fra slutt</li>
+        <li>Page directory sortert på key — letter binærsøk</li>
+        <li>RID = (BlockId, slot) — semilogisk</li>
+        <li>Flip/flop — atomisk read/write-stempel</li>
+        <li>Header: identifikator, recovery, checksum</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="buffer">
+    <div class="container">
+      <div class="section-badge">05 · Database-buffer</div>
+      <h2>Hold ting i RAM</h2>
+      <ul>
+        <li>Buffer = stor andel av main memory</li>
+        <li>Hash-indeks fra BlockId til buffer-frame</li>
+        <li>Pinning — beskytter mot eviction</li>
+        <li>Erstatningsstrategier: LRU, MRU, clock</li>
+        <li>Skitne blokker — må skrives før eviction</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="heap">
+    <div class="container">
+      <div class="section-badge">06 · Heapfiler</div>
+      <h2>Usortert lagring</h2>
+      <ul>
+        <li>Records lagres i tilfeldig orden</li>
+        <li>Insert er billig, søk er dyrt (full scan)</li>
+        <li>Free space management (FSM)</li>
+        <li>Page splits når blokk er full</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="hashing">
+    <div class="container">
+      <div class="section-badge">07 · Hashing</div>
+      <h2>Konstant-tid oppslag på likhet</h2>
+      <ul>
+        <li>Statisk hashing — kollisjoner og bucket overflow</li>
+        <li>Dynamisk hashing (extendible, linear)</li>
+        <li>Begrensninger: ingen range-spørringer</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL: Views, transaksjoner, integritet — Kap 3</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 3</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 3: SQL">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 3 · 3C · Forelesning 5</div>
+      <h1>Views, <em>transaksjoner</em>, integritet</h1>
+      <p class="lede">Lærebokas 4.2–4.7, 16.5.1, 17.1. Logiske abstraksjoner, integritetsregler og syntaks for transaksjoner.</p>
+      <nav class="toc">
+        <a href="#views"><span>01</span> Views</a>
+        <a href="#tx-syntax"><span>02</span> Transaksjons-DDL</a>
+        <a href="#integritet"><span>03</span> Integritetskrav</a>
+        <a href="#assertion"><span>04</span> CHECK · ASSERTION</a>
+        <a href="#index"><span>05</span> CREATE INDEX</a>
+        <a href="#auth"><span>06</span> Autorisasjon</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="views">
+    <div class="container">
+      <div class="section-badge">01 · Views</div>
+      <h2>Lagrede spørringer</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>CREATE VIEW v AS SELECT … — virtuell tabell</li>
+        <li>Materialiserte views — fysisk lagret, må vedlikeholdes</li>
+        <li>Oppdaterbare views: bare når SQL klarer å invertere mappingen</li>
+        <li>WITH CHECK OPTION</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="tx-syntax">
+    <div class="container">
+      <div class="section-badge">02 · Transaksjons-DDL</div>
+      <h2>BEGIN · COMMIT · ROLLBACK</h2>
+      <ul>
+        <li>Bare syntaksen her — teorien hører til Kap 8</li>
+        <li>SET TRANSACTION ISOLATION LEVEL …</li>
+        <li>SAVEPOINT for delvis rollback</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="integritet">
+    <div class="container">
+      <div class="section-badge">03 · Integritetskrav</div>
+      <h2>Krav på rad-, tabell- og databasenivå</h2>
+      <ul>
+        <li>NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY</li>
+        <li>ON DELETE/UPDATE: CASCADE / SET NULL / SET DEFAULT / RESTRICT</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="assertion">
+    <div class="container">
+      <div class="section-badge">04 · CHECK og ASSERTION</div>
+      <h2>Egendefinerte krav</h2>
+      <ul>
+        <li>CHECK på kolonne eller tabell — predikatet må holde</li>
+        <li>ASSERTION på databasen — sjeldent støttet i praksis</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="index">
+    <div class="container">
+      <div class="section-badge">05 · CREATE INDEX</div>
+      <h2>Indekssyntaks</h2>
+      <ul>
+        <li>CREATE INDEX / CREATE UNIQUE INDEX / DROP INDEX</li>
+        <li>Sammensatt indeks — rekkefølge betyr noe</li>
+        <li>Datastruktur (B+-tre) dekkes i Kap 6</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="auth">
+    <div class="container">
+      <div class="section-badge">06 · Autorisasjon</div>
+      <h2>GRANT og REVOKE</h2>
+      <ul>
+        <li>Privilegier: SELECT, INSERT, UPDATE, DELETE, REFERENCES</li>
+        <li>WITH GRANT OPTION — kjeder av rettigheter</li>
+        <li>Roller (ROLE) — gruppering av privilegier</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

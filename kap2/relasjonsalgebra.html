@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relasjonsalgebra — Kap 2</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 2</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 2: Relasjonsmodellen og relasjonsalgebra">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 2 · 2B</div>
+      <h1>Relasjons<em>algebra</em></h1>
+      <p class="lede">Operatorer som tar relasjoner inn og gir relasjoner ut. Det formelle språket optimalisatoren faktisk jobber med.</p>
+      <nav class="toc">
+        <a href="#grunnoperatorer"><span>01</span> Grunnoperatorer</a>
+        <a href="#select"><span>02</span> σ — Select</a>
+        <a href="#project"><span>03</span> π — Project</a>
+        <a href="#join"><span>04</span> ⋈ — Join</a>
+        <a href="#mengde"><span>05</span> Mengdeoperatorer</a>
+        <a href="#division"><span>06</span> ÷ — Division</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="grunnoperatorer">
+    <div class="container">
+      <div class="section-badge">01 · Grunnoperatorer</div>
+      <h2>Seks operatorer er nok</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>σ select, π project, × kartesisk produkt, ∪ union, − differanse, ρ rename</li>
+        <li>Alle andre kan utledes (⋈, ∩, ÷)</li>
+        <li>Hver operator: input-skjema, output-skjema, semantikk</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="select">
+    <div class="container">
+      <div class="section-badge">02 · σ Select</div>
+      <h2>Filtrer rader</h2>
+      <ul>
+        <li>σ_<em>p</em>(R) — beholder rader der p er TRUE</li>
+        <li>Predikat p: bygges fra =, ≠, &lt;, &gt;, AND, OR, NOT</li>
+        <li>Eksempel: σ_alder &gt; 30 (Ansatt)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="project">
+    <div class="container">
+      <div class="section-badge">03 · π Project</div>
+      <h2>Velg kolonner</h2>
+      <ul>
+        <li>π_A,B(R) — fjerner andre attributter</li>
+        <li>Resultatet er en mengde — duplikater fjernes (i ren algebra)</li>
+        <li>SQL er bag, ikke mengde — det skaper subtile forskjeller</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="join">
+    <div class="container">
+      <div class="section-badge">04 · ⋈ Join</div>
+      <h2>Sett sammen tabeller</h2>
+      <ul>
+        <li>Natural join — match på likt-navngitte attributter</li>
+        <li>Theta join — match på vilkårlig predikat</li>
+        <li>Equijoin — theta-join der predikatet er likhet</li>
+        <li>Outer joins: left, right, full — bevarer "tapere"</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="mengde">
+    <div class="container">
+      <div class="section-badge">05 · Mengdeoperatorer</div>
+      <h2>∪ ∩ −</h2>
+      <ul>
+        <li>Krever skjemakompatibilitet</li>
+        <li>Union — alle, dedup</li>
+        <li>Intersect — felles</li>
+        <li>Difference — i R, ikke i S</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="division">
+    <div class="container">
+      <div class="section-badge">06 · ÷ Division</div>
+      <h2>"Alle som …"-spørsmål</h2>
+      <ul>
+        <li>R ÷ S — for hvilke rader i R finnes <em>alle</em> i S?</li>
+        <li>Klassisk eksempel: studenter som har tatt alle kurs</li>
+        <li>Implementasjon i SQL: NOT EXISTS NOT EXISTS-trikset</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

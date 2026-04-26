@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utover relasjonsmodellen — Kap 5</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 5</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 5: Utover relasjonsmodellen">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 5 · Forelesning 10</div>
+      <h1>Komplekse typer, <em>NoSQL</em> og distribuerte databaser</h1>
+      <p class="lede">Lærebokas kap 8, 10, 11 og 29 i kort form.</p>
+      <nav class="toc">
+        <a href="#komplekse"><span>01</span> Komplekse datatyper</a>
+        <a href="#objekt-rel"><span>02</span> Objekt-relasjonelt</a>
+        <a href="#xml-json"><span>03</span> XML / JSON</a>
+        <a href="#nosql"><span>04</span> NoSQL</a>
+        <a href="#distribuert"><span>05</span> Distribuerte databaser</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="komplekse">
+    <div class="container">
+      <div class="section-badge">01 · Komplekse datatyper</div>
+      <h2>Når 1NF ikke er ideelt</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Arrays, multisets — direkte i SQL-typer</li>
+        <li>Strukturerte typer (sammensatte attributter som type)</li>
+        <li>User-defined types (UDT)</li>
+        <li>Lærebokas kapittel 8</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="objekt-rel">
+    <div class="container">
+      <div class="section-badge">02 · Objekt-relasjonelt</div>
+      <h2>Klasser i SQL</h2>
+      <ul>
+        <li>Type-arv, metoder, referanser</li>
+        <li>Praktisk: i moderne SQL kan du bruke JSON i stedet</li>
+        <li>Lærebokas kapittel 10</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="xml-json">
+    <div class="container">
+      <div class="section-badge">03 · XML / JSON</div>
+      <h2>Semi-strukturerte data</h2>
+      <ul>
+        <li>JSON-kolonner i moderne PostgreSQL/MySQL</li>
+        <li>Spørring: -&gt; / -&gt;&gt; / JSON_VALUE / JSON_TABLE</li>
+        <li>Indeksering av JSON</li>
+        <li>Lærebokas kapittel 11</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="nosql">
+    <div class="container">
+      <div class="section-badge">04 · NoSQL</div>
+      <h2>Fire familier</h2>
+      <ul>
+        <li>Dokument (MongoDB, Couchbase)</li>
+        <li>Kolonne-orientert (Cassandra, HBase)</li>
+        <li>Key-value (Redis, DynamoDB)</li>
+        <li>Graf (Neo4j)</li>
+        <li>BASE i stedet for ACID — eventuell konsistens</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="distribuert">
+    <div class="container">
+      <div class="section-badge">05 · Distribuerte databaser</div>
+      <h2>Skalering på tvers av maskiner</h2>
+      <ul>
+        <li>Sharding — horisontal partisjonering</li>
+        <li>Replikering — leader/follower, multi-leader</li>
+        <li>CAP-teoremet: konsistens / tilgjengelighet / partisjonstoleranse</li>
+        <li>Lærebokas kapittel 29</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>
