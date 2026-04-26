@@ -1,0 +1,53 @@
+Eksamensoppsummering – Databasekurs
+Vekting på eksamen
+Eksamen er delt i to hoveddeler med følgende vekting:
+
+Del 2 (Svein Erik): ~60 % – sannsynligvis svært likt tidligere års eksamener
+Del 1 (Theodoros): ~40 % – sannsynligvis liknende stil som midtveiseksamen i vinter
+
+
+Del 1 – Theodoros (~40 %)
+Dette er den "klassiske" databasdelen som dekker relasjonsmodellen, SQL og databasedesign. Pensum følger lærebok-kapitlene:
+Introduksjon (Forelesning 1)
+
+Kapittel 1 – Kurslogistikk, formålet med databasesystemer, oversikt
+
+Relasjonsmodellen og relasjonsalgebra (Forelesning 2)
+
+Kapittel 2 + notater 3.2 og 4.1
+Struktur i relasjonsdatabaser, skjema, nøkler, relasjonsalgebra
+
+SQL – fire forelesninger (Forelesning 3–6)
+
+Del 1/4: Seksjon 3.1–3.7 og 3.9 – SQL DDL, spørringsstruktur, operatorer, aggregatfunksjoner
+Del 2/4: Seksjon 3.8 og 4.1 – Joins og nøstede subqueries
+Del 3/4: Seksjon 4.2–4.7, 16.5.1, 17.1 – Views, transaksjoner, integritetskrav, indeksdefinisjon, autorisasjon
+Del 4/4: Seksjon 4.5, 4.7 og 5.2–5.4 – Funksjoner og prosedyrer, triggere, rekursive spørringer
+
+Relasjonsdatabasedesign – tre forelesninger (Forelesning 7–9)
+
+Del 1/3: Seksjon 6.1–6.6 – Innføring i databasedesign, ER-modellen
+Del 2/3: Seksjon 6.7, 6.9 og 7.1 – Reduksjon av ER til relasjonsskjema, designproblemer, intro til normalformer
+Del 3/3: Seksjon 7.1–7.3 og 7.6 – Funksjonelle avhengigheter, dekomponering, normalformer, BCNF
+
+Beyond Relational Databases (Forelesning 10)
+
+Deler av kapittel 8, 10, 11 og 29 – Komplekse datatyper, objekt-relasjonelle og ikke-relasjonelle databaser
+
+
+Del 2 – Svein Erik (~60 %)
+Denne delen baserer seg på egne notater (ikke læreboka), og kapittelnummereringen refererer til disse notatene. Denne delen er det viktigste på eksamen, og den ligner historisk mye på tidligere år – så gamle eksamensoppgaver er gull verdt her.
+Lagring og indekser (Forelesning 11–12)
+
+Del 1: kap. 1–8 – Lagring, poster, blokker, heapfiler, hashing
+Del 2: kap. 9–11 – Lagringsmetoder, B+-trær
+
+Queries (Forelesning 13)
+
+Kap. 12–14 – Aksessmetoder, sortering, utføring av queries (query processing)
+
+Transaksjoner (Forelesning 14–16)
+
+Del 1: kap. 15–16 – Intro og teori
+Del 2: kap. 16–17 – Samtidighet og låser (concurrency control)
+Del 3: kap. 18 – Recovery
