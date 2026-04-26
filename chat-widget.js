@@ -53,7 +53,7 @@
     resetTitle: 'Start på nytt',
     closeAria: 'Lukk chat',
     closeTitle: 'Lukk',
-    placeholder: 'Spør om SQL, normalformer, B+-trær, ARIES…',
+    placeholder: 'Spør om noe på siden eller pensum..',
     send: 'Send',
     hint: 'Studieassistenten svarer på norsk og bruker pensum (læreboken og notatene). Den kan ta feil – sjekk svar mot kilden.',
     errPrefix: 'Feil',
