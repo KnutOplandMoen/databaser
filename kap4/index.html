@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kapittel 4 — Relasjonsdatabasedesign</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Alle kapitler</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 4 · Forelesning 7–9</div>
+      <h1>Relasjonsdatabase<em>design</em></h1>
+      <p class="lede">Fra ER-diagram til BCNF — hvordan unngå redundans, anomali og oppdateringskaos.</p>
+    </div>
+  </header>
+
+  <nav class="chapter-toc">
+    <div class="container">
+      <ol class="chapter-toc-list">
+        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
+        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <section id="overblikk">
+    <div class="container">
+      <div class="section-badge">Helhetsbilde</div>
+      <h2>Hvorfor bry seg om design</h2>
+      <ul>
+        <li>Dårlig design → redundans → oppdateringsanomali</li>
+        <li>ER-modell er <em>konseptuelt</em>; relasjonsskjema er <em>logisk</em></li>
+        <li>Normalformer gir mekaniske garantier — du kan oppdage feil før dataen kommer inn</li>
+        <li>BCNF i praksis: ofte godt nok, av og til for strikt (3NF beholder dependency preservation)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="deler">
+    <div class="container">
+      <div class="section-badge">Deler</div>
+      <h2>Utforsk <em>kapittelet</em></h2>
+      <div class="subpage-list">
+        <a href="er-modellen.html" class="subpage-card">
+          <span class="sp-icon">4A</span>
+          <div class="sp-info">
+            <div class="sp-title">ER-modellen</div>
+            <div class="sp-desc">Entiteter, attributter, relasjoner, kardinalitet, svake entiteter, generalisering</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="er-til-relasjon.html" class="subpage-card">
+          <span class="sp-icon">4B</span>
+          <div class="sp-info">
+            <div class="sp-title">ER → relasjonsskjema</div>
+            <div class="sp-desc">Reduksjonsregler, designproblemer, motivasjon for normalformer</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="normalformer.html" class="subpage-card">
+          <span class="sp-icon">4C</span>
+          <div class="sp-info">
+            <div class="sp-title">Normalformer</div>
+            <div class="sp-desc">Funksjonelle avhengigheter, dekomponering, 1NF / 2NF / 3NF / BCNF</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <div class="container">
+      <h2>Test deg selv</h2>
+      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 1 · Lett</div>
+        <div class="q-text">[Quiz-spørsmål — fyll inn via tools/generate_chapter_quizzes.py]</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">[Svar]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

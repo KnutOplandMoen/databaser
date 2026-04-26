@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kapittel 8 — Transaksjoner</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Alle kapitler</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 8: Transaksjoner">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 8 · Forelesning 14–16 · Del 2</div>
+      <h1>Transaksjoner — <em>ACID i praksis</em></h1>
+      <p class="lede">Hvordan databaser garanterer alt-eller-ingenting under samtidig last og krasj.</p>
+    </div>
+  </header>
+
+  <nav class="chapter-toc">
+    <div class="container">
+      <ol class="chapter-toc-list">
+        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
+        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <section id="overblikk">
+    <div class="container">
+      <div class="section-badge">Helhetsbilde</div>
+      <h2>Tre forelesninger, tre temaer</h2>
+      <ul>
+        <li><strong>Teori</strong> — ACID, schedule, serializability, recoverability</li>
+        <li><strong>Samtidighet</strong> — låser (2PL), MVCC, isolation levels</li>
+        <li><strong>Recovery</strong> — log, undo/redo, ARIES, sjekkpunkter</li>
+      </ul>
+      <div class="callout callout-blue">
+        <span class="label">Slides</span>
+        <p><a href="../powerpoints/transaksjoner.pdf">transaksjoner.pdf</a> dekker hele kapittelet med figurer.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="deler">
+    <div class="container">
+      <div class="section-badge">Deler</div>
+      <h2>Utforsk <em>kapittelet</em></h2>
+      <div class="subpage-list">
+        <a href="intro-og-teori.html" class="subpage-card">
+          <span class="sp-icon">8A</span>
+          <div class="sp-info">
+            <div class="sp-title">Intro og teori</div>
+            <div class="sp-desc">Notater kap. 15–16. ACID, schedule, conflict/view serializability, recoverability, cascadeless</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="samtidighet-og-laser.html" class="subpage-card">
+          <span class="sp-icon">8B</span>
+          <div class="sp-info">
+            <div class="sp-title">Samtidighet og låser</div>
+            <div class="sp-desc">Notater kap. 16–17. 2PL, deadlock, lock granularity, timestamp ordering, MVCC, isolation levels</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="recovery.html" class="subpage-card">
+          <span class="sp-icon">8C</span>
+          <div class="sp-info">
+            <div class="sp-title">Recovery</div>
+            <div class="sp-desc">Notater kap. 18. Log records, undo/redo, ARIES, sjekkpunkter, fuzzy checkpoint</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <div class="container">
+      <h2>Test deg selv</h2>
+      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 1 · Lett</div>
+        <div class="q-text">[Quiz-spørsmål — fyll inn via tools/generate_chapter_quizzes.py]</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">[Svar]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

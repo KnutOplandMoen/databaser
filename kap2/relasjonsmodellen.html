@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relasjonsmodellen — Kap 2</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 2</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 2: Relasjonsmodellen og relasjonsalgebra">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 2 · 2A</div>
+      <h1>Relasjons<em>modellen</em></h1>
+      <p class="lede">Den formelle modellen bak SQL: relasjoner, attributter, nøkler og integritetskrav.</p>
+      <nav class="toc">
+        <a href="#hvorfor"><span>01</span> Hvorfor relasjoner</a>
+        <a href="#skjema"><span>02</span> Skjema og instans</a>
+        <a href="#nokler"><span>03</span> Nøkler</a>
+        <a href="#integritet"><span>04</span> Integritetskrav</a>
+        <a href="#null"><span>05</span> NULL og treverdig logikk</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hvorfor">
+    <div class="container">
+      <div class="section-badge">01 · Hvorfor relasjoner</div>
+      <h2>Codd 1970 — én datatype</h2>
+      <p class="dropcap">[Innledende avsnitt — fyll inn. Bullet-stubber:]</p>
+      <ul>
+        <li>Hvordan så data ut før relasjonsmodellen</li>
+        <li>Codd-paperets nøkkelinnsikt: deklarativ tilgang</li>
+        <li>Forholdet mellom relasjonsmodell og SQL</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="skjema">
+    <div class="container">
+      <div class="section-badge">02 · Skjema og instans</div>
+      <h2>Skjema er strukturen, instans er dataen</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Relasjon R(A₁, A₂, …, Aₙ) — attributter med domener</li>
+        <li>Tupler som mengde, ikke sekvens</li>
+        <li>Skjema vs. instans: strukturen er stabil, instansen endrer seg</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="nokler">
+    <div class="container">
+      <div class="section-badge">03 · Nøkler</div>
+      <h2>Hva identifiserer en rad</h2>
+      <ul>
+        <li>Supernøkkel — en mengde som er unik</li>
+        <li>Kandidatnøkkel — minimal supernøkkel</li>
+        <li>Primærnøkkel — den valgte kandidatnøkkelen</li>
+        <li>Fremmednøkkel — referanse til en annen tabells primærnøkkel</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="integritet">
+    <div class="container">
+      <div class="section-badge">04 · Integritetskrav</div>
+      <h2>Hva DBMS-en garanterer</h2>
+      <ul>
+        <li>Domenebegrensning — verdier av riktig type</li>
+        <li>Entitetsintegritet — primærnøkkel ikke NULL</li>
+        <li>Referanseintegritet — fremmednøkler peker på reelle rader</li>
+        <li>CASCADE / SET NULL / RESTRICT ved sletting</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="null">
+    <div class="container">
+      <div class="section-badge">05 · NULL og treverdig logikk</div>
+      <h2>Når «ukjent» roter alt til</h2>
+      <ul>
+        <li>NULL = «ukjent» / «ikke relevant»</li>
+        <li>Treverdig logikk: TRUE / FALSE / UNKNOWN</li>
+        <li>WHERE filtrerer bort UNKNOWN — overraskende ofte</li>
+        <li>IS NULL vs. = NULL</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

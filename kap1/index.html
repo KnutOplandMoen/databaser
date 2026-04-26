@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kapittel 1 — Introduksjon til databaser</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Alle kapitler</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 1: Introduksjon til databaser">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 1 · Forelesning 1</div>
+      <h1>Introduksjon til <em>databaser</em></h1>
+      <p class="lede">Hva er en database, hvorfor trenger vi et DBMS, og hvordan henger alle delene i kurset sammen.</p>
+    </div>
+  </header>
+
+  <nav class="chapter-toc">
+    <div class="container">
+      <ol class="chapter-toc-list">
+        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
+        <li><span class="toc-num">02</span><a href="#arkitektur">Arkitektur</a></li>
+        <li><span class="toc-num">03</span><a href="#acid">ACID</a></li>
+        <li><span class="toc-num">04</span><a href="#quiz">Test deg selv</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <section id="overblikk">
+    <div class="container">
+      <div class="section-badge">Helhetsbilde</div>
+      <h2>Hva er en <em>database</em></h2>
+      <p class="section-intro">Bullet-stubber:</p>
+      <ul>
+        <li>Persistente, strukturerte data som mange klienter deler</li>
+        <li>Hvorfor DBMS over filsystem (samtidighet, integritet, recovery, abstraksjon)</li>
+        <li>Datamodeller: relasjonell vs. dokument vs. graf</li>
+        <li>Skjema vs. instans</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="arkitektur">
+    <div class="container">
+      <div class="section-badge">Arkitektur</div>
+      <h2>DBMS-en i fugleperspektiv</h2>
+      <p class="section-intro">Foregriper Del 2 — alle delene som dukker opp senere.</p>
+      <ul>
+        <li>SQL-kompilator → algebra-tre</li>
+        <li>Optimizer → kostnadsbasert plan</li>
+        <li>Executor → kjører plan, snakker med buffer/lås/log</li>
+        <li>Buffer pool → blokker i minnet</li>
+        <li>Disk → heapfiler + indekser</li>
+        <li>Logg → garanterer durability + atomicity</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="acid">
+    <div class="container">
+      <div class="section-badge">ACID</div>
+      <h2>Fire bokstaver, fire garantier</h2>
+      <ul>
+        <li><strong>Atomicity</strong> — alt-eller-ingenting</li>
+        <li><strong>Consistency</strong> — bevarer integritetskrav</li>
+        <li><strong>Isolation</strong> — som om transaksjonen var alene</li>
+        <li><strong>Durability</strong> — etter commit overlever data krasj</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <div class="container">
+      <h2>Test deg selv</h2>
+      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 1 · Lett</div>
+        <div class="q-text">[Quiz-spørsmål — fyll inn via tools/generate_chapter_quizzes.py]</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">[Svar]</div>
+        </div>
+      </div>
+      <!-- Generer 25 spørsmål med tools/generate_chapter_quizzes.py -->
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kapittel 3 — SQL</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Alle kapitler</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 3: SQL">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 3 · Forelesning 3–6</div>
+      <h1>SQL — fra <em>SELECT</em> til triggere</h1>
+      <p class="lede">Det praktiske språket man faktisk bruker. Fire forelesninger, fire deler — fra grunnleggende spørringer til prosedyrer og rekursjon.</p>
+    </div>
+  </header>
+
+  <nav class="chapter-toc">
+    <div class="container">
+      <ol class="chapter-toc-list">
+        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
+        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <section id="overblikk">
+    <div class="container">
+      <div class="section-badge">Helhetsbilde</div>
+      <h2>SQL er stort — del det opp</h2>
+      <p class="section-intro">Bullet-stubber:</p>
+      <ul>
+        <li>DDL (CREATE/ALTER) vs. DML (SELECT/INSERT/UPDATE/DELETE) vs. DCL (GRANT/REVOKE)</li>
+        <li>Standard vs. dialekt — vi bruker stort sett ANSI-SQL</li>
+        <li>Optimalisatorens jobb: gjøre din SELECT om til en god plan</li>
+      </ul>
+      <div class="callout">
+        <span class="label">Merk</span>
+        <p>SQL-syntaks for transaksjoner (BEGIN/COMMIT/ROLLBACK) introduseres i del 3, men <em>teorien</em> hører hjemme i Kap 8.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="deler">
+    <div class="container">
+      <div class="section-badge">Deler</div>
+      <h2>Utforsk <em>kapittelet</em></h2>
+      <div class="subpage-list">
+        <a href="ddl-og-spoerringer.html" class="subpage-card">
+          <span class="sp-icon">3A</span>
+          <div class="sp-info">
+            <div class="sp-title">DDL og spørringer</div>
+            <div class="sp-desc">CREATE TABLE, SELECT, WHERE, ORDER BY, aggregat, GROUP BY/HAVING, mengdeoperatorer</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="joins-og-subqueries.html" class="subpage-card">
+          <span class="sp-icon">3B</span>
+          <div class="sp-info">
+            <div class="sp-title">Joins og subqueries</div>
+            <div class="sp-desc">INNER/OUTER JOIN, ON vs USING, korrelerte subqueries, EXISTS, IN, ANY/ALL</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="views-transaksjoner-integritet.html" class="subpage-card">
+          <span class="sp-icon">3C</span>
+          <div class="sp-info">
+            <div class="sp-title">Views, transaksjoner, integritet</div>
+            <div class="sp-desc">VIEW, CREATE INDEX, GRANT/REVOKE, CHECK/ASSERTION, BEGIN/COMMIT</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="prosedyrer-triggere-rekursjon.html" class="subpage-card">
+          <span class="sp-icon">3D</span>
+          <div class="sp-info">
+            <div class="sp-title">Prosedyrer, triggere, rekursjon</div>
+            <div class="sp-desc">STORED PROCEDURE, FUNCTION, TRIGGER, WITH RECURSIVE</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <div class="container">
+      <h2>Test deg selv</h2>
+      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 1 · Lett</div>
+        <div class="q-text">[Quiz-spørsmål — fyll inn via tools/generate_chapter_quizzes.py]</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">[Svar]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>
