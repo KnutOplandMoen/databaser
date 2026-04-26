@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaksjoner: intro og teori — Kap 8</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 8</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 8: Transaksjoner">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 8 · 8A · Forelesning 14</div>
+      <h1>Intro og <em>teori</em></h1>
+      <p class="lede">Bratsbergs notater kap 15–16. ACID, schedules, serializability — vokabularet for resten av kapittelet.</p>
+      <nav class="toc">
+        <a href="#acid"><span>01</span> ACID</a>
+        <a href="#schedule"><span>02</span> Schedules</a>
+        <a href="#serial"><span>03</span> Serializability</a>
+        <a href="#conflict"><span>04</span> Conflict serializability</a>
+        <a href="#view"><span>05</span> View serializability</a>
+        <a href="#recover"><span>06</span> Recoverability</a>
+        <a href="#cascade"><span>07</span> Cascadeless og strict</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="acid">
+    <div class="container">
+      <div class="section-badge">01 · ACID</div>
+      <h2>De fire garantiene</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Atomicity — alt eller ingenting</li>
+        <li>Consistency — bevarer integritetskrav</li>
+        <li>Isolation — ser ut som om alene</li>
+        <li>Durability — overlever krasj etter commit</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="schedule">
+    <div class="container">
+      <div class="section-badge">02 · Schedules</div>
+      <h2>Sammenflettede operasjoner</h2>
+      <ul>
+        <li>Schedule = sekvens av read/write/commit/abort fra flere transaksjoner</li>
+        <li>Seriell schedule — én ferdig før neste starter</li>
+        <li>Hvorfor ikke alltid serielt? Ytelse.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="serial">
+    <div class="container">
+      <div class="section-badge">03 · Serializability</div>
+      <h2>Ekvivalent med en seriell</h2>
+      <ul>
+        <li>Mål: la samtidige transaksjoner se ut som om de var serielle</li>
+        <li>Kort: schedule S er serializable hvis det finnes seriell S' med samme effekt</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="conflict">
+    <div class="container">
+      <div class="section-badge">04 · Conflict serializability</div>
+      <h2>Bytt om ikke-konflikterende</h2>
+      <ul>
+        <li>Konflikt: to operasjoner på samme data, minst én er write</li>
+        <li>Conflict-graf: kant fra T_i til T_j hvis T_i har konfliktende op før T_j</li>
+        <li>Conflict-serializable ⇔ acyclic graf</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="view">
+    <div class="container">
+      <div class="section-badge">05 · View serializability</div>
+      <h2>Litt mer permissivt</h2>
+      <ul>
+        <li>Tre vilkår: same initial reads, samme W-R-relasjoner, samme final writes</li>
+        <li>NP-hardt å avgjøre i sin alminnelighet</li>
+        <li>Conflict ⊂ View</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="recover">
+    <div class="container">
+      <div class="section-badge">06 · Recoverability</div>
+      <h2>Aborter må ikke ødelegge committed transaksjoner</h2>
+      <ul>
+        <li>Recoverable — T_j commit etter T_i commit hvis T_j leste fra T_i</li>
+        <li>Cascading aborts hvis ikke recoverable</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="cascade">
+    <div class="container">
+      <div class="section-badge">07 · Cascadeless og strict</div>
+      <h2>Hierarki av schedule-klasser</h2>
+      <ul>
+        <li>Cascadeless — les bare committed data</li>
+        <li>Strict — verken les eller overskriv ucommitted</li>
+        <li>Serial ⊂ Strict ⊂ Cascadeless ⊂ Recoverable</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

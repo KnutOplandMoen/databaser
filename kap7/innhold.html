@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spørringsutføring — Kap 7</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 7</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 7: Spørringsutføring">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 7 · Forelesning 13</div>
+      <h1>Aksessmetoder, sortering, <em>join-algoritmer</em></h1>
+      <p class="lede">Bratsbergs notater kap 12–14. Hvordan plan-treet faktisk eksekveres mot data.</p>
+      <nav class="toc">
+        <a href="#aksess"><span>01</span> Aksessmetoder</a>
+        <a href="#sortering"><span>02</span> External merge sort</a>
+        <a href="#nested-loop"><span>03</span> Nested loop join</a>
+        <a href="#sort-merge"><span>04</span> Sort-merge join</a>
+        <a href="#hash-join"><span>05</span> Hash join</a>
+        <a href="#kost"><span>06</span> Kostnadsestimering</a>
+        <a href="#explain"><span>07</span> EXPLAIN</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="aksess">
+    <div class="container">
+      <div class="section-badge">01 · Aksessmetoder</div>
+      <h2>Tre måter å hente rader</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Full table scan — alle blokker</li>
+        <li>Index scan — gå gjennom indeks, slå opp i tabell</li>
+        <li>Index-only scan — alle nødvendige kolonner i indeksen</li>
+        <li>Bitmap scan — kombinerer flere indekser</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sortering">
+    <div class="container">
+      <div class="section-badge">02 · External merge sort</div>
+      <h2>Sortering når data ikke får plass i RAM</h2>
+      <ul>
+        <li>Pass 1: les inn B blokker, sorter internt, skriv ut "runs"</li>
+        <li>Pass 2+: merge B−1 runs om gangen</li>
+        <li>Antall passes: ⌈log_(B−1)(N/B)⌉</li>
+        <li>I/O-kost: 2N · (antall passes)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="nested-loop">
+    <div class="container">
+      <div class="section-badge">03 · Nested loop join</div>
+      <h2>For hver rad i ytre … for hver rad i indre …</h2>
+      <ul>
+        <li>Naiv: O(|R| · |S|) blokker</li>
+        <li>Block nested loop — hent en blokk om gangen</li>
+        <li>Index nested loop — bruk indeks på indre</li>
+        <li>Når lønner det seg: liten ytre tabell, indeks på indre</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sort-merge">
+    <div class="container">
+      <div class="section-badge">04 · Sort-merge join</div>
+      <h2>Sorter begge, gå parallelt</h2>
+      <ul>
+        <li>Sorter R og S på join-attributt</li>
+        <li>Gå parallelt med to pekere</li>
+        <li>Bra hvis input allerede er sortert</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="hash-join">
+    <div class="container">
+      <div class="section-badge">05 · Hash join</div>
+      <h2>Build + probe</h2>
+      <ul>
+        <li>Build phase: lag hash-tabell på mindre tabell</li>
+        <li>Probe phase: for hver rad i andre tabell, slå opp</li>
+        <li>Grace hash join når ikke alt får plass i minnet</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="kost">
+    <div class="container">
+      <div class="section-badge">06 · Kostnadsestimering</div>
+      <h2>Statistikk og selektivitet</h2>
+      <ul>
+        <li>Tellinger, distinct values, histogrammer</li>
+        <li>Selektivitet av predikater</li>
+        <li>Optimalisator velger plan med lavest forventet I/O-kost</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="explain">
+    <div class="container">
+      <div class="section-badge">07 · EXPLAIN</div>
+      <h2>Be DBMS om planen</h2>
+      <ul>
+        <li>EXPLAIN / EXPLAIN ANALYZE</li>
+        <li>Lese plantreet: rotnoden er resultatet</li>
+        <li>Kostnad i pseudo-units, faktisk tid med ANALYZE</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

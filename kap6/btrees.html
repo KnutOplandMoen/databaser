@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B+-trær og indekser — Kap 6</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 6</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 6: Lagring og indekser">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 6 · 6B · Forelesning 12</div>
+      <h1>B+-<em>trær</em> og indekser</h1>
+      <p class="lede">Bratsbergs notater kap 9–11. Hvorfor B+-treet er det udiskutable valget for sekundærlagring.</p>
+      <nav class="toc">
+        <a href="#hvorfor-bplus"><span>01</span> Hvorfor B+ over B</a>
+        <a href="#struktur"><span>02</span> Struktur</a>
+        <a href="#sok"><span>03</span> Søk</a>
+        <a href="#innsetting"><span>04</span> Innsetting</a>
+        <a href="#sletting"><span>05</span> Sletting</a>
+        <a href="#cluster"><span>06</span> Clustered vs unclustered</a>
+        <a href="#sparse-dense"><span>07</span> Sparse vs dense</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hvorfor-bplus">
+    <div class="container">
+      <div class="section-badge">01 · Hvorfor B+ over B</div>
+      <h2>Bredde-først for disk</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Høy fanout → få nivåer → få diskaksesser</li>
+        <li>Alle data i bladene — interne noder bare guide</li>
+        <li>Bladnoder lenket — billige range-scans</li>
+        <li>Logaritmisk dybde uavhengig av nøkkelfordeling</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="struktur">
+    <div class="container">
+      <div class="section-badge">02 · Struktur</div>
+      <h2>Rot, interne noder, blader</h2>
+      <ul>
+        <li>Hver node er én blokk</li>
+        <li>Orden d: ⌈d/2⌉ ≤ antall nøkler ≤ d</li>
+        <li>Roten har spesialregel (kan være halvfull)</li>
+        <li>Pekere: interne → barn, blader → record (RID) eller neste blad</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sok">
+    <div class="container">
+      <div class="section-badge">03 · Søk</div>
+      <h2>Topp ned</h2>
+      <ul>
+        <li>Sammenlign med separator-nøkler, gå til riktig barn</li>
+        <li>O(log_d N) blokker leses</li>
+        <li>Range scan: finn første, følg blad-link</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="innsetting">
+    <div class="container">
+      <div class="section-badge">04 · Innsetting</div>
+      <h2>Splitting fra blad og oppover</h2>
+      <ul>
+        <li>Søk frem til riktig blad</li>
+        <li>Hvis plass — sett inn sortert</li>
+        <li>Hvis fullt — splitt i to, send midt-nøkkel oppover</li>
+        <li>Hvis foreldrenoden også blir full — propagér</li>
+        <li>Treet vokser bare når roten splittes</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sletting">
+    <div class="container">
+      <div class="section-badge">05 · Sletting</div>
+      <h2>Underflow → låne eller slå sammen</h2>
+      <ul>
+        <li>Slett fra blad</li>
+        <li>Hvis under minimum — lån fra søsken eller merge</li>
+        <li>Merge propagérer oppover, kan krympe treet</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="cluster">
+    <div class="container">
+      <div class="section-badge">06 · Clustered vs unclustered</div>
+      <h2>Hvor ligger dataen</h2>
+      <ul>
+        <li>Clustered indeks — radene fysisk sortert etter nøkkel (én per tabell)</li>
+        <li>Unclustered — radene ligger spredd, indeks peker</li>
+        <li>Range-spørring: clustered er drastisk raskere</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="sparse-dense">
+    <div class="container">
+      <div class="section-badge">07 · Sparse vs dense</div>
+      <h2>Én oppføring per record, eller per blokk</h2>
+      <ul>
+        <li>Dense — én oppføring per record. Større indeks.</li>
+        <li>Sparse — én oppføring per blokk. Krever clustered data.</li>
+        <li>Sekundærindekser er alltid dense</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

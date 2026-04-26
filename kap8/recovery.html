@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovery — Kap 8</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 8</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 8: Transaksjoner">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 8 · 8C · Forelesning 16</div>
+      <h1>Recovery — <em>livet etter krasj</em></h1>
+      <p class="lede">Bratsbergs notater kap 18. Loggens jobb: garantere atomicity og durability uansett hva.</p>
+      <nav class="toc">
+        <a href="#mal"><span>01</span> Mål for recovery</a>
+        <a href="#log"><span>02</span> Log records</a>
+        <a href="#wal"><span>03</span> WAL</a>
+        <a href="#undo-redo"><span>04</span> Undo og redo</a>
+        <a href="#aries"><span>05</span> ARIES</a>
+        <a href="#checkpoint"><span>06</span> Sjekkpunkter</a>
+        <a href="#fuzzy"><span>07</span> Fuzzy checkpoint</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="mal">
+    <div class="container">
+      <div class="section-badge">01 · Mål</div>
+      <h2>To garantier under krasj</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Atomicity — committed transaksjoner overlever, aborted ruller tilbake</li>
+        <li>Durability — committed data tapes ikke</li>
+        <li>Krav: idempotent recovery (kan kjøres flere ganger)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="log">
+    <div class="container">
+      <div class="section-badge">02 · Log records</div>
+      <h2>Append-only kronologi</h2>
+      <ul>
+        <li>Update-record: (LSN, TxID, page, before-image, after-image)</li>
+        <li>Begin/Commit/Abort-records</li>
+        <li>Compensation Log Records (CLR) — ikke-undoable undo</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="wal">
+    <div class="container">
+      <div class="section-badge">03 · Write-Ahead Logging</div>
+      <h2>Loggen først, dataen etterpå</h2>
+      <ul>
+        <li>WAL-regelen: log må være persistert <em>før</em> datasiden</li>
+        <li>Force-at-commit — eller flush log-buffer ved commit</li>
+        <li>Sikrer atomicity (kan rulle tilbake) og durability (kan rulle frem)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="undo-redo">
+    <div class="container">
+      <div class="section-badge">04 · Undo og redo</div>
+      <h2>To operasjoner</h2>
+      <ul>
+        <li>Undo — fra after-image til before-image (rulle tilbake aborterte)</li>
+        <li>Redo — fra before-image til after-image (rulle frem committed)</li>
+        <li>Steal/no-steal · Force/no-force — fire kombinasjoner, ulike krav</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="aries">
+    <div class="container">
+      <div class="section-badge">05 · ARIES</div>
+      <h2>Industristandarden</h2>
+      <ul>
+        <li>Tre faser: Analysis · Redo · Undo</li>
+        <li>Analysis: gå gjennom log fra siste checkpoint, bygg active-transaction-table + dirty-page-table</li>
+        <li>Redo: spol fram ALL endringer fra redoLSN</li>
+        <li>Undo: rulle tilbake aborterte transaksjoner, skriv CLRs</li>
+        <li>LSN per side — vet hva som er gjort</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="checkpoint">
+    <div class="container">
+      <div class="section-badge">06 · Sjekkpunkter</div>
+      <h2>Begrens hvor langt tilbake recovery må gå</h2>
+      <ul>
+        <li>Stop-the-world checkpoint — alle skitne sider flushes</li>
+        <li>Begrenser Analysis-fasens startpunkt</li>
+        <li>Trade-off: hyppige sjekkpunkter = liten recovery, mer normaldrift-overhead</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="fuzzy">
+    <div class="container">
+      <div class="section-badge">07 · Fuzzy checkpoint</div>
+      <h2>Sjekkpunkt uten å stoppe</h2>
+      <ul>
+        <li>Skriv begin-checkpoint + active-tx + dirty-page-list, fortsett drift</li>
+        <li>Bakgrunnsprosess flusher skitne sider</li>
+        <li>End-checkpoint når alle de skitne sidene fra start er på disk</li>
+        <li>ARIES bruker dette</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samtidighet og låser — Kap 8</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back">&larr; Kap 8</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Kapittel 8: Transaksjoner">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Kapittel 8 · 8B · Forelesning 15</div>
+      <h1>Samtidighet og <em>låser</em></h1>
+      <p class="lede">Bratsbergs notater kap 16–17. Hvordan DBMS-en gjennomtvinger isolation når mange transaksjoner går samtidig.</p>
+      <nav class="toc">
+        <a href="#hvorfor-cc"><span>01</span> Hvorfor concurrency control</a>
+        <a href="#2pl"><span>02</span> 2PL</a>
+        <a href="#strict-2pl"><span>03</span> Strict og rigorous 2PL</a>
+        <a href="#deadlock"><span>04</span> Deadlock</a>
+        <a href="#granulariet"><span>05</span> Lock granularity</a>
+        <a href="#timestamp"><span>06</span> Timestamp ordering</a>
+        <a href="#mvcc"><span>07</span> MVCC</a>
+        <a href="#isolation"><span>08</span> Isolation levels</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="hvorfor-cc">
+    <div class="container">
+      <div class="section-badge">01 · Hvorfor</div>
+      <h2>Klassiske anomalier</h2>
+      <p class="dropcap">[Stubber:]</p>
+      <ul>
+        <li>Lost update</li>
+        <li>Dirty read</li>
+        <li>Non-repeatable read</li>
+        <li>Phantom read</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="2pl">
+    <div class="container">
+      <div class="section-badge">02 · 2PL</div>
+      <h2>To-fase låsing</h2>
+      <ul>
+        <li>Growing phase — bare ta låser</li>
+        <li>Shrinking phase — bare slipp låser</li>
+        <li>Garanterer conflict-serializability</li>
+        <li>Shared (S) vs. exclusive (X) låser</li>
+        <li>Lock compatibility-matrise</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="strict-2pl">
+    <div class="container">
+      <div class="section-badge">03 · Strict og rigorous 2PL</div>
+      <h2>Hold låsene til commit</h2>
+      <ul>
+        <li>Strict 2PL — hold X-låser til commit/abort</li>
+        <li>Rigorous 2PL — hold alle låser til commit/abort</li>
+        <li>Begge gir cascadeless schedules</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="deadlock">
+    <div class="container">
+      <div class="section-badge">04 · Deadlock</div>
+      <h2>To transaksjoner venter på hverandre</h2>
+      <ul>
+        <li>Wait-for-graf — sykel ⇒ deadlock</li>
+        <li>Deteksjon: sjekk graf med jevne mellomrom, abort ofre</li>
+        <li>Forebygging: wait-die, wound-wait</li>
+        <li>Timeout-basert</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="granulariet">
+    <div class="container">
+      <div class="section-badge">05 · Lock granularity</div>
+      <h2>Hva låser vi?</h2>
+      <ul>
+        <li>Hierarki: database → tabell → side → record</li>
+        <li>Intent locks (IS, IX, SIX)</li>
+        <li>Trade-off: granular = mindre konflikter, mer overhead</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="timestamp">
+    <div class="container">
+      <div class="section-badge">06 · Timestamp ordering</div>
+      <h2>Bytt låser med tidsstempler</h2>
+      <ul>
+        <li>Hver transaksjon får TS ved start</li>
+        <li>Read/write tester TS-orden, abort hvis brutt</li>
+        <li>Thomas write rule</li>
+        <li>Optimistic concurrency control (OCC)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="mvcc">
+    <div class="container">
+      <div class="section-badge">07 · MVCC</div>
+      <h2>Multi-version concurrency control</h2>
+      <ul>
+        <li>Hver write lager ny versjon</li>
+        <li>Reads ser konsistent snapshot — sliper ikke å låse</li>
+        <li>Snapshot isolation</li>
+        <li>Brukt i PostgreSQL, Oracle, mange andre</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="isolation">
+    <div class="container">
+      <div class="section-badge">08 · Isolation levels</div>
+      <h2>SQL-standardens fire nivåer</h2>
+      <ul>
+        <li>READ UNCOMMITTED — dirty reads tillatt</li>
+        <li>READ COMMITTED — hindrer dirty reads</li>
+        <li>REPEATABLE READ — hindrer non-repeatable</li>
+        <li>SERIALIZABLE — som seriell</li>
+        <li>Hva snapshot isolation faktisk gir (write skew-anomali)</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script src="../quiz.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

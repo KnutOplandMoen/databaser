@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spørringens reise — TDT4145</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  .journey-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 12px;
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 2;
+  }
+  .step-nav {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    padding: 1rem 0;
+  }
+  .step-nav ol { list-style: none; padding: 0; margin: 0; }
+  .step-nav li { margin-bottom: 0.5rem; font-size: 0.92rem; line-height: 1.4; }
+  .step-nav a {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    color: var(--ink-faded);
+    border: none;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: background .15s, color .15s;
+  }
+  .step-nav a:hover { background: var(--paper-dark); color: var(--ink); }
+  .step-nav a.active { background: rgba(31,78,121,0.10); color: var(--rust); font-weight: 500; }
+  .step-nav a.completed { color: var(--green); }
+  .step-nav .step-num { font-family: var(--mono); font-size: 0.78rem; flex: 0 0 auto; }
+
+  .journey-main { padding: 1rem 0 6rem; }
+  .journey-main section[data-step] { padding: 2.5rem 0; min-height: 60vh; border-top: 1px solid var(--line-soft); }
+  .journey-main section[data-step]:first-of-type { border-top: none; }
+  .journey-main h2 { margin-top: 0; }
+  .step-eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rust); margin-bottom: 0.6rem; }
+
+  .progress-rail {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    height: calc(100vh - 100px);
+    width: 4px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    width: 100%;
+    background: var(--rust);
+    height: 0;
+    transition: height .12s linear;
+  }
+
+  @media (max-width: 900px) {
+    .journey-layout { grid-template-columns: 1fr; gap: 0; }
+    .step-nav, .progress-rail { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Forsiden</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Spørringens reise gjennom DBMS-en">
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Interaktiv reise</div>
+      <h1>Spørringens reise gjennom <em>DBMS-en</em></h1>
+      <p class="lede">Følg en SELECT fra klient til disk og tilbake. Hvert trinn knytter sammen ulike kapitler i kurset.</p>
+    </div>
+  </header>
+
+  <div class="journey-layout">
+    <aside class="step-nav" aria-label="Trinn">
+      <ol>
+        <li><a href="#step-1" data-target="1"><span class="step-num">01</span> Klient sender SQL</a></li>
+        <li><a href="#step-2" data-target="2"><span class="step-num">02</span> Parser bygger AST</a></li>
+        <li><a href="#step-3" data-target="3"><span class="step-num">03</span> Katalog og typesjekk</a></li>
+        <li><a href="#step-4" data-target="4"><span class="step-num">04</span> Optimizer velger plan</a></li>
+        <li><a href="#step-5" data-target="5"><span class="step-num">05</span> Lock og log engasjeres</a></li>
+        <li><a href="#step-6" data-target="6"><span class="step-num">06</span> Buffer-oppslag</a></li>
+        <li><a href="#step-7" data-target="7"><span class="step-num">07</span> Disk-I/O</a></li>
+        <li><a href="#step-8" data-target="8"><span class="step-num">08</span> B+-tree-traversering</a></li>
+        <li><a href="#step-9" data-target="9"><span class="step-num">09</span> Resultat og commit</a></li>
+      </ol>
+    </aside>
+
+    <article class="journey-main">
+      <section id="step-1" data-step="1">
+        <div class="step-eyebrow">Trinn 01</div>
+        <h2>Klient sender SQL</h2>
+        <p class="dropcap">[Stubber:]</p>
+        <ul>
+          <li>Klient åpner forbindelse (TCP eller socket)</li>
+          <li>Autentisering, session-state</li>
+          <li>SQL-tekst sendes som bytes</li>
+        </ul>
+        <p>Relevant: <a href="../kap3/ddl-og-spoerringer.html">SQL-grunnform</a>, <a href="../kap3/views-transaksjoner-integritet.html#auth">autorisasjon</a>.</p>
+      </section>
+
+      <section id="step-2" data-step="2">
+        <div class="step-eyebrow">Trinn 02</div>
+        <h2>Parser bygger AST</h2>
+        <ul>
+          <li>Tokenizer → token-strøm</li>
+          <li>Parser → abstrakt syntakstre (AST)</li>
+          <li>Syntaksfeil rapporteres her</li>
+        </ul>
+      </section>
+
+      <section id="step-3" data-step="3">
+        <div class="step-eyebrow">Trinn 03</div>
+        <h2>Katalog og typesjekk</h2>
+        <ul>
+          <li>SQL-katalogen slår opp tabell- og kolonneinformasjon</li>
+          <li>Typesjekk og navneoppløsning</li>
+          <li>Privilegiekontroll</li>
+          <li>AST → algebra-tre</li>
+        </ul>
+      </section>
+
+      <section id="step-4" data-step="4">
+        <div class="step-eyebrow">Trinn 04</div>
+        <h2>Optimizer velger plan</h2>
+        <ul>
+          <li>Algebraiske ekvivalenser brukes (push down σ, omorganiser join-rekkefølge)</li>
+          <li>Statistikk fra katalogen + selektivitet</li>
+          <li>Velger fysisk plan: indeks-scan, hash join, …</li>
+        </ul>
+        <p>Relevant: <a href="../kap2/relasjonsalgebra.html">relasjonsalgebra</a>, <a href="../kap7/innhold.html#kost">kostnadsestimering</a>.</p>
+      </section>
+
+      <section id="step-5" data-step="5">
+        <div class="step-eyebrow">Trinn 05</div>
+        <h2>Lock og log engasjeres</h2>
+        <ul>
+          <li>Executor begynner å kjøre planen</li>
+          <li>Lock manager (eller MVCC) gir tilgang til data</li>
+          <li>Log writer skriver begin-record</li>
+        </ul>
+        <p>Relevant: <a href="../kap8/samtidighet-og-laser.html">samtidighet</a>, <a href="../kap8/recovery.html">recovery</a>.</p>
+      </section>
+
+      <section id="step-6" data-step="6">
+        <div class="step-eyebrow">Trinn 06</div>
+        <h2>Buffer-oppslag</h2>
+        <ul>
+          <li>Trenger blokk N — er den i buffer?</li>
+          <li>Hash-indeks på BlockId</li>
+          <li>Hit: returner peker. Miss: gå til disk.</li>
+        </ul>
+        <p>Relevant: <a href="../kap6/lagring.html#buffer">database-buffer</a>.</p>
+      </section>
+
+      <section id="step-7" data-step="7">
+        <div class="step-eyebrow">Trinn 07</div>
+        <h2>Disk-I/O</h2>
+        <ul>
+          <li>Eviction av en eldre frame (kanskje skitten — flush først)</li>
+          <li>Les blokk fra disk via deviceId + offset</li>
+          <li>Verifiser flip/flop-stempel</li>
+        </ul>
+      </section>
+
+      <section id="step-8" data-step="8">
+        <div class="step-eyebrow">Trinn 08</div>
+        <h2>B+-tree-traversering</h2>
+        <ul>
+          <li>Hvis indeks-scan: gå fra rot til blad</li>
+          <li>Hver node er én blokk → typisk 3–4 nivåer for 100M rader</li>
+          <li>Range scan: følg blad-link</li>
+        </ul>
+        <p>Relevant: <a href="../kap6/btrees.html">B+-trær</a>.</p>
+      </section>
+
+      <section id="step-9" data-step="9">
+        <div class="step-eyebrow">Trinn 09</div>
+        <h2>Resultat og commit</h2>
+        <ul>
+          <li>Tupler streames tilbake til klient</li>
+          <li>Ved skriv: commit-record skrives, log-buffer flushes (WAL)</li>
+          <li>Låser slippes (etter strict 2PL)</li>
+        </ul>
+        <p>Relevant: <a href="../kap8/recovery.html#wal">WAL</a>.</p>
+      </section>
+    </article>
+
+    <div class="progress-rail" aria-hidden="true">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var sections = document.querySelectorAll('section[data-step]');
+  var navLinks = document.querySelectorAll('.step-nav a[data-target]');
+  var fill = document.getElementById('progress-fill');
+
+  function onScroll() {
+    var vh = window.innerHeight;
+    var midline = vh / 2;
+    var activeStep = null;
+    sections.forEach(function (s) {
+      var r = s.getBoundingClientRect();
+      if (r.top < midline) activeStep = s.dataset.step;
+    });
+    navLinks.forEach(function (a) {
+      a.classList.toggle('active', a.dataset.target === activeStep);
+      if (activeStep && parseInt(a.dataset.target) < parseInt(activeStep)) {
+        a.classList.add('completed');
+      } else {
+        a.classList.remove('completed');
+      }
+    });
+    var doc = document.documentElement;
+    var scrolled = (doc.scrollTop || document.body.scrollTop);
+    var max = (doc.scrollHeight - doc.clientHeight) || 1;
+    fill.style.height = Math.min(100, (scrolled / max) * 100) + '%';
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>
