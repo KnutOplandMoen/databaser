@@ -25,16 +25,18 @@
 <main data-chapter="Kapittel 3: SQL">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 3 · 3A · Forelesning 3</div>
+      <div class="eyebrow">Kapittel 3 · 3A · Forelesning 3 · Lærebok 3.1–3.7, 3.9</div>
       <h1>SQL — <em>DDL og spørringer</em></h1>
-      <p class="lede">Lærebokas seksjon 3.1–3.7 og 3.9. Tabeller, SELECT, aggregat — hovedmotet i SQL.</p>
+      <p class="lede">Tabeller, SELECT, aggregat — hovedmotet i SQL. Vi går fra «tom database» til en spørring som svarer på et faktisk spørsmål, og lærer fellene underveis.</p>
       <nav class="toc">
         <a href="#ddl"><span>01</span> CREATE TABLE</a>
-        <a href="#select"><span>02</span> SELECT-grunnform</a>
-        <a href="#where"><span>03</span> WHERE-predikater</a>
-        <a href="#orderby"><span>04</span> ORDER BY · DISTINCT</a>
-        <a href="#aggregat"><span>05</span> Aggregat og GROUP BY</a>
-        <a href="#mengde"><span>06</span> Mengdeoperatorer</a>
+        <a href="#dml-grunnform"><span>02</span> SELECT-grunnform</a>
+        <a href="#where"><span>03</span> WHERE og NULL</a>
+        <a href="#strenger"><span>04</span> Strenger og LIKE</a>
+        <a href="#orderby"><span>05</span> ORDER BY · DISTINCT</a>
+        <a href="#aggregat"><span>06</span> Aggregat og GROUP BY</a>
+        <a href="#mengde"><span>07</span> Mengdeoperatorer</a>
+        <a href="#dml-endringer"><span>08</span> INSERT · UPDATE · DELETE</a>
       </nav>
     </div>
   </header>
@@ -43,74 +45,628 @@
     <div class="container">
       <div class="section-badge">01 · DDL</div>
       <h2>CREATE TABLE og typer</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <p class="dropcap">Et relasjonsskjema er en kontrakt: hvilke kolonner finnes, hvilke typer har de, og hvilke rad-kombinasjoner er ulovlige. SQL DDL-en lar deg spesifisere alt dette i én setning. Eksemplet under er hentet fra universitetsdatabasen i lærebokens figur 3.1.</p>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> department (
+  dept_name  <span class="sql-fn">VARCHAR</span>(20),
+  building   <span class="sql-fn">VARCHAR</span>(15),
+  budget     <span class="sql-fn">NUMERIC</span>(12, 2),
+  <span class="sql-kw">PRIMARY KEY</span> (dept_name)
+);
+
+<span class="sql-kw">CREATE TABLE</span> course (
+  course_id  <span class="sql-fn">VARCHAR</span>(7),
+  title      <span class="sql-fn">VARCHAR</span>(50),
+  dept_name  <span class="sql-fn">VARCHAR</span>(20),
+  credits    <span class="sql-fn">NUMERIC</span>(2, 0),
+  <span class="sql-kw">PRIMARY KEY</span> (course_id),
+  <span class="sql-kw">FOREIGN KEY</span> (dept_name) <span class="sql-kw">REFERENCES</span> department
+);</code></pre>
+
+      <h3>Datatyper du må kjenne</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Beskrivelse</th><th>Eksempel</th></tr></thead>
+          <tbody>
+            <tr><td class="mono-cell">CHAR(n)</td><td>Fast lengde — padder med blanke. Vær varsom: <code>'Avi'</code> blir <code>'Avi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'</code> i CHAR(10).</td><td><code>CHAR(2)</code> for landskode</td></tr>
+            <tr><td class="mono-cell">VARCHAR(n)</td><td>Variabel lengde opp til n. <strong>Foretrukket</strong> for tekst.</td><td><code>VARCHAR(50)</code> for navn</td></tr>
+            <tr><td class="mono-cell">INT / SMALLINT</td><td>Heltall, maskinavhengig størrelse.</td><td><code>INT</code> for antall</td></tr>
+            <tr><td class="mono-cell">NUMERIC(p, d)</td><td>Eksakt desimaltall: p totale sifre, d etter desimaltegnet.</td><td><code>NUMERIC(12,2)</code> for valuta</td></tr>
+            <tr><td class="mono-cell">REAL / DOUBLE PRECISION</td><td>Flyttall — bruk når presisjon er mindre kritisk.</td><td>Sensordata</td></tr>
+            <tr><td class="mono-cell">DATE / TIMESTAMP</td><td>Dato eller dato + klokkeslett (med eller uten tidssone).</td><td><code>DATE '2026-04-26'</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Praksisregel</span>
+        <p>Bruk <code>VARCHAR</code> over <code>CHAR</code>. Sammenligning av CHAR og VARCHAR oppfører seg ulikt på tvers av DBMS — det fører til subtile bugger der <code>A = B</code> overraskende returnerer false fordi A er padded.</p>
+      </div>
+
+      <h3>Integritetskrav på rad-nivå</h3>
       <ul>
-        <li>Datatyper: INT, NUMERIC, CHAR, VARCHAR, DATE, TIMESTAMP</li>
-        <li>NOT NULL, DEFAULT, PRIMARY KEY, FOREIGN KEY</li>
-        <li>ALTER TABLE — legg til/fjern kolonner og constraints</li>
-        <li>DROP TABLE — irreversibelt</li>
+        <li><code>NOT NULL</code> — feltet kan ikke være tomt</li>
+        <li><code>PRIMARY KEY (a, b, …)</code> — entydig identifikator, implisitt NOT NULL</li>
+        <li><code>FOREIGN KEY (a) REFERENCES s</code> — verdien må finnes i tabell <em>s</em>'s primærnøkkel</li>
+        <li><code>UNIQUE (a, b)</code> — kombinasjonen må være entydig (men kan være NULL i noen DBMS)</li>
+        <li><code>CHECK (uttrykk)</code> — predikat på kolonne eller rad</li>
       </ul>
+
+      <h3>Endre og slette skjema</h3>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">Legge til kolonne</div>
+          <pre><code><span class="sql-kw">ALTER TABLE</span> instructor
+  <span class="sql-kw">ADD</span> phone <span class="sql-fn">VARCHAR</span>(15);</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">Effekt</div>
+          <pre><code><span class="sql-com">-- Alle eksisterende rader får</span>
+<span class="sql-com">-- phone = NULL</span></code></pre>
+        </div>
+      </div>
+
+      <div class="fact-grid">
+        <div class="fact-card"><div class="fc-key">DROP TABLE r</div><div class="fc-val">Sletter både skjema og data — irreversibelt.</div></div>
+        <div class="fact-card"><div class="fc-key">DELETE FROM r</div><div class="fc-val">Tømmer rader, beholder skjemaet.</div></div>
+        <div class="fact-card"><div class="fc-key">TRUNCATE r</div><div class="fc-val">Som DELETE, men raskere og uten transaksjonsspor (DBMS-spesifikt).</div></div>
+        <div class="fact-card"><div class="fc-key">ALTER TABLE</div><div class="fc-val">Legg til/fjern kolonner, endre constraints, omdøp tabellen.</div></div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Lett</div>
+        <div class="q-text">Du oppretter <code>CREATE TABLE x (id INT PRIMARY KEY, parent_id INT, FOREIGN KEY (parent_id) REFERENCES x);</code>. Deretter prøver du å sette inn <code>INSERT INTO x VALUES (1, 1);</code>. Hva skjer?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Feil — du kan ikke ha selvreferanse</button></li>
+          <li><button class="mcq-opt" data-correct="1">Det går bra — raden oppfyller FK fordi (1,1) refererer til seg selv</button></li>
+          <li><button class="mcq-opt">Feil — primærnøkkel kan ikke være en FK samtidig</button></li>
+          <li><button class="mcq-opt">Feil — DBMS-er tillater ikke FK på samme tabell</button></li>
+        </ul>
+        <div class="mcq-feedback">Selvreferansen er klassisk for hierarki (ansatt → leder, kategori → forelder). Klassen som ofte feiler i quiz er at <em>første</em> rot-rad må sette parent_id til seg selv eller kreves at FK tillater NULL.</div>
+      </div>
     </div>
   </section>
 
-  <section id="select">
+  <section id="dml-grunnform">
     <div class="container">
-      <div class="section-badge">02 · SELECT</div>
-      <h2>SELECT … FROM …</h2>
-      <ul>
-        <li>Tre-delt grunnform: SELECT (projection) / FROM (source) / WHERE (selection)</li>
-        <li>SELECT * vs. eksplisitte kolonner</li>
-        <li>Aliaser med AS</li>
-      </ul>
+      <div class="section-badge">02 · SELECT-grunnform</div>
+      <h2><em>SELECT</em> — projeksjon, kilde, filter</h2>
+      <p>Tre obligatoriske komponenter: <code>SELECT</code> (hvilke kolonner), <code>FROM</code> (fra hvilke relasjoner), <code>WHERE</code> (hvilke rader). Tenk på dem som <em>π</em>, <em>×</em> og <em>σ</em> i relasjonsalgebra-termer.</p>
+
+      <h3>Eksempel: enkel én-tabell-spørring</h3>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">SQL</div>
+          <pre><code><span class="sql-kw">SELECT</span> name
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">WHERE</span> dept_name = <span class="sql-str">'Comp. Sci.'</span>
+  <span class="sql-kw">AND</span> salary > <span class="sql-num">70000</span>;</code></pre>
+        </div>
+        <div class="pane result">
+          <div class="pane-label">Resultat</div>
+          <table>
+            <thead><tr><th>name</th></tr></thead>
+            <tbody>
+              <tr><td>Katz</td></tr>
+              <tr><td>Brandt</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>Aritmetikk og aliaser</h3>
+      <p><code>SELECT</code> kan inneholde uttrykk: <code>+ − * /</code> og funksjonskall. Bruk <code>AS</code> for å gi et lesbart navn til resultat-kolonnen.</p>
+
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">SQL</div>
+          <pre><code><span class="sql-kw">SELECT</span> ID, name,
+       salary <span class="sql-kw">AS</span> dagens,
+       salary * <span class="sql-num">1.1</span> <span class="sql-kw">AS</span> etter_paaslag
+<span class="sql-kw">FROM</span> instructor;</code></pre>
+        </div>
+        <div class="pane result">
+          <div class="pane-label">Resultat (utdrag)</div>
+          <table>
+            <thead><tr><th>ID</th><th>name</th><th>dagens</th><th>etter_paaslag</th></tr></thead>
+            <tbody>
+              <tr><td>10101</td><td>Srinivasan</td><td>65000</td><td>71500.00</td></tr>
+              <tr><td>22222</td><td>Einstein</td><td>95000</td><td>104500.00</td></tr>
+              <tr><td>15151</td><td>Mozart</td><td>40000</td><td>44000.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>Flere tabeller — kartesisk produkt + filter</h3>
+      <p>Når <code>FROM</code> har flere relasjoner, bygger SQL <em>først</em> det kartesiske produktet og <em>deretter</em> filtrerer med <code>WHERE</code>. Dette er den mentale modellen — ikke nødvendigvis hva motoren faktisk gjør.</p>
+
+      <div class="fig-anim" data-anim data-max-step="3">
+        <figure>
+          <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+            <defs>
+              <marker id="arrJoin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+              </marker>
+            </defs>
+            <!-- Step 1: Show two tables -->
+            <g data-show-on="1,2,3">
+              <text x="80" y="30" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257" letter-spacing="0.12em">INSTRUCTOR</text>
+              <rect x="20" y="40" width="160" height="80" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="20" y1="60" x2="180" y2="60" stroke="#c9c0ae"/>
+              <text x="30" y="55" font-weight="700" font-size="11">ID</text>
+              <text x="80" y="55" font-weight="700" font-size="11">name</text>
+              <text x="30" y="78" font-family="IBM Plex Mono, monospace" font-size="11">10101</text>
+              <text x="80" y="78">Srinivasan</text>
+              <text x="30" y="98" font-family="IBM Plex Mono, monospace" font-size="11">22222</text>
+              <text x="80" y="98">Einstein</text>
+              <text x="30" y="118" font-family="IBM Plex Mono, monospace" font-size="11">15151</text>
+              <text x="80" y="118">Mozart</text>
+            </g>
+
+            <g data-show-on="1,2,3">
+              <text x="290" y="30" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257" letter-spacing="0.12em">TEACHES</text>
+              <rect x="220" y="40" width="160" height="80" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="220" y1="60" x2="380" y2="60" stroke="#c9c0ae"/>
+              <text x="230" y="55" font-weight="700" font-size="11">ID</text>
+              <text x="280" y="55" font-weight="700" font-size="11">course_id</text>
+              <text x="230" y="78" font-family="IBM Plex Mono, monospace" font-size="11">10101</text>
+              <text x="280" y="78" font-family="IBM Plex Mono, monospace" font-size="11">CS-101</text>
+              <text x="230" y="98" font-family="IBM Plex Mono, monospace" font-size="11">22222</text>
+              <text x="280" y="98" font-family="IBM Plex Mono, monospace" font-size="11">PHY-101</text>
+              <text x="230" y="118" font-family="IBM Plex Mono, monospace" font-size="11">10101</text>
+              <text x="280" y="118" font-family="IBM Plex Mono, monospace" font-size="11">CS-315</text>
+            </g>
+
+            <!-- Step 2: Cartesian product -->
+            <g data-show-on="2,3">
+              <text x="500" y="30" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257" letter-spacing="0.12em">FROM × FROM (3·3=9 RADER)</text>
+              <rect x="430" y="40" width="280" height="200" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="430" y1="60" x2="710" y2="60" stroke="#c9c0ae"/>
+              <text x="440" y="55" font-weight="700" font-size="10">i.ID</text>
+              <text x="475" y="55" font-weight="700" font-size="10">name</text>
+              <text x="555" y="55" font-weight="700" font-size="10">t.ID</text>
+              <text x="595" y="55" font-weight="700" font-size="10">course</text>
+              <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257">
+                <text x="440" y="73">10101</text><text x="475" y="73">Srinivasan</text><text x="555" y="73">10101</text><text x="595" y="73">CS-101</text>
+                <text x="440" y="88">10101</text><text x="475" y="88">Srinivasan</text><text x="555" y="88">22222</text><text x="595" y="88">PHY-101</text>
+                <text x="440" y="103">10101</text><text x="475" y="103">Srinivasan</text><text x="555" y="103">10101</text><text x="595" y="103">CS-315</text>
+                <text x="440" y="118">22222</text><text x="475" y="118">Einstein</text><text x="555" y="118">10101</text><text x="595" y="118">CS-101</text>
+                <text x="440" y="133">22222</text><text x="475" y="133">Einstein</text><text x="555" y="133">22222</text><text x="595" y="133">PHY-101</text>
+                <text x="440" y="148">22222</text><text x="475" y="148">Einstein</text><text x="555" y="148">10101</text><text x="595" y="148">CS-315</text>
+                <text x="440" y="163">15151</text><text x="475" y="163">Mozart</text>    <text x="555" y="163">10101</text><text x="595" y="163">CS-101</text>
+                <text x="440" y="178">15151</text><text x="475" y="178">Mozart</text>    <text x="555" y="178">22222</text><text x="595" y="178">PHY-101</text>
+                <text x="440" y="193">15151</text><text x="475" y="193">Mozart</text>    <text x="555" y="193">10101</text><text x="595" y="193">CS-315</text>
+              </g>
+            </g>
+
+            <!-- Step 3: Highlight matching rows -->
+            <g data-show-on="3">
+              <rect x="431" y="64" width="278" height="13" fill="rgba(61, 107, 58, 0.18)"/>
+              <rect x="431" y="94" width="278" height="13" fill="rgba(61, 107, 58, 0.18)"/>
+              <rect x="431" y="139" width="278" height="13" fill="rgba(61, 107, 58, 0.18)"/>
+              <text x="440" y="225" font-style="italic" fill="#3d6b3a" font-size="11">3 av 9 rader oppfyller WHERE i.ID = t.ID</text>
+            </g>
+
+            <text x="350" y="265" text-anchor="middle" data-text-on='{"1":"Steg 1: To kildetabeller","2":"Steg 2: FROM lager kartesisk produkt (3 × 3 = 9 rader)","3":"Steg 3: WHERE i.ID = t.ID filtrerer ned til 3 rader"}' font-style="italic" fill="#3d3832" font-size="13">Steg 1: To kildetabeller</text>
+          </svg>
+          <figcaption>Klikk gjennom de tre stegene. Husk: dette er den <em>logiske</em> evalueringen; en moderne optimaliserer vil aldri faktisk lage hele det kartesiske produktet hvis den ikke må.</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">1 · Tabeller</button>
+          <button data-step="2">2 · Kartesisk produkt</button>
+          <button data-step="3">3 · WHERE-filter</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 3</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Med tall</span>
+        <p>Med 200 ansatte som hver underviser i 3 emner får du 200·600 = <strong>120 000</strong> rader i mellomresultatet. Bare riktig <code>WHERE</code> redder ytelsen — eller en optimalisator som er smart nok til å unngå hele produktet.</p>
+      </div>
     </div>
   </section>
 
   <section id="where">
     <div class="container">
-      <div class="section-badge">03 · WHERE</div>
-      <h2>Filtrer rader</h2>
+      <div class="section-badge">03 · WHERE og NULL</div>
+      <h2>Filtrer rader — og unngå NULL-fellen</h2>
+
+      <h3>Operatorer du har</h3>
+      <div class="fact-grid">
+        <div class="fact-card"><div class="fc-key">Sammenligning</div><div class="fc-val"><code>=</code> <code>&lt;&gt;</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></div></div>
+        <div class="fact-card"><div class="fc-key">BETWEEN</div><div class="fc-val"><code>x BETWEEN a AND b</code> ⇔ <code>x &gt;= a AND x &lt;= b</code></div></div>
+        <div class="fact-card"><div class="fc-key">IN / NOT IN</div><div class="fc-val"><code>dept_name IN ('CS','EE')</code></div></div>
+        <div class="fact-card"><div class="fc-key">LIKE</div><div class="fc-val">Strengmønster med <code>%</code> og <code>_</code></div></div>
+        <div class="fact-card"><div class="fc-key">IS NULL</div><div class="fc-val">Eneste lovlige test for fravær</div></div>
+        <div class="fact-card"><div class="fc-key">AND / OR / NOT</div><div class="fc-val">Logiske koblinger — gir tre-verdi-logikk</div></div>
+      </div>
+
+      <h3>Tre-verdi-logikk: TRUE, FALSE, UNKNOWN</h3>
+      <p>I SQL er <code>NULL</code> ikke en verdi du sammenligner mot — det er en markør for «ukjent eller fraværende». Sammenligning med NULL gir alltid <code>UNKNOWN</code>, og <code>WHERE</code> beholder kun rader der predikatet er <code>TRUE</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Uttrykk</th><th>Resultat</th><th>Hvorfor</th></tr></thead>
+          <tbody>
+            <tr><td><code>5 = NULL</code></td><td>UNKNOWN</td><td>Vi vet ikke om x er 5</td></tr>
+            <tr><td><code>NULL = NULL</code></td><td>UNKNOWN</td><td>To ukjente verdier kan være like — eller ikke</td></tr>
+            <tr><td><code>x IS NULL</code></td><td>TRUE / FALSE</td><td>Spør om <em>fravær</em>, ikke om verdi-likhet</td></tr>
+            <tr><td><code>NULL AND TRUE</code></td><td>UNKNOWN</td><td>Hvis vi visste, kunne vært TRUE eller FALSE</td></tr>
+            <tr><td><code>NULL OR TRUE</code></td><td>TRUE</td><td>OR med TRUE er alltid TRUE — uansett</td></tr>
+            <tr><td><code>NULL AND FALSE</code></td><td>FALSE</td><td>AND med FALSE er alltid FALSE</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Klassisk feller</span>
+        <p><code>WHERE x &lt;&gt; 5</code> returnerer <em>ikke</em> rader hvor x er NULL. Hvis du vil ha «alt unntatt 5, inkludert ukjente», skriv <code>WHERE x &lt;&gt; 5 OR x IS NULL</code>.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Tabellen <code>t(x)</code> har radene <code>{1, 2, NULL, 5}</code>. Hvor mange rader returnerer <code>SELECT x FROM t WHERE x &lt;&gt; 5;</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">3 — alle bortsett fra 5</button></li>
+          <li><button class="mcq-opt" data-correct="1">2 — bare 1 og 2</button></li>
+          <li><button class="mcq-opt">4 — alle radene</button></li>
+          <li><button class="mcq-opt">0 — NULL gjør hele predikatet UNKNOWN</button></li>
+        </ul>
+        <div class="mcq-feedback">NULL &lt;&gt; 5 er UNKNOWN, ikke TRUE. WHERE filtrerer den bort. Bare 1 og 2 består.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="strenger">
+    <div class="container">
+      <div class="section-badge">04 · Strenger og LIKE</div>
+      <h2>Tekstmønstre med <em>LIKE</em></h2>
+      <p>Strenger skrives i enkelt-fnutter: <code>'Computer'</code>. Et fnutt-tegn inni en streng dobles: <code>'It''s right'</code>.</p>
+
+      <h3>Mønster-jokere</h3>
       <ul>
-        <li>Sammenligning: = ≠ &lt; &gt; ≤ ≥</li>
-        <li>BETWEEN, IN, LIKE, IS NULL</li>
-        <li>AND, OR, NOT — og NULL-fellen</li>
+        <li><code>%</code> matcher <em>vilkårlig</em> tekst (inkludert tom).</li>
+        <li><code>_</code> matcher nøyaktig <em>ett</em> tegn.</li>
       </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mønster</th><th>Matcher</th><th>Matcher ikke</th></tr></thead>
+          <tbody>
+            <tr><td class="mono-cell">'Intro%'</td><td>'Intro to SQL'</td><td>'An Intro'</td></tr>
+            <tr><td class="mono-cell">'%Comp%'</td><td>'Intro to Computer Science', 'Computational Bio'</td><td>'Calculus'</td></tr>
+            <tr><td class="mono-cell">'___'</td><td>'CS1'</td><td>'CS101'</td></tr>
+            <tr><td class="mono-cell">'__%'</td><td>Alt med ≥2 tegn</td><td>'A'</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Escape-tegn</h3>
+      <p>Vil du matche selve <code>%</code> eller <code>_</code>? Bruk <code>ESCAPE</code>:</p>
+      <pre><code><span class="sql-kw">SELECT</span> *
+<span class="sql-kw">FROM</span> products
+<span class="sql-kw">WHERE</span> code <span class="sql-kw">LIKE</span> <span class="sql-str">'ab\%cd%'</span> <span class="sql-kw">ESCAPE</span> <span class="sql-str">'\'</span>;
+<span class="sql-com">-- Matcher alle koder som starter med "ab%cd"</span></code></pre>
+
+      <div class="callout">
+        <span class="label">Case-sensitivitet</span>
+        <p>Standard SQL er <em>case-sensitiv</em> for likhet. <code>'comp. sci.' = 'Comp. Sci.'</code> evaluerer til false. MySQL og SQL Server er ofte case-<em>insensitiv</em> som default — enda en grunn til å lese DBMS-dokumentasjonen.</p>
+      </div>
     </div>
   </section>
 
   <section id="orderby">
     <div class="container">
-      <div class="section-badge">04 · ORDER BY og DISTINCT</div>
-      <h2>Sortering og dedup</h2>
-      <ul>
-        <li>ORDER BY col ASC/DESC, kombinert sort</li>
-        <li>SELECT DISTINCT — bagsemantikk vs. mengdesemantikk</li>
-        <li>LIMIT / FETCH FIRST</li>
-      </ul>
+      <div class="section-badge">05 · ORDER BY · DISTINCT</div>
+      <h2>Sortering, dedup og top-N</h2>
+
+      <h3>Sortering</h3>
+      <pre><code><span class="sql-kw">SELECT</span> *
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">ORDER BY</span> salary <span class="sql-kw">DESC</span>, name <span class="sql-kw">ASC</span>;</code></pre>
+      <p>Default er stigende (<code>ASC</code>). Du kan sortere på flere kolonner — første sorteringsnøkkel har høyest prioritet, så bruker SQL den neste til å bryte uavgjorte verdier.</p>
+
+      <h3>DISTINCT — fjerne duplikater</h3>
+      <p>SQL er <em>multiset</em> som default: spørringer beholder duplikater. Be eksplisitt om mengde-semantikk:</p>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">Bag (default)</div>
+          <pre><code><span class="sql-kw">SELECT</span> dept_name
+<span class="sql-kw">FROM</span> instructor;</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">Set</div>
+          <pre><code><span class="sql-kw">SELECT DISTINCT</span> dept_name
+<span class="sql-kw">FROM</span> instructor;</code></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Hvorfor multiset?</span>
+        <p>Å fjerne duplikater krever en sortering eller hash-tabell — kostbart. Standarden lar deg velge når kostnaden er verdt det.</p>
+      </div>
+
+      <h3>Top-N: LIMIT / FETCH FIRST</h3>
+      <pre><code><span class="sql-kw">SELECT</span> name, salary
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">ORDER BY</span> salary <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">5</span>;
+<span class="sql-com">-- I standard SQL: FETCH FIRST 5 ROWS ONLY</span></code></pre>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Lett</div>
+        <div class="q-text">En tabell <code>person(name)</code> har 4 rader: Anne, Bjørn, Anne, Cato. Hvor mange rader returnerer <code>SELECT DISTINCT name FROM person ORDER BY name;</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">4</button></li>
+          <li><button class="mcq-opt" data-correct="1">3</button></li>
+          <li><button class="mcq-opt">2</button></li>
+          <li><button class="mcq-opt">Avhenger av DBMS</button></li>
+        </ul>
+        <div class="mcq-feedback">DISTINCT fjerner duplikatet av Anne. Resultat: Anne, Bjørn, Cato.</div>
+      </div>
     </div>
   </section>
 
   <section id="aggregat">
     <div class="container">
-      <div class="section-badge">05 · Aggregat og GROUP BY</div>
-      <h2>COUNT, SUM, AVG, MIN, MAX</h2>
-      <ul>
-        <li>Aggregat over hele tabellen</li>
-        <li>GROUP BY — én rad per gruppe</li>
-        <li>HAVING — filter <em>etter</em> gruppering</li>
-        <li>NULL-håndtering: COUNT(*) vs COUNT(col)</li>
-      </ul>
+      <div class="section-badge">06 · Aggregat og GROUP BY</div>
+      <h2>Fra rader til oppsummeringer</h2>
+      <p>Aggregatfunksjoner reduserer en kolonne med mange rader til <em>én</em> verdi. Standarden definerer fem stykker — alle ignorerer NULL bortsett fra <code>COUNT(*)</code>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Funksjon</th><th>Beskrivelse</th><th>NULL?</th></tr></thead>
+          <tbody>
+            <tr><td><code>COUNT(*)</code></td><td>Antall rader</td><td>Teller alle rader</td></tr>
+            <tr><td><code>COUNT(col)</code></td><td>Antall ikke-NULL verdier</td><td>Hopper over NULL</td></tr>
+            <tr><td><code>COUNT(DISTINCT col)</code></td><td>Antall distinkte ikke-NULL verdier</td><td>Hopper over NULL</td></tr>
+            <tr><td><code>SUM(col)</code></td><td>Sum (numerisk)</td><td>Hopper over NULL</td></tr>
+            <tr><td><code>AVG(col)</code></td><td>Gjennomsnitt</td><td>Hopper over NULL</td></tr>
+            <tr><td><code>MIN(col)</code> / <code>MAX(col)</code></td><td>Minste/største</td><td>Hopper over NULL</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>GROUP BY: ett aggregat per gruppe</h3>
+      <p><code>GROUP BY</code> deler tabellen i grupper basert på like verdier i én eller flere kolonner. Hver gruppe gir én rad i resultatet.</p>
+
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">SQL</div>
+          <pre><code><span class="sql-kw">SELECT</span> dept_name,
+       <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> n_ansatte,
+       <span class="sql-fn">AVG</span>(salary) <span class="sql-kw">AS</span> snittlonn
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">GROUP BY</span> dept_name;</code></pre>
+        </div>
+        <div class="pane result">
+          <div class="pane-label">Resultat</div>
+          <table>
+            <thead><tr><th>dept_name</th><th>n_ansatte</th><th>snittlonn</th></tr></thead>
+            <tbody>
+              <tr><td>Comp. Sci.</td><td>3</td><td>77 333.33</td></tr>
+              <tr><td>Physics</td><td>2</td><td>91 000.00</td></tr>
+              <tr><td>Finance</td><td>2</td><td>85 000.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Regel om SELECT-listen</span>
+        <p>Hver kolonne i <code>SELECT</code> må enten være <em>i</em> <code>GROUP BY</code>, eller pakkes i en aggregatfunksjon. Ellers er resultatet udefinert: hvilken «name» skal man velge når raden representerer 12 ulike ansatte?</p>
+      </div>
+
+      <h3>HAVING — filter <em>etter</em> aggregering</h3>
+      <p><code>WHERE</code> filtrerer <em>rader</em> før gruppering. <code>HAVING</code> filtrerer <em>grupper</em> etter aggregering.</p>
+
+      <div class="fig-anim" data-anim data-max-step="4">
+        <figure>
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="12">
+            <!-- Stage 1 -->
+            <g data-show-on="1,2,3,4">
+              <rect x="20" y="30" width="140" height="160" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="90" y="22" text-anchor="middle" font-size="10" fill="#6b6257">RAW</text>
+              <text x="30" y="50">name</text><text x="100" y="50">dept</text>
+              <text x="30" y="70">A</text><text x="100" y="70">CS</text>
+              <text x="30" y="85">B</text><text x="100" y="85">CS</text>
+              <text x="30" y="100">C</text><text x="100" y="100">CS</text>
+              <text x="30" y="115">D</text><text x="100" y="115">EE</text>
+              <text x="30" y="130">E</text><text x="100" y="130">EE</text>
+              <text x="30" y="145">F</text><text x="100" y="145">PHY</text>
+              <text x="30" y="160">G</text><text x="100" y="160">PHY</text>
+              <text x="30" y="175">H</text><text x="100" y="175">BIO</text>
+            </g>
+            <!-- Stage 2: WHERE -->
+            <g data-show-on="2,3,4">
+              <text x="195" y="115" font-size="14" fill="#1f4e79">→</text>
+              <text x="200" y="98" font-size="10" fill="#1f4e79" font-family="IBM Plex Sans, sans-serif">WHERE dept &lt;&gt; 'BIO'</text>
+              <rect x="240" y="30" width="140" height="160" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="310" y="22" text-anchor="middle" font-size="10" fill="#6b6257">EFTER WHERE</text>
+              <text x="250" y="50">name</text><text x="320" y="50">dept</text>
+              <text x="250" y="70">A</text><text x="320" y="70">CS</text>
+              <text x="250" y="85">B</text><text x="320" y="85">CS</text>
+              <text x="250" y="100">C</text><text x="320" y="100">CS</text>
+              <text x="250" y="115">D</text><text x="320" y="115">EE</text>
+              <text x="250" y="130">E</text><text x="320" y="130">EE</text>
+              <text x="250" y="145">F</text><text x="320" y="145">PHY</text>
+              <text x="250" y="160">G</text><text x="320" y="160">PHY</text>
+            </g>
+            <!-- Stage 3: GROUP BY -->
+            <g data-show-on="3,4">
+              <text x="415" y="115" font-size="14" fill="#1f4e79">→</text>
+              <text x="420" y="98" font-size="10" fill="#1f4e79" font-family="IBM Plex Sans, sans-serif">GROUP BY dept · COUNT(*)</text>
+              <rect x="460" y="30" width="120" height="160" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="520" y="22" text-anchor="middle" font-size="10" fill="#6b6257">PER GRUPPE</text>
+              <text x="470" y="50">dept</text><text x="540" y="50">cnt</text>
+              <text x="470" y="80">CS</text><text x="540" y="80">3</text>
+              <text x="470" y="110">EE</text><text x="540" y="110">2</text>
+              <text x="470" y="140">PHY</text><text x="540" y="140">2</text>
+            </g>
+            <!-- Stage 4: HAVING -->
+            <g data-show-on="4">
+              <text x="610" y="115" font-size="14" fill="#1f4e79">→</text>
+              <text x="615" y="98" font-size="10" fill="#1f4e79" font-family="IBM Plex Sans, sans-serif">HAVING cnt &gt;= 3</text>
+              <rect x="650" y="30" width="60" height="160" fill="#f4f1ea" stroke="#3d6b3a" stroke-width="2"/>
+              <text x="680" y="22" text-anchor="middle" font-size="10" fill="#3d6b3a">SLUTT</text>
+              <text x="660" y="50">dept</text><text x="688" y="50">cnt</text>
+              <text x="660" y="80">CS</text><text x="688" y="80">3</text>
+            </g>
+          </svg>
+          <figcaption>Pipeline-en: råtabell → <em>WHERE</em> filtrer rader → <em>GROUP BY</em> bunter → <em>HAVING</em> filtrerer grupper. Klikk gjennom stegene under.</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">RAW</button>
+          <button data-step="2">+ WHERE</button>
+          <button data-step="3">+ GROUP BY</button>
+          <button data-step="4">+ HAVING</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 4</span>
+        </div>
+      </div>
+
+      <pre><code><span class="sql-kw">SELECT</span> dept_name, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> cnt
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">WHERE</span> dept_name <span class="sql-kw">&lt;&gt;</span> <span class="sql-str">'BIO'</span>
+<span class="sql-kw">GROUP BY</span> dept_name
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">&gt;=</span> <span class="sql-num">3</span>;</code></pre>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">Tabellen <code>p(grade)</code> har <code>{5, 4, NULL, 3, NULL, 4}</code>. Hva returnerer <code>SELECT COUNT(*), COUNT(grade), AVG(grade) FROM p;</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">6, 6, 16/6 = 2.67</button></li>
+          <li><button class="mcq-opt">4, 4, 16/4 = 4</button></li>
+          <li><button class="mcq-opt" data-correct="1">6, 4, 16/4 = 4</button></li>
+          <li><button class="mcq-opt">6, 4, NULL — fordi det er NULL i kolonnen</button></li>
+        </ul>
+        <div class="mcq-feedback">COUNT(*) ser alle 6 radene. COUNT(grade) hopper over de 2 NULL-ene → 4. AVG ignorerer også NULL: (5+4+3+4)/4 = 4.</div>
+      </div>
     </div>
   </section>
 
   <section id="mengde">
     <div class="container">
-      <div class="section-badge">06 · Mengdeoperatorer</div>
+      <div class="section-badge">07 · Mengdeoperatorer</div>
       <h2>UNION · INTERSECT · EXCEPT</h2>
-      <ul>
-        <li>Krav til skjemakompatibilitet</li>
-        <li>UNION (dedup) vs UNION ALL (bag)</li>
-        <li>INTERSECT og EXCEPT — ikke alle DBMS støtter</li>
-      </ul>
+      <p>Kombiner to spørringer som om de var sett. Krav: begge spørringene må ha samme antall kolonner og kompatible typer.</p>
+
+      <div class="venn-row">
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <circle cx="48" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">A UNION B</text>
+          </svg>
+          <div class="vn-label">begge sett, dedup</div>
+        </div>
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <defs><clipPath id="cl1"><circle cx="48" cy="50" r="35"/></clipPath></defs>
+            <circle cx="48" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79" clip-path="url(#cl1)"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">A INTERSECT B</text>
+          </svg>
+          <div class="vn-label">overlapp</div>
+        </div>
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <defs><clipPath id="cl2"><circle cx="48" cy="50" r="35"/></clipPath></defs>
+            <circle cx="48" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="#f4f1ea" stroke="#1f4e79"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">A EXCEPT B</text>
+          </svg>
+          <div class="vn-label">i A men ikke i B</div>
+        </div>
+      </div>
+
+      <h3>Eksempel: emner som ble undervist i begge semestrene</h3>
+      <pre><code>(<span class="sql-kw">SELECT</span> course_id <span class="sql-kw">FROM</span> section
+ <span class="sql-kw">WHERE</span> semester = <span class="sql-str">'Fall'</span>   <span class="sql-kw">AND</span> year = <span class="sql-num">2017</span>)
+<span class="sql-kw">INTERSECT</span>
+(<span class="sql-kw">SELECT</span> course_id <span class="sql-kw">FROM</span> section
+ <span class="sql-kw">WHERE</span> semester = <span class="sql-str">'Spring'</span> <span class="sql-kw">AND</span> year = <span class="sql-num">2018</span>);</code></pre>
+
+      <div class="callout">
+        <span class="label">UNION vs UNION ALL</span>
+        <p><code>UNION</code> fjerner duplikater (set-semantikk). <code>UNION ALL</code> beholder dem (multiset-semantikk). Hvis du vet at kildene ikke har duplikater, er <code>UNION ALL</code> raskere — den slipper sortering.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">A = {1, 2, 2, 3} og B = {2, 3, 4} (begge multiset). Hva returnerer <code>A UNION ALL B</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">{1, 2, 3, 4}</button></li>
+          <li><button class="mcq-opt" data-correct="1">{1, 2, 2, 3, 2, 3, 4}</button></li>
+          <li><button class="mcq-opt">{1, 2, 2, 3, 4}</button></li>
+          <li><button class="mcq-opt">{2, 3} — bare overlappet</button></li>
+        </ul>
+        <div class="mcq-feedback">UNION ALL slår sammen alle rader — duplikater og alt. UNION (uten ALL) ville gitt {1, 2, 3, 4}.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="dml-endringer">
+    <div class="container">
+      <div class="section-badge">08 · INSERT · UPDATE · DELETE</div>
+      <h2>Endre data</h2>
+
+      <h3>INSERT</h3>
+      <pre><code><span class="sql-com">-- Eksplisitt verdier</span>
+<span class="sql-kw">INSERT INTO</span> instructor (ID, name, dept_name, salary)
+<span class="sql-kw">VALUES</span> (<span class="sql-str">'77777'</span>, <span class="sql-str">'Lovelace'</span>, <span class="sql-str">'CS'</span>, <span class="sql-num">85000</span>);
+
+<span class="sql-com">-- Sett inn fra spørring</span>
+<span class="sql-kw">INSERT INTO</span> hi_paid (ID, name)
+<span class="sql-kw">SELECT</span> ID, name
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">WHERE</span> salary &gt; <span class="sql-num">100000</span>;</code></pre>
+
+      <h3>UPDATE</h3>
+      <pre><code><span class="sql-kw">UPDATE</span> instructor
+<span class="sql-kw">SET</span> salary = salary * <span class="sql-num">1.05</span>
+<span class="sql-kw">WHERE</span> dept_name = <span class="sql-str">'CS'</span>;</code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">Glem aldri WHERE</span>
+        <p><code>UPDATE instructor SET salary = 0;</code> oppdaterer <em>alle</em> radene. Dette er den klassiske produksjons-katastrofen som kan stoppes ved å alltid teste UPDATE-er først som en SELECT med samme WHERE.</p>
+      </div>
+
+      <h3>DELETE</h3>
+      <pre><code><span class="sql-kw">DELETE FROM</span> instructor
+<span class="sql-kw">WHERE</span> dept_name = <span class="sql-str">'BIO'</span>
+  <span class="sql-kw">AND</span> salary &lt; <span class="sql-num">50000</span>;</code></pre>
+
+      <h3>CASE-uttrykk i SET</h3>
+      <pre><code><span class="sql-kw">UPDATE</span> instructor
+<span class="sql-kw">SET</span> salary =
+  <span class="sql-kw">CASE</span>
+    <span class="sql-kw">WHEN</span> salary &lt; <span class="sql-num">60000</span> <span class="sql-kw">THEN</span> salary * <span class="sql-num">1.10</span>
+    <span class="sql-kw">ELSE</span>                       salary * <span class="sql-num">1.03</span>
+  <span class="sql-kw">END</span>;</code></pre>
+
+      <p><code>CASE</code> er det nærmeste SQL kommer en if/else, og fungerer både i <code>SELECT</code>, <code>WHERE</code> og <code>SET</code>.</p>
+    </div>
+  </section>
+
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">Oppsummering</div>
+      <h2>Det du skal kunne</h2>
+      <ol class="steps">
+        <li>Skrive <code>CREATE TABLE</code> med riktige typer, primær- og fremmednøkler, og forklare hvorfor hver constraint er der.</li>
+        <li>Lese en SELECT-spørring og gjenkjenne den logiske evalueringsrekkefølgen (FROM → WHERE → GROUP → HAVING → SELECT → ORDER → LIMIT).</li>
+        <li>Forklare tre-verdi-logikken og hvorfor <code>= NULL</code> aldri matcher.</li>
+        <li>Skille mellom <code>WHERE</code> (filtrer rader) og <code>HAVING</code> (filtrer grupper).</li>
+        <li>Bruke <code>UNION</code>, <code>INTERSECT</code> og <code>EXCEPT</code> samt deres ALL-varianter.</li>
+        <li>Vite at SELECT-listen ved GROUP BY enten må være i GROUP-listen eller pakket i et aggregat.</li>
+      </ol>
+      <p style="margin-top: 1.4rem;">Klar for joins og subqueries? <a href="joins-og-subqueries.html">Gå til 3B → Joins og subqueries</a>.</p>
     </div>
   </section>
 </main>

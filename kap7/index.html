@@ -27,7 +27,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 7 · Forelesning 13 · Del 2</div>
       <h1>Spørrings<em>utføring</em></h1>
-      <p class="lede">Aksessmetoder, sortering og join-algoritmer — hvordan en SELECT faktisk blir kjørt.</p>
+      <p class="lede">Aksessmetoder, sortering og join-algoritmer — hvordan en SELECT faktisk blir kjørt mot disk.</p>
     </div>
   </header>
 
@@ -35,8 +35,9 @@
     <div class="container">
       <ol class="chapter-toc-list">
         <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">02</span><a href="#deler">Læringsmodul</a></li>
+        <li><span class="toc-num">03</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
+        <li><span class="toc-num">04</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
@@ -44,13 +45,14 @@
   <section id="overblikk">
     <div class="container">
       <div class="section-badge">Helhetsbilde</div>
-      <h2>Fra plan til resultat</h2>
+      <h2>Fra plan til <em>resultat</em></h2>
+      <p>I forrige kapittel så vi <em>hvor</em> data ligger — heap, B+-tre, hash. Nå ser vi hvordan databasen faktisk plukker dem opp og setter dem sammen.</p>
       <ul>
-        <li>Optimizer velger plan; executor kjører den</li>
-        <li>Aksessmetoder: full scan, indeks-scan, indeks-only</li>
-        <li>Sortering på disk: external merge sort</li>
-        <li>Join-algoritmer: nested loop, sort-merge, hash join — kostnadsforskjeller</li>
-        <li>EXPLAIN viser planen</li>
+        <li>Optimizer velger plan, executor kjører den</li>
+        <li>Aksessmetoder: full scan, index scan, index-only scan, bitmap scan</li>
+        <li>External merge sort — sortering når data er større enn RAM</li>
+        <li>Tre join-algoritmer: nested loop, sort-merge, hash join — hver med sine kostnadsprofiler</li>
+        <li>EXPLAIN viser den valgte planen og hjelper med feilsøking</li>
       </ul>
       <div class="callout callout-blue">
         <span class="label">Slides</span>
@@ -61,14 +63,15 @@
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
+      <div class="section-badge">Læringsmodul</div>
       <h2>Utforsk <em>kapittelet</em></h2>
+      <p>Innholdssiden er bygget som en gjennomgang med interaktive figurer og innebygde sjekkspørsmål mellom hver del. Bruk «Neste steg»-knappene i animasjonene for å følge merge sort, nested loop, sort-merge og hash join trinn for trinn.</p>
       <div class="subpage-list">
         <a href="innhold.html" class="subpage-card">
           <span class="sp-icon">7</span>
           <div class="sp-info">
             <div class="sp-title">Aksessmetoder, sortering, join-algoritmer</div>
-            <div class="sp-desc">Notater kap. 12–14. Kostnadsestimering, EXPLAIN, eksempler</div>
+            <div class="sp-desc">Bratsberg kap. 12–14 · 9 seksjoner · 4 animasjoner · innebygde quizer</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -76,233 +79,139 @@
     </div>
   </section>
 
+  <section id="nokkelbegreper">
+    <div class="container">
+      <div class="section-badge">Nøkkelbegreper</div>
+      <h2>Vokabular du <em>må</em> kunne</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Begrep</th><th>Forklaring</th></tr></thead>
+          <tbody>
+            <tr><td>Aksessmetode</td><td>Hvordan executoren henter rader: full scan, index scan, index-only, bitmap.</td></tr>
+            <tr><td>Selektivitet</td><td>Andel rader som tilfredsstiller et predikat. Brukes til å estimere kost.</td></tr>
+            <tr><td>External merge sort</td><td>Sortering på disk i to faser: initialfase + merge. n_R, d_M, antall passer.</td></tr>
+            <tr><td>Block nested loop join</td><td>Ytre tabell i biter inn i bufferet; indre scannes per bit.</td></tr>
+            <tr><td>Sort-merge join</td><td>Sorter begge sider, gå gjennom med to pekere.</td></tr>
+            <tr><td>Hash join</td><td>Bygg hash på liten side, probe stor side.</td></tr>
+            <tr><td>Grace hash join</td><td>Partisjoner begge tabeller når hash-tabellen ikke får plass i RAM.</td></tr>
+            <tr><td>EXPLAIN</td><td>Viser plantreet uten å kjøre. EXPLAIN ANALYZE kjører og rapporterer faktisk tid.</td></tr>
+            <tr><td>Histogram</td><td>Statistikk-struktur som lagrer fordelingen av verdier — bedre selektivitetsestimater enn min/max.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <p class="section-intro">Hurtig sjekk på de viktigste konseptene. Den fyldige sluttquizen ligger på <a href="innhold.html#sluttquiz">innholdssiden</a>.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 7?</div>
+        <div class="q-text">Hva er forskjellen på en optimizer og en executor i et DBMS?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 7]</div>
+          <div class="answer">Optimizeren <em>velger</em> en utføringsplan basert på statistikk og kostnadsestimater. Executoren <em>kjører</em> den valgte planen ved å kalle aksessmetoder mot lagring og kombinere resultater.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 7 i praksis?</div>
+        <div class="q-label">Spørsmål 2 · Lett</div>
+        <div class="q-text">Nevn de fire grunnleggende aksessmetodene.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 7]</div>
+          <div class="answer">Full table scan, index scan, index-only scan, bitmap scan.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 7 er faglig best?</div>
+        <div class="q-label">Spørsmål 3 · Middels</div>
+        <div class="q-text">Hvorfor er <em>clustered</em> versus <em>unclustered</em> indeks så avgjørende ved range-spørringer?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 7]</div>
+          <div class="answer">Clustered = radene ligger fysisk i nøkkelorden, så et range-treff blir et sammenhengende blokk-scan. Unclustered = radene er spredt; hvert treff kan bety en ny RID-pekerfølging og en ny blokk-aksess. Ved bredt treff blir unclustered ofte verre enn full scan.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 7 i praksis?</div>
+        <div class="q-text">I external merge sort: hva er totalformelen for I/O og hvorfor multipliseres b med 2?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 7]</div>
+          <div class="answer">Total I/O = 2b · (1 + #merge-passes). 2-en kommer av at hvert pass både leser og skriver hele datasettet — initial-passet inkludert.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 7?</div>
+        <div class="q-label">Spørsmål 5 · Vanskelig</div>
+        <div class="q-text">b = 1024 blokker, n_B = 5 buffer. Hva er n_R, d_M og antall mergepasser?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 7]</div>
+          <div class="answer">n_R = ⌈1024/5⌉ = 205. d_M = 4. Antall passes = ⌈log₄(205)⌉ = 4. Total I/O = 2·1024·(1+4) = 10 240 blokker.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 7 er faglig best?</div>
+        <div class="q-label">Spørsmål 6 · Lett</div>
+        <div class="q-text">Hvilken tabell bør være ytre i en block nested loop join?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 7]</div>
+          <div class="answer">Den minste. Antall passer over indre tabell er ⌈|ytre|/(n_B−2)⌉, og det vil vi minimere.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 7 i praksis?</div>
+        <div class="q-text">Department har 5 blokker, Employee har 1000 blokker, buffer 5. Beregn block nested loop med Department ytre.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 7]</div>
+          <div class="answer">5 + ⌈5/3⌉·1000 = 5 + 2·1000 = <strong>2005 blokker</strong>. Med Employee ytre: 1000 + ⌈1000/3⌉·5 = 2670. Department ytre vinner.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 7 er faglig best?</div>
+        <div class="q-label">Spørsmål 8 · Middels</div>
+        <div class="q-text">Når er sort-merge join klart bedre enn hash join?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 7]</div>
+          <div class="answer">(a) Når begge tabeller allerede er sortert på join-attributtet — sortfasen er gratis. (b) Når output uansett skal sorteres. (c) For ulikhets-join (R.x &lt; S.y) der hash er ubrukelig.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 7?</div>
+        <div class="q-label">Spørsmål 9 · Vanskelig</div>
+        <div class="q-text">Hvorfor bygger hash join hash-tabellen på den minste tabellen, og ikke den største?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 7]</div>
+          <div class="answer">Hash-tabellen må holdes i minnet. Mindre build-side ⇒ får plass i mindre buffer ⇒ unngår grace-fasen. I/O-kosten er strukturelt symmetrisk (én scan av hver), men minneforbruket avgjør om vi klarer å unngå disk-partisjonering.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 7 er faglig best?</div>
+        <div class="q-label">Spørsmål 10 · Middels</div>
+        <div class="q-text">Hva er selektivitet, og hvilken statistikk bruker optimizeren for å estimere den?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 7]</div>
+          <div class="answer">Selektivitet = andel rader som passer et predikat. Optimizeren bruker n(R), V(A,R), min/max og — for skjeve fordelinger — histogrammer. Standardformler: WHERE A=c ⇒ 1/V(A,R); WHERE A&gt;c ⇒ (max−c)/(max−min).</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 7 i praksis?</div>
+        <div class="q-label">Spørsmål 11 · Vanskelig</div>
+        <div class="q-text">EXPLAIN ANALYZE viser estimat 12 rader, faktisk 180 000. Hva er problemet og hvilket tiltak fungerer ofte?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 7]</div>
+          <div class="answer">Statistikken er utdatert eller for grov. Optimizeren har sannsynligvis valgt nested loop forventet å prosessere 12 rader, men kjører den nå på 180 000 ⇒ kvadratisk eksplosjon. Tiltak: kjør <code>ANALYZE table</code>, vurder histogram med flere bins, sjekk at predikatet ikke skjuler indeksbruk via funksjon eller cast.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 7 er faglig best?</div>
+        <div class="q-text">En unclustered B+-indeks finnes på <code>salary</code>. Spørringen er <code>WHERE salary &gt; 0</code>. Optimizeren velger full table scan. Forklar.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 7?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 7 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 7 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 7 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 7?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 7 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 7 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 7 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 7 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 7 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 7?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 7 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 7]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 7 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 7]</div>
+          <div class="answer">Predikatet matcher alle radene. Med unclustered indeks blir kostnaden <em>antall treff × en blokk pr. RID</em> = opp mot 100 000 blokker for 100 000 rader. Full scan = ~1961 blokker. Optimizerens kostnadsmodell ser raskt at indeksen er <em>verre</em> selv om den teknisk er anvendelig.</div>
         </div>
       </div>
     </div>

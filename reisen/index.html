@@ -6,11 +6,12 @@
 <title>Spørringens reise — TDT4145</title>
 <link rel="stylesheet" href="../style.css">
 <style>
+  /* ── Layout ─────────────────────────────────────────────── */
   .journey-layout {
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr) 12px;
+    grid-template-columns: 240px minmax(0, 1fr) 12px;
     gap: 32px;
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 0 32px;
     position: relative;
@@ -21,9 +22,12 @@
     top: 80px;
     align-self: start;
     padding: 1rem 0;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
   }
+  .step-nav h4 { margin: 0 0 0.6rem; font-size: 0.72rem; }
   .step-nav ol { list-style: none; padding: 0; margin: 0; }
-  .step-nav li { margin-bottom: 0.5rem; font-size: 0.92rem; line-height: 1.4; }
+  .step-nav li { margin-bottom: 0.3rem; font-size: 0.92rem; line-height: 1.4; }
   .step-nav a {
     display: flex;
     gap: 0.6rem;
@@ -33,17 +37,35 @@
     padding: 6px 8px;
     border-radius: 4px;
     transition: background .15s, color .15s;
+    position: relative;
   }
   .step-nav a:hover { background: var(--paper-dark); color: var(--ink); }
   .step-nav a.active { background: rgba(31,78,121,0.10); color: var(--rust); font-weight: 500; }
   .step-nav a.completed { color: var(--green); }
+  .step-nav a.completed::after {
+    content: '\2713';
+    margin-left: auto;
+    color: var(--green);
+    font-size: 0.85rem;
+  }
   .step-nav .step-num { font-family: var(--mono); font-size: 0.78rem; flex: 0 0 auto; }
 
   .journey-main { padding: 1rem 0 6rem; }
-  .journey-main section[data-step] { padding: 2.5rem 0; min-height: 60vh; border-top: 1px solid var(--line-soft); }
+  .journey-main section[data-step] {
+    padding: 3rem 0 2rem;
+    border-top: 1px solid var(--line-soft);
+    scroll-margin-top: 80px;
+  }
   .journey-main section[data-step]:first-of-type { border-top: none; }
   .journey-main h2 { margin-top: 0; }
-  .step-eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--rust); margin-bottom: 0.6rem; }
+  .step-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.6rem;
+  }
 
   .progress-rail {
     position: sticky;
@@ -62,10 +84,479 @@
     transition: height .12s linear;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 980px) {
     .journey-layout { grid-template-columns: 1fr; gap: 0; }
     .step-nav, .progress-rail { display: none; }
   }
+
+  /* ── Demo query banner ─────────────────────────────────── */
+  .demo-query {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1.4rem 0 0;
+  }
+  .demo-query .label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 0.4rem;
+  }
+  .demo-query pre {
+    margin: 0;
+    background: transparent;
+    border: none;
+    padding: 0.4rem 0;
+    color: var(--ink);
+  }
+  .demo-query .keyword { color: var(--rust); font-weight: 600; }
+  .demo-query .literal { color: var(--blue); }
+
+  /* ── Generic figure framing ────────────────────────────── */
+  figure.journey-fig {
+    margin: 1.6rem 0;
+    padding: 1.2rem;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+  }
+  figure.journey-fig svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+  figure.journey-fig figcaption {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--ink-faded);
+    text-align: center;
+    margin-top: 0.6rem;
+    font-style: italic;
+  }
+
+  .controls {
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+  .ctrl-btn {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    background: var(--paper);
+    color: var(--rust);
+    border: 1px solid var(--rust);
+    padding: 6px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    margin: 0 4px;
+    transition: background .15s, color .15s;
+  }
+  .ctrl-btn:hover { background: var(--rust); color: var(--paper); }
+  .ctrl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Step 1: packet flight ─────────────────────────────── */
+  .pf-client, .pf-server {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .pf-pipe { stroke: var(--ink-ghost); stroke-width: 1.2; stroke-dasharray: 4 4; }
+  .pf-packet {
+    fill: var(--rust);
+    transform-origin: center;
+  }
+  .pf-active .pf-packet {
+    animation: pkt-fly 3.6s linear infinite;
+  }
+  @keyframes pkt-fly {
+    0%   { transform: translateX(0);    opacity: 0; }
+    8%   { opacity: 1; }
+    50%  { transform: translateX(380px); opacity: 1; }
+    52%  { opacity: 0; }
+    52.1% { transform: translateX(380px); }
+    60%  { transform: translateX(380px); opacity: 0; }
+    62%  { opacity: 1; }
+    100% { transform: translateX(0);    opacity: 1; }
+  }
+  .pf-label { font-family: var(--mono); font-size: 11px; fill: var(--ink-faded); }
+  .pf-title { font-family: var(--sans); font-size: 12px; fill: var(--ink); font-weight: 600; }
+
+  /* ── Step 2: tokenizer + AST ───────────────────────────── */
+  .tok-stream span {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin: 3px 4px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .tok-stream.go span {
+    animation: tok-pop 0.4s ease forwards;
+  }
+  .tok-stream.go span:nth-child(1)  { animation-delay: 0.05s; }
+  .tok-stream.go span:nth-child(2)  { animation-delay: 0.20s; }
+  .tok-stream.go span:nth-child(3)  { animation-delay: 0.35s; }
+  .tok-stream.go span:nth-child(4)  { animation-delay: 0.50s; }
+  .tok-stream.go span:nth-child(5)  { animation-delay: 0.65s; }
+  .tok-stream.go span:nth-child(6)  { animation-delay: 0.80s; }
+  .tok-stream.go span:nth-child(7)  { animation-delay: 0.95s; }
+  .tok-stream.go span:nth-child(8)  { animation-delay: 1.10s; }
+  .tok-stream.go span:nth-child(9)  { animation-delay: 1.25s; }
+  .tok-stream.go span:nth-child(10) { animation-delay: 1.40s; }
+  .tok-stream.go span:nth-child(11) { animation-delay: 1.55s; }
+  .tok-stream.go span:nth-child(12) { animation-delay: 1.70s; }
+  @keyframes tok-pop {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tok-kw { color: var(--rust); }
+  .tok-id { color: var(--ink); }
+  .tok-lit { color: var(--blue); }
+  .tok-op { color: var(--ink-faded); }
+
+  .ast-node circle { fill: var(--paper); stroke: var(--rust); stroke-width: 1.5; }
+  .ast-node text { font-family: var(--mono); font-size: 11px; fill: var(--ink); text-anchor: middle; }
+  .ast-edge { stroke: var(--ink-ghost); stroke-width: 1.2; fill: none; }
+
+  /* ── Step 3: catalog table ─────────────────────────────── */
+  .catalog {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    margin: 1rem 0;
+  }
+  .catalog th, .catalog td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--line-soft);
+    text-align: left;
+  }
+  .catalog th {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faded);
+  }
+  .cat-flash { animation: cat-flash 1.6s ease 0.6s both; }
+  @keyframes cat-flash {
+    0%, 100% { background: transparent; }
+    30%, 70% { background: rgba(198,138,31,0.18); }
+  }
+
+  /* ── Step 4: optimizer plans ───────────────────────────── */
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  .plan-card {
+    background: var(--paper);
+    border: 1.5px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    transition: border-color .3s, transform .3s;
+  }
+  .plan-card.winner {
+    border-color: var(--green);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(61,107,58,0.12);
+  }
+  .plan-card.loser { opacity: 0.55; }
+  .plan-card h4 { margin: 0 0 0.4rem; font-family: var(--mono); font-size: 0.78rem; }
+  .plan-card pre {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0.4rem 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+  .plan-cost {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--paper-dark);
+    padding: 3px 8px;
+    border-radius: 10px;
+    margin-top: 0.4rem;
+  }
+  .plan-card.winner .plan-cost { background: rgba(61,107,58,0.16); color: var(--green); }
+  @media (max-width: 720px) {
+    .plans { grid-template-columns: 1fr; }
+  }
+
+  /* ── Step 5: lock + log ────────────────────────────────── */
+  .lock-table {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    min-height: 110px;
+  }
+  .lock-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--line-soft);
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  .lock-row:last-child { border-bottom: none; }
+  .lock-table.go .lock-row { animation: lock-in 0.5s ease forwards; }
+  .lock-table.go .lock-row:nth-child(2) { animation-delay: 0.6s; }
+  .lock-table.go .lock-row:nth-child(3) { animation-delay: 1.2s; }
+  @keyframes lock-in {
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .lock-X { color: var(--blue); font-weight: 600; }
+  .lock-S { color: var(--rust); }
+
+  /* ── Step 6: buffer hash table ────────────────────────── */
+  .buf-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    margin: 1rem 0;
+  }
+  .buf-frame {
+    aspect-ratio: 1;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    display: grid;
+    place-items: center;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--ink-faded);
+    transition: background .3s, border-color .3s, transform .3s;
+  }
+  .buf-frame.occupied { background: rgba(31,78,121,0.10); color: var(--rust); border-color: var(--rust); }
+  .buf-frame.target { animation: buf-pulse 1.2s ease infinite; background: var(--ochre); color: var(--paper); border-color: var(--ochre); }
+  @keyframes buf-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+  }
+  .buf-frame.dirty::after {
+    content: '*';
+    position: absolute;
+    color: var(--blue);
+  }
+
+  /* ── Step 7: disk I/O ──────────────────────────────────── */
+  .disk-fig svg { background: var(--paper); border-radius: 4px; }
+  .disk-block { fill: var(--paper-dark); stroke: var(--line); stroke-width: 1; }
+  .disk-block.target { fill: var(--ochre); stroke: var(--blue); }
+  .disk-arrow {
+    stroke: var(--rust);
+    stroke-width: 2;
+    fill: none;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+  .disk-fig.go .disk-arrow {
+    animation: arrow-draw 1.6s ease forwards 0.3s;
+  }
+  @keyframes arrow-draw {
+    to { stroke-dashoffset: 0; }
+  }
+  .disk-platter { fill: var(--ink-soft); }
+  .disk-spindle { fill: var(--ink); }
+  .disk-fig.go .disk-platter { animation: spin 5s linear infinite; transform-origin: center; }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Step 8: B+-tree traversal ─────────────────────────── */
+  .bp-node rect {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+    rx: 4;
+    transition: fill .3s, stroke .3s;
+  }
+  .bp-node.visited rect { fill: rgba(198,138,31,0.30); stroke: var(--ochre); }
+  .bp-node.target rect { fill: var(--green); stroke: var(--green); }
+  .bp-node.target text { fill: var(--paper); }
+  .bp-node text { font-family: var(--mono); font-size: 11px; fill: var(--ink); text-anchor: middle; }
+  .bp-edge { stroke: var(--ink-ghost); stroke-width: 1.2; fill: none; }
+  .bp-leaflink { stroke: var(--rust); stroke-width: 1.5; stroke-dasharray: 4 3; fill: none; }
+  .bp-search-key {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--rust);
+  }
+
+  /* ── Step 9: result + commit ───────────────────────────── */
+  .result-stream {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 0.8rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    min-height: 110px;
+  }
+  .result-row {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  .result-stream.go .result-row {
+    animation: row-in 0.4s ease forwards;
+  }
+  .result-stream.go .result-row:nth-child(1) { animation-delay: 0.1s; }
+  .result-stream.go .result-row:nth-child(2) { animation-delay: 0.5s; }
+  .result-stream.go .result-row:nth-child(3) { animation-delay: 0.9s; }
+  .result-stream.go .result-row:nth-child(4) { animation-delay: 1.3s; }
+  .result-stream.go .result-row:nth-child(5) { animation-delay: 1.7s; }
+  @keyframes row-in {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── MCQ quiz ──────────────────────────────────────────── */
+  .mcq {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.4rem 0;
+  }
+  .mcq .q-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 0.5rem;
+  }
+  .mcq .q-text { font-size: 1.05rem; color: var(--ink); margin-bottom: 0.8rem; }
+  .mcq .options { display: flex; flex-direction: column; gap: 0.4rem; }
+  .mcq-opt {
+    display: flex;
+    gap: 0.6rem;
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--serif);
+    font-size: 0.98rem;
+    color: var(--ink);
+    transition: background .12s, border-color .12s;
+  }
+  .mcq-opt:hover { background: var(--paper-dark); border-color: var(--rust); }
+  .mcq-opt .lbl {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    flex: 0 0 auto;
+  }
+  .mcq-opt.right { background: rgba(61,107,58,0.12); border-color: var(--green); }
+  .mcq-opt.right .lbl { color: var(--green); }
+  .mcq-opt.wrong { background: rgba(122,74,45,0.12); border-color: var(--blue); }
+  .mcq-opt.wrong .lbl { color: var(--blue); }
+  .mcq-opt:disabled { cursor: default; }
+  .mcq-feedback {
+    margin-top: 0.8rem;
+    padding: 0.7rem 1rem;
+    background: var(--paper);
+    border-left: 3px solid var(--green);
+    border-radius: 0 4px 4px 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    display: none;
+  }
+  .mcq-feedback.show { display: block; }
+
+  /* ── Score bar ─────────────────────────────────────────── */
+  .scorebar {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+    z-index: 40;
+  }
+  .scorebar strong { color: var(--green); }
+
+  /* ── Wrap-up cards ─────────────────────────────────────── */
+  .wrap-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin: 1.4rem 0;
+  }
+  .wrap-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+  }
+  .wrap-card h4 { margin: 0 0 0.4rem; color: var(--rust); }
+  .wrap-card p { margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+
+  /* ── Concept callouts ──────────────────────────────────── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.7rem;
+    margin: 1rem 0;
+  }
+  .concept {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+  }
+  .concept dt {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--rust);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.2rem;
+  }
+  .concept dd {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* ── Cost calculator (step 4) ──────────────────────────── */
+  .calc {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .calc-row { display: flex; gap: 1rem; align-items: center; margin: 0.4rem 0; }
+  .calc-row label { flex: 0 0 180px; font-family: var(--sans); font-size: 0.9rem; }
+  .calc-row input[type=range] { flex: 1; }
+  .calc-row .val {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--rust);
+    flex: 0 0 80px;
+    text-align: right;
+  }
+  .calc-out {
+    margin-top: 0.8rem;
+    padding: 0.7rem 1rem;
+    background: var(--paper-dark);
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+  .calc-out .winner { color: var(--green); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -87,124 +578,730 @@
 <main data-chapter="Spørringens reise gjennom DBMS-en">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Interaktiv reise</div>
+      <div class="eyebrow">Interaktiv reise · Hele kurset i én SELECT</div>
       <h1>Spørringens reise gjennom <em>DBMS-en</em></h1>
-      <p class="lede">Følg en SELECT fra klient til disk og tilbake. Hvert trinn knytter sammen ulike kapitler i kurset.</p>
+      <p class="lede">Vi følger én SELECT helt fra TCP-pakken kommer inn til siste rad er sendt og commit-recorden er på disk. Hver stasjon kobler kursets begreper til hva systemet faktisk gjør.</p>
+      <div class="demo-query">
+        <div class="label">Demo-spørring vi følger gjennom hele reisen</div>
+<pre><span class="keyword">SELECT</span> name, salary
+<span class="keyword">FROM</span>   Employee
+<span class="keyword">WHERE</span>  depno = <span class="literal">4</span> <span class="keyword">AND</span> age &gt; <span class="literal">50</span>;</pre>
+      </div>
+      <p style="margin-top:1.4rem; font-size:0.95rem; color:var(--ink-faded);">
+        Tabellen <code>Employee</code> har 100 000 rader, hver post er 80 byte, blokker er 4 KiB, og det finnes en <em>clustered B+-tree</em> på <code>empno</code> samt en <em>uclustered B+-tree</em> på <code>(depno, age)</code>. Eksempelet er hentet fra Bratsbergs notater kap. 12.
+      </p>
     </div>
   </header>
 
   <div class="journey-layout">
     <aside class="step-nav" aria-label="Trinn">
+      <h4>Stasjoner</h4>
       <ol>
-        <li><a href="#step-1" data-target="1"><span class="step-num">01</span> Klient sender SQL</a></li>
+        <li><a href="#step-1" data-target="1"><span class="step-num">01</span> Klient &rarr; DBMS</a></li>
         <li><a href="#step-2" data-target="2"><span class="step-num">02</span> Parser bygger AST</a></li>
-        <li><a href="#step-3" data-target="3"><span class="step-num">03</span> Katalog og typesjekk</a></li>
+        <li><a href="#step-3" data-target="3"><span class="step-num">03</span> Katalog &amp; typesjekk</a></li>
         <li><a href="#step-4" data-target="4"><span class="step-num">04</span> Optimizer velger plan</a></li>
         <li><a href="#step-5" data-target="5"><span class="step-num">05</span> Lock og log engasjeres</a></li>
         <li><a href="#step-6" data-target="6"><span class="step-num">06</span> Buffer-oppslag</a></li>
         <li><a href="#step-7" data-target="7"><span class="step-num">07</span> Disk-I/O</a></li>
         <li><a href="#step-8" data-target="8"><span class="step-num">08</span> B+-tree-traversering</a></li>
-        <li><a href="#step-9" data-target="9"><span class="step-num">09</span> Resultat og commit</a></li>
+        <li><a href="#step-9" data-target="9"><span class="step-num">09</span> Resultat &amp; commit</a></li>
+        <li><a href="#step-10" data-target="10"><span class="step-num">10</span> Hele bildet</a></li>
       </ol>
     </aside>
 
     <article class="journey-main">
+
+      <!-- ─────────── STEP 1 ─────────── -->
       <section id="step-1" data-step="1">
-        <div class="step-eyebrow">Trinn 01</div>
-        <h2>Klient sender SQL</h2>
-        <p class="dropcap">[Stubber:]</p>
-        <ul>
-          <li>Klient åpner forbindelse (TCP eller socket)</li>
-          <li>Autentisering, session-state</li>
-          <li>SQL-tekst sendes som bytes</li>
-        </ul>
-        <p>Relevant: <a href="../kap3/ddl-og-spoerringer.html">SQL-grunnform</a>, <a href="../kap3/views-transaksjoner-integritet.html#auth">autorisasjon</a>.</p>
+        <div class="step-eyebrow">Stasjon 01 · Forelesning 5 + Bratsberg kap. 1</div>
+        <h2>Klient sender SQL-tekst til serveren</h2>
+        <p class="dropcap">Reisen starter et helt annet sted enn der du tror at databasen «lever». Klienten — kanskje en JDBC-driver, kanskje <code>psql</code>, kanskje webserveren din — pakker SQL-strengen inn i en TCP-pakke og sender den til DBMS-prosessens <em>session manager</em>. Før noen som helst spørringsbehandling kan skje, må forbindelsen autentiseres og en sesjonskontekst etableres: hvem du er, hvilke roller du har, hvilken default-database og hvilket isolasjonsnivå du opererer på.</p>
+
+        <p>Den faktiske spørringen er bare en byte-streng på dette tidspunktet. DBMS-en har ingen anelse om hva <code>Employee</code> betyr, eller om <code>name</code> er gyldig. Det blir avklart i de neste stasjonene.</p>
+
+        <figure class="journey-fig" id="fig-step-1">
+          <svg viewBox="0 0 600 200" role="img" aria-label="Pakke flyr fra klient til DBMS-server over TCP">
+            <rect class="pf-client" x="20" y="60" width="120" height="80" rx="6"/>
+            <text class="pf-title" x="80" y="95" text-anchor="middle">Klient</text>
+            <text class="pf-label" x="80" y="115" text-anchor="middle">JDBC / psql</text>
+
+            <line class="pf-pipe" x1="140" y1="100" x2="460" y2="100"/>
+            <text class="pf-label" x="300" y="80" text-anchor="middle">TCP · port 5432 · TLS</text>
+
+            <rect class="pf-server" x="460" y="60" width="120" height="80" rx="6"/>
+            <text class="pf-title" x="520" y="95" text-anchor="middle">DBMS</text>
+            <text class="pf-label" x="520" y="115" text-anchor="middle">Session mgr</text>
+
+            <g class="pf-packet">
+              <rect x="70" y="90" width="14" height="20" rx="2"/>
+              <text class="pf-label" x="77" y="85" text-anchor="middle" fill="var(--rust)">SQL</text>
+            </g>
+          </svg>
+          <figcaption>SQL-streng ferdes som bytes. Først bestemmes <em>hvem</em> som spør, deretter <em>hva</em>.</figcaption>
+          <div class="controls">
+            <button class="ctrl-btn" data-toggle="fig-step-1" data-class="pf-active">Spill av / pause</button>
+          </div>
+        </figure>
+
+        <div class="callout">
+          <span class="label">Hvorfor session-state betyr noe</span>
+          <p>Default schema, isolasjonsnivå, og <code>SET</code>-variabler er sesjons-bundet. To brukere som sender <em>nøyaktig samme SQL</em> kan derfor få ulike planer og ulik concurrency — fordi det implisitt er forskjellig.</p>
+        </div>
+
+        <div class="mcq" data-correct="b">
+          <div class="q-label">Sjekkpunkt 1.1</div>
+          <div class="q-text">Hva har DBMS-en lov til å anta om SQL-teksten i det den ankommer session manager?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> At alle tabell- og kolonnenavn finnes i katalogen.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Bare at det er bytes — gyldighet avgjøres senere.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> At brukeren har lese- og skriverettigheter.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> At spørringen er syntaktisk gyldig fordi klienten allerede har sjekket det.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>B</strong>. Parser sjekker syntaks (stasjon 02), katalogen sjekker navn og typer (stasjon 03), og autorisasjonen verifiseres når katalogen slås opp. På bytes-nivå har vi bare en streng som <em>kan</em> være SQL.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 2 ─────────── -->
       <section id="step-2" data-step="2">
-        <div class="step-eyebrow">Trinn 02</div>
-        <h2>Parser bygger AST</h2>
-        <ul>
-          <li>Tokenizer → token-strøm</li>
-          <li>Parser → abstrakt syntakstre (AST)</li>
-          <li>Syntaksfeil rapporteres her</li>
-        </ul>
+        <div class="step-eyebrow">Stasjon 02 · SQL-kompilator</div>
+        <h2>Parser tokeniserer og bygger et AST</h2>
+        <p>SQL-kompilatoren har to oppgaver: <strong>tokenisere</strong> strengen og <strong>parse</strong> token-strømmen til et abstrakt syntakstre (AST). Tokenizeren skiller nøkkelord fra identifikatorer fra litteraler. Hver token vet sin posisjon — nyttig for feilmeldinger.</p>
+        <p>Parseren forsøker å matche tokens mot SQL-grammatikken. Lykkes det, har vi et tre der hvert nivå representerer en grammatikkregel: <code>SelectStmt</code> → <code>SelectList</code> + <code>FromClause</code> + <code>WhereClause</code>. Mislykkes det, kastes en <em>syntaksfeil</em> — og reisen er over allerede her.</p>
+
+        <h3>Token-strømmen</h3>
+        <figure class="journey-fig" id="fig-step-2">
+          <div class="tok-stream" id="tok-stream">
+            <span class="tok-kw">SELECT</span>
+            <span class="tok-id">name</span>
+            <span class="tok-op">,</span>
+            <span class="tok-id">salary</span>
+            <span class="tok-kw">FROM</span>
+            <span class="tok-id">Employee</span>
+            <span class="tok-kw">WHERE</span>
+            <span class="tok-id">depno</span>
+            <span class="tok-op">=</span>
+            <span class="tok-lit">4</span>
+            <span class="tok-kw">AND</span>
+            <span class="tok-id">age &gt; 50</span>
+          </div>
+
+          <h3 style="text-align:center; margin-top:1.4rem; font-size:0.88rem; font-family:var(--mono); letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faded);">AST</h3>
+          <svg viewBox="0 0 600 240" role="img" aria-label="Abstrakt syntakstre for spørringen">
+            <!-- root -->
+            <g class="ast-node">
+              <line class="ast-edge" x1="300" y1="40" x2="160" y2="100"/>
+              <line class="ast-edge" x1="300" y1="40" x2="300" y2="100"/>
+              <line class="ast-edge" x1="300" y1="40" x2="440" y2="100"/>
+              <circle cx="300" cy="30" r="22"/>
+              <text x="300" y="34">Select</text>
+            </g>
+
+            <g class="ast-node">
+              <circle cx="160" cy="110" r="22"/>
+              <text x="160" y="113">Proj</text>
+            </g>
+            <g class="ast-node">
+              <circle cx="300" cy="110" r="22"/>
+              <text x="300" y="113">From</text>
+            </g>
+            <g class="ast-node">
+              <circle cx="440" cy="110" r="22"/>
+              <text x="440" y="113">Where</text>
+            </g>
+
+            <g class="ast-node">
+              <line class="ast-edge" x1="160" y1="132" x2="120" y2="195"/>
+              <line class="ast-edge" x1="160" y1="132" x2="200" y2="195"/>
+              <text x="120" y="200">name</text>
+              <text x="200" y="200">salary</text>
+            </g>
+            <g class="ast-node">
+              <line class="ast-edge" x1="300" y1="132" x2="300" y2="195"/>
+              <text x="300" y="200">Employee</text>
+            </g>
+            <g class="ast-node">
+              <line class="ast-edge" x1="440" y1="132" x2="380" y2="195"/>
+              <line class="ast-edge" x1="440" y1="132" x2="500" y2="195"/>
+              <text x="380" y="200">depno=4</text>
+              <text x="500" y="200">age&gt;50</text>
+            </g>
+          </svg>
+          <figcaption>Token-strømmen pakkes inn i et tre der hver node er en grammatikkregel. Treet er fortsatt ren syntaks — ingen semantikk.</figcaption>
+          <div class="controls">
+            <button class="ctrl-btn" data-tok="tok-stream">Replay tokens</button>
+          </div>
+        </figure>
+
+        <div class="callout callout-blue">
+          <span class="label">Forskjell på AST og algebra-tre</span>
+          <p>AST-et følger SQL-syntaksen tett. Algebra-treet (stasjon 03) bruker relasjonsoperatorer fra <a href="../kap2/relasjonsalgebra.html">kapittel 2</a>: σ (select/filter), π (project), ⨝ (join). Det er algebra-treet optimizeren omformer.</p>
+        </div>
+
+        <div class="mcq" data-correct="c">
+          <div class="q-label">Sjekkpunkt 2.1</div>
+          <div class="q-text">Hvilken type feil oppdages typisk i parser-stadiet?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> «Tabellen <code>Employee</code> finnes ikke»</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> «Type-mismatch: depno er INT, ikke VARCHAR»</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> «Forventet identifikator etter <code>FROM</code>, fant <code>WHERE</code>»</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> «Ingen indeks på depno — full scan kreves»</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>C</strong>. Parseren vet bare hva grammatikken krever. Eksistens av tabeller (A) og type-sjekk (B) gjøres mot katalogen i neste stasjon. Manglende indeks (D) er optimizerens beslutning, ikke en feil.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 3 ─────────── -->
       <section id="step-3" data-step="3">
-        <div class="step-eyebrow">Trinn 03</div>
-        <h2>Katalog og typesjekk</h2>
-        <ul>
-          <li>SQL-katalogen slår opp tabell- og kolonneinformasjon</li>
-          <li>Typesjekk og navneoppløsning</li>
-          <li>Privilegiekontroll</li>
-          <li>AST → algebra-tre</li>
-        </ul>
+        <div class="step-eyebrow">Stasjon 03 · SQL-katalog</div>
+        <h2>Katalog gir AST-et mening</h2>
+        <p>Et AST har formen riktig — men er <em>Employee</em> en tabell? Finnes <em>name</em> som kolonne? Hva er typen til <em>depno</em>? Slike spørsmål besvares av <strong>SQL-katalogen</strong>: en samling systemtabeller som beskriver alle tabeller, kolonner, indekser, constraints og rettigheter. Katalogen er selv en database, og slås opp på samme måte som hvilken som helst annen tabell.</p>
+        <p>Tre ting skjer her parallelt:</p>
+        <ol>
+          <li><strong>Navneoppløsning</strong> — kvalifiser <code>name</code> til <code>Employee.name</code>, slå opp tabell-OID-er.</li>
+          <li><strong>Typesjekk</strong> — er <code>depno = 4</code> meningsfullt? Er <code>4</code> en INT som kan sammenliknes med <code>depno</code>?</li>
+          <li><strong>Privilegiekontroll</strong> — har brukeren SELECT-rett på Employee?</li>
+        </ol>
+        <p>Resultatet er at AST-et omformes til et <strong>algebra-tre</strong> der nodene er relasjonsoperatorer fra kap. 2.</p>
+
+        <h3>Et lite utdrag av katalogen</h3>
+        <figure class="journey-fig" id="fig-step-3">
+          <table class="catalog">
+            <thead><tr><th>Tabell</th><th>Kolonne</th><th>Type</th><th>Indeks</th></tr></thead>
+            <tbody>
+              <tr><td>Employee</td><td>empno</td><td>INT</td><td class="cat-flash">PK · clustered B+-tree</td></tr>
+              <tr><td>Employee</td><td>name</td><td>VARCHAR(60)</td><td>—</td></tr>
+              <tr><td>Employee</td><td>depno</td><td>INT</td><td class="cat-flash">unclustered B+-tree (depno, age)</td></tr>
+              <tr><td>Employee</td><td>age</td><td>INT</td><td>(del av sammensatt)</td></tr>
+              <tr><td>Employee</td><td>salary</td><td>NUMERIC(10,2)</td><td>—</td></tr>
+              <tr><td>Department</td><td>dno</td><td>INT</td><td>PK · clustered</td></tr>
+            </tbody>
+          </table>
+          <figcaption>Statistikk-felter ligger også her: antall rader, antall blokker, treet sin høyde, distinkt-count per kolonne. Disse er gull verdt i neste stasjon.</figcaption>
+        </figure>
+
+        <div class="callout">
+          <span class="label">Algebra-treet etter katalog-oppslag</span>
+<pre style="margin:0.6rem 0 0; background:var(--paper);">π<sub>name, salary</sub> ( σ<sub>depno=4 ∧ age&gt;50</sub> ( Employee ) )</pre>
+        </div>
+
+        <div class="concept-grid">
+          <dl class="concept">
+            <dt>Sammensatt nøkkel</dt>
+            <dd>Indeksen <code>(depno, age)</code> sorterer leksikografisk. Først på depno, deretter age. Selektivitetsregelen: mest selektive felt først.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Statistikk</dt>
+            <dd>Katalogen lagrer høyde på B+-tre, antall blokker, min/maks-nøkkel. Optimizer trenger dette for å estimere kostnad.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Privilegier</dt>
+            <dd>GRANT/REVOKE legges også i katalogen og sjekkes her — før spørringen rør data.</dd>
+          </dl>
+        </div>
+
+        <div class="mcq" data-correct="b">
+          <div class="q-label">Sjekkpunkt 3.1</div>
+          <div class="q-text">Den sammensatte indeksen er definert som <code>(depno, age)</code>. Vår filtrering er <code>depno = 4 AND age &gt; 50</code>. Hvorfor er rekkefølgen i indeksen viktig?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Den er ikke viktig — alle indekser er like effektive uansett rekkefølge.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Med <code>depno</code> først kan B+-treet binærsøke direkte til rader med depno=4 og deretter scanne sortert på age.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Rekkefølgen avgjør om indeksen er clustered.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Indeksen vil bare brukes hvis WHERE-klausulen står i samme rekkefølge.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>B</strong>. Sammensatte nøkler er sortert leksikografisk. Med <code>(age, depno)</code> hadde vi måttet scanne alle aldre &gt;50 og filtrert depno separat — mye mer arbeid.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 4 ─────────── -->
       <section id="step-4" data-step="4">
-        <div class="step-eyebrow">Trinn 04</div>
-        <h2>Optimizer velger plan</h2>
-        <ul>
-          <li>Algebraiske ekvivalenser brukes (push down σ, omorganiser join-rekkefølge)</li>
-          <li>Statistikk fra katalogen + selektivitet</li>
-          <li>Velger fysisk plan: indeks-scan, hash join, …</li>
-        </ul>
-        <p>Relevant: <a href="../kap2/relasjonsalgebra.html">relasjonsalgebra</a>, <a href="../kap7/innhold.html#kost">kostnadsestimering</a>.</p>
+        <div class="step-eyebrow">Stasjon 04 · Optimizer</div>
+        <h2>Optimizer enumererer planer og velger den billigste</h2>
+        <p>Algebra-treet er <em>logisk</em> — det sier hva, ikke hvordan. Optimizeren genererer mange likeverdige varianter (algebraiske ekvivalenser: dytt σ ned forbi join, omorganiser join-rekkefølge, …) og knytter <strong>fysiske operatorer</strong> til løvnodene: full table scan, index scan, hash join, sort-merge join. For hver kandidat estimerer den I/O-kostnaden ved hjelp av statistikk fra katalogen. Plan-treet med lavest forventet kostnad vinner.</p>
+
+        <h3>To kandidatplaner for vår spørring</h3>
+        <div class="plans">
+          <div class="plan-card loser">
+            <h4>Plan A · Full heap scan</h4>
+<pre>π<sub>name,salary</sub>
+└─ σ<sub>depno=4 ∧ age&gt;50</sub>
+   └─ TableScan(Employee)</pre>
+            <p style="font-size:0.85rem; color:var(--ink-faded); margin:0.4rem 0 0;">Les alle 1 961 blokker, filtrer i minnet.</p>
+            <span class="plan-cost">~1 961 blokker</span>
+          </div>
+          <div class="plan-card winner">
+            <h4>Plan B · Index scan på (depno, age)</h4>
+<pre>π<sub>name,salary</sub>
+└─ Fetch(RID)
+   └─ IndexScan
+       depno=4 ∧ age&gt;50</pre>
+            <p style="font-size:0.85rem; color:var(--ink-faded); margin:0.4rem 0 0;">3 nivåer ned i B+-tre + ~12 blads-blokker + RID-fetches. Vinner ved lav selektivitet.</p>
+            <span class="plan-cost">~120 blokker (~6 % av A)</span>
+          </div>
+        </div>
+
+        <h3>Lek deg med kostnadsmodellen</h3>
+        <p>Anta heap-fil + uclustered B+-tre. Plan A skanner hele heap-filen (1 961 blokker). Plan B traverserer 2 indeks-blokker ned, scanner sideveis i bladet, og følger så en RID-peker per matchende rad. Når blir Plan B billigst?</p>
+        <div class="calc">
+          <div class="calc-row">
+            <label for="calc-sel">Selektivitet (% rader som matcher):</label>
+            <input type="range" id="calc-sel" min="0.1" max="100" step="0.1" value="0.5">
+            <span class="val" id="calc-sel-val">0.5 %</span>
+          </div>
+          <div class="calc-out" id="calc-out">…regner…</div>
+        </div>
+
+        <div class="callout">
+          <span class="label">Hvorfor heter det «black art»?</span>
+          <p>Plan-rommet vokser eksponentielt med antall joins. Optimizeren bruker heuristikker (push σ ned, vurder bare left-deep trær, …) og dynamisk programmering (System R-stil) for å finne en god — ikke alltid optimal — plan på rimelig tid.</p>
+        </div>
+
+        <div class="mcq" data-correct="d">
+          <div class="q-label">Sjekkpunkt 4.1</div>
+          <div class="q-text">Hvorfor blir Plan B (index scan) plutselig dyrere enn Plan A (heap scan) når selektiviteten er <em>høy</em>?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> B+-treet får for mange nivåer.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Indekser bremser ved store datavolum.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Heap-filen får cluster-bonus.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Hver RID-peker krever ofte en egen blokk-lesing — ved mange treff blir det flere blokker enn å bare lese hele heap-filen sekvensielt.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>D</strong>. Bratsbergs eksempel: 20 % treff av 100 000 = 20 000 RID-pekere → potensielt 20 000+ blokk-lesinger, mot 1 961 ved full scan. Dette er hvorfor optimizere noen ganger «velger» full scan.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 5 ─────────── -->
       <section id="step-5" data-step="5">
-        <div class="step-eyebrow">Trinn 05</div>
-        <h2>Lock og log engasjeres</h2>
-        <ul>
-          <li>Executor begynner å kjøre planen</li>
-          <li>Lock manager (eller MVCC) gir tilgang til data</li>
-          <li>Log writer skriver begin-record</li>
-        </ul>
-        <p>Relevant: <a href="../kap8/samtidighet-og-laser.html">samtidighet</a>, <a href="../kap8/recovery.html">recovery</a>.</p>
+        <div class="step-eyebrow">Stasjon 05 · Lock manager + log writer</div>
+        <h2>Executor begynner å kjøre — men ber først om låser</h2>
+        <p>Når den fysiske planen er valgt, tar <em>executor</em> over. Før den faktisk leser eller skriver, må to subsystemer engasjeres: <strong>lock manager</strong> (eller MVCC-snapshot) for isolasjon, og <strong>log writer</strong> for atomisitet og durability.</p>
+        <p>Akkurat hvilke låser som tas avhenger av isolasjonsnivå. Ved Strict 2PL og <code>READ COMMITTED</code> tas typisk en <em>shared (S)</em> lås per leste rad eller blokk, som slippes når raden er konsumert. Ved <code>REPEATABLE READ</code> holdes S-låsene til commit. Ved en UPDATE/INSERT/DELETE tas <em>exclusive (X)</em> lås, og den holdes alltid til commit (Strict 2PL).</p>
+
+        <h3>Lock-tabellen oppdaterer seg</h3>
+        <figure class="journey-fig" id="fig-step-5">
+          <div class="lock-table" id="lock-table">
+            <div class="lock-row"><span>T<sub>17</sub> · Employee.depno=4</span><span class="lock-S">S-lock</span></div>
+            <div class="lock-row"><span>T<sub>17</sub> · idx(depno,age) page 42</span><span class="lock-S">S-lock</span></div>
+            <div class="lock-row"><span>T<sub>17</sub> · log: BEGIN</span><span class="lock-X">written</span></div>
+          </div>
+          <figcaption>Hver transaksjon har en peker fra trans-tabellen til en kjede av låser. Konflikter holder etterspørrere i kø til frigjøring.</figcaption>
+          <div class="controls">
+            <button class="ctrl-btn" data-class-toggle="lock-table">Replay</button>
+          </div>
+        </figure>
+
+        <div class="callout callout-blue">
+          <span class="label">WAL — write-ahead logging</span>
+          <p>Log-recordene må <em>treffe disk før</em> tilhørende dataside flushes. På commit force-skrives logbufferet (forced write). Dette er hva som gjør «D» i ACID til mer enn et håp.</p>
+        </div>
+
+        <div class="concept-grid">
+          <dl class="concept">
+            <dt>Strict 2PL</dt>
+            <dd>X-låser holdes til commit/abort. Garanterer recoverable og cascadeless schedules. <a href="../kap8/samtidighet-og-laser.html#strict-2pl">les mer</a></dd>
+          </dl>
+          <dl class="concept">
+            <dt>MVCC</dt>
+            <dd>Lesere får en snapshot av forrige committede versjon, skrivere lager ny versjon. Lesere blokkerer aldri skrivere.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Begin-record</dt>
+            <dd>Markerer transaksjonens start i loggen. Får et LSN — nummeret til alle senere log-recordene for samme transaksjon kjedes til denne via PrevLSN.</dd>
+          </dl>
+        </div>
+
+        <div class="mcq" data-correct="a">
+          <div class="q-label">Sjekkpunkt 5.1</div>
+          <div class="q-text">En SELECT (vår demo-spørring) kjører under <code>READ COMMITTED</code>. Hvilken lås- og log-aktivitet er <em>ikke</em> påkrevd?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Force-skriving av redo-log før spørringen begynner.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Kortvarig S-lås mens en blokk leses.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Sjekk for konflikt med andre transaksjoners X-låser.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Oppretting av en transaksjons-rad for sesjonen.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>A</strong>. Ren lesing skriver ingen log-records. Force-log-at-commit gjelder skrivere, fordi det er der vi trenger durability. Lesere tar S-låser men logger ingenting.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 6 ─────────── -->
       <section id="step-6" data-step="6">
-        <div class="step-eyebrow">Trinn 06</div>
-        <h2>Buffer-oppslag</h2>
+        <div class="step-eyebrow">Stasjon 06 · Database-buffer</div>
+        <h2>Buffer-oppslag: hit eller miss?</h2>
+        <p>For å lese en blokk spør executor først bufferet: «har du blokk N?». Bufferet er en stor del av RAM, organisert som <strong>frames</strong> som hver kan holde én blokk. Et <em>hash-indeks på BlockId</em> gjør oppslaget O(1) på snittet.</p>
         <ul>
-          <li>Trenger blokk N — er den i buffer?</li>
-          <li>Hash-indeks på BlockId</li>
-          <li>Hit: returner peker. Miss: gå til disk.</li>
+          <li><strong>Hit</strong> — frame-pekeren returneres umiddelbart. Ingen disk-I/O.</li>
+          <li><strong>Miss</strong> — frame må allokeres. Hvis bufferet er fullt, må en frame <em>eviktes</em> — og hvis den er skitten (modifisert), må den først flushes til disk.</li>
         </ul>
-        <p>Relevant: <a href="../kap6/lagring.html#buffer">database-buffer</a>.</p>
+
+        <h3>Bufferet vårt — 16 frames</h3>
+        <figure class="journey-fig" id="fig-step-6">
+          <div class="buf-grid" id="buf-grid">
+            <div class="buf-frame">F0</div>
+            <div class="buf-frame occupied" data-bid="42">B42</div>
+            <div class="buf-frame occupied" data-bid="11">B11</div>
+            <div class="buf-frame">F3</div>
+            <div class="buf-frame occupied" data-bid="93">B93</div>
+            <div class="buf-frame target" data-bid="217">B217?</div>
+            <div class="buf-frame occupied" data-bid="3">B3</div>
+            <div class="buf-frame">F7</div>
+            <div class="buf-frame occupied" data-bid="58">B58</div>
+            <div class="buf-frame">F9</div>
+            <div class="buf-frame occupied" data-bid="71">B71</div>
+            <div class="buf-frame occupied" data-bid="120">B120</div>
+            <div class="buf-frame occupied" data-bid="6">B6</div>
+            <div class="buf-frame">F13</div>
+            <div class="buf-frame occupied" data-bid="44">B44</div>
+            <div class="buf-frame">F15</div>
+          </div>
+          <figcaption>Lyseblå = okkupert. Pulsende = blokken vi leter etter (B217). Tom = ledig frame klar til å fylles. <code>*</code> markerer skitne frames.</figcaption>
+        </figure>
+
+        <div class="callout">
+          <span class="label">Pinning</span>
+          <p>Mens en operator bruker en frame må den «pinnes» slik at bufferet ikke evikter den under bruk. Pinned frames hopper over ved eviction-valg.</p>
+        </div>
+
+        <h4>Erstatningsstrategier</h4>
+        <ul>
+          <li><strong>LRU</strong> — least recently used. Klassiker, men tabell-scans kan «forgifte» hele bufferet.</li>
+          <li><strong>MRU</strong> — most recently used. Bedre for repetisjons-mønstre.</li>
+          <li><strong>Clock</strong> — billig approksimasjon av LRU. En referanse-bit roterer.</li>
+        </ul>
+
+        <div class="mcq" data-correct="c">
+          <div class="q-label">Sjekkpunkt 6.1</div>
+          <div class="q-text">Hvorfor sier vi at bufferet er DBMS-ets «hemmelige våpen»?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Det krypterer dataene før de skrives.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Det erstatter B+-treet for raskere oppslag.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Det reduserer antall disk-aksesser dramatisk fordi varme blokker holdes i RAM.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Det gjør transaksjoner ACID.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>C</strong>. Disk er størrelser tregere enn RAM. Et godt buffer hit-rate (90 %+) er forskjellen på en database som svarer på millisekunder og en som svarer på sekunder.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 7 ─────────── -->
       <section id="step-7" data-step="7">
-        <div class="step-eyebrow">Trinn 07</div>
-        <h2>Disk-I/O</h2>
+        <div class="step-eyebrow">Stasjon 07 · Disk-I/O</div>
+        <h2>Når bufferet bommer går vi til disk</h2>
+        <p>Buffer miss → eviction-policy plukker en kandidat-frame. Hvis frame er skitten flushes den til disk først (skrive-I/O). Deretter slås <strong>BlockId</strong> opp: deviceId + offset gir disken et fysisk eller logisk sted å lese fra. Blokken leses inn i frame, hash-indeksen oppdateres, og alle som ventet på den får signal.</p>
+
+        <h3>Anatomi av en blokk-lesing</h3>
+        <figure class="journey-fig disk-fig" id="fig-step-7">
+          <svg viewBox="0 0 600 220" role="img" aria-label="Disk-til-buffer animasjon">
+            <!-- Disk -->
+            <g>
+              <circle cx="100" cy="110" r="70" class="disk-platter"/>
+              <circle cx="100" cy="110" r="14" class="disk-spindle"/>
+              <text x="100" y="200" text-anchor="middle" class="pf-label">Disk · deviceId=1</text>
+              <!-- Block markers -->
+              <rect x="30"  y="35" width="14" height="10" class="disk-block"/>
+              <rect x="158" y="35" width="14" height="10" class="disk-block"/>
+              <rect x="60"  y="170" width="14" height="10" class="disk-block target"/>
+              <text x="67" y="195" class="pf-label" text-anchor="middle" fill="var(--blue)">B217</text>
+            </g>
+
+            <!-- arrow -->
+            <path class="disk-arrow" d="M 175 110 Q 290 60 405 110" marker-end="url(#arrowhead)"/>
+            <defs>
+              <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,8 L8,4 z" fill="var(--rust)"/>
+              </marker>
+            </defs>
+
+            <!-- Buffer frame -->
+            <rect x="410" y="80" width="160" height="70" rx="6" fill="var(--paper)" stroke="var(--rust)" stroke-width="1.6"/>
+            <text x="490" y="105" class="pf-title" text-anchor="middle">Buffer-frame</text>
+            <text x="490" y="130" class="pf-label" text-anchor="middle">B217 · pinned</text>
+            <text x="490" y="170" class="pf-label" text-anchor="middle">PageLSN · header · slots</text>
+          </svg>
+          <figcaption>Først evict en eldre frame (kanskje skitten — flush!), så seek/les blokken. Verifiser flip/flop-stempel: matcher start- og sluttall? Hvis ikke har vi en halvskrevet blokk.</figcaption>
+        </figure>
+
+        <h4>Hva sjekker DBMS-en på blokken den nettopp leste?</h4>
         <ul>
-          <li>Eviction av en eldre frame (kanskje skitten — flush først)</li>
-          <li>Les blokk fra disk via deviceId + offset</li>
-          <li>Verifiser flip/flop-stempel</li>
+          <li><strong>Flip/flop-stempel</strong> ved start og slutt — atomisitet.</li>
+          <li><strong>Checksum</strong> — bit rot fra disken?</li>
+          <li><strong>PageLSN</strong> — hvilket log-record sist endret denne blokken? Avgjørende ved recovery.</li>
         </ul>
+
+        <div class="callout">
+          <span class="label">Hvorfor 16 KiB?</span>
+          <p>Større blokker amortiserer seek-time bedre, men gir høyere kontensjon (flere rader låses sammen). 4–32 KiB er typisk. SSD-er endrer disse trade-offene fordi det ikke finnes seek-time, men <em>write amplification</em> dukker opp i stedet.</p>
+        </div>
+
+        <div class="mcq" data-correct="b">
+          <div class="q-label">Sjekkpunkt 7.1</div>
+          <div class="q-text">En frame som skal eviktes har <code>PageLSN = 8421</code>. Log-bufferet sin <code>FlushedLSN = 8200</code>. Hva må DBMS-en gjøre før blokken kan skrives til disk?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Skrive blokken først — log skrives senere.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Tvinge log-bufferet til disk slik at FlushedLSN ≥ 8421 før blokken skrives.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Avbryte transaksjonen.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Ingenting — blokken er fersk uansett.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>B</strong>. WAL-regelen: <em>log skrives før dataside</em>. Hadde vi skrevet blokken først og krasjet, ville vi ikke kunne undo dens uncommitted endringer fordi undo-loggen ennå ikke var på disk.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 8 ─────────── -->
       <section id="step-8" data-step="8">
-        <div class="step-eyebrow">Trinn 08</div>
-        <h2>B+-tree-traversering</h2>
-        <ul>
-          <li>Hvis indeks-scan: gå fra rot til blad</li>
-          <li>Hver node er én blokk → typisk 3–4 nivåer for 100M rader</li>
-          <li>Range scan: følg blad-link</li>
-        </ul>
-        <p>Relevant: <a href="../kap6/btrees.html">B+-trær</a>.</p>
+        <div class="step-eyebrow">Stasjon 08 · B+-tre-traversering</div>
+        <h2>Topp-ned søk + sideveis range scan</h2>
+        <p>Med blokken i buffer kan vi endelig <em>traversere</em>. Optimizeren valgte index scan på <code>(depno, age)</code>. Vi starter ved roten, binærsøker lokalt etter «første nøkkel der depno=4», følger barn-pekeren ned, gjentar til vi treffer bladet. Der scanner vi sideveis (blader er lenket sammen) til <code>depno &gt; 4</code>.</p>
+
+        <figure class="journey-fig" id="fig-step-8">
+          <svg viewBox="0 0 700 280" role="img" aria-label="B+-tre traversering">
+            <!-- Root -->
+            <g class="bp-node visited" data-bp="root">
+              <rect x="280" y="20" width="140" height="34"/>
+              <text x="350" y="42">2 | 14 | 27</text>
+            </g>
+            <!-- Internal -->
+            <g class="bp-node visited" data-bp="i1">
+              <rect x="40" y="100" width="120" height="34"/>
+              <text x="100" y="122">2 | 5</text>
+            </g>
+            <g class="bp-node target" data-bp="i2">
+              <rect x="200" y="100" width="120" height="34"/>
+              <text x="260" y="122">14 | 22</text>
+            </g>
+            <g class="bp-node" data-bp="i3">
+              <rect x="360" y="100" width="120" height="34"/>
+              <text x="420" y="122">27 | 33</text>
+            </g>
+            <g class="bp-node" data-bp="i4">
+              <rect x="520" y="100" width="120" height="34"/>
+              <text x="580" y="122">…</text>
+            </g>
+            <!-- root -> internals -->
+            <line class="bp-edge" x1="300" y1="54" x2="100" y2="100"/>
+            <line class="bp-edge" x1="335" y1="54" x2="260" y2="100"/>
+            <line class="bp-edge" x1="365" y1="54" x2="420" y2="100"/>
+            <line class="bp-edge" x1="400" y1="54" x2="580" y2="100"/>
+
+            <!-- Leaves -->
+            <g class="bp-node" data-bp="l1">
+              <rect x="20" y="200" width="100" height="34"/>
+              <text x="70" y="222">2,3,5</text>
+            </g>
+            <g class="bp-node" data-bp="l2">
+              <rect x="140" y="200" width="100" height="34"/>
+              <text x="190" y="222">7,11,13</text>
+            </g>
+            <g class="bp-node target" data-bp="l3">
+              <rect x="260" y="200" width="100" height="34"/>
+              <text x="310" y="222">14,16,21</text>
+            </g>
+            <g class="bp-node target" data-bp="l4">
+              <rect x="380" y="200" width="100" height="34"/>
+              <text x="430" y="222">22,24</text>
+            </g>
+            <g class="bp-node" data-bp="l5">
+              <rect x="500" y="200" width="100" height="34"/>
+              <text x="550" y="222">27,33</text>
+            </g>
+
+            <!-- internal -> leaves -->
+            <line class="bp-edge" x1="80" y1="134" x2="70" y2="200"/>
+            <line class="bp-edge" x1="120" y1="134" x2="190" y2="200"/>
+            <line class="bp-edge" x1="240" y1="134" x2="310" y2="200"/>
+            <line class="bp-edge" x1="280" y1="134" x2="430" y2="200"/>
+            <line class="bp-edge" x1="420" y1="134" x2="550" y2="200"/>
+
+            <!-- leaf links -->
+            <line class="bp-leaflink" x1="120" y1="217" x2="140" y2="217"/>
+            <line class="bp-leaflink" x1="240" y1="217" x2="260" y2="217"/>
+            <line class="bp-leaflink" x1="360" y1="217" x2="380" y2="217"/>
+            <line class="bp-leaflink" x1="480" y1="217" x2="500" y2="217"/>
+          </svg>
+          <figcaption>Søk: rot → midt-internnode → blad. Range scan følger leaf-link videre. <span style="color:var(--ochre);">Lysebrun</span> = besøkt, <span style="color:var(--green);">grønn</span> = treff.</figcaption>
+          <div class="controls">
+            <button class="ctrl-btn" id="bp-step">Steg gjennom søk</button>
+            <button class="ctrl-btn" id="bp-reset">Nullstill</button>
+          </div>
+        </figure>
+
+        <div class="callout callout-blue">
+          <span class="label">Hvorfor sideveis lenker?</span>
+          <p>Range-spørringer som <code>WHERE age &gt; 50</code> er hovedgrunnen til at B+-trær slo B-trær. Når du står på første blad som matcher, koster sekvensiell scan svært lite — du følger en peker.</p>
+        </div>
+
+        <div class="concept-grid">
+          <dl class="concept">
+            <dt>Fanout</dt>
+            <dd>Antall barnpekere per node. Med 4 KiB blokker og 12-byte (key, BlockId)-poster: ≈ 227 ved 2/3 fyllgrad.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Høyde</dt>
+            <dd>For 100 mill rader, fanout 200, fyllgrad 2/3: ⌈log<sub>200</sub>(100M)⌉ ≈ 4 nivåer. Det er <em>4 disk-aksesser</em> i verste fall.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Clustered</dt>
+            <dd>Bladene <em>er</em> radene. Ekstremrask single-key og range. PRIMARY KEY i InnoDB.</dd>
+          </dl>
+          <dl class="concept">
+            <dt>Unclustered</dt>
+            <dd>Bladene har (key, RID). Ekstra hopp til heap-fil for selve raden — derav «for mange treff» kostnaden i stasjon 4.</dd>
+          </dl>
+        </div>
+
+        <div class="mcq" data-correct="c">
+          <div class="q-label">Sjekkpunkt 8.1</div>
+          <div class="q-text">Hva «vokser» når et B+-tre vokser i høyde?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Treet vokser ned — nytt nivå legges under bladene.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Hver eksisterende node får ett ekstra barn.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Roten splittes, og en ny rot opprettes over.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Bladene fordobles.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>C</strong>. Splittinger propagerer oppover. Bare når roten selv må splittes vokser treet i høyde — derfor er B+-trær alltid balanserte. <a href="../kap6/btrees.html">Se mer i kap. 6B</a>.
+          </div>
+        </div>
       </section>
 
+      <!-- ─────────── STEP 9 ─────────── -->
       <section id="step-9" data-step="9">
-        <div class="step-eyebrow">Trinn 09</div>
-        <h2>Resultat og commit</h2>
-        <ul>
-          <li>Tupler streames tilbake til klient</li>
-          <li>Ved skriv: commit-record skrives, log-buffer flushes (WAL)</li>
-          <li>Låser slippes (etter strict 2PL)</li>
-        </ul>
-        <p>Relevant: <a href="../kap8/recovery.html#wal">WAL</a>.</p>
+        <div class="step-eyebrow">Stasjon 09 · Resultat &amp; commit</div>
+        <h2>Tupler streames tilbake — og loggen sluttføres</h2>
+        <p>Executor er en pipeline. Iteratoren returnerer ett tuple om gangen («Volcano-modellen»). Klienten ser de første radene før spørringen er ferdig kjørt. På toppen sitter projeksjonen π og kaster bort kolonnene klienten ikke spurte om.</p>
+        <p>For en SELECT er det ikke noe egentlig commit å gjøre — vi har ikke endret noe. Men sesjonens auto-commit eller eksplisitte <code>COMMIT</code> resulterer i:</p>
+        <ol>
+          <li>Et <strong>commit-record</strong> skrives til log-bufferet.</li>
+          <li>Log-bufferet <strong>force-flushes</strong> til disk (durability!).</li>
+          <li>Lock manager slipper alle låser (Strict 2PL).</li>
+          <li>Tuples som ennå er igjen i prosjeksjons-pipelinen sendes ut.</li>
+        </ol>
+
+        <h3>Resultatet streamer tilbake</h3>
+        <figure class="journey-fig" id="fig-step-9">
+          <div class="result-stream" id="result-stream">
+            <div class="result-row">name              salary</div>
+            <div class="result-row">─────────────────────────</div>
+            <div class="result-row">Olav Hansen       742 000.00</div>
+            <div class="result-row">Kari Nygaard      815 500.00</div>
+            <div class="result-row">Per Berge         690 000.00</div>
+          </div>
+          <figcaption>Volcano-iteratoren produserer rad nr. <em>n</em> mens klienten leser rad nr. <em>n − 1</em>.</figcaption>
+          <div class="controls">
+            <button class="ctrl-btn" data-class-toggle="result-stream">Replay</button>
+          </div>
+        </figure>
+
+        <div class="callout">
+          <span class="label">Force-log-at-commit</span>
+          <p>Et fsync-kall på log-devicen er det dyreste øyeblikket i en SQL-transaksjon. Group commit (samle commit-records og fsync sjeldnere) er en standardteknikk for å øke gjennomstrømning.</p>
+        </div>
+
+        <div class="mcq" data-correct="d">
+          <div class="q-label">Sjekkpunkt 9.1</div>
+          <div class="q-text">Hvorfor er det at <em>commit-recordet</em> er på disk — ikke at <em>data-blokkene</em> er det — som gir durability?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Commit-recordet inneholder hele radens nye verdi.</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Data-blokker kan ikke skrives sikkert til disk.</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Disk er raskere enn buffer.</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Loggen er sekvensiell og billig å fsync; redo-loggen lar oss spille endringene tilbake i bufferet etter krasj.</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>D</strong>. Dette er kjernen i ARIES: data-blokker kan ligge i buffer lenge, så lenge logg-redo-recordene er på disk og refererer dem (PageLSN). Recovery roller frem fra siste checkpoint og bruker DPT for å minimere arbeidet.
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────────── STEP 10 ─────────── -->
+      <section id="step-10" data-step="10">
+        <div class="step-eyebrow">Stasjon 10 · Sammenheng</div>
+        <h2>Hele bildet på én side</h2>
+        <p>Du har nå sett hva hvert eneste subsystem i kurset gjør på den samme spørringen. Tabellen oppsummerer hvor du finner mer.</p>
+
+        <figure class="journey-fig">
+          <svg viewBox="0 0 720 320" role="img" aria-label="Helhetsbilde av DBMS-en">
+            <!-- Layers -->
+            <rect x="20" y="20"  width="680" height="40" rx="4" fill="rgba(31,78,121,0.10)" stroke="var(--rust)"/>
+            <text x="360" y="46" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--rust)">SQL-kompilator + katalog (stasjon 02–03)</text>
+
+            <rect x="20" y="70" width="680" height="40" rx="4" fill="rgba(198,138,31,0.12)" stroke="var(--ochre)"/>
+            <text x="360" y="96" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--ochre)">Optimizer (stasjon 04)</text>
+
+            <rect x="20" y="120" width="680" height="40" rx="4" fill="rgba(122,74,45,0.10)" stroke="var(--blue)"/>
+            <text x="360" y="146" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--blue)">Executor + iteratorer (stasjon 09)</text>
+
+            <rect x="20" y="170" width="220" height="50" rx="4" fill="rgba(61,107,58,0.10)" stroke="var(--green)"/>
+            <text x="130" y="200" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--green)">Lock manager (05)</text>
+
+            <rect x="250" y="170" width="220" height="50" rx="4" fill="rgba(61,107,58,0.10)" stroke="var(--green)"/>
+            <text x="360" y="200" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--green)">Buffer pool (06)</text>
+
+            <rect x="480" y="170" width="220" height="50" rx="4" fill="rgba(61,107,58,0.10)" stroke="var(--green)"/>
+            <text x="590" y="200" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--green)">Log buffer (05/09)</text>
+
+            <rect x="20" y="230" width="680" height="60" rx="4" fill="var(--paper)" stroke="var(--ink-soft)"/>
+            <text x="360" y="265" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="var(--ink)">Disk · heap-filer · B+-trær · log device (07/08)</text>
+          </svg>
+          <figcaption>Lagene over leverer ned, lagene under leverer opp. Hver pil i en arkitekturtegning er én av stasjonene du nettopp har gått gjennom.</figcaption>
+        </figure>
+
+        <div class="wrap-cards">
+          <a class="wrap-card" href="../kap2/relasjonsalgebra.html">
+            <h4>Algebra-treet</h4>
+            <p>π, σ, ⨝ er språket optimizeren tenker i. Repetér de algebraiske ekvivalensene.</p>
+          </a>
+          <a class="wrap-card" href="../kap6/lagring.html">
+            <h4>Buffer &amp; blokker</h4>
+            <p>Hash-indeksen, eviction, flip/flop. Hva som faktisk skjer i RAM.</p>
+          </a>
+          <a class="wrap-card" href="../kap6/btrees.html">
+            <h4>B+-trær</h4>
+            <p>Splitting, høyde, clustered vs. unclustered. Hjertet av indekseringen.</p>
+          </a>
+          <a class="wrap-card" href="../kap7/innhold.html">
+            <h4>Query processing</h4>
+            <p>Aksessmetoder, kostnadsestimering, sortering, join-algoritmer.</p>
+          </a>
+          <a class="wrap-card" href="../kap8/samtidighet-og-laser.html">
+            <h4>Samtidighet</h4>
+            <p>2PL, MVCC, isolation levels og deadlock-håndtering.</p>
+          </a>
+          <a class="wrap-card" href="../kap8/recovery.html">
+            <h4>Recovery</h4>
+            <p>WAL, ARIES, CLR, DPT. Hvordan databasen reiser seg etter krasj.</p>
+          </a>
+        </div>
+
+        <h3>Avsluttende sjekk</h3>
+        <div class="mcq" data-correct="b">
+          <div class="q-label">Helhets-quiz</div>
+          <div class="q-text">Hvilken sekvens er <em>riktig</em> for en typisk lese-spørring?</div>
+          <div class="options">
+            <button class="mcq-opt" data-opt="a"><span class="lbl">A</span> Disk → Buffer → Optimizer → Parser → Klient</button>
+            <button class="mcq-opt" data-opt="b"><span class="lbl">B</span> Klient → Parser → Katalog → Optimizer → Executor → Lock/Log → Buffer → (Disk hvis miss) → Klient</button>
+            <button class="mcq-opt" data-opt="c"><span class="lbl">C</span> Klient → Buffer → Optimizer → Disk → B+-tree → Klient</button>
+            <button class="mcq-opt" data-opt="d"><span class="lbl">D</span> Klient → Lock manager → Parser → Disk → Buffer → Klient</button>
+          </div>
+          <div class="mcq-feedback">
+            Riktig: <strong>B</strong>. Det er denne sekvensen vi har fulgt gjennom alle 9 stasjonene. Lock og log engasjeres etter at executor har valgt plan, men <em>før</em> data faktisk leses.
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="label">Når du leser om en feature i framtida …</span>
+          <p>… spør deg selv: hvor i denne reisen påvirker den? «Snapshot isolation» endrer stasjon 05 og 06. «Materialiserte views» endrer stasjon 04. «Column store» endrer stasjon 06–07. Det meste handler om hvordan stasjonene henger sammen.</p>
+        </div>
+
       </section>
     </article>
 
@@ -212,6 +1309,8 @@
       <div class="progress-fill" id="progress-fill"></div>
     </div>
   </div>
+
+  <div class="scorebar" id="scorebar">Quiz: <strong id="score-num">0</strong> / <span id="score-total">0</span></div>
 </main>
 
 <footer>
@@ -223,13 +1322,13 @@
 
 <script>
 (function () {
+  // ── Step nav highlighting + progress rail ─────────────────────────
   var sections = document.querySelectorAll('section[data-step]');
   var navLinks = document.querySelectorAll('.step-nav a[data-target]');
   var fill = document.getElementById('progress-fill');
 
   function onScroll() {
-    var vh = window.innerHeight;
-    var midline = vh / 2;
+    var midline = window.innerHeight / 2;
     var activeStep = null;
     sections.forEach(function (s) {
       var r = s.getBoundingClientRect();
@@ -237,19 +1336,185 @@
     });
     navLinks.forEach(function (a) {
       a.classList.toggle('active', a.dataset.target === activeStep);
-      if (activeStep && parseInt(a.dataset.target) < parseInt(activeStep)) {
+      if (activeStep && parseInt(a.dataset.target, 10) < parseInt(activeStep, 10)) {
         a.classList.add('completed');
       } else {
         a.classList.remove('completed');
       }
     });
     var doc = document.documentElement;
-    var scrolled = (doc.scrollTop || document.body.scrollTop);
+    var scrolled = doc.scrollTop || document.body.scrollTop;
     var max = (doc.scrollHeight - doc.clientHeight) || 1;
     fill.style.height = Math.min(100, (scrolled / max) * 100) + '%';
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  // ── IntersectionObserver: kick off animations when sections show ──
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          var step = e.target.dataset.step;
+          activateStep(step);
+        }
+      });
+    }, { threshold: 0.25 });
+    sections.forEach(function (s) { observer.observe(s); });
+  } else {
+    // fallback: activate everything
+    sections.forEach(function (s) { activateStep(s.dataset.step); });
+  }
+
+  function activateStep(step) {
+    if (step === '1') {
+      var fig = document.getElementById('fig-step-1');
+      if (fig) fig.classList.add('pf-active');
+    }
+    if (step === '2') {
+      var ts = document.getElementById('tok-stream');
+      if (ts) ts.classList.add('go');
+    }
+    if (step === '5') {
+      var lt = document.getElementById('lock-table');
+      if (lt) lt.classList.add('go');
+    }
+    if (step === '7') {
+      var df = document.getElementById('fig-step-7');
+      if (df) df.classList.add('go');
+    }
+    if (step === '9') {
+      var rs = document.getElementById('result-stream');
+      if (rs) rs.classList.add('go');
+    }
+  }
+
+  // ── Manual play/pause + replay buttons ────────────────────────────
+  document.querySelectorAll('[data-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = document.getElementById(b.getAttribute('data-toggle'));
+      if (t) t.classList.toggle(b.getAttribute('data-class'));
+    });
+  });
+  document.querySelectorAll('[data-tok]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = document.getElementById(b.getAttribute('data-tok'));
+      if (!t) return;
+      t.classList.remove('go');
+      // force reflow
+      void t.offsetWidth;
+      t.classList.add('go');
+    });
+  });
+  document.querySelectorAll('[data-class-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = document.getElementById(b.getAttribute('data-class-toggle'));
+      if (!t) return;
+      t.classList.remove('go');
+      void t.offsetWidth;
+      t.classList.add('go');
+    });
+  });
+
+  // ── B+-tree stepper ───────────────────────────────────────────────
+  var bpSteps = [
+    [],
+    ['root'],
+    ['root', 'i2'],
+    ['root', 'i2', 'l3'],
+    ['root', 'i2', 'l3', 'l4']
+  ];
+  var bpHighlights = [
+    [],
+    [],
+    [],
+    ['l3'],
+    ['l3', 'l4']
+  ];
+  var bpIdx = 0;
+  function renderBp() {
+    var nodes = document.querySelectorAll('.bp-node');
+    nodes.forEach(function (n) { n.classList.remove('visited', 'target'); });
+    bpSteps[bpIdx].forEach(function (id) {
+      var n = document.querySelector('.bp-node[data-bp="' + id + '"]');
+      if (n) n.classList.add('visited');
+    });
+    bpHighlights[bpIdx].forEach(function (id) {
+      var n = document.querySelector('.bp-node[data-bp="' + id + '"]');
+      if (n) { n.classList.remove('visited'); n.classList.add('target'); }
+    });
+  }
+  var bpStepBtn = document.getElementById('bp-step');
+  var bpResetBtn = document.getElementById('bp-reset');
+  if (bpStepBtn) bpStepBtn.addEventListener('click', function () {
+    bpIdx = (bpIdx + 1) % bpSteps.length;
+    renderBp();
+  });
+  if (bpResetBtn) bpResetBtn.addEventListener('click', function () {
+    bpIdx = 0; renderBp();
+  });
+  renderBp();
+
+  // ── MCQ logic + scoreboard ───────────────────────────────────────
+  var mcqs = document.querySelectorAll('.mcq');
+  var total = mcqs.length;
+  var correct = 0;
+  document.getElementById('score-total').textContent = total;
+  mcqs.forEach(function (q) {
+    var answer = q.getAttribute('data-correct');
+    var feedback = q.querySelector('.mcq-feedback');
+    q.querySelectorAll('.mcq-opt').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (opt.disabled) return;
+        var picked = opt.getAttribute('data-opt');
+        var isRight = (picked === answer);
+        opt.classList.add(isRight ? 'right' : 'wrong');
+        if (!isRight) {
+          // also reveal correct one
+          q.querySelectorAll('.mcq-opt').forEach(function (other) {
+            if (other.getAttribute('data-opt') === answer) other.classList.add('right');
+          });
+        }
+        q.querySelectorAll('.mcq-opt').forEach(function (o) { o.disabled = true; });
+        if (feedback) feedback.classList.add('show');
+        if (isRight) {
+          correct += 1;
+          document.getElementById('score-num').textContent = correct;
+        }
+      });
+    });
+  });
+
+  // ── Cost calculator (step 4) ─────────────────────────────────────
+  var sel = document.getElementById('calc-sel');
+  var selVal = document.getElementById('calc-sel-val');
+  var out = document.getElementById('calc-out');
+  function updateCalc() {
+    if (!sel) return;
+    var pct = parseFloat(sel.value);
+    selVal.textContent = pct.toFixed(1) + ' %';
+
+    // Plan A: full heap scan
+    var planA = 1961;
+
+    // Plan B: 2 levels down + sideways scan in leaf + RID fetches
+    // assume 100k rows, leaf has 170 (key,RID)/block -> 589 leaf blocks
+    var matched = 100000 * (pct / 100);
+    var leafBlocks = Math.ceil(589 * (pct / 100));
+    var ridFetches = Math.ceil(matched);
+    var planB = 2 + leafBlocks + ridFetches;
+
+    var winner = planA < planB ? 'A' : 'B';
+    out.innerHTML =
+      'Plan A (heap scan): <strong>' + planA + '</strong> blokker<br>' +
+      'Plan B (index): 2 (rot+intern) + ' + leafBlocks + ' (blader) + ' + ridFetches + ' (RID) = ' +
+      '<strong>' + planB + '</strong> blokker<br>' +
+      '&nbsp;&nbsp;➜ Vinner: <span class="winner">Plan ' + winner + '</span>';
+  }
+  if (sel) {
+    sel.addEventListener('input', updateCalc);
+    updateCalc();
+  }
 })();
 </script>
 <script src="../chat-widget.js"></script>

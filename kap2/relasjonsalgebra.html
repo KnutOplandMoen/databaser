@@ -5,6 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Relasjonsalgebra — Kap 2</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* Operator-paneler */
+  .op-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:.6rem; margin:1rem 0 1.4rem; }
+  .op-card { background: var(--paper-dark); border:1px solid var(--line-soft); border-radius:6px; padding:.7rem .9rem; }
+  .op-sym { font-family: 'Newsreader', serif; font-size:1.7rem; color: var(--rust); line-height:1; }
+  .op-name { font-family: var(--mono); font-size:.78rem; color: var(--ink-faded); letter-spacing:.08em; text-transform: uppercase; margin-top:.15rem; }
+  .op-desc { font-size:.9rem; color: var(--ink-soft); margin-top:.35rem; }
+
+  /* Demo-tabeller */
+  table.demo th { white-space: nowrap; }
+  table.demo .label { font-family: var(--mono); font-size:.72rem; color: var(--ink-faded); }
+  table.demo tbody tr.dim { opacity: .25; transition: opacity .35s ease; }
+  table.demo tbody tr.hl  { background: rgba(31, 78, 121, 0.10); transition: background .35s ease; }
+  table.demo th.dim, table.demo td.dim { opacity: .25; transition: opacity .35s ease; }
+  table.demo th.hl, table.demo td.hl { background: rgba(31, 78, 121, 0.10); transition: background .35s ease; }
+
+  /* Interaktiv runner */
+  .runner { display:grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; align-items: flex-start; margin: 1rem 0 1.4rem; }
+  @media (max-width: 760px) { .runner { grid-template-columns: 1fr; } }
+  .runner .input,
+  .runner .output { background: var(--paper-dark); border:1px solid var(--line-soft); border-radius:6px; padding: .9rem 1rem; }
+  .runner h4 { margin-top: 0; }
+  .step-row { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom: .8rem; }
+  .step-row button { font-family: var(--mono); font-size:.78rem; background: var(--paper); border:1px solid var(--line); padding: 6px 10px; border-radius: 14px; cursor:pointer; color: var(--ink-soft); }
+  .step-row button.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+  .expr-line { font-family: var(--mono); font-size:.92rem; color: var(--rust-dark); padding:.3rem 0; border-top:1px dashed var(--line-soft); }
+  .expr-line:first-child { border-top: none; }
+
+  /* Venn-paneler */
+  .venn-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin: 1rem 0; }
+  @media (max-width: 720px) { .venn-grid { grid-template-columns: 1fr; } }
+  .venn-grid figure { margin: 0; }
+
+  /* Truth/key-hjelpere */
+  .pk-cell { background: rgba(31, 78, 121, 0.10); }
+  .fk-cell { background: rgba(198, 138, 31, 0.18); }
+
+  .pill-row { display:flex; flex-wrap:wrap; gap:.5rem; margin:.6rem 0 1.2rem; }
+  .pill { font-family: var(--mono); font-size:.78rem; padding:4px 10px; border-radius:14px; background: var(--paper-dark); border:1px solid var(--line-soft); color: var(--ink-soft); }
+</style>
 </head>
 <body>
 
@@ -25,92 +65,570 @@
 <main data-chapter="Kapittel 2: Relasjonsmodellen og relasjonsalgebra">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 2 · 2B</div>
+      <div class="eyebrow">Kapittel 2 · 2B · Lærebok 2.6 + 4.1</div>
       <h1>Relasjons<em>algebra</em></h1>
-      <p class="lede">Operatorer som tar relasjoner inn og gir relasjoner ut. Det formelle språket optimalisatoren faktisk jobber med.</p>
+      <p class="lede">Operatorer som tar relasjoner inn og gir relasjoner ut. Det formelle språket optimalisatoren bruker når SQL skal kjøres.</p>
       <nav class="toc">
-        <a href="#grunnoperatorer"><span>01</span> Grunnoperatorer</a>
-        <a href="#select"><span>02</span> σ — Select</a>
-        <a href="#project"><span>03</span> π — Project</a>
-        <a href="#join"><span>04</span> ⋈ — Join</a>
-        <a href="#mengde"><span>05</span> Mengdeoperatorer</a>
-        <a href="#division"><span>06</span> ÷ — Division</a>
+        <a href="#hvorfor"><span>01</span> Hvorfor algebra</a>
+        <a href="#oversikt"><span>02</span> Operator-oversikt</a>
+        <a href="#select"><span>03</span> σ Select</a>
+        <a href="#project"><span>04</span> π Project</a>
+        <a href="#kartesisk"><span>05</span> × Kartesisk produkt</a>
+        <a href="#join"><span>06</span> ⋈ Join</a>
+        <a href="#mengde"><span>07</span> ∪ ∩ −</a>
+        <a href="#rename"><span>08</span> ρ Rename</a>
+        <a href="#division"><span>09</span> ÷ Division</a>
+        <a href="#komposisjon"><span>10</span> Komposisjon</a>
+        <a href="#runner"><span>11</span> Bygg en spørring</a>
+        <a href="#oppsummering"><span>12</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
-  <section id="grunnoperatorer">
+  <!-- ─────────── 01 Hvorfor ─────────── -->
+  <section id="hvorfor">
     <div class="container">
-      <div class="section-badge">01 · Grunnoperatorer</div>
-      <h2>Seks operatorer er nok</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <div class="section-badge">01 · Hvorfor algebra</div>
+      <h2>SQL er overflaten — algebraen er fundamentet</h2>
+
+      <p class="dropcap">Når du skriver en SQL-spørring, parser DBMS-en den til et <strong>relasjons­algebra-tre</strong>. Optimalisatoren manipulerer dette treet: bytter rekkefølge på operatorer, presser <code>σ</code> ned mot tabellene, velger join-algoritmer. Skal du forstå <em>hvorfor</em> en spørring er treg eller rask, må du forstå algebraen.</p>
+
+      <p>Algebraen har fire egenskaper som gjør den nyttig:</p>
       <ul>
-        <li>σ select, π project, × kartesisk produkt, ∪ union, − differanse, ρ rename</li>
-        <li>Alle andre kan utledes (⋈, ∩, ÷)</li>
-        <li>Hver operator: input-skjema, output-skjema, semantikk</li>
+        <li><strong>Lukket</strong> — input og output er begge relasjoner. Operasjoner kan komponeres som funksjoner: <code>π<sub>name</sub>(σ<sub>dept='Physics'</sub>(instructor))</code>.</li>
+        <li><strong>Funksjonell</strong> — ingen sideeffekter. Samme input gir samme output.</li>
+        <li><strong>Algebraiske lover</strong> — <code>σ<sub>p</sub>(R ⋈ S) = σ<sub>p</sub>(R) ⋈ S</code> hvis <code>p</code> bare nevner attributter i R. Slike lover er det optimalisatoren utnytter.</li>
+        <li><strong>Komplett nok</strong> — alle SQL-spørringer (utenom aggregat og null-håndtering) kan oversettes til en relasjons­algebra-uttrykk.</li>
       </ul>
+
+      <div class="callout">
+        <span class="label">Eksempel-database (samme som læreboka)</span>
+        <p>Vi bruker tabellene <code>instructor</code>, <code>department</code>, <code>course</code>, <code>teaches</code> gjennom hele siden. Skjema vises i sidebar­diagrammet på <a href="relasjonsmodellen.html#fremmednokler">2A · Fremmednøkler</a>.</p>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 02 Oversikt ─────────── -->
+  <section id="oversikt">
+    <div class="container">
+      <div class="section-badge">02 · Operator-oversikt</div>
+      <h2>Seks fundamentale, tre avledede</h2>
+
+      <p>De seks <strong>fundamentale</strong> operasjonene utgjør et fullt språk. De resterende kan defineres ved hjelp av disse — men brukes så ofte at de regnes som førsteklasses.</p>
+
+      <h3>Fundamentale</h3>
+      <div class="op-grid">
+        <div class="op-card"><div class="op-sym">σ</div><div class="op-name">Select</div><div class="op-desc">Filtrer rader som oppfyller predikat <em>p</em>.</div></div>
+        <div class="op-card"><div class="op-sym">π</div><div class="op-name">Project</div><div class="op-desc">Velg ut kolonner. Duplikater fjernes.</div></div>
+        <div class="op-card"><div class="op-sym">×</div><div class="op-name">Kartesisk</div><div class="op-desc">Alle par av tupler — bygger bredere rader.</div></div>
+        <div class="op-card"><div class="op-sym">∪</div><div class="op-name">Union</div><div class="op-desc">Tupler i R eller S (kompatibelt skjema).</div></div>
+        <div class="op-card"><div class="op-sym">−</div><div class="op-name">Differanse</div><div class="op-desc">Tupler i R som <em>ikke</em> er i S.</div></div>
+        <div class="op-card"><div class="op-sym">ρ</div><div class="op-name">Rename</div><div class="op-desc">Gi relasjon eller attributter nye navn.</div></div>
+      </div>
+
+      <h3>Avledede (utledes fra de fundamentale)</h3>
+      <div class="op-grid">
+        <div class="op-card"><div class="op-sym">⋈</div><div class="op-name">Join</div><div class="op-desc">σ-filter + ×. Theta, equi, natural.</div></div>
+        <div class="op-card"><div class="op-sym">∩</div><div class="op-name">Intersect</div><div class="op-desc">Tupler som finnes i begge. <code>R ∩ S = R − (R − S)</code>.</div></div>
+        <div class="op-card"><div class="op-sym">÷</div><div class="op-name">Division</div><div class="op-desc">«For alle …»-spørringer.</div></div>
+      </div>
+
+      <p>Hver operator har et <strong>input-skjema</strong>, et <strong>output-skjema</strong> og en presis semantikk. Vi går gjennom dem en for en med samme lille datasett, og avslutter med en interaktiv «bygg en spørring»-runner.</p>
+    </div>
+  </section>
+
+  <!-- ─────────── 03 SELECT ─────────── -->
   <section id="select">
     <div class="container">
-      <div class="section-badge">02 · σ Select</div>
-      <h2>Filtrer rader</h2>
-      <ul>
-        <li>σ_<em>p</em>(R) — beholder rader der p er TRUE</li>
-        <li>Predikat p: bygges fra =, ≠, &lt;, &gt;, AND, OR, NOT</li>
-        <li>Eksempel: σ_alder &gt; 30 (Ansatt)</li>
-      </ul>
+      <div class="section-badge">03 · σ Select</div>
+      <h2>Filtrer rader: σ<sub>p</sub>(R)</h2>
+
+      <p><strong>Notasjon:</strong> <code>σ<sub>p</sub>(R)</code> — beholder de tuplene <code>t ∈ R</code> der predikatet <code>p(t)</code> er TRUE.</p>
+      <p><strong>Predikat</strong> kan bygges av sammenligninger (<code>=, ≠, &lt;, ≤, &gt;, ≥</code>), konnektiver (<code>∧, ∨, ¬</code>), og kan referere til to attributter (<code>σ<sub>dept_name = building</sub>(department)</code>) — ikke bare attributt mot konstant.</p>
+      <p><strong>Output-skjema:</strong> uendret — Select fjerner aldri kolonner.</p>
+
+      <h3>Eksempel — instruktører i Physics</h3>
+      <p>Spørring: <code>σ<sub>dept_name = "Physics"</sub>(instructor)</code></p>
+      <div class="figgrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <figure>
+          <table class="demo">
+            <caption class="label">instructor (input)</caption>
+            <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th></tr></thead>
+            <tbody>
+              <tr><td>10101</td><td>Srinivasan</td><td>Comp. Sci.</td><td>65 000</td></tr>
+              <tr class="hl"><td>22222</td><td>Einstein</td><td>Physics</td><td>95 000</td></tr>
+              <tr class="hl"><td>33456</td><td>Gold</td><td>Physics</td><td>87 000</td></tr>
+              <tr><td>76766</td><td>Crick</td><td>Biology</td><td>72 000</td></tr>
+              <tr><td>83821</td><td>Brandt</td><td>Comp. Sci.</td><td>92 000</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure>
+          <table class="demo">
+            <caption class="label">resultat</caption>
+            <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td>22222</td><td>Einstein</td><td>Physics</td><td>95 000</td></tr>
+              <tr class="hl"><td>33456</td><td>Gold</td><td>Physics</td><td>87 000</td></tr>
+            </tbody>
+          </table>
+        </figure>
+      </div>
+
+      <p><strong>Sammensatt predikat:</strong> <code>σ<sub>dept_name = "Physics" ∧ salary &gt; 90000</sub>(instructor)</code> gir bare Einstein.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">SQL-mapping</span>
+        <p><code>σ<sub>p</sub>(R)</code> blir <code>SELECT * FROM R WHERE p</code>.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Skriv σ-uttrykket · Lett</div>
+        <div class="q-text">Skriv et relasjons­algebra-uttrykk som finner alle instruktører som tjener minst 80 000 OG ikke jobber i Comp. Sci.</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><code>σ<sub>salary ≥ 80000 ∧ dept_name ≠ "Comp. Sci."</sub>(instructor)</code>. Resultatet på datasettet over: bare Einstein og Gold.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 04 PROJECT ─────────── -->
   <section id="project">
     <div class="container">
-      <div class="section-badge">03 · π Project</div>
-      <h2>Velg kolonner</h2>
-      <ul>
-        <li>π_A,B(R) — fjerner andre attributter</li>
-        <li>Resultatet er en mengde — duplikater fjernes (i ren algebra)</li>
-        <li>SQL er bag, ikke mengde — det skaper subtile forskjeller</li>
-      </ul>
+      <div class="section-badge">04 · π Project</div>
+      <h2>Velg ut kolonner: π<sub>L</sub>(R)</h2>
+
+      <p><strong>Notasjon:</strong> <code>π<sub>A<sub>1</sub>, A<sub>2</sub>, …</sub>(R)</code> — beholder bare de listede attributtene.</p>
+      <p><strong>Output-skjema:</strong> bare attributtene i <code>L</code>.</p>
+      <p><strong>Duplikater:</strong> fjernes — fordi resultatet er en mengde. Dette er en av de viktigste kildene til ulikhet mellom relasjons­algebra og SQL (bag-semantikk).</p>
+
+      <h3>Eksempel — bare ID, navn og lønn</h3>
+      <p>Spørring: <code>π<sub>ID, name, salary</sub>(instructor)</code></p>
+      <figure>
+        <table class="demo">
+          <caption class="label">π fjerner dept_name-kolonnen</caption>
+          <thead><tr><th>ID</th><th>name</th><th class="dim">dept_name</th><th>salary</th></tr></thead>
+          <tbody>
+            <tr><td>10101</td><td>Srinivasan</td><td class="dim">Comp. Sci.</td><td>65 000</td></tr>
+            <tr><td>22222</td><td>Einstein</td><td class="dim">Physics</td><td>95 000</td></tr>
+            <tr><td>33456</td><td>Gold</td><td class="dim">Physics</td><td>87 000</td></tr>
+          </tbody>
+        </table>
+        <figcaption>Visuelt fjerner π en kolonne. I praksis lages det en ny relasjon med færre attributter.</figcaption>
+      </figure>
+
+      <h3>Når dukker duplikater opp?</h3>
+      <p>Tabellen <code>instructor</code> har flere rader i samme avdeling. <code>π<sub>dept_name</sub>(instructor)</code> gir <em>én</em> rad per avdeling — ikke én per instruktør:</p>
+      <figure>
+        <table class="demo" style="max-width:240px">
+          <thead><tr><th>dept_name</th></tr></thead>
+          <tbody>
+            <tr><td>Comp. Sci.</td></tr>
+            <tr><td>Physics</td></tr>
+            <tr><td>Biology</td></tr>
+          </tbody>
+        </table>
+        <figcaption>5 input-rader → 3 output-rader. Duplikater forsvinner.</figcaption>
+      </figure>
+
+      <div class="callout callout-blue">
+        <span class="label">SQL-mapping</span>
+        <p><code>π<sub>L</sub>(R)</code> tilsvarer <code>SELECT DISTINCT L FROM R</code>. Uten <code>DISTINCT</code> beholder SQL duplikater — det er bag-semantikken.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Refleksjon · Middels</div>
+        <div class="q-text"><code>π<sub>dept_name</sub>(instructor)</code> har 3 rader, men SQL-en <code>SELECT dept_name FROM instructor</code> kan returnere 5. Hvorfor?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Ren relasjons­algebra opererer på mengder — duplikater fjernes implisitt. SQL bruker <em>multimengder</em> (bags) — duplikater bevares med mindre du ber eksplisitt om <code>DISTINCT</code>. Dette er ytelsesvalg: dedupe koster en sortering eller hash, og er ikke alltid det brukeren ville hatt.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 05 KARTESISK ─────────── -->
+  <section id="kartesisk">
+    <div class="container">
+      <div class="section-badge">05 · × Kartesisk produkt</div>
+      <h2>Sett alt mot alt: R × S</h2>
+
+      <p><strong>Notasjon:</strong> <code>R × S</code> — alle kombinasjoner av tupler. Hvis <code>|R| = m</code> og <code>|S| = n</code>, har resultatet <code>m · n</code> tupler.</p>
+      <p><strong>Output-skjema:</strong> sammenstilling av begge skjemaene. Hvis et attributtnavn finnes i begge, prefikses det med relasjonsnavn (<code>instructor.ID</code>, <code>teaches.ID</code>).</p>
+
+      <h3>Mini-eksempel</h3>
+      <p>La <code>A = {1, 2}</code> og <code>B = {x, y}</code> (én attributt hver). Da er:</p>
+      <figure>
+        <table class="demo" style="max-width:260px">
+          <caption class="label">A × B</caption>
+          <thead><tr><th>A.val</th><th>B.val</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>x</td></tr>
+            <tr><td>1</td><td>y</td></tr>
+            <tr><td>2</td><td>x</td></tr>
+            <tr><td>2</td><td>y</td></tr>
+          </tbody>
+        </table>
+      </figure>
+
+      <p>Kartesisk produkt alene gir nesten aldri det du vil — det blir veldig stort, og kobler ting som ikke har med hverandre å gjøre. Men kombinert med <code>σ</code> får vi <em>join</em>:</p>
+
+      <pre><code>σ<sub>instructor.ID = teaches.ID</sub>(instructor × teaches)
+   ≡   instructor ⋈<sub>instructor.ID = teaches.ID</sub> teaches</code></pre>
+
+      <p>Algebraen utleder altså join fra to mer fundamentale operasjoner.</p>
+    </div>
+  </section>
+
+  <!-- ─────────── 06 JOIN ─────────── -->
   <section id="join">
     <div class="container">
-      <div class="section-badge">04 · ⋈ Join</div>
-      <h2>Sett sammen tabeller</h2>
+      <div class="section-badge">06 · ⋈ Join</div>
+      <h2>Sett tabeller sammen langs en betingelse</h2>
+
+      <p>Det finnes flere join-varianter. De skiller seg bare i <em>hvilket predikat</em> som brukes — alle bygger ovenpå <code>×</code> og <code>σ</code>.</p>
+
+      <div class="pill-row">
+        <span class="pill">Theta-join ⋈<sub>θ</sub></span>
+        <span class="pill">Equijoin</span>
+        <span class="pill">Natural join ⋈</span>
+        <span class="pill">Outer joins ⟕ ⟖ ⟗</span>
+      </div>
+
+      <h3>Theta-join</h3>
+      <p><code>R ⋈<sub>θ</sub> S = σ<sub>θ</sub>(R × S)</code>. <code>θ</code> er et vilkårlig predikat — kan inneholde &lt;, &gt;, ulikhet, sammensatte uttrykk.</p>
+
+      <h3>Equijoin</h3>
+      <p>Theta-join der predikatet kun bruker likhet: <code>R ⋈<sub>R.A = S.B</sub> S</code>. Den vanligste varianten.</p>
+
+      <h3>Natural join</h3>
+      <p><strong>Notasjon:</strong> <code>R ⋈ S</code> (uten subskript). Match på <em>alle attributter med samme navn</em>, og slå sammen til én kolonne i resultatet.</p>
+
+      <p>For <code>instructor(<u>ID</u>, name, dept_name, salary)</code> og <code>department(<u>dept_name</u>, building, budget)</code> er det bare <code>dept_name</code> som er felles. Da:</p>
+      <p><code>instructor ⋈ department = σ<sub>instructor.dept_name = department.dept_name</sub>(instructor × department)</code> — men med <em>én</em> <code>dept_name</code>-kolonne i resultatet, ikke to.</p>
+
+      <figure>
+        <table class="demo">
+          <caption class="label">instructor ⋈ department</caption>
+          <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th><th>building</th><th>budget</th></tr></thead>
+          <tbody>
+            <tr><td>10101</td><td>Srinivasan</td><td>Comp. Sci.</td><td>65 000</td><td>Taylor</td><td>100 000</td></tr>
+            <tr><td>22222</td><td>Einstein</td><td>Physics</td><td>95 000</td><td>Watson</td><td>70 000</td></tr>
+            <tr><td>33456</td><td>Gold</td><td>Physics</td><td>87 000</td><td>Watson</td><td>70 000</td></tr>
+            <tr><td>76766</td><td>Crick</td><td>Biology</td><td>72 000</td><td>Watson</td><td>90 000</td></tr>
+          </tbody>
+        </table>
+      </figure>
+
+      <div class="callout">
+        <span class="label">Pass på når skjemaet endres</span>
+        <p>Natural join er sårbar for skjemaendringer: legges et nytt likt-navngitt attributt til (f.eks. <code>created_at</code> i begge tabellene), endres semantikken stille. I produksjonskode er <code>JOIN ON</code> (eksplisitt) ofte tryggere enn <code>NATURAL JOIN</code>.</p>
+      </div>
+
+      <h3>Outer joins — ikke kast bort «taperne»</h3>
+      <p>I en vanlig (inner) join faller tupler uten match bort. Outer join bevarer dem ved å fylle inn NULL for de manglende attributtene.</p>
       <ul>
-        <li>Natural join — match på likt-navngitte attributter</li>
-        <li>Theta join — match på vilkårlig predikat</li>
-        <li>Equijoin — theta-join der predikatet er likhet</li>
-        <li>Outer joins: left, right, full — bevarer "tapere"</li>
+        <li><strong>Left outer ⟕</strong> — bevarer alle rader i venstre tabell.</li>
+        <li><strong>Right outer ⟖</strong> — bevarer alle rader i høyre tabell.</li>
+        <li><strong>Full outer ⟗</strong> — bevarer alle på begge sider.</li>
       </ul>
+
+      <p>Eksempel: <code>instructor ⟕ teaches</code> beholder også instruktører som ikke underviser noen kurs:</p>
+      <figure>
+        <table class="demo">
+          <caption class="label">instructor ⟕ teaches (LEFT OUTER) — utdrag</caption>
+          <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>course_id</th><th>semester</th></tr></thead>
+          <tbody>
+            <tr><td>10101</td><td>Srinivasan</td><td>Comp. Sci.</td><td>CS-101</td><td>Fall 2017</td></tr>
+            <tr><td>22222</td><td>Einstein</td><td>Physics</td><td>PHY-101</td><td>Fall 2017</td></tr>
+            <tr><td>33456</td><td>Gold</td><td>Physics</td><td>NULL</td><td>NULL</td></tr>
+            <tr><td>58583</td><td>Califieri</td><td>History</td><td>NULL</td><td>NULL</td></tr>
+          </tbody>
+        </table>
+        <figcaption>Gold og Califieri underviser ikke — i en inner join hadde de forsvunnet.</figcaption>
+      </figure>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Forskjell · Middels</div>
+        <div class="q-text">Hvilke instruktører forsvinner fra resultatet hvis du gjør <code>instructor ⋈ teaches</code> (inner) i stedet for <code>instructor ⟕ teaches</code>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">De som <em>ikke</em> har en match i <code>teaches</code> — altså instruktører som ikke underviser noen kurs (Gold, Califieri, Singh i lærebok-eksempelet). Inner join krever match på begge sider; left outer bevarer venstre uansett.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Lover · Vanskelig</div>
+        <div class="q-text">Hvorfor er <code>σ<sub>p</sub>(R ⋈ S)</code> ikke alltid lik <code>(σ<sub>p</sub>(R)) ⋈ S</code> — selv når p bare nevner attributter i R?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">For <em>inner</em> join gjelder lover-utvidelsen: optimalisatoren bruker akkurat denne identiteten («push selection past join») når den kan. For <em>outer</em> join bryter den ned — left outer kan introdusere NULL-rader fra venstre side selv etter filteret, og predikatet på p over en NULL-rad blir UNKNOWN, som filtreres bort. Lærdommen: algebraiske lover gjelder bare for spesifikke operatorer, og optimalisatoren må vite om forskjellene.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 07 MENGDE ─────────── -->
   <section id="mengde">
     <div class="container">
-      <div class="section-badge">05 · Mengdeoperatorer</div>
-      <h2>∪ ∩ −</h2>
+      <div class="section-badge">07 · ∪ ∩ −</div>
+      <h2>Mengde­operatorer — krever skjema-kompatibilitet</h2>
+
+      <p>For at <code>R ∪ S</code>, <code>R ∩ S</code> eller <code>R − S</code> skal gi mening, må <code>R</code> og <code>S</code> være <strong>kompatible</strong>:</p>
       <ul>
-        <li>Krever skjemakompatibilitet</li>
-        <li>Union — alle, dedup</li>
-        <li>Intersect — felles</li>
-        <li>Difference — i R, ikke i S</li>
+        <li>Samme antall attributter (samme <em>aritet</em>).</li>
+        <li>Samme type på den i-te attributten i begge.</li>
       </ul>
+
+      <p>Det er <em>posisjon</em> som teller, ikke navn — derfor må man ofte projisere først for å justere skjemaene.</p>
+
+      <div class="venn-grid">
+        <figure>
+          <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="80" cy="65" r="50" fill="#1f4e79" fill-opacity="0.30" stroke="#1f4e79"/>
+            <circle cx="120" cy="65" r="50" fill="#1f4e79" fill-opacity="0.30" stroke="#1f4e79"/>
+            <text x="65" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">R</text>
+            <text x="135" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">S</text>
+            <text x="100" y="125" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79">R ∪ S</text>
+          </svg>
+          <figcaption>Union: alle tupler i enten R eller S (eller begge).</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="80" cy="65" r="50" fill="none" stroke="#1f4e79"/>
+            <circle cx="120" cy="65" r="50" fill="none" stroke="#1f4e79"/>
+            <path d="M 100 24 A 50 50 0 0 1 100 106 A 50 50 0 0 1 100 24 Z" fill="#1f4e79" fill-opacity="0.45"/>
+            <text x="65" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">R</text>
+            <text x="135" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">S</text>
+            <text x="100" y="125" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79">R ∩ S</text>
+          </svg>
+          <figcaption>Intersect: tupler i begge.</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <clipPath id="clipS"><circle cx="120" cy="65" r="50"/></clipPath>
+            </defs>
+            <circle cx="80" cy="65" r="50" fill="#1f4e79" fill-opacity="0.45" stroke="#1f4e79"/>
+            <circle cx="80" cy="65" r="50" fill="#f4f1ea" clip-path="url(#clipS)"/>
+            <circle cx="120" cy="65" r="50" fill="none" stroke="#1f4e79"/>
+            <text x="65" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">R</text>
+            <text x="135" y="40" font-family="IBM Plex Mono" font-size="11" fill="#1a1612">S</text>
+            <text x="100" y="125" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79">R − S</text>
+          </svg>
+          <figcaption>Differanse: tupler i R som ikke er i S.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Eksempel — kurs gitt i begge semestre</h3>
+      <pre><code>π<sub>course_id</sub>(σ<sub>semester="Fall" ∧ year=2017</sub>(section))
+  ∩
+π<sub>course_id</sub>(σ<sub>semester="Spring" ∧ year=2018</sub>(section))</code></pre>
+
+      <p>Resultatet er kurser som ble undervist i begge perioder.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Avledning</span>
+        <p>Intersect kan utledes fra differanse: <code>R ∩ S = R − (R − S)</code>. Det er derfor ∩ ikke regnes som fundamental — men i SQL er den tilgjengelig direkte (<code>INTERSECT</code>).</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Refleksjon · Lett</div>
+        <div class="q-text">Kan <code>instructor ∪ student</code> gi mening?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Bare hvis skjemaene er kompatible. <code>instructor(ID, name, dept_name, salary)</code> og <code>student(ID, name, dept_name, tot_cred)</code> har samme aritet (4), men fjerde attributt har ulik type (<code>salary</code> vs. <code>tot_cred</code>). Du må projisere bort de inkompatible kolonnene først — f.eks. <code>π<sub>ID, name</sub>(instructor) ∪ π<sub>ID, name</sub>(student)</code>.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 08 RENAME ─────────── -->
+  <section id="rename">
+    <div class="container">
+      <div class="section-badge">08 · ρ Rename</div>
+      <h2>Gi navn til mellomresultater</h2>
+
+      <p><strong>Notasjon:</strong></p>
+      <ul>
+        <li><code>ρ<sub>x</sub>(E)</code> — gir resultatet av uttrykk <code>E</code> navnet <code>x</code>.</li>
+        <li><code>ρ<sub>x(A<sub>1</sub>, A<sub>2</sub>, …)</sub>(E)</code> — i tillegg gis attributtene nye navn.</li>
+      </ul>
+
+      <p>Hvorfor trenger man dette? Fordi resultatet av en algebra-operasjon ikke har noe navn, og noen spørringer trenger å bruke samme relasjon to ganger.</p>
+
+      <h3>Eksempel — instruktører som tjener mer enn instruktør 12121</h3>
+      <pre><code>π<sub>i.ID, i.name</sub>(σ<sub>i.salary &gt; w.salary</sub>(
+   ρ<sub>i</sub>(instructor) × σ<sub>w.ID = 12121</sub>(ρ<sub>w</sub>(instructor))
+))</code></pre>
+
+      <p>Vi navngir to «kopier» av <code>instructor</code> som <code>i</code> og <code>w</code>, slik at vi kan referere til <code>i.salary</code> og <code>w.salary</code> uten tvetydighet.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">SQL-mapping</span>
+        <p>I SQL gjøres det samme med tabell-aliaser: <code>FROM instructor i, instructor w</code>. ρ er det algebraiske motstykket.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 09 DIVISION ─────────── -->
   <section id="division">
     <div class="container">
-      <div class="section-badge">06 · ÷ Division</div>
-      <h2>"Alle som …"-spørsmål</h2>
+      <div class="section-badge">09 · ÷ Division</div>
+      <h2>«Alle som …»-spørringer</h2>
+
+      <p><strong>Notasjon:</strong> <code>R ÷ S</code> — gitt at <code>S</code>'s skjema er en delmengde av <code>R</code>'s.</p>
+      <p><strong>Semantikk:</strong> Resultatet er de <code>t</code>-verdiene fra <code>R</code> (over attributter <em>ikke</em> i <code>S</code>) der <code>t</code> kombinert med <em>hver</em> rad i <code>S</code> finnes i <code>R</code>.</p>
+
+      <p>Klassisk eksempel: «Finn alle studenter som har tatt <em>alle</em> CS-kurs.»</p>
+
+      <h3>Konkret eksempel</h3>
+      <p>La <code>tatt(student, kurs)</code> og <code>påkrevd(kurs)</code>. Vi vil ha studenter som har tatt hvert kurs i <code>påkrevd</code>.</p>
+      <div class="figgrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
+        <figure>
+          <table class="demo">
+            <caption class="label">tatt</caption>
+            <thead><tr><th>student</th><th>kurs</th></tr></thead>
+            <tbody>
+              <tr><td>Anna</td><td>CS-101</td></tr>
+              <tr><td>Anna</td><td>CS-102</td></tr>
+              <tr><td>Anna</td><td>MA-100</td></tr>
+              <tr><td>Bo</td><td>CS-101</td></tr>
+              <tr><td>Bo</td><td>CS-102</td></tr>
+              <tr><td>Cara</td><td>CS-101</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure>
+          <table class="demo">
+            <caption class="label">påkrevd</caption>
+            <thead><tr><th>kurs</th></tr></thead>
+            <tbody>
+              <tr><td>CS-101</td></tr>
+              <tr><td>CS-102</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure>
+          <table class="demo">
+            <caption class="label">tatt ÷ påkrevd</caption>
+            <thead><tr><th>student</th></tr></thead>
+            <tbody>
+              <tr><td>Anna</td></tr>
+              <tr><td>Bo</td></tr>
+            </tbody>
+          </table>
+        </figure>
+      </div>
+
+      <p>Cara har tatt CS-101 men ikke CS-102, så hun mangler en av de påkrevde — fjernes. Anna har tatt begge (pluss MA-100, som ikke disqualifiserer henne). Bo har tatt akkurat de to.</p>
+
+      <h3>Avledning fra fundamentale operatorer</h3>
+      <pre><code>R ÷ S = π<sub>R−S</sub>(R) − π<sub>R−S</sub>((π<sub>R−S</sub>(R) × S) − R)</code></pre>
+      <p>Tankegangen: «Alle kandidater» minus «de kandidatene som <em>mangler</em> en kombinasjon». Den siste står igjen som «alle som ikke mangler noen» = «alle som har alle».</p>
+
+      <h3>I SQL — det dobbelte NOT EXISTS-trikset</h3>
+      <pre><code>SELECT DISTINCT t.student
+FROM tatt t
+WHERE NOT EXISTS (
+  SELECT * FROM påkrevd p
+  WHERE NOT EXISTS (
+    SELECT * FROM tatt u
+    WHERE u.student = t.student AND u.kurs = p.kurs
+  )
+);</code></pre>
+      <p>«Det finnes ikke noe påkrevd kurs som <em>ikke</em> finnes blant studentens egne tatt-rader.» Skummelt å lese, men direkte oversettelse av division.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Forståelse · Vanskelig</div>
+        <div class="q-text">Hvis <code>påkrevd</code> er <em>tom</em>, hva returnerer <code>tatt ÷ påkrevd</code>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Alle distinkte studenter — fordi predikatet «for alle <em>ingen</em> kurs i påkrevd, …» er vakuumt sant. Dette er den klassiske «tomme universelle kvantor»-felle. Sjekk derfor alltid om dataen din kan ha tomme delmengder hvis du bygger «for alle …»-spørringer.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 10 KOMPOSISJON ─────────── -->
+  <section id="komposisjon">
+    <div class="container">
+      <div class="section-badge">10 · Komposisjon og ekvivalens</div>
+      <h2>Bygg uttrykk og skriv dem om</h2>
+
+      <p>Siden hver operator gir en relasjon ut, kan de stables. «Finn navnene på alle Physics-instruktører som underviser CS-101» kan skrives som:</p>
+      <pre><code>π<sub>name</sub>(
+  σ<sub>dept_name="Physics"</sub>(instructor)
+   ⋈<sub>instructor.ID = teaches.ID</sub>
+  σ<sub>course_id="CS-101"</sub>(teaches)
+)</code></pre>
+
+      <h3>Ekvivalente uttrykk</h3>
+      <p>Det finnes flere måter å skrive samme spørring på. Optimalisatoren bruker <em>ekvivalens­regler</em> for å finne en billigere form. To eksempler:</p>
+
+      <pre><code>σ<sub>dept="Physics"</sub>(instructor ⋈ teaches)
+   ≡   (σ<sub>dept="Physics"</sub>(instructor)) ⋈ teaches</code></pre>
+
+      <pre><code>π<sub>A,B</sub>(R ⋈ S)
+   ≡   (π<sub>A, joinattr</sub>(R)) ⋈ (π<sub>B, joinattr</sub>(S))</code></pre>
+
+      <p>Den første («push selection past join») reduserer størrelsen før den dyre joinen. Den andre («push projection past join») kutter unødige kolonner tidlig. Begge gjør joinen billigere uten å endre resultatet.</p>
+
+      <div class="callout">
+        <span class="label">Hvorfor du bør lære algebraen</span>
+        <p>Når du leser <code>EXPLAIN</code>-output i Postgres eller MySQL, ser du algebra-operatorer (<em>Filter, HashAggregate, Hash Join</em>). Forstår du algebraen, forstår du planen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 11 RUNNER ─────────── -->
+  <section id="runner">
+    <div class="container">
+      <div class="section-badge">11 · Bygg en spørring</div>
+      <h2>Interaktiv runner</h2>
+
+      <p>Velg en operator-knapp under og se hvilke rader/kolonner som blir igjen. Bygges trinn for trinn på samme datasett. <em>Reset</em> nullstiller.</p>
+
+      <div class="step-row" id="op-buttons">
+        <button data-step="0" class="active">start: instructor</button>
+        <button data-step="1">σ<sub>dept = "Physics"</sub></button>
+        <button data-step="2">⋈ teaches</button>
+        <button data-step="3">π<sub>name, course_id</sub></button>
+        <button data-step="reset">↺ reset</button>
+      </div>
+
+      <div class="runner">
+        <div class="input">
+          <h4>Aktiv relasjon</h4>
+          <div id="runner-table"></div>
+        </div>
+        <div class="output">
+          <h4>Algebra-uttrykk så langt</h4>
+          <div id="runner-expr"></div>
+          <p style="font-style:italic; color:var(--ink-faded); font-size:.9rem; margin-top:.6rem;" id="runner-note">Trykk på trinnknappene over.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 12 OPPSUMMERING ─────────── -->
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">12 · Oppsummering</div>
+      <h2>Du bør nå kunne …</h2>
       <ul>
-        <li>R ÷ S — for hvilke rader i R finnes <em>alle</em> i S?</li>
-        <li>Klassisk eksempel: studenter som har tatt alle kurs</li>
-        <li>Implementasjon i SQL: NOT EXISTS NOT EXISTS-trikset</li>
+        <li>… liste de seks fundamentale operatorene og forklare semantikken til hver.</li>
+        <li>… oversette en SQL-spørring uten aggregat til relasjons­algebra og motsatt.</li>
+        <li>… skille natural join, theta-join og outer joins, og kjenne SQL-motstykkene.</li>
+        <li>… skrive en division-spørring og vite hvorfor den er triks å skrive i SQL.</li>
+        <li>… argumentere for hvorfor algebraen er nyttig: optimalisatoren manipulerer den.</li>
       </ul>
+
+      <div class="callout">
+        <span class="label">Sjekk forståelsen din</span>
+        <p>Gå tilbake til <a href="./">kapittel-oversikten</a> og ta «Test deg selv»-quizen som dekker hele kapittel 2.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -125,6 +643,99 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script>
+  // ─── Interaktiv runner: viser et akkumulert algebra-uttrykk ───────
+  (function () {
+    const instructor = [
+      {ID:'10101', name:'Srinivasan', dept_name:'Comp. Sci.', salary:65000},
+      {ID:'22222', name:'Einstein',   dept_name:'Physics',    salary:95000},
+      {ID:'33456', name:'Gold',       dept_name:'Physics',    salary:87000},
+      {ID:'76766', name:'Crick',      dept_name:'Biology',    salary:72000},
+      {ID:'83821', name:'Brandt',     dept_name:'Comp. Sci.', salary:92000}
+    ];
+    const teaches = [
+      {ID:'10101', course_id:'CS-101'},
+      {ID:'22222', course_id:'PHY-101'},
+      {ID:'33456', course_id:'PHY-205'},
+      {ID:'83821', course_id:'CS-190'}
+    ];
+
+    const tableEl = document.getElementById('runner-table');
+    const exprEl  = document.getElementById('runner-expr');
+    const noteEl  = document.getElementById('runner-note');
+    const buttons = document.querySelectorAll('#op-buttons button');
+
+    const stages = [
+      {
+        title: 'instructor',
+        cols: ['ID','name','dept_name','salary'],
+        rows: instructor,
+        expr: 'instructor',
+        note: 'Start: hele instructor-relasjonen.'
+      },
+      {
+        title: 'σ_{dept_name="Physics"}(instructor)',
+        cols: ['ID','name','dept_name','salary'],
+        rows: instructor.filter(r => r.dept_name === 'Physics'),
+        expr: 'σ<sub>dept_name = "Physics"</sub>(instructor)',
+        note: 'Behold bare Physics-radene. Skjemaet er uendret.'
+      },
+      {
+        title: 'σ(...) ⋈ teaches',
+        cols: ['ID','name','dept_name','salary','course_id'],
+        rows: instructor.filter(r => r.dept_name === 'Physics')
+                        .flatMap(i => teaches.filter(t => t.ID === i.ID).map(t => ({...i, course_id: t.course_id}))),
+        expr: 'σ<sub>dept_name = "Physics"</sub>(instructor)\n  ⋈<sub>instructor.ID = teaches.ID</sub> teaches',
+        note: 'Joine på ID. Bare Physics-instruktører som faktisk underviser dukker opp.'
+      },
+      {
+        title: 'π_{name, course_id}(...)',
+        cols: ['name','course_id'],
+        rows: instructor.filter(r => r.dept_name === 'Physics')
+                        .flatMap(i => teaches.filter(t => t.ID === i.ID).map(t => ({name: i.name, course_id: t.course_id}))),
+        expr: 'π<sub>name, course_id</sub>(\n  σ<sub>dept_name = "Physics"</sub>(instructor)\n   ⋈<sub>instructor.ID = teaches.ID</sub> teaches\n)',
+        note: 'Behold bare to kolonner. Resultatet er en mengde — ingen duplikater.'
+      }
+    ];
+
+    function render(stage) {
+      // tabell
+      let html = '<table class="demo"><thead><tr>';
+      stage.cols.forEach(c => html += '<th>' + c + '</th>');
+      html += '</tr></thead><tbody>';
+      if (stage.rows.length === 0) {
+        html += '<tr><td colspan="' + stage.cols.length + '" style="text-align:center; color:var(--ink-faded); font-style:italic;">(tom relasjon)</td></tr>';
+      } else {
+        stage.rows.forEach(r => {
+          html += '<tr>';
+          stage.cols.forEach(c => html += '<td>' + (r[c] === undefined ? 'NULL' : r[c]) + '</td>');
+          html += '</tr>';
+        });
+      }
+      html += '</tbody></table>';
+      tableEl.innerHTML = html;
+
+      // expr (split per linje)
+      const lines = stage.expr.split('\n');
+      exprEl.innerHTML = lines.map(l => '<div class="expr-line">' + l + '</div>').join('');
+
+      // note
+      noteEl.textContent = stage.note;
+    }
+
+    function setStep(idx) {
+      buttons.forEach(b => b.classList.toggle('active', String(b.dataset.step) === String(idx)));
+      render(stages[idx]);
+    }
+
+    buttons.forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.step === 'reset') { setStep(0); return; }
+      setStep(parseInt(b.dataset.step, 10));
+    }));
+
+    setStep(0);
+  })();
+</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

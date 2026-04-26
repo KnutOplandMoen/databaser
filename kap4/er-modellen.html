@@ -25,92 +25,550 @@
 <main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 4 · 4A · Forelesning 7</div>
+      <div class="eyebrow">Kapittel 4 · 4A · Forelesning 7 · Lærebok 6.1–6.6</div>
       <h1>ER-<em>modellen</em></h1>
-      <p class="lede">Lærebokas seksjon 6.1–6.6. Tegn problemet før du skriver tabeller.</p>
+      <p class="lede">Tegn problemet før du skriver tabeller. ER-diagrammet fanger semantikk på et nivå som SQL ikke klarer å uttrykke direkte.</p>
       <nav class="toc">
         <a href="#hvorfor"><span>01</span> Hvorfor ER</a>
         <a href="#entitet"><span>02</span> Entiteter og attributter</a>
-        <a href="#relasjon"><span>03</span> Relasjoner og kardinalitet</a>
-        <a href="#svak"><span>04</span> Svake entiteter</a>
-        <a href="#isa"><span>05</span> Generalisering / spesialisering</a>
-        <a href="#notasjon"><span>06</span> Diagram-notasjon</a>
+        <a href="#nokkel"><span>03</span> Nøkler</a>
+        <a href="#relasjon"><span>04</span> Relasjoner og kardinalitet</a>
+        <a href="#deltakelse"><span>05</span> Deltakelse</a>
+        <a href="#svak"><span>06</span> Svake entiteter</a>
+        <a href="#isa"><span>07</span> Generalisering / ISA</a>
+        <a href="#notasjon"><span>08</span> Notasjon</a>
+        <a href="#oppsummering"><span>09</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
+  <!-- ───────────── 01 ───────────── -->
   <section id="hvorfor">
     <div class="container">
       <div class="section-badge">01 · Hvorfor ER</div>
-      <h2>Konseptuelt før logisk</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <h2>Konseptuelt <em>før</em> logisk</h2>
+
+      <p class="dropcap">ER står for <em>Entity-Relationship</em>, og er en konseptuell datamodell. Den ble introdusert av Peter Chen i 1976 som et bro-språk mellom forretningsdomenet («kunder bestiller varer») og det relasjonsmodellen krever («tabell, primærnøkkel, fremmednøkkel»). Du tegner et ER-diagram <em>før</em> du bestemmer deg for tabeller, fordi diagrammet tvinger frem spørsmålene som ellers blir glemt.</p>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Entity-Relationship-modell</div>
+        <p>En grafisk notasjon for å beskrive virkelige objekter (<strong>entiteter</strong>), deres egenskaper (<strong>attributter</strong>) og hvordan de henger sammen (<strong>relasjoner</strong>). Notasjonen sier hva som finnes, ikke hvordan det skal lagres.</p>
+      </div>
+
+      <div class="callout">
+        <span class="label">Hvorfor ikke hoppe rett til SQL?</span>
+        <p>Fordi SQL gir deg svar lenge før spørsmålene er stilt. ER-diagrammet sier: «Kan en kunde ha flere telefonnumre? Må en bestilling ha minst én vare? Kan en student være innskrevet i to programmer samtidig?» Hvis du ikke svarer på det først, koder du inn forutsetninger som ingen har validert.</p>
+      </div>
+
+      <h3>To planer, én database</h3>
       <ul>
-        <li>ER er konseptuell modell — ikke knyttet til relasjonsmodellen direkte</li>
-        <li>Mål: kommunikasjon med stakeholders, fanger semantikk</li>
-        <li>Senere reduseres til relasjonsskjema (4B)</li>
+        <li><strong>Konseptuelt nivå</strong> — hva problemet handler om. ER-diagram, med entiteter, relasjoner og constraints uttrykt visuelt.</li>
+        <li><strong>Logisk nivå</strong> — hvordan vi representerer det med relasjonsmodellen. Tabeller, kolonner, nøkler, fremmednøkler.</li>
+        <li><strong>Fysisk nivå</strong> — hvordan tabellene lagres på disk (heap, B+-tre, klustring). Dekkes i kap 6.</li>
       </ul>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Lett</div>
+        <div class="q-text">Hvorfor lager vi et ER-diagram i stedet for å gå rett på <code>CREATE TABLE</code>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">For å fange forretningsregler og semantikk på et språk som er kommuniserbart med stakeholders som ikke kan SQL. Diagrammet uttrykker eksplisitt hva som er en sterk vs. svak entitet, om relasjonen er total eller partiell, og om kardinaliteten er 1:1, 1:N eller N:M — informasjon som er vanskelig å lese ut av ferdige <code>CREATE TABLE</code>-setninger.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 02 ───────────── -->
   <section id="entitet">
     <div class="container">
       <div class="section-badge">02 · Entiteter og attributter</div>
-      <h2>Tingene i universet ditt</h2>
-      <ul>
-        <li>Entitet — diskret objekt (Student, Bok, Ordre)</li>
-        <li>Entitetsmengde — alle av samme type</li>
-        <li>Attributter: enkle, sammensatte, fler-verdige, derivable</li>
-        <li>Nøkkel-attributt</li>
-      </ul>
+      <h2>Tingene i <em>universet</em> ditt</h2>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Entitet, entitetsmengde</div>
+        <p>En <strong>entitet</strong> er et diskret, identifiserbart objekt — én bestemt student, én bestemt bok, én bestemt ordre. En <strong>entitetsmengde</strong> er settet av alle entiteter av samme type. I diagrammet tegner vi entitetsmengden som et rektangel.</p>
+      </div>
+
+      <h3>Attributter</h3>
+      <p>Attributter er egenskapene en entitet har. Lærebokas taksonomi:</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Atomær</div>
+          <div class="fc-val"><strong>Enkelt verdi som ikke kan deles meningsfullt.</strong> <code>fødselsår</code>, <code>karakter</code>.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Sammensatt</div>
+          <div class="fc-val"><strong>Består av flere underattributter.</strong> <code>adresse</code> = (gate, postnr, sted).</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Fler-verdig</div>
+          <div class="fc-val"><strong>Kan ha flere verdier samtidig.</strong> <code>telefonnumre</code>: én person kan ha 0, 1 eller mange. Tegnes med dobbel oval.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Derivert</div>
+          <div class="fc-val"><strong>Kan beregnes fra andre attributter.</strong> <code>alder</code> derives fra <code>fødselsdato</code>. Tegnes med stiplet oval.</div>
+        </div>
+      </div>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 540 340" role="img" aria-label="Eksempel på entitet med attributter">
+          <!-- entity rectangle -->
+          <rect x="220" y="130" width="120" height="60" rx="2" class="ent-rect"/>
+          <text x="280" y="166" text-anchor="middle" font-weight="600">Student</text>
+
+          <!-- key attribute -->
+          <ellipse cx="80" cy="50" rx="60" ry="22" class="attr-oval key"/>
+          <text x="80" y="55" text-anchor="middle" class="key-text">studnr</text>
+          <line x1="138" y1="62" x2="225" y2="135" class="edge"/>
+
+          <!-- atomic attribute -->
+          <ellipse cx="80" cy="160" rx="60" ry="22" class="attr-oval"/>
+          <text x="80" y="165" text-anchor="middle">navn</text>
+          <line x1="140" y1="160" x2="220" y2="160" class="edge"/>
+
+          <!-- composite -->
+          <ellipse cx="430" cy="50" rx="80" ry="22" class="attr-oval"/>
+          <text x="430" y="55" text-anchor="middle">adresse</text>
+          <ellipse cx="385" cy="0" rx="42" ry="14" class="attr-oval"/>
+          <text x="385" y="4" text-anchor="middle" class="label-mono">gate</text>
+          <ellipse cx="475" cy="0" rx="42" ry="14" class="attr-oval"/>
+          <text x="475" y="4" text-anchor="middle" class="label-mono">postnr</text>
+          <line x1="385" y1="14" x2="412" y2="32" class="edge"/>
+          <line x1="475" y1="14" x2="448" y2="32" class="edge"/>
+          <line x1="370" y1="62" x2="335" y2="135" class="edge"/>
+
+          <!-- multi-valued -->
+          <ellipse cx="430" cy="160" rx="65" ry="22" class="attr-oval multi"/>
+          <ellipse cx="430" cy="160" rx="58" ry="16" class="attr-oval multi"/>
+          <text x="430" y="165" text-anchor="middle">tlf-numre</text>
+          <line x1="365" y1="160" x2="340" y2="160" class="edge"/>
+
+          <!-- derived -->
+          <ellipse cx="280" cy="270" rx="60" ry="22" class="attr-oval" stroke-dasharray="4 3"/>
+          <text x="280" y="275" text-anchor="middle">alder</text>
+          <line x1="280" y1="248" x2="280" y2="190" class="edge" stroke-dasharray="4 3"/>
+
+          <!-- legend -->
+          <text x="270" y="320" text-anchor="middle" class="label-mono">studnr understreket = nøkkelattributt · stiplet = derivert · dobbel oval = fler-verdig</text>
+        </svg>
+        <figcaption>En <code>Student</code>-entitet med atomær (<code>navn</code>), nøkkel (<code>studnr</code>), sammensatt (<code>adresse</code>), fler-verdig (<code>tlf-numre</code>) og derivert (<code>alder</code>) attributt.</figcaption>
+      </figure>
+
+      <div class="callout callout-warn">
+        <span class="label">Vanlig tabbe</span>
+        <p>Behandle fler-verdige attributter som om de var atomære. Lagrer du tre telefonnumre kommaseparert i én kolonne, har du brutt 1NF før du har fått begynt — og du kan ikke spørre etter «alle som har telefonnummer 555-…» uten <code>LIKE</code>-hack.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hvilket attributt er fler-verdig?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0"><code>fødselsdato</code> for en person</button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>språk</code> for en person som snakker flere</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>postnr</code> i adresse</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>alder</code> beregnet fra fødselsdato</button></li>
+        </ul>
+        <div class="mcq-feedback">«Språk» kan ha flere verdier samtidig for samme person. Det reduseres til en egen tabell <code>PersonSnakker(personid, sprak)</code> i 4B.</div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 03 ───────────── -->
+  <section id="nokkel">
+    <div class="container">
+      <div class="section-badge">03 · Nøkler</div>
+      <h2>Hva <em>identifiserer</em> en entitet</h2>
+
+      <div class="def-box">
+        <span class="def-label">Tre nøkkelbegreper</span>
+        <p><strong>Supernøkkel:</strong> et sett attributter som er unikt på tvers av alle instanser. <strong>Kandidatnøkkel:</strong> en supernøkkel som er <em>minimal</em> — du kan ikke fjerne noe attributt uten å miste unikheten. <strong>Primærnøkkel:</strong> kandidatnøkkelen designeren peker på som «den offisielle».</p>
+      </div>
+
+      <p>I ER-diagrammet understrekes primærnøkkelen i sin oval: <code><u>studnr</u></code>. En entitet kan ha flere kandidatnøkler — fødselsnummer og e-post er begge unike for en person — men bare én utvelges som primærnøkkel.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Naturlig vs. surrogat</span>
+        <p>En <em>naturlig nøkkel</em> finnes allerede i domenet (fødselsnummer, ISBN). En <em>surrogatnøkkel</em> er en kunstig identifikator (<code>id BIGINT</code> som vi tildeler). Surrogater er stabile; naturlige nøkler kan endre seg (folk endrer navn, men sjelden personnummer). Praksis er å velge surrogat <em>i tillegg til</em> naturlige unikhet-constraints.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Middels</div>
+        <div class="q-text">Et bibliotek har <code>Bok(isbn, tittel, hyllenr)</code>. Tre eksemplarer har samme ISBN men forskjellige hyllenummer. Hva er primærnøkkelen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">ISBN er <strong>ikke</strong> unik her — flere fysiske eksemplarer kan dele ISBN. Vi trenger en bredere nøkkel, f.eks. en surrogat <code>eksemplar_id</code> eller den sammensatte <code>(isbn, hyllenr)</code> hvis hyllenr er unikt per eksemplar. Modellfeilen er at vi har slått sammen «verkene» og «eksemplarene» — to ulike entiteter.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 04 ───────────── -->
   <section id="relasjon">
     <div class="container">
-      <div class="section-badge">03 · Relasjoner og kardinalitet</div>
-      <h2>Hvordan entiteter henger sammen</h2>
+      <div class="section-badge">04 · Relasjoner og kardinalitet</div>
+      <h2>Hvordan entiteter <em>henger</em> sammen</h2>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Relasjon (relasjonsmengde)</div>
+        <p>En relasjon er en assosiasjon mellom to eller flere entiteter. I ER-diagrammet tegnes relasjonen som en rombe (diamant) som forbindes med entitetene den knytter sammen. <em>Denne</em> bruken av ordet «relasjon» skal ikke forveksles med en tabell i relasjonsmodellen — historisk uhell.</p>
+      </div>
+
+      <h3>Aritet</h3>
       <ul>
-        <li>Binær, ternær, n-ær relasjon</li>
-        <li>Kardinalitetsforhold: 1:1, 1:N, N:M</li>
-        <li>Total vs. partiell deltakelse</li>
-        <li>Roller når samme entitet inngår to ganger</li>
+        <li><strong>Binær</strong> — to entiteter (langt vanligst). <code>Student</code> &mdash; <em>tar</em> &mdash; <code>Emne</code>.</li>
+        <li><strong>Ternær</strong> — tre. <code>Student</code> &mdash; <em>får-veiledning-av</em> &mdash; <code>Lærer</code> i et bestemt <code>Emne</code>.</li>
+        <li><strong>Rekursiv</strong> — entitet i relasjon med seg selv. <code>Ansatt</code> &mdash; <em>rapporterer-til</em> &mdash; <code>Ansatt</code>. Da må vi tegne <em>roller</em>.</li>
       </ul>
+
+      <h3>Kardinalitet — hvor mange?</h3>
+      <p>Tre kardinalitetsforhold for binære relasjoner. Tegningen viser hvor mange instanser av den ene siden som kan henge sammen med én instans av den andre.</p>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 720 200" role="img" aria-label="Tre kardinalitetsforhold">
+          <!-- 1:1 -->
+          <g>
+            <rect x="20" y="60" width="80" height="40" class="ent-rect"/>
+            <text x="60" y="84" text-anchor="middle" font-weight="600">Person</text>
+            <polygon points="140,80 170,60 200,80 170,100" class="rel-diamond"/>
+            <text x="170" y="84" text-anchor="middle" class="label-mono">eier</text>
+            <rect x="240" y="60" width="80" height="40" class="ent-rect"/>
+            <text x="280" y="84" text-anchor="middle" font-weight="600">Pass</text>
+            <line x1="100" y1="80" x2="140" y2="80" class="edge"/>
+            <line x1="200" y1="80" x2="240" y2="80" class="edge"/>
+            <text x="120" y="74" text-anchor="middle" class="label-mono">1</text>
+            <text x="220" y="74" text-anchor="middle" class="label-mono">1</text>
+            <text x="170" y="140" text-anchor="middle" font-weight="600">1 : 1</text>
+            <text x="170" y="158" text-anchor="middle" class="label-mono">én Person eier nøyaktig ett Pass</text>
+          </g>
+
+          <!-- 1:N -->
+          <g transform="translate(0,0)">
+            <rect x="380" y="60" width="80" height="40" class="ent-rect"/>
+            <text x="420" y="84" text-anchor="middle" font-weight="600">Avd.</text>
+            <polygon points="500,80 530,60 560,80 530,100" class="rel-diamond"/>
+            <text x="530" y="84" text-anchor="middle" class="label-mono">har</text>
+            <rect x="600" y="60" width="80" height="40" class="ent-rect"/>
+            <text x="640" y="84" text-anchor="middle" font-weight="600">Ansatt</text>
+            <line x1="460" y1="80" x2="500" y2="80" class="edge"/>
+            <line x1="560" y1="80" x2="600" y2="80" class="edge"/>
+            <text x="480" y="74" text-anchor="middle" class="label-mono">1</text>
+            <text x="580" y="74" text-anchor="middle" class="label-mono">N</text>
+            <text x="530" y="140" text-anchor="middle" font-weight="600">1 : N</text>
+            <text x="530" y="158" text-anchor="middle" class="label-mono">én Avdeling har mange Ansatte</text>
+          </g>
+        </svg>
+        <figcaption>1:1 og 1:N — kanten merkes med antallet.</figcaption>
+      </figure>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 720 180" role="img" aria-label="N:M kardinalitet">
+          <rect x="60" y="60" width="100" height="40" class="ent-rect"/>
+          <text x="110" y="84" text-anchor="middle" font-weight="600">Student</text>
+          <polygon points="220,80 260,60 300,80 260,100" class="rel-diamond"/>
+          <text x="260" y="84" text-anchor="middle" class="label-mono">tar</text>
+          <rect x="360" y="60" width="100" height="40" class="ent-rect"/>
+          <text x="410" y="84" text-anchor="middle" font-weight="600">Emne</text>
+          <line x1="160" y1="80" x2="220" y2="80" class="edge"/>
+          <line x1="300" y1="80" x2="360" y2="80" class="edge"/>
+          <text x="190" y="72" text-anchor="middle" class="label-mono">N</text>
+          <text x="330" y="72" text-anchor="middle" class="label-mono">M</text>
+          <!-- attribute on relationship -->
+          <ellipse cx="260" cy="135" rx="50" ry="18" class="attr-oval"/>
+          <text x="260" y="140" text-anchor="middle">karakter</text>
+          <line x1="260" y1="100" x2="260" y2="117" class="edge"/>
+
+          <!-- example tuple cloud -->
+          <g transform="translate(540,40)">
+            <text x="50" y="0" text-anchor="middle" font-weight="600">eksempel</text>
+            <text x="50" y="22" text-anchor="middle" class="label-mono">Anna ↔ TDT4145</text>
+            <text x="50" y="42" text-anchor="middle" class="label-mono">Anna ↔ TMA4115</text>
+            <text x="50" y="62" text-anchor="middle" class="label-mono">Bjørn ↔ TDT4145</text>
+            <text x="50" y="82" text-anchor="middle" class="label-mono">Cecilie ↔ TMA4115</text>
+            <text x="50" y="100" text-anchor="middle" class="label-mono">Cecilie ↔ TFY4106</text>
+          </g>
+        </svg>
+        <figcaption>N:M — én student tar mange emner; ett emne har mange studenter. Attributter (som <code>karakter</code>) hører hjemme på selve relasjonen, ikke på noen av entitetene.</figcaption>
+      </figure>
+
+      <div class="callout callout-warn">
+        <span class="label">Hvor hører <code>karakter</code> hjemme?</span>
+        <p>Ikke hos <code>Student</code> (alle emnene må ha hver sin), ikke hos <code>Emne</code> (alle studentene må ha hver sin). Den hører hjemme på selve N:M-<em>relasjonen</em>. Når vi reduserer i 4B blir dette en kolonne i mellomtabellen.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">En kunde kan kjøpe mange produkter, og et produkt kan kjøpes av mange kunder. Hva er kardinaliteten?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">1:1</button></li>
+          <li><button class="mcq-opt" data-correct="0">1:N med Kunde på 1-siden</button></li>
+          <li><button class="mcq-opt" data-correct="0">1:N med Produkt på 1-siden</button></li>
+          <li><button class="mcq-opt" data-correct="1">N:M</button></li>
+        </ul>
+        <div class="mcq-feedback">Begge sider er «mange» — typisk N:M. Reduseres til mellomtabell <code>Kjop(kunde_id, produkt_id, dato, antall, …)</code>.</div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 05 ───────────── -->
+  <section id="deltakelse">
+    <div class="container">
+      <div class="section-badge">05 · Deltakelse</div>
+      <h2>Total <em>vs.</em> partiell</h2>
+
+      <p>Kardinalitet sier <em>hvor mange</em>; deltakelse sier <em>om en entitet i det hele tatt må være med</em>.</p>
+
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Total deltakelse</h4>
+          <p><em>Hver</em> instans må være med i minst én relasjon. Tegnes med dobbel kantlinje fra entitet til relasjon.</p>
+          <p class="label-mono">Eks: «Hver ansatt <strong>må</strong> ha en avdeling.»</p>
+        </div>
+        <div class="compare-cell">
+          <h4>Partiell deltakelse</h4>
+          <p>Det er <em>tillatt</em> å ikke være med. Tegnes med vanlig enkel kantlinje.</p>
+          <p class="label-mono">Eks: «En avdeling kan ha 0 ansatte (nyopprettet).»</p>
+        </div>
+      </div>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 600 160" role="img" aria-label="Total vs. partiell deltakelse">
+          <!-- Avdeling -->
+          <rect x="40" y="60" width="100" height="40" class="ent-rect"/>
+          <text x="90" y="84" text-anchor="middle" font-weight="600">Avd.</text>
+          <!-- relasjon -->
+          <polygon points="220,80 260,60 300,80 260,100" class="rel-diamond"/>
+          <text x="260" y="84" text-anchor="middle" class="label-mono">jobber</text>
+          <!-- Ansatt -->
+          <rect x="380" y="60" width="100" height="40" class="ent-rect"/>
+          <text x="430" y="84" text-anchor="middle" font-weight="600">Ansatt</text>
+
+          <!-- partial line (left) -->
+          <line x1="140" y1="80" x2="220" y2="80" class="edge"/>
+          <text x="180" y="72" text-anchor="middle" class="label-mono">1</text>
+          <text x="180" y="120" text-anchor="middle" class="label-mono" fill="#3d3832">partiell</text>
+
+          <!-- total line (right) - double -->
+          <line x1="300" y1="80" x2="380" y2="80" class="edge double"/>
+          <text x="340" y="72" text-anchor="middle" class="label-mono">N</text>
+          <text x="340" y="120" text-anchor="middle" class="label-mono" fill="#1f4e79">total — dobbel kant</text>
+        </svg>
+        <figcaption>Hver ansatt <em>må</em> jobbe i en avdeling (total). Avdelingen kan eksistere uten ansatte (partiell).</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="label">Min..max-notasjon</span>
+        <p>Crow's foot-notasjon (og UML) bruker (min,max). <code>(0,N)</code> = partiell; <code>(1,N)</code> = total. <code>(1,1)</code> = nøyaktig én. Praktisk å bruke når du diskuterer nøyaktige grenser, f.eks. «en gruppe må ha 2–8 medlemmer».</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Lett</div>
+        <div class="q-text">«Hver student har én studieprogramtilknytning, men et studieprogram kan ha 0 eller mange studenter.» Hva er kardinalitet og deltakelse?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Kardinalitet: 1:N (én Studieprogram til mange Studenter). Deltakelse: total på Student-siden («må»), partiell på Studieprogram-siden (kan være tom).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 06 ───────────── -->
   <section id="svak">
     <div class="container">
-      <div class="section-badge">04 · Svake entiteter</div>
-      <h2>Når identitet kommer fra eieren</h2>
-      <ul>
-        <li>Svak entitet — ingen egen primærnøkkel</li>
-        <li>Identifying relationship — peker på sterk eier</li>
-        <li>Diskriminator — gjør instans unik innenfor eier</li>
-      </ul>
+      <div class="section-badge">06 · Svake entiteter</div>
+      <h2>Når identitet kommer fra <em>eieren</em></h2>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Svak entitet</div>
+        <p>En entitet som ikke har sin egen primærnøkkel — den identifiseres bare i kombinasjon med en eier-entitet. Tegnes med dobbel rektangel-ramme. Relasjonen til eieren kalles <strong>identifying relationship</strong> og tegnes med dobbel rombe.</p>
+      </div>
+
+      <h3>Det klassiske eksempelet: ordrelinje</h3>
+      <p>Ta en <code>Ordre</code> med ID 1042. Den har flere <code>Ordrelinjer</code>. Hver ordrelinje har et linjenummer (1, 2, 3 …) som er unikt <em>innenfor</em> ordren — men ikke globalt. Linjenummer 1 finnes i nesten hver ordre. Linjenummer alene identifiserer ingenting; <code>(ordrenr=1042, linjenr=1)</code> identifiserer entydig.</p>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 580 220" role="img" aria-label="Svak entitet med identifying relationship">
+          <!-- Ordre (sterk) -->
+          <rect x="60" y="80" width="120" height="60" class="ent-rect"/>
+          <text x="120" y="115" text-anchor="middle" font-weight="600">Ordre</text>
+          <ellipse cx="120" cy="40" rx="55" ry="20" class="attr-oval key"/>
+          <text x="120" y="45" text-anchor="middle" class="key-text">ordrenr</text>
+          <line x1="120" y1="60" x2="120" y2="80" class="edge"/>
+
+          <!-- Identifying relationship (double diamond) -->
+          <polygon points="240,110 280,80 320,110 280,140" class="rel-diamond"/>
+          <polygon points="248,110 280,86 312,110 280,134" class="rel-diamond"/>
+          <text x="280" y="115" text-anchor="middle" class="label-mono">har</text>
+
+          <!-- Svak entitet (double rectangle) -->
+          <rect x="380" y="80" width="140" height="60" class="ent-rect"/>
+          <rect x="386" y="86" width="128" height="48" class="ent-weak-outer"/>
+          <text x="450" y="115" text-anchor="middle" font-weight="600">Ordrelinje</text>
+
+          <!-- discriminator attribute on weak entity (dashed underline) -->
+          <ellipse cx="450" cy="190" rx="70" ry="20" class="attr-oval"/>
+          <text x="450" y="195" text-anchor="middle" style="text-decoration: underline; text-decoration-style: dashed">linjenr</text>
+          <line x1="450" y1="170" x2="450" y2="140" class="edge"/>
+
+          <!-- edges - double on weak side -->
+          <line x1="180" y1="110" x2="240" y2="110" class="edge"/>
+          <text x="210" y="100" text-anchor="middle" class="label-mono">1</text>
+          <line x1="320" y1="110" x2="380" y2="110" class="edge double"/>
+          <text x="350" y="100" text-anchor="middle" class="label-mono">N</text>
+        </svg>
+        <figcaption>Dobbel rektangel = svak entitet. Dobbel rombe = identifying relationship. <code>linjenr</code> er <em>diskriminator</em>: stiplet understreking. Total deltakelse på svak side er underforstått.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="label">Når reduseres til tabell</span>
+        <p>Ordrelinje får sammensatt primærnøkkel <code>(ordrenr, linjenr)</code>, hvor <code>ordrenr</code> samtidig er fremmednøkkel til Ordre. Sletter du ordren, må linjene slettes også (<code>ON DELETE CASCADE</code>). Detaljer i 4B.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hvilken av disse er typisk svak entitet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Bil — har <code>regnr</code> som unik identifikator</button></li>
+          <li><button class="mcq-opt" data-correct="1">Pårørende — identifiseres som «pårørende #2 til person 12345»</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bok — har ISBN</button></li>
+          <li><button class="mcq-opt" data-correct="0">Fagforelesning — har emnekode + uke + dag</button></li>
+        </ul>
+        <div class="mcq-feedback">Pårørende har sjelden egen unik identifikator i et HR-system. De identifiseres gjennom personen de er pårørende <em>til</em>, pluss et nummer eller navn — klassisk svak entitet.</div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 07 ───────────── -->
   <section id="isa">
     <div class="container">
-      <div class="section-badge">05 · Generalisering / spesialisering</div>
-      <h2>ISA-hierarkier</h2>
-      <ul>
-        <li>Generalisering — felles attributter trekkes opp</li>
-        <li>Disjoint vs. overlapping</li>
-        <li>Total vs. partiell dekning</li>
-      </ul>
+      <div class="section-badge">07 · Generalisering / spesialisering</div>
+      <h2>ISA-<em>hierarkier</em></h2>
+
+      <p>Når flere entiteter deler attributter, men noen har egne i tillegg, trekker vi opp en superklasse. Pilen leses «<em>er en</em>» (ISA): «en Student er en Person», «en Lærer er en Person». Personen har felles attributter (navn, fnr); subklassene har sine egne.</p>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 540 240" role="img" aria-label="ISA-hierarki">
+          <!-- Person (super) -->
+          <rect x="200" y="20" width="140" height="50" class="ent-rect"/>
+          <text x="270" y="50" text-anchor="middle" font-weight="600">Person</text>
+
+          <!-- ISA triangle -->
+          <polygon points="270,90 240,130 300,130" fill="none" stroke="#1a1612" stroke-width="1.4"/>
+          <text x="270" y="120" text-anchor="middle" class="label-mono">ISA</text>
+          <line x1="270" y1="70" x2="270" y2="90" class="edge"/>
+
+          <!-- subtypes -->
+          <rect x="60" y="160" width="120" height="50" class="ent-rect"/>
+          <text x="120" y="190" text-anchor="middle" font-weight="600">Student</text>
+          <line x1="240" y1="130" x2="120" y2="160" class="edge"/>
+
+          <rect x="220" y="160" width="120" height="50" class="ent-rect"/>
+          <text x="280" y="190" text-anchor="middle" font-weight="600">Lærer</text>
+          <line x1="270" y1="130" x2="280" y2="160" class="edge"/>
+
+          <rect x="380" y="160" width="120" height="50" class="ent-rect"/>
+          <text x="440" y="190" text-anchor="middle" font-weight="600">Adminstrator</text>
+          <line x1="300" y1="130" x2="430" y2="160" class="edge"/>
+        </svg>
+        <figcaption>Person generaliserer Student, Lærer og Administrator. Pilene leses «ISA».</figcaption>
+      </figure>
+
+      <h3>To uavhengige akser</h3>
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Disjoint vs. overlapping</h4>
+          <p><strong>Disjoint:</strong> én Person kan være <em>høyst én</em> av subklassene (Student <em>eller</em> Lærer, ikke begge).</p>
+          <p><strong>Overlapping:</strong> samme Person kan være flere subklasser samtidig (en doktorgradsstudent som også underviser er både Student <em>og</em> Lærer).</p>
+        </div>
+        <div class="compare-cell">
+          <h4>Total vs. partiell</h4>
+          <p><strong>Total:</strong> <em>hver</em> Person må være minst én av subklassene (alle på campus er Student eller Lærer eller Admin).</p>
+          <p><strong>Partiell:</strong> en Person kan være «bare Person», ingen av subklassene.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Konsekvenser for tabelldesign</span>
+        <p>Hvilken oversettelsesstrategi du velger i 4B avhenger av aksene. <em>Total + disjoint</em> kan modelleres som tabell-per-subtype uten sløsing. <em>Partiell + overlapping</em> krever ofte én bred tabell med diskriminator-kolonner. Mer i 4B.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Middels</div>
+        <div class="q-text">Et bibliotek skiller mellom <code>Bok</code>, <code>Tidsskrift</code> og <code>DVD</code>, alle subtyper av <code>Materiale</code>. Et eksemplar er nøyaktig én av dem. Hva er aksene?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Total (hvert eksemplar er ett av materialtypene) + disjoint (bare én — du kan ikke ha samme fysiske ting som både bok og DVD). Vanlig oversettelse: tabell per konkret subtype, eller én tabell med diskriminator-kolonne <code>type CHAR(1)</code>.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 08 ───────────── -->
   <section id="notasjon">
     <div class="container">
-      <div class="section-badge">06 · Diagram-notasjon</div>
-      <h2>Boks, rombe, ellipse</h2>
+      <div class="section-badge">08 · Notasjon</div>
+      <h2>Boks, rombe, <em>ellipse</em></h2>
+
+      <p>I dette kurset bruker vi Chen-stilen (lærebokas notasjon). Her er den korte juksesedlen:</p>
+
+      <div class="legend" style="justify-content:flex-start; margin: 1rem 0">
+        <span><span class="swatch" style="background:#fff;border-color:#1a1612;"></span> rektangel = entitet</span>
+        <span><span class="swatch" style="background:#fff;border-color:#1a1612;border-style:double"></span> dobbel ramme = svak entitet</span>
+        <span><span class="swatch" style="background:#fff;border:none;border-radius:50%;outline:1px solid #6b6257"></span> oval = attributt</span>
+        <span><span class="swatch" style="background:#fff;border-color:#1f4e79"></span> rust ramme = nøkkel</span>
+        <span><span class="swatch" style="background:#fff;border:1px dashed #6b6257"></span> stiplet = derivert</span>
+        <span><span class="swatch" style="transform:rotate(45deg);background:#fff;border-color:#1a1612;width:12px;height:12px"></span> rombe = relasjon</span>
+      </div>
+
+      <h3>Andre notasjoner du vil møte</h3>
       <ul>
-        <li>Chen-notasjon vs. krones-fot (Crow's foot)</li>
-        <li>UML class diagrams brukes også</li>
-        <li>Lærebokas notasjon i kurset</li>
+        <li><strong>Crow's foot</strong> — bruker «føtter» for kardinalitet i stedet for tall. Vanlig i industriverktøy.</li>
+        <li><strong>UML class diagram</strong> — entiteter er klasser; assosiasjoner er linjer med multiplikasjoner. Brukes ofte i objektorientert design.</li>
+        <li><strong>(min,max)-notasjon</strong> — kanten merkes <code>(0,N)</code>, <code>(1,N)</code>, <code>(1,1)</code>. Mer presist enn ren <code>1</code> / <code>N</code>.</li>
       </ul>
+
+      <p>Notasjon er konvensjon — semantikken er det samme. Velg én og hold deg til den i ett dokument.</p>
+    </div>
+  </section>
+
+  <!-- ───────────── 09 ───────────── -->
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">09 · Oppsummering</div>
+      <h2>Det <em>du</em> trenger å huske</h2>
+
+      <div class="recap-grid">
+        <div class="recap-pill"><strong>Entitet</strong> rektangel, identifiserbart objekt</div>
+        <div class="recap-pill"><strong>Attributt</strong> oval; atomær / sammensatt / fler-verdig / derivert</div>
+        <div class="recap-pill"><strong>Nøkkelattributt</strong> understreket</div>
+        <div class="recap-pill"><strong>Relasjon</strong> rombe mellom entiteter</div>
+        <div class="recap-pill"><strong>Kardinalitet</strong> 1:1 / 1:N / N:M</div>
+        <div class="recap-pill"><strong>Deltakelse</strong> total = dobbel kant; partiell = enkel</div>
+        <div class="recap-pill"><strong>Svak entitet</strong> dobbel rektangel + identifying relationship</div>
+        <div class="recap-pill"><strong>Diskriminator</strong> stiplet understreking</div>
+        <div class="recap-pill"><strong>ISA</strong> trekant; disjoint/overlap × total/partiell</div>
+      </div>
+
+      <div class="callout callout-good">
+        <span class="label">Klar for 4B?</span>
+        <p>Med et godt ER-diagram er reduksjonen til tabeller et mekanisk arbeid. <a href="er-til-relasjon.html">Gå videre til 4B → ER → relasjonsskjema</a>.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sluttsjekk · MCQ</div>
+        <div class="q-text">Hvilken kombinasjon beskriver en «ordrelinje på en faktura»?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Sterk entitet med 1:1 til Ordre</button></li>
+          <li><button class="mcq-opt" data-correct="1">Svak entitet med identifying relationship og total deltakelse på svak side</button></li>
+          <li><button class="mcq-opt" data-correct="0">Attributt på Ordre-entiteten (fler-verdig)</button></li>
+          <li><button class="mcq-opt" data-correct="0">N:M-relasjon mellom Ordre og Vare uten attributter</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig — fler-verdig attributt ville miste muligheten til å ha egne attributter (antall, pris) per linje. N:M-relasjon mellom Ordre og Vare er nær riktig, men «ordrelinje» har egen identitet (linjenummer, kommentar), så den modelleres oftest som svak entitet.</div>
+      </div>
     </div>
   </section>
 </main>
