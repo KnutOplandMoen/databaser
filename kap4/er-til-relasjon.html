@@ -25,91 +25,505 @@
 <main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 4 · 4B · Forelesning 8</div>
+      <div class="eyebrow">Kapittel 4 · 4B · Forelesning 8 · Lærebok 6.7, 6.9, 7.1</div>
       <h1>ER → <em>relasjonsskjema</em></h1>
-      <p class="lede">Lærebokas 6.7, 6.9, 7.1. Mekaniske regler for å oversette diagram til tabeller — og hvor ting går galt.</p>
+      <p class="lede">Mekaniske regler for å oversette diagram til tabeller — og hvor anomalien sniker seg inn hvis man slurver.</p>
       <nav class="toc">
-        <a href="#regler"><span>01</span> Reduksjonsregler</a>
-        <a href="#1n-nm"><span>02</span> 1:N og N:M</a>
-        <a href="#svak-tab"><span>03</span> Svake entiteter</a>
-        <a href="#isa-tab"><span>04</span> ISA-hierarkier</a>
-        <a href="#problemer"><span>05</span> Designproblemer</a>
-        <a href="#motivasjon"><span>06</span> Hvorfor normalformer</a>
+        <a href="#oversettelse"><span>01</span> Oversettelsesoppgaven</a>
+        <a href="#sterke"><span>02</span> Sterke entiteter</a>
+        <a href="#attributter"><span>03</span> Sammensatte og fler-verdige</a>
+        <a href="#relasjoner"><span>04</span> Relasjoner: 1:1, 1:N, N:M</a>
+        <a href="#svake"><span>05</span> Svake entiteter</a>
+        <a href="#isa"><span>06</span> ISA-strategier</a>
+        <a href="#worked"><span>07</span> Gjennomarbeidet eksempel</a>
+        <a href="#anomali"><span>08</span> Designproblemer</a>
+        <a href="#motivasjon"><span>09</span> Motivasjon for normalformer</a>
       </nav>
     </div>
   </header>
 
-  <section id="regler">
+  <!-- ───────────── 01 ───────────── -->
+  <section id="oversettelse">
     <div class="container">
-      <div class="section-badge">01 · Reduksjonsregler</div>
-      <h2>Sterk entitet → tabell</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>Hver sterk entitet blir en tabell med samme attributter</li>
-        <li>Sammensatte attributter blir flate kolonner</li>
-        <li>Fler-verdige attributter blir egen tabell</li>
-      </ul>
+      <div class="section-badge">01 · Oversettelsesoppgaven</div>
+      <h2>Diagram <em>til</em> tabeller</h2>
+
+      <p class="dropcap">Et godt ER-diagram inneholder all informasjonen vi trenger for å lage et relasjonsskjema. Reglene er <em>mekaniske</em>: gjør X med entiteter, gjør Y med relasjoner, gjør Z med svake entiteter. Du skal ikke <em>tenke</em> kreativt under oversettelsen — den kreative delen var å lage diagrammet i første runde.</p>
+
+      <div class="callout">
+        <span class="label">Mål for oversettelsen</span>
+        <p><strong>Lossless</strong> — ingen informasjon tapes. <strong>Constraint-bevarende</strong> — primær- og fremmednøkler reflekterer kardinalitet og deltakelse. <strong>Effektiv</strong> — så få tabeller som mulig uten å miste det første.</p>
+      </div>
+
+      <h3>Den korte oppskriften</h3>
+      <ol>
+        <li>Hver sterk entitet → tabell.</li>
+        <li>Hver svak entitet → tabell med sammensatt nøkkel som arves fra eieren.</li>
+        <li>Hver fler-verdig attributt → egen tabell.</li>
+        <li>Hver relasjon → fremmednøkkel-kolonne (1:1, 1:N) eller egen tabell (N:M).</li>
+        <li>ISA-hierarkier → en av tre strategier (vi kommer til det).</li>
+      </ol>
     </div>
   </section>
 
-  <section id="1n-nm">
+  <!-- ───────────── 02 ───────────── -->
+  <section id="sterke">
     <div class="container">
-      <div class="section-badge">02 · 1:N og N:M</div>
-      <h2>Relasjoner blir kolonner eller tabeller</h2>
-      <ul>
-        <li>1:1 — fremmednøkkel i én av tabellene</li>
-        <li>1:N — fremmednøkkel på N-siden</li>
-        <li>N:M — egen relasjonstabell med to fremmednøkler</li>
-      </ul>
+      <div class="section-badge">02 · Sterke entiteter</div>
+      <h2>Entitet <em>blir</em> tabell</h2>
+
+      <p>For en sterk entitet <code>E</code> med atomære attributter <code>a₁, a₂, …, aₙ</code> der <code>a₁</code> er nøkkel:</p>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> E (
+  a1 <span class="sql-kw">PRIMARY KEY</span>,
+  a2 …,
+  …
+  an …
+);</code></pre>
+
+      <p>Eksempel: <code>Student</code> med <code>(<u>studnr</u>, navn, fødselsdato)</code> blir:</p>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Student (
+  studnr        <span class="sql-fn">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  navn          <span class="sql-fn">VARCHAR</span>(<span class="sql-num">100</span>) <span class="sql-kw">NOT NULL</span>,
+  fodselsdato   <span class="sql-fn">DATE</span>
+);</code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">Konvensjon</span>
+        <p>Kolonnenavn på engelsk eller norsk uten æøå er typisk i industrien for portabilitet. Lærebokas eksempler bruker engelsk, men på eksamen er norsk akseptabelt.</p>
+      </div>
     </div>
   </section>
 
-  <section id="svak-tab">
+  <!-- ───────────── 03 ───────────── -->
+  <section id="attributter">
     <div class="container">
-      <div class="section-badge">03 · Svake entiteter</div>
-      <h2>Identitet arves</h2>
-      <ul>
-        <li>Sammensatt primærnøkkel: eierens nøkkel + diskriminator</li>
-        <li>Fremmednøkkelen er del av primærnøkkelen</li>
-        <li>ON DELETE CASCADE — om eieren slettes, slettes også svake</li>
-      </ul>
+      <div class="section-badge">03 · Sammensatte og fler-verdige</div>
+      <h2>Når et attributt ikke er <em>atomært</em></h2>
+
+      <h3>Sammensatt attributt → flate kolonner</h3>
+      <p><code>adresse(gate, postnr, sted)</code> blir til tre flate kolonner:</p>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Person (
+  pnr            <span class="sql-fn">CHAR</span>(<span class="sql-num">11</span>) <span class="sql-kw">PRIMARY KEY</span>,
+  adresse_gate   <span class="sql-fn">VARCHAR</span>(<span class="sql-num">120</span>),
+  adresse_postnr <span class="sql-fn">CHAR</span>(<span class="sql-num">4</span>),
+  adresse_sted   <span class="sql-fn">VARCHAR</span>(<span class="sql-num">60</span>)
+);</code></pre>
+
+      <h3>Fler-verdig attributt → egen tabell</h3>
+      <p>Et attributt som <code>tlf-numre</code> kan ikke representeres som én kolonne (det ville bryte 1NF — atomaritet). Vi lager en egen tabell der nøkkelen er sammensatt av eier-entitetens nøkkel og attributtverdien:</p>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Person_tlf (
+  pnr      <span class="sql-fn">CHAR</span>(<span class="sql-num">11</span>),
+  tlf      <span class="sql-fn">VARCHAR</span>(<span class="sql-num">20</span>),
+  <span class="sql-kw">PRIMARY KEY</span> (pnr, tlf),
+  <span class="sql-kw">FOREIGN KEY</span> (pnr) <span class="sql-kw">REFERENCES</span> Person(pnr) <span class="sql-kw">ON DELETE CASCADE</span>
+);</code></pre>
+
+      <div class="callout callout-warn">
+        <span class="label">Dette er ikke valgfritt</span>
+        <p>Komma-separerte verdier i én kolonne er klassisk anti-pattern. Det ødelegger indekser, sortering, joins og constraint-håndhevelse. Hver gang du fristes: tenk at databasen ble laget i 1970 nettopp for å unngå dette.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Lett</div>
+        <div class="q-text">Hva blir primærnøkkelen i tabellen som kommer fra et fler-verdig attributt <code>kompetanse</code> på <code>Ansatt(<u>ansattnr</u>, …)</code>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Den sammensatte <code>(ansattnr, kompetanse)</code>. Slik unngår man at samme kompetanse registreres dobbelt på samme person, samtidig som flere personer kan ha samme kompetanse og én person kan ha mange.</div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="isa-tab">
+  <!-- ───────────── 04 ───────────── -->
+  <section id="relasjoner">
     <div class="container">
-      <div class="section-badge">04 · ISA-hierarkier</div>
-      <h2>Tre alternativer</h2>
+      <div class="section-badge">04 · Relasjoner: 1:1, 1:N, N:M</div>
+      <h2>Relasjon → <em>kolonne</em> eller <em>tabell</em></h2>
+
+      <h3>Beslutningsregelen</h3>
       <ul>
-        <li>Én tabell for alt (med diskriminatorkolonne)</li>
-        <li>Tabell per konkret subtype (klassetabell)</li>
-        <li>Tabell per nivå (super + subtabeller)</li>
-        <li>Trade-offs: ledig plass, joins, polymorf spørring</li>
+        <li><strong>1:1</strong> — fremmednøkkel i én av tabellene. Velg den siden med total deltakelse (unngår nullverdier).</li>
+        <li><strong>1:N</strong> — fremmednøkkel <em>på N-siden</em>. Den ene siden av relasjonen får en kolonne som peker til den andre.</li>
+        <li><strong>N:M</strong> — egen tabell med to fremmednøkler som sammen utgjør primærnøkkelen.</li>
       </ul>
+
+      <figure class="fig-anim" data-anim data-max-step="3">
+        <svg class="svg-fig" viewBox="0 0 720 220" role="img" aria-label="N:M reduksjon trinn for trinn">
+          <!-- Steg 1: ER med N:M -->
+          <g data-show-on="1">
+            <rect x="60" y="80" width="100" height="40" class="ent-rect"/>
+            <text x="110" y="104" text-anchor="middle" font-weight="600">Student</text>
+            <polygon points="220,100 260,80 300,100 260,120" class="rel-diamond"/>
+            <text x="260" y="104" text-anchor="middle" class="label-mono">tar</text>
+            <rect x="360" y="80" width="100" height="40" class="ent-rect"/>
+            <text x="410" y="104" text-anchor="middle" font-weight="600">Emne</text>
+            <line x1="160" y1="100" x2="220" y2="100" class="edge"/>
+            <line x1="300" y1="100" x2="360" y2="100" class="edge"/>
+            <text x="190" y="92" text-anchor="middle" class="label-mono">N</text>
+            <text x="330" y="92" text-anchor="middle" class="label-mono">M</text>
+            <ellipse cx="260" cy="160" rx="50" ry="18" class="attr-oval"/>
+            <text x="260" y="165" text-anchor="middle">karakter</text>
+            <line x1="260" y1="120" x2="260" y2="142" class="edge"/>
+          </g>
+
+          <!-- Steg 2: tre tabeller -->
+          <g data-show-on="2">
+            <text x="100" y="40" text-anchor="middle" font-weight="600">Student</text>
+            <rect x="40" y="50" width="120" height="40" class="ent-rect"/>
+            <text x="100" y="68" text-anchor="middle" class="label-mono">studnr (PK)</text>
+            <text x="100" y="84" text-anchor="middle" class="label-mono">navn</text>
+
+            <text x="360" y="40" text-anchor="middle" font-weight="600" fill="#1f4e79">StudentTarEmne</text>
+            <rect x="280" y="50" width="170" height="60" class="ent-rect" style="stroke:#1f4e79"/>
+            <text x="365" y="68" text-anchor="middle" class="label-mono">studnr (FK→Student)</text>
+            <text x="365" y="84" text-anchor="middle" class="label-mono">emnekode (FK→Emne)</text>
+            <text x="365" y="100" text-anchor="middle" class="label-mono">karakter</text>
+
+            <text x="620" y="40" text-anchor="middle" font-weight="600">Emne</text>
+            <rect x="560" y="50" width="120" height="40" class="ent-rect"/>
+            <text x="620" y="68" text-anchor="middle" class="label-mono">emnekode (PK)</text>
+            <text x="620" y="84" text-anchor="middle" class="label-mono">tittel</text>
+
+            <line x1="160" y1="70" x2="280" y2="70" class="edge" stroke-dasharray="4 3"/>
+            <line x1="450" y1="70" x2="560" y2="70" class="edge" stroke-dasharray="4 3"/>
+            <text x="220" y="60" text-anchor="middle" class="label-mono" fill="#1f4e79">FK</text>
+            <text x="505" y="60" text-anchor="middle" class="label-mono" fill="#1f4e79">FK</text>
+
+            <text x="365" y="135" text-anchor="middle" class="label-mono">PK = (studnr, emnekode)</text>
+          </g>
+
+          <!-- Steg 3: instans -->
+          <g data-show-on="3">
+            <text x="360" y="30" text-anchor="middle" font-weight="600">Eksempelinstans</text>
+            <rect x="280" y="50" width="170" height="160" fill="#fff" stroke="#c9c0ae"/>
+            <text x="290" y="70" font-family="IBM Plex Mono" font-size="12">studnr  emnekode  kar</text>
+            <line x1="280" y1="78" x2="450" y2="78" stroke="#c9c0ae"/>
+            <text x="290" y="98"  font-family="IBM Plex Mono" font-size="12">100123  TDT4145    A</text>
+            <text x="290" y="116" font-family="IBM Plex Mono" font-size="12">100123  TMA4115    B</text>
+            <text x="290" y="134" font-family="IBM Plex Mono" font-size="12">100147  TDT4145    C</text>
+            <text x="290" y="152" font-family="IBM Plex Mono" font-size="12">100201  TFY4106    A</text>
+            <text x="290" y="170" font-family="IBM Plex Mono" font-size="12">100201  TMA4115    B</text>
+            <text x="290" y="190" font-family="IBM Plex Mono" font-size="11" fill="#6b6257">én rad per (student, emne)-par</text>
+          </g>
+        </svg>
+        <div class="anim-controls">
+          <button data-step="1" class="active">1 · Diagram</button>
+          <button data-step="2">2 · Tabeller</button>
+          <button data-step="3">3 · Data</button>
+          <button data-prev>‹ Forrige</button>
+          <button data-next>Neste ›</button>
+          <span class="anim-step">Steg 1 / 3</span>
+        </div>
+        <figcaption>N:M med attributt på relasjonen reduseres til mellomtabell. Klikk gjennom trinnene.</figcaption>
+      </figure>
+
+      <h3>1:N-eksempel: Avdeling har Ansatte</h3>
+      <p>Ansatt-tabellen får en fremmednøkkel <code>avd_id</code> til Avdeling:</p>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Ansatt (
+  ansattnr  <span class="sql-fn">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  navn      <span class="sql-fn">VARCHAR</span>(<span class="sql-num">80</span>),
+  avd_id    <span class="sql-fn">INT</span> <span class="sql-kw">NOT NULL</span>,            <span class="sql-com">-- total deltakelse</span>
+  <span class="sql-kw">FOREIGN KEY</span> (avd_id) <span class="sql-kw">REFERENCES</span> Avdeling(avd_id)
+);</code></pre>
+
+      <div class="callout">
+        <span class="label">Hvorfor på N-siden?</span>
+        <p>Hadde Avdeling fått en kolonne <code>ansatt_id</code>, kunne kolonnen bare peke på én ansatt — men avdelinger har flere. Plassér FK på siden hvor det er <em>maks én</em> peker. Det er alltid N-siden i en 1:N.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">I en 1:1-relasjon mellom <code>Person</code> og <code>Pass</code> der hver person har ett pass og hvert pass har én eier — hvor plasseres fremmednøkkelen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Alltid på Person-siden</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alltid på Pass-siden</button></li>
+          <li><button class="mcq-opt" data-correct="1">På siden med total deltakelse — slik unngår vi nullverdier (Pass har alltid en eier; ikke alle personer har pass)</button></li>
+          <li><button class="mcq-opt" data-correct="0">I en egen mellomtabell</button></li>
+        </ul>
+        <div class="mcq-feedback">Plasser FK der den aldri kan være null. Pass må ha eier, så <code>Pass.eier_pnr</code> er den naturlige plasseringen.</div>
+      </div>
     </div>
   </section>
 
-  <section id="problemer">
+  <!-- ───────────── 05 ───────────── -->
+  <section id="svake">
     <div class="container">
-      <div class="section-badge">05 · Designproblemer</div>
-      <h2>Anomali</h2>
-      <ul>
-        <li>Oppdateringsanomali — endre ett sted, glem et annet</li>
-        <li>Innsettingsanomali — kan ikke legge inn X uten Y</li>
-        <li>Sletteanomali — sletter X mister man også Y</li>
-      </ul>
+      <div class="section-badge">05 · Svake entiteter</div>
+      <h2>Identitet <em>arves</em></h2>
+
+      <p>Svake entiteter blir egne tabeller, men den primære nøkkelen er sammensatt: eierens nøkkel + diskriminatoren. Eierens nøkkel er <em>samtidig</em> fremmednøkkel.</p>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Ordrelinje (
+  ordrenr   <span class="sql-fn">INT</span>,
+  linjenr   <span class="sql-fn">INT</span>,
+  vare_id   <span class="sql-fn">INT</span> <span class="sql-kw">NOT NULL</span>,
+  antall    <span class="sql-fn">INT</span> <span class="sql-kw">NOT NULL</span>,
+  <span class="sql-kw">PRIMARY KEY</span> (ordrenr, linjenr),
+  <span class="sql-kw">FOREIGN KEY</span> (ordrenr) <span class="sql-kw">REFERENCES</span> Ordre(ordrenr) <span class="sql-kw">ON DELETE CASCADE</span>,
+  <span class="sql-kw">FOREIGN KEY</span> (vare_id) <span class="sql-kw">REFERENCES</span> Vare(vare_id)
+);</code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">ON DELETE CASCADE</span>
+        <p>Slettingsregelen følger semantikken: en svak entitet kan ikke eksistere uten eieren. Mister du ordren, slettes alle linjene automatisk. Det er konseptuelt riktig, og fjerner muligheten for «forelderløse» rader.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Middels</div>
+        <div class="q-text">Hvorfor lager vi <em>ikke</em> en separat tabell for relasjonen <code>Ordre — har — Ordrelinje</code> når vi reduserer en svak entitet?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi relasjonen er innebygd i Ordrelinje-tabellen. <code>ordrenr</code>-kolonnen er fremmednøkkelen, og samtidig en del av primærnøkkelen. En egen relasjonstabell ville være redundant — den ville bare kopiere allerede eksisterende informasjon.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 06 ───────────── -->
+  <section id="isa">
+    <div class="container">
+      <div class="section-badge">06 · ISA-strategier</div>
+      <h2>Tre alternativer for <em>spesialisering</em></h2>
+
+      <p>Det finnes ikke ett riktig svar — strategi velges ut fra hvor mange unike attributter subklassene har, og hvilke spørringer som er vanlige.</p>
+
+      <div class="nf-ladder">
+        <div class="nf-rung">
+          <div class="nf-name">A</div>
+          <div class="nf-desc"><strong>Én tabell for alt</strong> + diskriminatorkolonne. Felles og spesialiserte attributter ligger i samme rad. Spesialiserte attributter blir <code>NULL</code> for rader av annen type.<br><em>Bra når:</em> få spesialiserte attributter, mye polymorfe spørringer. <em>Dårlig når:</em> mange unike kolonner per subtype → mange null-celler.</div>
+        </div>
+        <div class="nf-rung">
+          <div class="nf-name">B</div>
+          <div class="nf-desc"><strong>Tabell per konkret subtype</strong>. Ingen felles supertabell — hver subtype har sin egen tabell med både felles og spesialiserte attributter. Felles attributter dupliseres på kolonnenivå.<br><em>Bra når:</em> total + disjoint, og du sjelden spør på tvers. <em>Dårlig når:</em> mye polymorfe spørringer (UNION ALL kreves).</div>
+        </div>
+        <div class="nf-rung">
+          <div class="nf-name">C</div>
+          <div class="nf-desc"><strong>Tabell per nivå</strong> (super- + subtabeller). Supertabellen har felles attributter; hver subtabell har bare egne attributter pluss FK til supertabellen.<br><em>Bra når:</em> mange spesialiserte attributter, klar disjoint-struktur. <em>Dårlig når:</em> du leser på tvers ofte (krever join).</div>
+        </div>
+      </div>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 720 240" role="img" aria-label="ISA-strategi C illustrert">
+          <text x="360" y="22" text-anchor="middle" font-weight="600">Strategi C — supertabell + subtabeller</text>
+          <!-- Person -->
+          <rect x="280" y="40" width="160" height="50" class="ent-rect"/>
+          <text x="360" y="62" text-anchor="middle" font-weight="600">Person</text>
+          <text x="360" y="80" text-anchor="middle" class="label-mono">pnr (PK), navn</text>
+
+          <!-- subs -->
+          <rect x="80" y="160" width="170" height="60" class="ent-rect"/>
+          <text x="165" y="180" text-anchor="middle" font-weight="600">Student</text>
+          <text x="165" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
+          <text x="165" y="214" text-anchor="middle" class="label-mono">studieprogram</text>
+
+          <rect x="280" y="160" width="170" height="60" class="ent-rect"/>
+          <text x="365" y="180" text-anchor="middle" font-weight="600">Lærer</text>
+          <text x="365" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
+          <text x="365" y="214" text-anchor="middle" class="label-mono">avdeling</text>
+
+          <rect x="480" y="160" width="170" height="60" class="ent-rect"/>
+          <text x="565" y="180" text-anchor="middle" font-weight="600">Administrator</text>
+          <text x="565" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
+          <text x="565" y="214" text-anchor="middle" class="label-mono">kontor</text>
+
+          <line x1="200" y1="160" x2="320" y2="90" class="edge"/>
+          <line x1="365" y1="160" x2="365" y2="90" class="edge"/>
+          <line x1="540" y1="160" x2="400" y2="90" class="edge"/>
+        </svg>
+        <figcaption>Strategi C: hver subtabell deler primærnøkkel med supertabellen. <code>pnr</code> er både PK i subtabellen og FK til supertabellen.</figcaption>
+      </figure>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Et bibliotek skiller mellom <code>Bok</code>, <code>Tidsskrift</code> og <code>DVD</code>. Felles: <code>katalognr, tittel, hyllenr</code>. Bok har 50 attributter unike for bok; DVD har 3. Hvilken strategi er typisk best?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">A — én tabell for alt</button></li>
+          <li><button class="mcq-opt" data-correct="1">C — supertabell + subtabeller</button></li>
+          <li><button class="mcq-opt" data-correct="0">B — tabell per konkret subtype</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alle er like gode</button></li>
+        </ul>
+        <div class="mcq-feedback">Strategi A ville gitt 50+ NULL-kolonner på hver DVD-rad. C unngår dette ved å plassere bok-attributter bare i Bok-tabellen, og holder felles attributter i Materiale.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 07 ───────────── -->
+  <section id="worked">
+    <div class="container">
+      <div class="section-badge">07 · Gjennomarbeidet eksempel</div>
+      <h2>Universitet → <em>tabeller</em>, helt</h2>
+
+      <p>La oss kjøre gjennom et lite, men realistisk eksempel. Krav:</p>
+      <ul>
+        <li>En <code>Avdeling</code> har et navn (unikt) og en bygning. Avdelingen kan eksistere uten ansatte.</li>
+        <li>En <code>Lærer</code> jobber i <em>nøyaktig én</em> avdeling. Lærere har lønn, navn, ansattnummer.</li>
+        <li>Hver lærer kan ha 0 eller flere telefonnumre.</li>
+        <li>Lærere underviser <code>Emner</code>. Et emne kan undervises av flere lærere; en lærer kan undervise flere emner. Per (lærer, emne)-par registreres et semester.</li>
+        <li><code>Pårørende</code> til en lærer er en svak entitet. Identifiseres ved (lærer, navn). Vi lagrer relasjonstype.</li>
+      </ul>
+
+      <h3>Resulterende skjema</h3>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Avdeling (
+  avd_navn  <span class="sql-fn">VARCHAR</span>(<span class="sql-num">60</span>) <span class="sql-kw">PRIMARY KEY</span>,
+  bygning   <span class="sql-fn">VARCHAR</span>(<span class="sql-num">40</span>)
+);
+
+<span class="sql-kw">CREATE TABLE</span> Larer (
+  ansattnr  <span class="sql-fn">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  navn      <span class="sql-fn">VARCHAR</span>(<span class="sql-num">80</span>) <span class="sql-kw">NOT NULL</span>,
+  lonn      <span class="sql-fn">DECIMAL</span>(<span class="sql-num">10</span>,<span class="sql-num">2</span>),
+  avd_navn  <span class="sql-fn">VARCHAR</span>(<span class="sql-num">60</span>) <span class="sql-kw">NOT NULL</span>,        <span class="sql-com">-- total deltakelse</span>
+  <span class="sql-kw">FOREIGN KEY</span> (avd_navn) <span class="sql-kw">REFERENCES</span> Avdeling(avd_navn)
+);
+
+<span class="sql-kw">CREATE TABLE</span> Larer_tlf (                  <span class="sql-com">-- fler-verdig attributt</span>
+  ansattnr  <span class="sql-fn">INT</span>,
+  tlf       <span class="sql-fn">VARCHAR</span>(<span class="sql-num">20</span>),
+  <span class="sql-kw">PRIMARY KEY</span> (ansattnr, tlf),
+  <span class="sql-kw">FOREIGN KEY</span> (ansattnr) <span class="sql-kw">REFERENCES</span> Larer(ansattnr) <span class="sql-kw">ON DELETE CASCADE</span>
+);
+
+<span class="sql-kw">CREATE TABLE</span> Emne (
+  emnekode  <span class="sql-fn">CHAR</span>(<span class="sql-num">7</span>) <span class="sql-kw">PRIMARY KEY</span>,
+  tittel    <span class="sql-fn">VARCHAR</span>(<span class="sql-num">100</span>)
+);
+
+<span class="sql-kw">CREATE TABLE</span> Underviser (                  <span class="sql-com">-- N:M-relasjon med attributt</span>
+  ansattnr  <span class="sql-fn">INT</span>,
+  emnekode  <span class="sql-fn">CHAR</span>(<span class="sql-num">7</span>),
+  semester  <span class="sql-fn">CHAR</span>(<span class="sql-num">5</span>),                       <span class="sql-com">-- 'V2026' f.eks.</span>
+  <span class="sql-kw">PRIMARY KEY</span> (ansattnr, emnekode, semester),
+  <span class="sql-kw">FOREIGN KEY</span> (ansattnr) <span class="sql-kw">REFERENCES</span> Larer(ansattnr),
+  <span class="sql-kw">FOREIGN KEY</span> (emnekode) <span class="sql-kw">REFERENCES</span> Emne(emnekode)
+);
+
+<span class="sql-kw">CREATE TABLE</span> Parorende (                   <span class="sql-com">-- svak entitet</span>
+  ansattnr  <span class="sql-fn">INT</span>,
+  pnavn     <span class="sql-fn">VARCHAR</span>(<span class="sql-num">80</span>),
+  relasjon  <span class="sql-fn">VARCHAR</span>(<span class="sql-num">30</span>),
+  <span class="sql-kw">PRIMARY KEY</span> (ansattnr, pnavn),
+  <span class="sql-kw">FOREIGN KEY</span> (ansattnr) <span class="sql-kw">REFERENCES</span> Larer(ansattnr) <span class="sql-kw">ON DELETE CASCADE</span>
+);</code></pre>
+
+      <div class="callout callout-good">
+        <span class="label">Sjekk hva vi gjorde</span>
+        <p>Sterke entiteter (Avdeling, Lærer, Emne) → egne tabeller. 1:N (Avdeling–Lærer) → FK på N-siden. Fler-verdig attributt → egen tabell. N:M med attributt → mellomtabell. Svak entitet → sammensatt PK + ON DELETE CASCADE. Total deltakelse → <code>NOT NULL</code> på FK.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 08 ───────────── -->
+  <section id="anomali">
+    <div class="container">
+      <div class="section-badge">08 · Designproblemer</div>
+      <h2>Tre ansikter til <em>anomali</em></h2>
+
+      <p>Selv etter mekanisk reduksjon kan skjemaet ha problemer — typisk fordi ER-diagrammet har slått sammen entiteter som burde vært skilt. Tenk deg dette dårlige skjemaet:</p>
+
+      <pre><code>InDep(<u>id</u>, navn, lonn, avd_navn, bygning, budsjett)</code></pre>
+
+      <p>Vi har slått sammen Lærer og Avdeling. Hver rad gjentar bygning og budsjett for hver lærer i samme avdeling. La oss se hva som skjer:</p>
+
+      <table class="example-table">
+        <caption>Tabellen InDep — observer kolonnene merket gult</caption>
+        <thead><tr><th>id</th><th>navn</th><th>lønn</th><th>avd_navn</th><th>bygning</th><th>budsjett</th></tr></thead>
+        <tbody>
+          <tr><td>10101</td><td>Srinivasan</td><td>65 000</td><td>Comp.Sci.</td><td class="repeat">Taylor</td><td class="repeat">100 000</td></tr>
+          <tr><td>45565</td><td>Katz</td><td>75 000</td><td>Comp.Sci.</td><td class="repeat">Taylor</td><td class="repeat">100 000</td></tr>
+          <tr><td>83821</td><td>Brandt</td><td>92 000</td><td>Comp.Sci.</td><td class="repeat">Taylor</td><td class="repeat">100 000</td></tr>
+          <tr><td>22222</td><td>Einstein</td><td>95 000</td><td>Physics</td><td class="repeat">Watson</td><td class="repeat">70 000</td></tr>
+          <tr><td>33456</td><td>Gold</td><td>87 000</td><td>Physics</td><td class="repeat">Watson</td><td class="repeat">70 000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Oppdaterings­anomali</div>
+          <div class="fc-val">Endrer du Comp.Sci.-budsjettet, må du finne og endre alle tre rader. Glemmer du én → inkonsistens.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Innsettings­anomali</div>
+          <div class="fc-val">Vil registrere en helt ny avdeling Music? Du må fabrikkere en lærer (eller bruke <code>NULL</code> for id, navn, lønn) — for tabellen krever at hver rad har lærer-info.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Slette­anomali</div>
+          <div class="fc-val">Sletter du den siste læreren i Physics, mister du også <code>(Physics, Watson, 70 000)</code> — selv om Physics ennå eksisterer som avdeling.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="label">Symptomet</span>
+        <p>Når samme faktum dukker opp gjentatt på flere rader, er det et tegn på at to konseptuelt forskjellige ting deler samme tabell. Løsningen er <em>dekomponering</em> — splitt i to tabeller og knytt dem med fremmednøkkel.</p>
+      </div>
+
+      <h3>Dekomponert versjon</h3>
+      <table class="example-table">
+        <caption>Larer-tabellen</caption>
+        <thead><tr><th>id</th><th>navn</th><th>lønn</th><th>avd_navn</th></tr></thead>
+        <tbody>
+          <tr><td>10101</td><td>Srinivasan</td><td>65 000</td><td>Comp.Sci.</td></tr>
+          <tr><td>45565</td><td>Katz</td><td>75 000</td><td>Comp.Sci.</td></tr>
+          <tr><td>22222</td><td>Einstein</td><td>95 000</td><td>Physics</td></tr>
+        </tbody>
+      </table>
+
+      <table class="example-table">
+        <caption>Avdeling-tabellen</caption>
+        <thead><tr><th>avd_navn</th><th>bygning</th><th>budsjett</th></tr></thead>
+        <tbody>
+          <tr><td>Comp.Sci.</td><td>Taylor</td><td>100 000</td></tr>
+          <tr><td>Physics</td><td>Watson</td><td>70 000</td></tr>
+          <tr class="fresh"><td>Music</td><td>Packard</td><td>80 000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-good">
+        <span class="label">Etter dekomponering</span>
+        <p>Hver avdeling har <em>nøyaktig én</em> rad med sitt budsjett. Ny avdeling registreres uten lærere. Sletter vi den siste Physics-læreren, ligger Physics fremdeles trygt i Avdeling-tabellen.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hvilken type anomali oppstår når du <em>ikke får registrert</em> et nytt fakta uten samtidig å lyve om noe annet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Sletteanomali</button></li>
+          <li><button class="mcq-opt" data-correct="0">Oppdateringsanomali</button></li>
+          <li><button class="mcq-opt" data-correct="1">Innsettingsanomali</button></li>
+          <li><button class="mcq-opt" data-correct="0">Lossless-anomali</button></li>
+        </ul>
+        <div class="mcq-feedback">«Få ikke lagt til avdeling før det finnes en lærer i den» er klassisk innsettingsanomali — også kalt insertion anomaly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 09 ───────────── -->
   <section id="motivasjon">
     <div class="container">
-      <div class="section-badge">06 · Motivasjon for normalformer</div>
-      <h2>Mekanisk diagnose</h2>
+      <div class="section-badge">09 · Motivasjon for normalformer</div>
+      <h2>Mekanisk <em>diagnose</em></h2>
+
+      <p>Anomalier er ikke tilfeldigheter. De er symptomer på spesifikke mønstre i avhengighetene mellom attributtene. Hvis vi kan beskrive avhengighetene formelt, kan vi bygge en algoritme som <em>oppdager</em> problemene før dataen kommer inn — og som forteller oss hvilken dekomponering som løser dem.</p>
+
+      <p>Det formelle språket heter <strong>funksjonelle avhengigheter</strong> (FD). En FD <code>X → Y</code> sier «hvis du vet X, kan du regne ut Y». I InDep-eksempelet:</p>
+
       <ul>
-        <li>Funksjonelle avhengigheter beskriver hva som <em>må</em> være sant</li>
-        <li>Normalformer = "hvis du ser dette mønsteret, dekomponer"</li>
-        <li>Detaljer i 4C (normalformer)</li>
+        <li><code>id → navn, lonn, avd_navn</code> — lærer-id bestemmer alt om læreren</li>
+        <li><code>avd_navn → bygning, budsjett</code> — avdelingsnavnet bestemmer alt om avdelingen</li>
       </ul>
+
+      <p>Når den andre FD-en holder uten at <code>avd_navn</code> er supernøkkel for hele tabellen, har vi <em>per definisjon</em> et BCNF-brudd. Algoritmen for å splitte er mekanisk: «for hver FD <code>α → β</code> der <code>α</code> ikke er supernøkkel, splitt i <code>(α ∪ β)</code> og <code>(R − (β − α))</code>».</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Forsmak på 4C</span>
+        <p>Det er i 4C — neste underkapittel — at vi setter formaliteten på papir: hva en FD er, hvordan vi beregner lukninger, hva som er forskjellen mellom 1NF, 2NF, 3NF og BCNF, og når vi taper dependency preservation.</p>
+      </div>
+
+      <div class="callout callout-good">
+        <span class="label">Klar for 4C?</span>
+        <p><a href="normalformer.html">Gå videre til 4C → normalformer</a> og lær det matematiske språket bak alt vi har observert i dette underkapittelet.</p>
+      </div>
     </div>
   </section>
 </main>
