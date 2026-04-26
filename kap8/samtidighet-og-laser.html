@@ -3,8 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Samtidighet og låser — Kap 8</title>
+<title>Samtidighet og låser — Kap 8B</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="kap8.css">
+<style>
+  /* 2PL "mountain" animated draw */
+  @keyframes drawIn { to { stroke-dashoffset: 0; } }
+  svg.mountain path.curve { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawIn 2.4s ease-out 0.4s forwards; }
+  svg.mountain.replay path.curve { animation: none; stroke-dashoffset: 1000; }
+
+  /* Wait-for graph nodes */
+  svg.wfg circle.tx { fill: #f0e7da; stroke: #7a4a2d; stroke-width: 2; }
+  svg.wfg .pulse { animation: pulse 1.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:0.4 } }
+
+  /* Isolation level table emphasis */
+  .iso-table .none  { color: var(--green); font-weight: 600; }
+  .iso-table .yes   { color: var(--rust); font-weight: 600; }
+  .iso-table .maybe { color: var(--ochre); font-weight: 600; }
+</style>
 </head>
 <body>
 
@@ -27,122 +44,507 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8B · Forelesning 15</div>
       <h1>Samtidighet og <em>låser</em></h1>
-      <p class="lede">Bratsbergs notater kap 16–17. Hvordan DBMS-en gjennomtvinger isolation når mange transaksjoner går samtidig.</p>
+      <p class="lede">Notater kap. 16–17. Hvordan databasen faktisk gjennomtvinger isolation når flere transaksjoner går samtidig — uten å bli for treg.</p>
       <nav class="toc">
-        <a href="#hvorfor-cc"><span>01</span> Hvorfor concurrency control</a>
-        <a href="#2pl"><span>02</span> 2PL</a>
-        <a href="#strict-2pl"><span>03</span> Strict og rigorous 2PL</a>
-        <a href="#deadlock"><span>04</span> Deadlock</a>
-        <a href="#granulariet"><span>05</span> Lock granularity</a>
-        <a href="#timestamp"><span>06</span> Timestamp ordering</a>
+        <a href="#anomalier"><span>01</span> Anomalier</a>
+        <a href="#laser"><span>02</span> S- og X-låser</a>
+        <a href="#2pl"><span>03</span> 2PL</a>
+        <a href="#varianter"><span>04</span> Varianter av 2PL</a>
+        <a href="#deadlock"><span>05</span> Deadlock</a>
+        <a href="#granulariet"><span>06</span> Granularitet</a>
         <a href="#mvcc"><span>07</span> MVCC</a>
         <a href="#isolation"><span>08</span> Isolation levels</a>
+        <a href="#oppsummering"><span>09</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
-  <section id="hvorfor-cc">
+  <!-- ─────────────────────────── 01 Anomalier ─────────────────────────── -->
+  <section id="anomalier">
     <div class="container">
       <div class="section-badge">01 · Hvorfor</div>
-      <h2>Klassiske anomalier</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>Lost update</li>
-        <li>Dirty read</li>
-        <li>Non-repeatable read</li>
-        <li>Phantom read</li>
-      </ul>
+      <h2>Klassiske <em>anomalier</em></h2>
+      <p class="dropcap">Før vi snakker om låser, må vi se hva som går galt uten dem. Disse fire mønstrene er årsaken til at concurrency control finnes.</p>
+
+      <div class="anomaly-grid">
+        <div class="anomaly-card">
+          <h4>Dirty read</h4>
+          <p>T2 leser en verdi T1 har skrevet, men ikke committed. Hvis T1 aborter, har T2 jobbet på en fantasi-verdi.</p>
+        </div>
+        <div class="anomaly-card">
+          <h4>Lost update</h4>
+          <p>T1 og T2 leser samme verdi, modifiserer hver sin kopi, og skriver tilbake. Den som skriver sist «vinner» — den andres oppdatering forsvinner.</p>
+        </div>
+        <div class="anomaly-card">
+          <h4>Non-repeatable read</h4>
+          <p>T1 leser X to ganger. Mellom de to leseoperasjonene har T2 oppdatert X og committed. T1 ser to ulike verdier i samme transaksjon.</p>
+        </div>
+        <div class="anomaly-card">
+          <h4>Phantom read</h4>
+          <p>T1 utfører en spørring to ganger. Mellom dem har T2 satt inn en ny rad som matcher predikatet. Den «dukker opp» i andre kjøring.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.6rem;">Eksempel — Lost update</h3>
+      <p>Begge transaksjonene leser samme initial verdi <code>X = 100</code> og legger til 10:</p>
+
+      <div class="tx-stepper" data-stepper
+        data-narrations='[
+          "Start: X = 100. Begge transaksjoner skal legge til 10.",
+          "T1 leser X = 100.",
+          "T2 leser X = 100. (Begge har samme lokale kopi nå.)",
+          "T1 skriver X = 100 + 10 = 110.",
+          "T1 commit.",
+          "T2 skriver X = 100 + 10 = 110. (Basert på den gamle leste verdien.)",
+          "T2 commit. Sluttverdi X = 110, men forventet X = 120. T1 sin oppdatering ble overskrevet — lost update."
+        ]'
+        data-states='[
+          {"X":"100"},
+          {"X":"100"},
+          {"X":"100"},
+          {"X":"110"},
+          {"X":"110"},
+          {"X":"110"},
+          {"X":"110"}
+        ]'>
+
+        <div class="tx-timeline">
+          <div class="tx-head">Steg</div><div class="tx-head">T1</div><div class="tx-head">T2</div>
+
+          <div class="tx-step">1</div>
+          <div class="tx-cell has-op">r1(X) → 100</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">2</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell has-op">r2(X) → 100</div>
+
+          <div class="tx-step">3</div>
+          <div class="tx-cell write">w1(X = 110)</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">4</div>
+          <div class="tx-cell commit">c1</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">5</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell write">w2(X = 110)</div>
+
+          <div class="tx-step">6</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell commit">c2</div>
+        </div>
+
+        <div class="state-display">
+          <div class="state-box" data-state="X"><span class="state-label">X</span><span class="state-value">100</span></div>
+        </div>
+
+        <div class="tx-stepper-narration">Trykk «Neste» for å starte.</div>
+
+        <div class="tx-stepper-controls">
+          <button data-step-prev>‹ Forrige</button>
+          <button data-step-next>Neste ›</button>
+          <button data-step-reset style="background:var(--ink-faded)">Nullstill</button>
+          <span class="step-counter">Steg 0 / 6</span>
+        </div>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Anomalier</div>
+        <div class="q-text">En transaksjon T1 utfører <code>SELECT COUNT(*) FROM ordrer WHERE status='ny'</code> to ganger. Mellom de to kjøringene har T2 satt inn en ny ordre med <code>status='ny'</code>. Hvilken anomali er dette?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Lost update</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Non-repeatable read</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">D</span><span>Phantom read</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Non-repeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em>, ikke bare radlåser.
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 02 Lock types ─────────────────────────── -->
+  <section id="laser">
+    <div class="container">
+      <div class="section-badge">02 · Låser</div>
+      <h2>Shared og <em>exclusive</em></h2>
+      <p>Den enkleste mekanismen mot anomaliene: tving transaksjonene til å ta <em>låser</em> før de leser/skriver, og slipp dem etterpå.</p>
+
+      <ul>
+        <li><strong>Shared (S, read lock)</strong> — flere transaksjoner kan holde S-lås på samme element samtidig.</li>
+        <li><strong>Exclusive (X, write lock)</strong> — bare én transaksjon kan holde X-lås, og ingen andre kan ha S-lås samtidig.</li>
+      </ul>
+
+      <p>Forholdet mellom dem oppsummeres i kompatibilitetsmatrisen:</p>
+
+      <div class="lock-matrix">
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="2" colspan="2">Holder lås på X</th>
+              <th colspan="2">Vil sette lås</th>
+            </tr>
+            <tr><th>S</th><th>X</th></tr>
+          </thead>
+          <tbody>
+            <tr><th rowspan="2">Eksisterende</th><th>S</th><td class="yes">✓</td><td class="no">✗</td></tr>
+            <tr><th>X</th><td class="no">✗</td><td class="no">✗</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-style: italic; color: var(--ink-soft);">Tommelfingerregel: writers lockes ut alle. Readers tolererer hverandre.</p>
+
+      <p>Låser administreres av en <strong>låstabell</strong> i RAM. Hver aktiv transaksjon har en oppføring som peker til de låsene den allerede holder («has locks») og de den venter på («wants locks»). Operasjoner som må vente blir <em>blokkert</em> til lås frigjøres.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 03 2PL ─────────────────────────── -->
   <section id="2pl">
     <div class="container">
-      <div class="section-badge">02 · 2PL</div>
-      <h2>To-fase låsing</h2>
-      <ul>
-        <li>Growing phase — bare ta låser</li>
-        <li>Shrinking phase — bare slipp låser</li>
-        <li>Garanterer conflict-serializability</li>
-        <li>Shared (S) vs. exclusive (X) låser</li>
-        <li>Lock compatibility-matrise</li>
-      </ul>
+      <div class="section-badge">03 · 2PL</div>
+      <h2>Two-phase <em>locking</em></h2>
+      <p>Bare det å bruke S/X-låser er ikke nok. Det er hvordan vi <em>tar og slipper</em> låsene som gir korrekthet:</p>
+
+      <blockquote><strong>2PL-regelen:</strong> Alle låser tas i en <em>vokse-fase</em>; så snart første lås er sluppet, går transaksjonen over til en <em>krympe-fase</em> hvor den bare kan slippe.</blockquote>
+
+      <p>Resultatet ligner et fjell — låstellet vokser, peaker, og krymper. Aldri «tilbake opp» etter første unlock.</p>
+
+      <figure>
+        <svg class="mountain" viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2PL låsfjell — vokse- og krympe-fase">
+          <!-- axes -->
+          <line x1="40" y1="200" x2="560" y2="200" stroke="#3d3832" stroke-width="1.2"/>
+          <line x1="40" y1="20" x2="40" y2="200" stroke="#3d3832" stroke-width="1.2"/>
+          <text x="300" y="225" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">Tid →</text>
+          <text x="20" y="110" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257" transform="rotate(-90, 20, 110)">Antall låser</text>
+
+          <!-- mountain curve -->
+          <path class="curve" d="M 40 200 L 100 180 L 150 150 L 200 120 L 260 80 L 320 60 L 380 80 L 440 120 L 500 160 L 560 200" fill="none" stroke="#1f4e79" stroke-width="2.5"/>
+
+          <!-- peak marker -->
+          <circle cx="320" cy="60" r="5" fill="#1f4e79"/>
+          <text x="320" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">peak: lock point</text>
+
+          <!-- phase labels -->
+          <text x="180" y="40" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#3d6b3a">Vokse-fase (bare ta låser)</text>
+          <text x="460" y="40" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#7a4a2d">Krympe-fase (bare slipp)</text>
+
+          <!-- vertical divider at peak -->
+          <line x1="320" y1="60" x2="320" y2="200" stroke="#1f4e79" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+        </svg>
+        <figcaption>2PL: antall holdte låser øker monotont til <em>lock point</em>, deretter avtar monotont. Aldri vri.</figcaption>
+      </figure>
+
+      <p><strong>Hovedteorem:</strong> Hvis alle transaksjoner følger 2PL, er enhver schedule de produserer <em>conflict-serializable</em>. Det er grunnen til at 2PL er den de-facto standarden.</p>
+
+      <h3 style="margin-top:1.4rem;">Hvorfor virker det?</h3>
+      <p>Tenk: hvis en kant T<sub>i</sub>→T<sub>j</sub> finnes i presedensgrafen (T<sub>i</sub> hadde en konfliktende op før T<sub>j</sub>), må T<sub>i</sub> ha sluppet sin lås før T<sub>j</sub> tok sin. Hvis det også var en kant T<sub>j</sub>→T<sub>i</sub>, måtte T<sub>i</sub> ha sluppet, deretter tatt en ny lås — brudd på 2PL. Altså: 2PL ⇒ ingen sykler ⇒ conflict-serializable.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · 2PL</div>
+        <div class="q-text">En transaksjon T1 tar S-lås på A, leser A, slipper S-låsen, og prøver så å ta X-lås på B. Følger T1 2PL?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Ja, så lenge alle låser slippes til slutt</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Nei — T1 slapp en lås før den tok en ny, brudd på vokse/krympe-regelen</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Ja, fordi det var ulike dataelementer</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Nei — S-låser kan ikke slippes før commit</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Brudd på 2PL.</strong> Vokse/krympe-regelen sier: <em>så snart en lås er sluppet, kan ingen ny lås tas</em>. Det betyr ikke noe at det er ulike data eller ulike låstyper. (Strict 2PL er enda strengere: X-låser må holdes til commit/abort.)
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="strict-2pl">
+  <!-- ─────────────────────────── 04 Varianter ─────────────────────────── -->
+  <section id="varianter">
     <div class="container">
-      <div class="section-badge">03 · Strict og rigorous 2PL</div>
-      <h2>Hold låsene til commit</h2>
-      <ul>
-        <li>Strict 2PL — hold X-låser til commit/abort</li>
-        <li>Rigorous 2PL — hold alle låser til commit/abort</li>
-        <li>Begge gir cascadeless schedules</li>
-      </ul>
+      <div class="section-badge">04 · Varianter</div>
+      <h2>Fire smaker av <em>2PL</em></h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variant</th><th>Når slippes låser?</th><th>Egenskaper</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Basic 2PL</strong></td>
+              <td>Når som helst etter peak — så lenge regelen holder.</td>
+              <td>Conflict-serializable. <em>Ikke</em> nødvendigvis cascadeless.</td>
+            </tr>
+            <tr>
+              <td><strong>Conservative 2PL</strong></td>
+              <td>Alle låser tas <em>på forhånd</em>, før første operasjon.</td>
+              <td>Deadlock-fri (alle Tx venter eller starter), men dårlig samtidighet.</td>
+            </tr>
+            <tr>
+              <td><strong>Strict 2PL</strong></td>
+              <td>X-låser holdes til commit/abort. S-låser kan slippes tidligere.</td>
+              <td>Conflict-serializable + <em>strict</em> schedule. Standard i praksis.</td>
+            </tr>
+            <tr>
+              <td><strong>Rigorous 2PL</strong></td>
+              <td>Alle låser holdes til commit/abort.</td>
+              <td>Enklest å implementere. Litt mindre samtidighet enn strict.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør recovery enkelt (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 05 Deadlock ─────────────────────────── -->
   <section id="deadlock">
     <div class="container">
-      <div class="section-badge">04 · Deadlock</div>
-      <h2>To transaksjoner venter på hverandre</h2>
-      <ul>
-        <li>Wait-for-graf — sykel ⇒ deadlock</li>
-        <li>Deteksjon: sjekk graf med jevne mellomrom, abort ofre</li>
-        <li>Forebygging: wait-die, wound-wait</li>
-        <li>Timeout-basert</li>
-      </ul>
+      <div class="section-badge">05 · Deadlock</div>
+      <h2>Når begge venter på <em>hverandre</em></h2>
+      <p>Prisen for låser: noen ganger venter to transaksjoner på hverandre samtidig. Klassisk eksempel:</p>
+
+      <div class="tx-timeline">
+        <div class="tx-head">Steg</div><div class="tx-head">T1</div><div class="tx-head">T2</div>
+
+        <div class="tx-step">1</div>
+        <div class="tx-cell has-op">read_lock(X) ✓</div>
+        <div class="tx-cell empty">·</div>
+
+        <div class="tx-step">2</div>
+        <div class="tx-cell empty">·</div>
+        <div class="tx-cell has-op">read_lock(Y) ✓</div>
+
+        <div class="tx-step">3</div>
+        <div class="tx-cell write">write_lock(Y) — venter på T2</div>
+        <div class="tx-cell empty">·</div>
+
+        <div class="tx-step">4</div>
+        <div class="tx-cell empty">·</div>
+        <div class="tx-cell write">write_lock(X) — venter på T1</div>
+
+        <div class="tx-step">5</div>
+        <div class="tx-cell abort">⌛ deadlock</div>
+        <div class="tx-cell abort">⌛ deadlock</div>
+      </div>
+
+      <h3>Wait-for-graf</h3>
+      <p>Tegn en kant T<sub>i</sub> → T<sub>j</sub> hvis T<sub>i</sub> venter på en lås T<sub>j</sub> holder. <strong>Sykel ⇔ deadlock.</strong></p>
+
+      <figure>
+        <svg class="wfg" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wait-for graf med deadlock">
+          <defs>
+            <marker id="arrwfg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+          <circle class="tx pulse" cx="120" cy="80" r="32"/>
+          <text x="120" y="86" text-anchor="middle" font-family="Newsreader, serif" font-size="20" fill="#1a1612">T1</text>
+          <circle class="tx pulse" cx="280" cy="80" r="32"/>
+          <text x="280" y="86" text-anchor="middle" font-family="Newsreader, serif" font-size="20" fill="#1a1612">T2</text>
+
+          <path d="M 152 65 Q 200 30 248 65" fill="none" stroke="#7a4a2d" stroke-width="2" marker-end="url(#arrwfg)"/>
+          <path d="M 248 95 Q 200 130 152 95" fill="none" stroke="#7a4a2d" stroke-width="2" marker-end="url(#arrwfg)"/>
+
+          <text x="200" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">venter på Y</text>
+          <text x="200" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">venter på X</text>
+        </svg>
+        <figcaption>Sykel i wait-for-grafen ⇒ deadlock. Eneste vei ut: abort en av transaksjonene.</figcaption>
+      </figure>
+
+      <h3>Tre strategier</h3>
+      <ol>
+        <li><strong>Forebygging</strong> — conservative 2PL (alle låser opp foran), eller rangér ressurser globalt så alle tar låser i samme rekkefølge.</li>
+        <li><strong>Deteksjon + offer</strong> — periodisk sjekk wait-for-grafen; finn sykel; abort en transaksjon (ofte den yngste eller den som har gjort minst).</li>
+        <li><strong>Timeout</strong> — om en transaksjon ikke fullfører innen X sekunder, abort. Enkelt, men vanskelig å sette gode timeouts.</li>
+      </ol>
+
+      <p>De fleste kommersielle systemer (PostgreSQL, MySQL/InnoDB) bruker en kombinasjon av deteksjon og timeout.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Deadlock</div>
+        <div class="q-text">Hvilken 2PL-variant garanterer at deadlocks <em>aldri</em> oppstår?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Strict 2PL</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Rigorous 2PL</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>Conservative 2PL</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Basic 2PL</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Conservative.</strong> Ved at <em>alle</em> låser tas før transaksjonen begynner — om noen er opptatt, venter T-en før den i det hele tatt har startet, uten å holde noe selv. Dermed kan ikke en sirkulær venting oppstå. Prisen er at samtidigheten lider og at det er vanskelig å vite hvilke låser som trengs på forhånd.
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 06 Granularitet ─────────────────────────── -->
   <section id="granulariet">
     <div class="container">
-      <div class="section-badge">05 · Lock granularity</div>
-      <h2>Hva låser vi?</h2>
+      <div class="section-badge">06 · Granularitet</div>
+      <h2>Hva låser vi <em>egentlig</em>?</h2>
+      <p>Et dataelement i 2PL-teori. I virkeligheten har vi et hierarki av muligheter:</p>
+
+      <figure>
+        <svg viewBox="0 0 540 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hierarki: database, tabell, side, record">
+          <rect x="20"  y="20"  width="500" height="38" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.5" rx="4"/>
+          <text x="270" y="44" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#1a1612">Database</text>
+
+          <rect x="60" y="78" width="190" height="34" fill="#e6edf6" stroke="#1f4e79" stroke-width="1.4" rx="4"/>
+          <text x="155" y="100" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1a1612">Tabell konto</text>
+          <rect x="290" y="78" width="190" height="34" fill="#e6edf6" stroke="#1f4e79" stroke-width="1.4" rx="4"/>
+          <text x="385" y="100" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1a1612">Tabell ordre</text>
+
+          <rect x="60" y="130" width="60" height="28" fill="#fff4e0" stroke="#c68a1f" stroke-width="1.3" rx="3"/>
+          <text x="90" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">side 1</text>
+          <rect x="125" y="130" width="60" height="28" fill="#fff4e0" stroke="#c68a1f" stroke-width="1.3" rx="3"/>
+          <text x="155" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">side 2</text>
+          <rect x="190" y="130" width="60" height="28" fill="#fff4e0" stroke="#c68a1f" stroke-width="1.3" rx="3"/>
+          <text x="220" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">side 3</text>
+
+          <rect x="60"  y="178" width="20" height="22" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.2"/>
+          <rect x="84"  y="178" width="20" height="22" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.2"/>
+          <rect x="108" y="178" width="20" height="22" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.2"/>
+          <rect x="132" y="178" width="20" height="22" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.2"/>
+          <rect x="156" y="178" width="20" height="22" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.2"/>
+          <text x="120" y="195" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#7a4a2d">records</text>
+
+          <line x1="270" y1="58" x2="155" y2="78" stroke="#3d3832"/>
+          <line x1="270" y1="58" x2="385" y2="78" stroke="#3d3832"/>
+          <line x1="155" y1="112" x2="90"  y2="130" stroke="#3d3832"/>
+          <line x1="155" y1="112" x2="155" y2="130" stroke="#3d3832"/>
+          <line x1="155" y1="112" x2="220" y2="130" stroke="#3d3832"/>
+
+          <text x="510" y="44"  text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257">grov</text>
+          <text x="510" y="190" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257">fin</text>
+        </svg>
+        <figcaption>Hierarki: hele DB → tabell → side → record. Lav granularitet = mindre overhead, høy granularitet = mindre kontensjon.</figcaption>
+      </figure>
+
+      <p>Trade-off:</p>
       <ul>
-        <li>Hierarki: database → tabell → side → record</li>
-        <li>Intent locks (IS, IX, SIX)</li>
-        <li>Trade-off: granular = mindre konflikter, mer overhead</li>
+        <li><strong>Coarse (tabell-lås)</strong> — lite metadata å holde, men én skribent stenger ute alle.</li>
+        <li><strong>Fine (record-lås)</strong> — høy samtidighet, men låsetabellen blir stor og dyr.</li>
       </ul>
+
+      <p><strong>Intent locks</strong> (IS, IX, SIX) brukes for å varsle at en transaksjon vil ha finer-granular låser i underliggende noder, slik at konflikter kan oppdages tidlig på høyere nivå uten å sjekke alle barn.</p>
     </div>
   </section>
 
-  <section id="timestamp">
-    <div class="container">
-      <div class="section-badge">06 · Timestamp ordering</div>
-      <h2>Bytt låser med tidsstempler</h2>
-      <ul>
-        <li>Hver transaksjon får TS ved start</li>
-        <li>Read/write tester TS-orden, abort hvis brutt</li>
-        <li>Thomas write rule</li>
-        <li>Optimistic concurrency control (OCC)</li>
-      </ul>
-    </div>
-  </section>
-
+  <!-- ─────────────────────────── 07 MVCC ─────────────────────────── -->
   <section id="mvcc">
     <div class="container">
       <div class="section-badge">07 · MVCC</div>
-      <h2>Multi-version concurrency control</h2>
-      <ul>
-        <li>Hver write lager ny versjon</li>
-        <li>Reads ser konsistent snapshot — sliper ikke å låse</li>
-        <li>Snapshot isolation</li>
-        <li>Brukt i PostgreSQL, Oracle, mange andre</li>
-      </ul>
+      <h2>Multi-version concurrency <em>control</em></h2>
+      <p>Problem med rene låser: en read blokkerer en write og omvendt. Det betyr at en lang rapporterings-spørring kan stenge ute hele OLTP-traffikken.</p>
+
+      <p>MVCC (også kalt <strong>snapshot isolation</strong>) løser dette ved å la <em>hver write lage en ny versjon</em> i stedet for å overskrive. Reads ser et konsistent øyeblikksbilde fra et bestemt tidspunkt — typisk transaksjonens starttid.</p>
+
+      <figure>
+        <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MVCC versjoner over tid">
+          <line x1="40" y1="170" x2="560" y2="170" stroke="#3d3832" stroke-width="1.2"/>
+          <text x="300" y="190" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">Tid →</text>
+
+          <!-- Version chain for X -->
+          <rect x="60"  y="40" width="80" height="34" fill="#e8e3d6" stroke="#1a1612" rx="4"/>
+          <text x="100" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12">X v1=100</text>
+          <rect x="220" y="40" width="80" height="34" fill="#e6edf6" stroke="#1f4e79" rx="4"/>
+          <text x="260" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12">X v2=120</text>
+          <rect x="400" y="40" width="80" height="34" fill="#fff4e0" stroke="#c68a1f" rx="4"/>
+          <text x="440" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12">X v3=150</text>
+
+          <!-- Reader transaction -->
+          <line x1="160" y1="120" x2="380" y2="120" stroke="#3d6b3a" stroke-width="2.5"/>
+          <circle cx="160" cy="120" r="5" fill="#3d6b3a"/>
+          <circle cx="380" cy="120" r="5" fill="#3d6b3a"/>
+          <text x="270" y="138" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="12" fill="#3d6b3a">T_les: ser X = 100 hele tiden (snapshot ved start)</text>
+
+          <!-- Writers -->
+          <line x1="220" y1="80" x2="220" y2="170" stroke="#1f4e79" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="220" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">w1 commit</text>
+          <line x1="400" y1="80" x2="400" y2="170" stroke="#c68a1f" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="400" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#c68a1f">w2 commit</text>
+        </svg>
+        <figcaption>MVCC: X eksisterer som en kjede av versjoner. En lese-transaksjon ser den versjonen som var committed da den startet — selv om andre committer nye versjoner i mellomtiden.</figcaption>
+      </figure>
+
+      <p><strong>Reads låser ikke writes, og writes låser ikke reads.</strong> Bare write/write-konflikter krever låsing eller (i optimistic varianter) abort av en transaksjon ved commit hvis det er konflikt.</p>
+
+      <p>PostgreSQL, Oracle, SQL Server (RCSI), MySQL/InnoDB — alle bruker MVCC. Det er <em>de-facto</em> i moderne SQL.</p>
+
+      <div class="callout">
+        <span class="label">Snapshot ≠ serializable</span>
+        <p>Snapshot isolation hindrer dirty/non-repeatable/phantom reads, men har sin egen anomali — <strong>write skew</strong>: to transaksjoner leser overlappende sett, hver skriver inn i sitt eget delsett basert på det den leste, og resultatet er inkonsistent. PostgreSQL «Serializable Snapshot Isolation» (SSI) løser det med ekstra konflikt-deteksjon.</p>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 08 Isolation levels ─────────────────────────── -->
   <section id="isolation">
     <div class="container">
-      <div class="section-badge">08 · Isolation levels</div>
-      <h2>SQL-standardens fire nivåer</h2>
+      <div class="section-badge">08 · SQL-standard</div>
+      <h2>Fire <em>isolation levels</em></h2>
+      <p>SQL-standarden definerer fire nivåer i henhold til hvilke anomalier som kan forekomme:</p>
+
+      <div class="table-wrap iso-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Level</th><th>Dirty read</th><th>Non-repeatable</th><th>Phantom</th><th>Typisk implementasjon</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>READ UNCOMMITTED</strong></td><td class="yes">Ja</td><td class="yes">Ja</td><td class="yes">Ja</td><td>Ingen leselåser</td></tr>
+            <tr><td><strong>READ COMMITTED</strong></td><td class="none">Nei</td><td class="yes">Ja</td><td class="yes">Ja</td><td>X-låser, korte S-låser, <em>eller</em> snapshot</td></tr>
+            <tr><td><strong>REPEATABLE READ</strong></td><td class="none">Nei</td><td class="none">Nei</td><td class="maybe">Avhenger</td><td>Strict 2PL på leste rader, <em>eller</em> snapshot</td></tr>
+            <tr><td><strong>SERIALIZABLE</strong></td><td class="none">Nei</td><td class="none">Nei</td><td class="none">Nei</td><td>Strict 2PL m. range-låser, eller SSI</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-style:italic; color: var(--ink-soft); margin-top:0.6rem;">«Nivå» = strengere lenger ned. Mer korrekthet, mindre samtidighet.</p>
+
+      <h3>Standard vs. virkelighet</h3>
+      <p>Standarden er stort sett ikke fulgt i detaljer av leverandørene:</p>
       <ul>
-        <li>READ UNCOMMITTED — dirty reads tillatt</li>
-        <li>READ COMMITTED — hindrer dirty reads</li>
-        <li>REPEATABLE READ — hindrer non-repeatable</li>
-        <li>SERIALIZABLE — som seriell</li>
-        <li>Hva snapshot isolation faktisk gir (write skew-anomali)</li>
+        <li><strong>Oracle</strong> har ingen «REPEATABLE READ» — SERIALIZABLE er egentlig snapshot isolation.</li>
+        <li><strong>PostgreSQL</strong> sin REPEATABLE READ er snapshot isolation; SERIALIZABLE er SSI.</li>
+        <li><strong>MySQL InnoDB</strong> sin REPEATABLE READ tillater phantoms i noen tilfeller.</li>
       </ul>
+      <p>Tommelfingerregel: les dokumentasjonen til <em>din</em> database før du stoler på navnet.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Isolation</div>
+        <div class="q-text">Du driver et nettbutikk-system og vil unngå at <em>én</em> kunde leser saldoen sin to ganger og får ulike svar (selv om andre kan sette inn nye rader). Hvilket isolation level er minimum?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>READ UNCOMMITTED</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>READ COMMITTED</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>REPEATABLE READ</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>SERIALIZABLE</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>REPEATABLE READ.</strong> Spørsmålet beskriver presist <em>non-repeatable read</em>. REPEATABLE READ er det laveste nivået som hindrer det. Phantoms ble eksplisitt sagt at vi tolererer, så SERIALIZABLE ville vært overkill.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 09 Oppsummering ─────────────────────────── -->
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">09 · Oppsummering</div>
+      <h2>Kort oppsummert</h2>
+      <ul>
+        <li>Fire klassiske <strong>anomalier</strong>: dirty read, lost update, non-repeatable read, phantom.</li>
+        <li><strong>S/X-låser</strong> + kompatibilitetsmatrise styrer tilgang.</li>
+        <li><strong>2PL</strong> (vokse-fase, krympe-fase) garanterer conflict-serializability.</li>
+        <li><strong>Strict 2PL</strong> = standard i praksis: X-låser holdes til commit, gir cascadeless.</li>
+        <li><strong>Deadlock</strong> = sykel i wait-for-graf. Løsninger: forebygging, deteksjon, timeout.</li>
+        <li><strong>Granularitet</strong>: tabell ↔ side ↔ record. Trade-off mellom kontensjon og overhead.</li>
+        <li><strong>MVCC / snapshot isolation</strong>: writers låser ikke readers og omvendt. Standard i moderne SQL.</li>
+        <li><strong>SQL isolation levels</strong>: READ UNCOMMITTED → READ COMMITTED → REPEATABLE READ → SERIALIZABLE. Sjekk hva din DB faktisk leverer.</li>
+      </ul>
+
+      <p style="margin-top:2rem; font-style: italic; color: var(--ink-soft);">Klar for siste etappe? <a href="recovery.html">8C · Recovery →</a></p>
     </div>
   </section>
 </main>
@@ -157,6 +559,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

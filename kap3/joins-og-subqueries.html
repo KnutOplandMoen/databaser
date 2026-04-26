@@ -25,91 +25,454 @@
 <main data-chapter="Kapittel 3: SQL">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 3 · 3B · Forelesning 4</div>
+      <div class="eyebrow">Kapittel 3 · 3B · Forelesning 4 · Lærebok 3.8, 4.1</div>
       <h1>SQL — <em>joins og subqueries</em></h1>
-      <p class="lede">Lærebokas seksjon 3.8 og 4.1. Sett tabeller sammen, og spør om ting i ting.</p>
+      <p class="lede">Sett tabeller sammen, og still spørringer inni andre spørringer. Her er det subtile semantiske valg som avgjør om svaret er riktig.</p>
       <nav class="toc">
-        <a href="#join-typer"><span>01</span> JOIN-typer</a>
-        <a href="#on-using"><span>02</span> ON vs USING</a>
-        <a href="#self-join"><span>03</span> Self-joins</a>
-        <a href="#subquery"><span>04</span> Subqueries</a>
-        <a href="#exists"><span>05</span> EXISTS · IN · ANY · ALL</a>
-        <a href="#korrelert"><span>06</span> Korrelerte subqueries</a>
+        <a href="#hvorfor-join"><span>01</span> Hvorfor JOIN</a>
+        <a href="#inner-vs-outer"><span>02</span> INNER vs OUTER</a>
+        <a href="#on-using"><span>03</span> ON · USING · NATURAL</a>
+        <a href="#self-join"><span>04</span> Self-joins</a>
+        <a href="#subquery"><span>05</span> Subqueries</a>
+        <a href="#exists"><span>06</span> EXISTS · IN · ANY · ALL</a>
+        <a href="#korrelert"><span>07</span> Korrelerte subqueries</a>
+        <a href="#cte"><span>08</span> WITH (CTE)</a>
       </nav>
     </div>
   </header>
 
-  <section id="join-typer">
+  <section id="hvorfor-join">
     <div class="container">
-      <div class="section-badge">01 · JOIN-typer</div>
-      <h2>Inner og outer</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>INNER JOIN — bare matchende rader</li>
-        <li>LEFT/RIGHT/FULL OUTER JOIN — bevarer ikke-matchede med NULL</li>
-        <li>CROSS JOIN — kartesisk produkt</li>
-      </ul>
+      <div class="section-badge">01 · Hvorfor JOIN</div>
+      <h2>Skjul kartesian-produktet bak en intensjon</h2>
+      <p class="dropcap">Tradisjonelt SQL kombinerer tabeller med <code>FROM r, s WHERE r.k = s.k</code>. Det fungerer, men det blander join-betingelsen sammen med radfilter-betingelsen i <code>WHERE</code>. <code>JOIN ... ON</code> skiller dem og gjør spørringen mer lesbar — og er nødvendig for ytre joins.</p>
+
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">Gammel stil</div>
+          <pre><code><span class="sql-kw">SELECT</span> i.name, t.course_id
+<span class="sql-kw">FROM</span> instructor i, teaches t
+<span class="sql-kw">WHERE</span> i.ID = t.ID
+  <span class="sql-kw">AND</span> i.dept_name = <span class="sql-str">'CS'</span>;</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">Eksplisitt JOIN</div>
+          <pre><code><span class="sql-kw">SELECT</span> i.name, t.course_id
+<span class="sql-kw">FROM</span> instructor i
+<span class="sql-kw">INNER JOIN</span> teaches t <span class="sql-kw">ON</span> i.ID = t.ID
+<span class="sql-kw">WHERE</span> i.dept_name = <span class="sql-str">'CS'</span>;</code></pre>
+        </div>
+      </div>
+
+      <p>Begge gir samme resultat. Den nederste skiller hva som er en <em>match-betingelse</em> (i ON) fra et <em>radfilter</em> (i WHERE). Det blir kritisk for outer joins.</p>
+    </div>
+  </section>
+
+  <section id="inner-vs-outer">
+    <div class="container">
+      <div class="section-badge">02 · INNER vs OUTER</div>
+      <h2>Fire typer JOIN, fire ulike svar</h2>
+
+      <div class="venn-row">
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <defs><clipPath id="cli1"><circle cx="48" cy="50" r="35"/></clipPath></defs>
+            <circle cx="48" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" clip-path="url(#cli1)"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">INNER JOIN</text>
+          </svg>
+          <div class="vn-label">bare match</div>
+        </div>
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <circle cx="48" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">LEFT JOIN</text>
+          </svg>
+          <div class="vn-label">alt fra venstre</div>
+        </div>
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <circle cx="48" cy="50" r="35" fill="none" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">RIGHT JOIN</text>
+          </svg>
+          <div class="vn-label">alt fra høyre</div>
+        </div>
+        <div class="venn-card">
+          <svg viewBox="0 0 120 100">
+            <circle cx="48" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <circle cx="78" cy="50" r="35" fill="rgba(31, 78, 121, 0.30)" stroke="#1f4e79"/>
+            <text x="63" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">FULL OUTER</text>
+          </svg>
+          <div class="vn-label">alt fra begge</div>
+        </div>
+      </div>
+
+      <h3>Konkret eksempel</h3>
+      <p>Tabellen <code>instructor</code> har 3 ansatte; <code>teaches</code> har 4 oppføringer der én ansatt mangler i <code>instructor</code>:</p>
+
+      <div class="code-result two-col">
+        <div class="pane result">
+          <div class="pane-label">instructor (V — venstre)</div>
+          <table>
+            <thead><tr><th>ID</th><th>name</th></tr></thead>
+            <tbody>
+              <tr><td>10101</td><td>Srinivasan</td></tr>
+              <tr><td>22222</td><td>Einstein</td></tr>
+              <tr><td>33333</td><td>Gold</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pane result">
+          <div class="pane-label">teaches (H — høyre)</div>
+          <table>
+            <thead><tr><th>ID</th><th>course_id</th></tr></thead>
+            <tbody>
+              <tr><td>10101</td><td>CS-101</td></tr>
+              <tr><td>10101</td><td>CS-315</td></tr>
+              <tr><td>22222</td><td>PHY-101</td></tr>
+              <tr><td>99999</td><td>EE-181</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="fig-anim" data-anim data-max-step="4">
+        <figure>
+          <svg viewBox="0 0 720 290" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+            <text x="360" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.12em" fill="#6b6257" data-text-on='{"1":"INNER JOIN — bare match","2":"LEFT JOIN — alt fra venstre, NULL der høyre mangler","3":"RIGHT JOIN — alt fra høyre, NULL der venstre mangler","4":"FULL OUTER JOIN — alt fra begge, NULL i begge retninger"}'>INNER JOIN — bare match</text>
+
+            <!-- Step 1: INNER JOIN result -->
+            <g data-show-on="1">
+              <rect x="100" y="50" width="520" height="220" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="100" y1="80" x2="620" y2="80" stroke="#c9c0ae"/>
+              <text x="120" y="73" font-weight="700">i.ID</text><text x="200" y="73" font-weight="700">name</text>
+              <text x="340" y="73" font-weight="700">t.ID</text><text x="450" y="73" font-weight="700">course_id</text>
+              <g font-family="IBM Plex Mono, monospace" font-size="12">
+                <text x="120" y="100">10101</text><text x="200" y="100">Srinivasan</text><text x="340" y="100">10101</text><text x="450" y="100">CS-101</text>
+                <text x="120" y="120">10101</text><text x="200" y="120">Srinivasan</text><text x="340" y="120">10101</text><text x="450" y="120">CS-315</text>
+                <text x="120" y="140">22222</text><text x="200" y="140">Einstein</text><text x="340" y="140">22222</text><text x="450" y="140">PHY-101</text>
+              </g>
+              <text x="360" y="200" text-anchor="middle" font-style="italic" fill="#6b6257" font-size="11">Gold (V) og 99999/EE-181 (H) forsvinner — ingen match</text>
+              <text x="360" y="225" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">3 rader</text>
+            </g>
+
+            <!-- Step 2: LEFT JOIN -->
+            <g data-show-on="2">
+              <rect x="100" y="50" width="520" height="220" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="100" y1="80" x2="620" y2="80" stroke="#c9c0ae"/>
+              <text x="120" y="73" font-weight="700">i.ID</text><text x="200" y="73" font-weight="700">name</text>
+              <text x="340" y="73" font-weight="700">t.ID</text><text x="450" y="73" font-weight="700">course_id</text>
+              <g font-family="IBM Plex Mono, monospace" font-size="12">
+                <text x="120" y="100">10101</text><text x="200" y="100">Srinivasan</text><text x="340" y="100">10101</text><text x="450" y="100">CS-101</text>
+                <text x="120" y="120">10101</text><text x="200" y="120">Srinivasan</text><text x="340" y="120">10101</text><text x="450" y="120">CS-315</text>
+                <text x="120" y="140">22222</text><text x="200" y="140">Einstein</text><text x="340" y="140">22222</text><text x="450" y="140">PHY-101</text>
+                <text x="120" y="160">33333</text><text x="200" y="160">Gold</text>      <text x="340" y="160" fill="#a83c32">NULL</text><text x="450" y="160" fill="#a83c32">NULL</text>
+              </g>
+              <text x="360" y="225" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">4 rader (alle 3 fra venstre + matchene)</text>
+            </g>
+
+            <!-- Step 3: RIGHT JOIN -->
+            <g data-show-on="3">
+              <rect x="100" y="50" width="520" height="220" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="100" y1="80" x2="620" y2="80" stroke="#c9c0ae"/>
+              <text x="120" y="73" font-weight="700">i.ID</text><text x="200" y="73" font-weight="700">name</text>
+              <text x="340" y="73" font-weight="700">t.ID</text><text x="450" y="73" font-weight="700">course_id</text>
+              <g font-family="IBM Plex Mono, monospace" font-size="12">
+                <text x="120" y="100">10101</text><text x="200" y="100">Srinivasan</text><text x="340" y="100">10101</text><text x="450" y="100">CS-101</text>
+                <text x="120" y="120">10101</text><text x="200" y="120">Srinivasan</text><text x="340" y="120">10101</text><text x="450" y="120">CS-315</text>
+                <text x="120" y="140">22222</text><text x="200" y="140">Einstein</text><text x="340" y="140">22222</text><text x="450" y="140">PHY-101</text>
+                <text x="120" y="160" fill="#a83c32">NULL</text><text x="200" y="160" fill="#a83c32">NULL</text><text x="340" y="160">99999</text><text x="450" y="160">EE-181</text>
+              </g>
+              <text x="360" y="225" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">4 rader (alle 4 fra høyre + matchene)</text>
+            </g>
+
+            <!-- Step 4: FULL OUTER JOIN -->
+            <g data-show-on="4">
+              <rect x="100" y="50" width="520" height="220" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="100" y1="80" x2="620" y2="80" stroke="#c9c0ae"/>
+              <text x="120" y="73" font-weight="700">i.ID</text><text x="200" y="73" font-weight="700">name</text>
+              <text x="340" y="73" font-weight="700">t.ID</text><text x="450" y="73" font-weight="700">course_id</text>
+              <g font-family="IBM Plex Mono, monospace" font-size="12">
+                <text x="120" y="100">10101</text><text x="200" y="100">Srinivasan</text><text x="340" y="100">10101</text><text x="450" y="100">CS-101</text>
+                <text x="120" y="120">10101</text><text x="200" y="120">Srinivasan</text><text x="340" y="120">10101</text><text x="450" y="120">CS-315</text>
+                <text x="120" y="140">22222</text><text x="200" y="140">Einstein</text><text x="340" y="140">22222</text><text x="450" y="140">PHY-101</text>
+                <text x="120" y="160">33333</text><text x="200" y="160">Gold</text>      <text x="340" y="160" fill="#a83c32">NULL</text><text x="450" y="160" fill="#a83c32">NULL</text>
+                <text x="120" y="180" fill="#a83c32">NULL</text><text x="200" y="180" fill="#a83c32">NULL</text><text x="340" y="180">99999</text><text x="450" y="180">EE-181</text>
+              </g>
+              <text x="360" y="225" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">5 rader (matche + ikke-matche fra venstre + ikke-matche fra høyre)</text>
+            </g>
+          </svg>
+          <figcaption>Klikk gjennom hver join-type for å se hvordan resultatet endrer seg. NULL-radene er der join-typen «utvider» med rader som ikke matcher.</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">INNER</button>
+          <button data-step="2">LEFT</button>
+          <button data-step="3">RIGHT</button>
+          <button data-step="4">FULL OUTER</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 4</span>
+        </div>
+      </div>
+
+      <details class="decision">
+        <summary>Når velger jeg hvilken JOIN?</summary>
+        <div class="decision-body">
+          <ul>
+            <li><strong>INNER JOIN</strong> — du bare bryr deg om de radene som matcher. Default.</li>
+            <li><strong>LEFT JOIN</strong> — du må vise alle rader fra «hovedtabellen», selv om det ikke finnes noen tilhørende. F.eks. «alle ansatte og hvor mange kurs de underviser» (også de uten kurs).</li>
+            <li><strong>RIGHT JOIN</strong> — sjelden i praksis. Kan alltid omskrives som LEFT JOIN ved å bytte tabell-rekkefølge.</li>
+            <li><strong>FULL OUTER JOIN</strong> — symmetrisk: når du må fange ikke-matchende fra begge sider. Bra ved data-avstemming.</li>
+            <li><strong>CROSS JOIN</strong> — eksplisitt kartesisk produkt. Bruk når du virkelig vil ha alle kombinasjoner (f.eks. dato × ressurs for tomme rapportceller).</li>
+          </ul>
+        </div>
+      </details>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">«Finn ansatte uten kurs» (Gold i eksemplet over). Hvilken spørring fungerer?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">SELECT name FROM instructor i INNER JOIN teaches t ON i.ID=t.ID WHERE t.course_id IS NULL;</button></li>
+          <li><button class="mcq-opt" data-correct="1">SELECT name FROM instructor i LEFT JOIN teaches t ON i.ID=t.ID WHERE t.ID IS NULL;</button></li>
+          <li><button class="mcq-opt">SELECT name FROM instructor WHERE ID NOT EXISTS teaches.ID;</button></li>
+          <li><button class="mcq-opt">SELECT name FROM instructor RIGHT JOIN teaches t ON i.ID=t.ID;</button></li>
+        </ul>
+        <div class="mcq-feedback">LEFT JOIN beholder ansatte uten kurs som rader med NULL fra teaches. WHERE t.ID IS NULL plukker akkurat dem. Mønsteret kalles <em>anti-join</em>.</div>
+      </div>
     </div>
   </section>
 
   <section id="on-using">
     <div class="container">
-      <div class="section-badge">02 · ON vs USING</div>
-      <h2>To måter å skrive join-betingelsen</h2>
-      <ul>
-        <li>ON — vilkårlig predikat, beholder begge kolonnene</li>
-        <li>USING(col) — kort, fjerner duplikatkolonne</li>
-        <li>NATURAL JOIN — implisitt USING på alle felles attributter</li>
-      </ul>
+      <div class="section-badge">03 · ON · USING · NATURAL</div>
+      <h2>Tre måter å skrive match-betingelsen på</h2>
+
+      <h3>ON — vilkårlig predikat</h3>
+      <p>Mest fleksibel. Kolonnene fra <em>begge</em> tabellene blir med i resultatet:</p>
+      <pre><code><span class="sql-kw">SELECT</span> *
+<span class="sql-kw">FROM</span> course c <span class="sql-kw">JOIN</span> department d
+  <span class="sql-kw">ON</span> c.dept_name = d.dept_name <span class="sql-kw">AND</span> d.budget &gt; <span class="sql-num">1000000</span>;</code></pre>
+
+      <h3>USING(col) — match på navngitt kolonne</h3>
+      <p>Kort form når kolonnenavnene er like. Kolonnen som matches dukker opp <em>én gang</em> i resultatet — ikke to.</p>
+      <pre><code><span class="sql-kw">SELECT</span> *
+<span class="sql-kw">FROM</span> course <span class="sql-kw">JOIN</span> department <span class="sql-kw">USING</span> (dept_name);</code></pre>
+
+      <h3>NATURAL JOIN — implisitt USING på alle felles kolonner</h3>
+      <p>Kompakt — og <em>farlig</em>. SQL leter etter alle kolonner som har samme navn, og bruker dem alle som match. En liten skjemaendring kan stille endre semantikken.</p>
+      <pre><code><span class="sql-kw">SELECT</span> *
+<span class="sql-kw">FROM</span> course <span class="sql-kw">NATURAL JOIN</span> department;
+<span class="sql-com">-- Hvis noen senere legger til en kolonne med samme navn</span>
+<span class="sql-com">-- i begge tabeller, blir spørringen subtilt feil.</span></code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">Råd</span>
+        <p>Bruk <code>ON</code> som default. <code>USING</code> er ok for kjapp ad-hoc-bruk. <code>NATURAL JOIN</code> bør unngås i produksjonskode — den er for skjør.</p>
+      </div>
     </div>
   </section>
 
   <section id="self-join">
     <div class="container">
-      <div class="section-badge">03 · Self-joins</div>
-      <h2>En tabell mot seg selv</h2>
-      <ul>
-        <li>Klassisk eksempel: ansatt → leder</li>
-        <li>Aliaser er obligatoriske</li>
-      </ul>
+      <div class="section-badge">04 · Self-joins</div>
+      <h2>Når en tabell må joines mot seg selv</h2>
+      <p>Klassisk eksempel: hierarkier. <code>employee(id, name, manager_id)</code>, der <code>manager_id</code> peker på en annen rad i samme tabell.</p>
+
+      <pre><code><span class="sql-com">-- Liste opp alle ansatte sammen med navnet på lederen sin</span>
+<span class="sql-kw">SELECT</span> e.name <span class="sql-kw">AS</span> ansatt,
+       m.name <span class="sql-kw">AS</span> leder
+<span class="sql-kw">FROM</span> employee e
+<span class="sql-kw">LEFT JOIN</span> employee m <span class="sql-kw">ON</span> e.manager_id = m.id;</code></pre>
+
+      <p>Aliaser <em>må</em> brukes — uten dem ville <code>id</code> være tvetydig. Tenk på <code>e</code> og <code>m</code> som to «kopier» av samme tabell.</p>
+
+      <h3>Et annet eksempel: «Lønninger som er høyere enn minst én Biology-ansatt»</h3>
+      <pre><code><span class="sql-kw">SELECT DISTINCT</span> T.name
+<span class="sql-kw">FROM</span> instructor T, instructor S
+<span class="sql-kw">WHERE</span> T.salary &gt; S.salary
+  <span class="sql-kw">AND</span> S.dept_name = <span class="sql-str">'Biology'</span>;</code></pre>
+
+      <p>Dette er den klassiske formuleringen i Silberschatz. <code>DISTINCT</code> er nødvendig fordi T kan matche flere S-rader.</p>
     </div>
   </section>
 
   <section id="subquery">
     <div class="container">
-      <div class="section-badge">04 · Subqueries</div>
-      <h2>Spørringer i spørringer</h2>
-      <ul>
-        <li>Subquery i SELECT, FROM eller WHERE</li>
-        <li>Skalar-subquery returnerer én verdi</li>
-        <li>Tabell-subquery i FROM (derived table)</li>
-        <li>WITH-klausulen: CTE for lesbarhet</li>
-      </ul>
+      <div class="section-badge">05 · Subqueries</div>
+      <h2>Spørring inni en spørring</h2>
+      <p>En subquery er en SELECT skrevet inne i en annen spørring. Den kan stå i <code>WHERE</code>, <code>FROM</code>, eller <code>SELECT</code>.</p>
+
+      <h3>1. Skalar-subquery — én verdi</h3>
+      <pre><code><span class="sql-com">-- Snittlønn over alle</span>
+<span class="sql-kw">SELECT</span> name, salary
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">WHERE</span> salary &gt; (<span class="sql-kw">SELECT</span> <span class="sql-fn">AVG</span>(salary) <span class="sql-kw">FROM</span> instructor);</code></pre>
+
+      <h3>2. Tabell-subquery i FROM (derived table)</h3>
+      <pre><code><span class="sql-kw">SELECT</span> dept_name, max_salary
+<span class="sql-kw">FROM</span> (
+  <span class="sql-kw">SELECT</span> dept_name, <span class="sql-fn">MAX</span>(salary) <span class="sql-kw">AS</span> max_salary
+  <span class="sql-kw">FROM</span> instructor
+  <span class="sql-kw">GROUP BY</span> dept_name
+) <span class="sql-kw">AS</span> per_dept
+<span class="sql-kw">WHERE</span> max_salary &gt; <span class="sql-num">90000</span>;</code></pre>
+
+      <h3>3. Subquery i SELECT (inline)</h3>
+      <pre><code><span class="sql-kw">SELECT</span> dept_name,
+       (<span class="sql-kw">SELECT</span> <span class="sql-fn">AVG</span>(salary)
+        <span class="sql-kw">FROM</span> instructor i
+        <span class="sql-kw">WHERE</span> i.dept_name = d.dept_name) <span class="sql-kw">AS</span> snitt
+<span class="sql-kw">FROM</span> department d;</code></pre>
+
+      <p>Subqueryen kjører én gang per rad i den ytre spørringen — det gjør den <em>korrelert</em>. Mer om det rett under.</p>
     </div>
   </section>
 
   <section id="exists">
     <div class="container">
-      <div class="section-badge">05 · EXISTS · IN · ANY · ALL</div>
+      <div class="section-badge">06 · EXISTS · IN · ANY · ALL</div>
       <h2>Operatorer på subquery-resultater</h2>
-      <ul>
-        <li>IN / NOT IN — medlemskap (NULL-feller!)</li>
-        <li>EXISTS / NOT EXISTS — finnes minst én rad</li>
-        <li>x &gt; ANY/SOME (sub) — minst én</li>
-        <li>x &gt; ALL (sub) — alle</li>
-      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Operator</th><th>Test</th><th>NULL-trygg?</th></tr></thead>
+          <tbody>
+            <tr><td><code>x IN (subq)</code></td><td>Finnes x i resultatet?</td><td>Nei — NULL i subq lager problemer for NOT IN</td></tr>
+            <tr><td><code>EXISTS (subq)</code></td><td>Returnerer subq minst én rad?</td><td>Ja — opererer på antall, ikke verdier</td></tr>
+            <tr><td><code>x = ANY (subq)</code></td><td>Lik minst én verdi</td><td>Som IN</td></tr>
+            <tr><td><code>x &gt; ALL (subq)</code></td><td>Større enn samtlige</td><td>Trygg, returnerer false hvis NULL</td></tr>
+            <tr><td><code>x &gt; ANY (subq)</code></td><td>Større enn minst én</td><td>OK</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Tre formuleringer av samme spørsmål</h3>
+      <p>«Finn navn på ansatte som underviser i minst ett emne»:</p>
+
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">IN</div>
+          <pre><code><span class="sql-kw">SELECT</span> name
+<span class="sql-kw">FROM</span> instructor
+<span class="sql-kw">WHERE</span> ID <span class="sql-kw">IN</span>
+  (<span class="sql-kw">SELECT</span> ID <span class="sql-kw">FROM</span> teaches);</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">EXISTS (korrelert)</div>
+          <pre><code><span class="sql-kw">SELECT</span> name
+<span class="sql-kw">FROM</span> instructor i
+<span class="sql-kw">WHERE</span> <span class="sql-kw">EXISTS</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-num">1</span> <span class="sql-kw">FROM</span> teaches t
+  <span class="sql-kw">WHERE</span> t.ID = i.ID);</code></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">NOT IN-fellen</span>
+        <p>Hvis subqueryen returnerer minst én NULL, vil <code>x NOT IN (subq)</code> alltid gi UNKNOWN — og dermed ingen rader. Bytt til <code>NOT EXISTS</code> hvis NULL er en mulighet.</p>
+      </div>
+
+      <pre><code><span class="sql-com">-- Trygg variant: ansatte som IKKE underviser noe</span>
+<span class="sql-kw">SELECT</span> name
+<span class="sql-kw">FROM</span> instructor i
+<span class="sql-kw">WHERE</span> <span class="sql-kw">NOT EXISTS</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-num">1</span> <span class="sql-kw">FROM</span> teaches t <span class="sql-kw">WHERE</span> t.ID = i.ID
+);</code></pre>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">Tabellen <code>t1(x) = {1, 2, 3}</code> og <code>t2(y) = {2, NULL}</code>. Hvor mange rader returnerer <code>SELECT x FROM t1 WHERE x NOT IN (SELECT y FROM t2);</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">2 — verdiene 1 og 3</button></li>
+          <li><button class="mcq-opt" data-correct="1">0 — ingen rader</button></li>
+          <li><button class="mcq-opt">3 — alle rader</button></li>
+          <li><button class="mcq-opt">1 — bare 3</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>x NOT IN (2, NULL)</code> gir UNKNOWN for alle x ≠ 2 (fordi vi ikke kan utelukke at x = NULL), og FALSE for x = 2. Ingen rader passerer. Dette er den klassiske NOT IN-fella.</div>
+      </div>
     </div>
   </section>
 
   <section id="korrelert">
     <div class="container">
-      <div class="section-badge">06 · Korrelerte subqueries</div>
-      <h2>Når subqueryen avhenger av ytre rad</h2>
-      <ul>
-        <li>Korrelert vs. ikke-korrelert: ytelseskonsekvens</li>
-        <li>Optimalisator kan ofte skrive om til join</li>
-        <li>NOT EXISTS NOT EXISTS — division i SQL</li>
-      </ul>
+      <div class="section-badge">07 · Korrelerte subqueries</div>
+      <h2>Når den indre refererer til den ytre</h2>
+      <p>En <em>korrelert</em> subquery refererer til en kolonne fra den ytre spørringen. Det betyr (logisk) at den må evalueres på nytt for hver ytre rad.</p>
+
+      <pre><code><span class="sql-com">-- For hver avdeling: ansatte med over-snittlig lønn for deres avdeling</span>
+<span class="sql-kw">SELECT</span> name, dept_name, salary
+<span class="sql-kw">FROM</span> instructor i
+<span class="sql-kw">WHERE</span> salary &gt; (
+  <span class="sql-kw">SELECT</span> <span class="sql-fn">AVG</span>(salary)
+  <span class="sql-kw">FROM</span> instructor i2
+  <span class="sql-kw">WHERE</span> i2.dept_name = i.dept_name   <span class="sql-com">-- ← korrelasjon</span>
+);</code></pre>
+
+      <p>Optimalisatoren prøver ofte å skrive om dette til en join + GROUP BY for ytelse, men logisk modell er «for hver rad i, regn ut en avdelingssnitt og sammenlign».</p>
+
+      <h3>Klassisk: division med <code>NOT EXISTS NOT EXISTS</code></h3>
+      <p>Spørsmålet «hvilke studenter har tatt <em>alle</em> emner i CS-avdelingen?» kan ikke uttrykkes med vanlig join. Den klassiske SQL-løsningen er dobbel negasjon:</p>
+
+      <pre><code><span class="sql-kw">SELECT</span> s.ID
+<span class="sql-kw">FROM</span> student s
+<span class="sql-kw">WHERE</span> <span class="sql-kw">NOT EXISTS</span> (
+  <span class="sql-kw">SELECT</span> c.course_id
+  <span class="sql-kw">FROM</span> course c
+  <span class="sql-kw">WHERE</span> c.dept_name = <span class="sql-str">'CS'</span>
+    <span class="sql-kw">AND NOT EXISTS</span> (
+      <span class="sql-kw">SELECT</span> <span class="sql-num">1</span>
+      <span class="sql-kw">FROM</span> takes t
+      <span class="sql-kw">WHERE</span> t.ID = s.ID
+        <span class="sql-kw">AND</span> t.course_id = c.course_id
+    )
+);</code></pre>
+
+      <p>Lest naturlig: «det finnes ikke et CS-emne som studenten ikke har tatt». Dobbel negasjon gir for-alle-kvantor-en SQL ikke har som primitiv.</p>
+    </div>
+  </section>
+
+  <section id="cte">
+    <div class="container">
+      <div class="section-badge">08 · WITH (CTE)</div>
+      <h2>Common Table Expressions</h2>
+      <p>En <code>WITH</code>-klausul lar deg navngi en subquery og bruke den senere — som en lokal view. Bra for lesbarhet og når samme delspørring brukes flere ganger.</p>
+
+      <pre><code><span class="sql-kw">WITH</span> dept_avg <span class="sql-kw">AS</span> (
+  <span class="sql-kw">SELECT</span> dept_name, <span class="sql-fn">AVG</span>(salary) <span class="sql-kw">AS</span> snitt
+  <span class="sql-kw">FROM</span> instructor
+  <span class="sql-kw">GROUP BY</span> dept_name
+)
+<span class="sql-kw">SELECT</span> i.name, i.dept_name, i.salary, d.snitt
+<span class="sql-kw">FROM</span> instructor i
+<span class="sql-kw">JOIN</span> dept_avg d <span class="sql-kw">USING</span> (dept_name)
+<span class="sql-kw">WHERE</span> i.salary &gt; d.snitt;</code></pre>
+
+      <p>Du kan også definere flere CTE-er etter hverandre, og en CTE kan referere til en tidligere CTE i samme <code>WITH</code>.</p>
+
+      <div class="callout">
+        <span class="label">Viktig kobling</span>
+        <p>Den <em>rekursive</em> versjonen av CTE — <code>WITH RECURSIVE</code> — er det som lar SQL uttrykke transitive lukninger som forfedre, naborelasjoner, og graf-traversering. Det dekkes i <a href="prosedyrer-triggere-rekursjon.html">3D · Prosedyrer, triggere, rekursjon</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">Oppsummering</div>
+      <h2>Det du skal kunne</h2>
+      <ol class="steps">
+        <li>Velge riktig JOIN-type ut fra hvilke rader som må bevares.</li>
+        <li>Forklare hva LEFT JOIN ON … WHERE …IS NULL gjør (anti-join).</li>
+        <li>Skille ON, USING og NATURAL — og vite hvorfor NATURAL er skjør.</li>
+        <li>Skrive en self-join og forklare hvorfor aliaser er obligatoriske.</li>
+        <li>Velge mellom IN, EXISTS, ANY, ALL — og kjenne NOT IN-fella med NULL.</li>
+        <li>Identifisere en korrelert subquery og argumentere for når den kan skrives om til join.</li>
+        <li>Bruke WITH til å gjøre komplekse spørringer leselige.</li>
+      </ol>
+      <p style="margin-top: 1.4rem;">Klar for views, transaksjoner og integritet? <a href="views-transaksjoner-integritet.html">Gå til 3C →</a></p>
     </div>
   </section>
 </main>

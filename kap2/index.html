@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kapittel 2 — Relasjonsmodellen og relasjonsalgebra</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* Læringsspor-blokk */
+  .path-grid { display:grid; grid-template-columns: 1fr; gap:.6rem; margin: 1.2rem 0; }
+  .path-step { display:grid; grid-template-columns: 60px 1fr auto; align-items:center; gap:1rem; padding:.8rem 1rem; background: var(--paper-dark); border:1px solid var(--line-soft); border-radius:6px; }
+  .path-step .num { font-family: var(--mono); font-size:.78rem; color: var(--rust); letter-spacing:.08em; text-transform: uppercase; }
+  .path-step .title { font-family: var(--serif); font-size:1.05rem; }
+  .path-step .desc { font-size:.88rem; color:var(--ink-faded); margin-top:2px; }
+  .path-step .min { font-family: var(--mono); font-size:.78rem; color:var(--ink-faded); white-space:nowrap; }
+
+  /* Konsept-kart (lite SVG i overblikk) */
+  figure.concept-map svg { background: #fff; }
+</style>
 </head>
 <body>
 
@@ -25,9 +37,9 @@
 <main data-chapter="Kapittel 2: Relasjonsmodellen og relasjonsalgebra">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 2 · Forelesning 2</div>
+      <div class="eyebrow">Kapittel 2 · Forelesning 2 · Lærebok 2 + notater 3.2 og 4.1</div>
       <h1>Relasjonsmodellen og <em>relasjonsalgebra</em></h1>
-      <p class="lede">Tabeller med skjema og nøkler — og det formelle språket SQL bygger på.</p>
+      <p class="lede">Det formelle fundamentet bak SQL: tabeller med skjema og nøkler, og operatorene som tar relasjoner inn og gir relasjoner ut.</p>
     </div>
   </header>
 
@@ -35,26 +47,130 @@
     <div class="container">
       <ol class="chapter-toc-list">
         <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">02</span><a href="#laeringssti">Læringssti</a></li>
+        <li><span class="toc-num">03</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">04</span><a href="#begrepskart">Begreper</a></li>
+        <li><span class="toc-num">05</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
 
+  <!-- ─────────── Overblikk ─────────── -->
   <section id="overblikk">
     <div class="container">
       <div class="section-badge">Helhetsbilde</div>
-      <h2>Hvorfor relasjoner</h2>
-      <p class="section-intro">Bullet-stubber:</p>
+      <h2>Hvorfor dette kapittelet er kritisk</h2>
+
+      <p class="dropcap">Alt resten av kurset bygger på dette. SQL (kapittel 3–5), normalisering (7), query­behandling (13) og indekser (10–11) snakker alle om <em>relasjoner</em>, <em>nøkler</em> og <em>algebra-uttrykk</em>. Hvis vokabularet sitter løst her, blir resten kjempetungt.</p>
+
       <ul>
-        <li>Codd 1970 — én datatype, én operasjon-familie</li>
-        <li>Relasjon = mengde av tupler over et skjema</li>
-        <li>SQL er en deklarativ overflate; relasjonsalgebra er det formelle fundamentet</li>
-        <li>Optimalisatoren manipulerer algebrauttrykk — derfor må vi forstå dem</li>
+        <li><strong>Codd 1970</strong> — én datatype (tabellen), én operasjons­familie (algebraen). Brukeren beskriver <em>hva</em>; systemet finner ut <em>hvordan</em>.</li>
+        <li><strong>Relasjon = mengde av tupler over et skjema.</strong> Ingen rekkefølge, ingen duplikater, atomiske domener.</li>
+        <li><strong>Nøkler binder modellen sammen.</strong> Primærnøkler identifiserer rader; fremmednøkler kobler tabeller.</li>
+        <li><strong>SQL er overflaten — relasjons­algebra er fundamentet.</strong> Optimalisatoren manipulerer algebra-uttrykk for å finne en rask plan.</li>
       </ul>
+
+      <div class="callout callout-blue">
+        <span class="label">Pensum</span>
+        <p>Lærebokas <strong>kapittel 2</strong> + <strong>notater 3.2 og 4.1</strong>. Forelesningens slides ligger ikke under <code>powerpoints/</code> — alt nødvendig stoff finnes på sidene <a href="relasjonsmodellen.html">2A</a> og <a href="relasjonsalgebra.html">2B</a>.</p>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── Læringssti ─────────── -->
+  <section id="laeringssti">
+    <div class="container">
+      <div class="section-badge">Læringssti</div>
+      <h2>Anbefalt rekkefølge</h2>
+
+      <p class="section-intro">Følger du denne rekkefølgen, har du modellen på plass før du møter operatorene som virker på den.</p>
+
+      <div class="path-grid">
+        <div class="path-step">
+          <div class="num">01</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#hvorfor">Hvorfor relasjoner</a></div>
+            <div class="desc">Codd 1970. Forskjellen mellom deklarativ og prosedyral tilgang.</div>
+          </div>
+          <div class="min">~5 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">02</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#strukturen">Strukturen</a></div>
+            <div class="desc">Tabell, attributt, tuppel, domene. Atomiske verdier (1NF).</div>
+          </div>
+          <div class="min">~8 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">03</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#skjema">Skjema vs. instans</a></div>
+            <div class="desc">Hva som er stabilt og hva som endres med hver oppdatering.</div>
+          </div>
+          <div class="min">~4 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">04</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#nokler">Nøkler</a></div>
+            <div class="desc">Supernøkkel, kandidatnøkkel, primærnøkkel — hierarkiet.</div>
+          </div>
+          <div class="min">~10 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">05</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#fremmednokler">Fremmednøkler</a></div>
+            <div class="desc">Skjemadiagram, referanseintegritet, CASCADE / SET NULL / RESTRICT.</div>
+          </div>
+          <div class="min">~10 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">06</div>
+          <div>
+            <div class="title"><a href="relasjonsmodellen.html#null">NULL og 3-verdig logikk</a></div>
+            <div class="desc">Hvorfor «ukjent» roter til både filter og NOT IN.</div>
+          </div>
+          <div class="min">~8 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">07</div>
+          <div>
+            <div class="title"><a href="relasjonsalgebra.html#oversikt">Operator-oversikt</a></div>
+            <div class="desc">σ, π, ×, ∪, −, ρ + avledede ⋈, ∩, ÷.</div>
+          </div>
+          <div class="min">~6 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">08</div>
+          <div>
+            <div class="title"><a href="relasjonsalgebra.html#join">Join-varianter</a></div>
+            <div class="desc">Theta, equi, natural, outer. Når falle tupler bort?</div>
+          </div>
+          <div class="min">~12 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">09</div>
+          <div>
+            <div class="title"><a href="relasjonsalgebra.html#division">Division</a></div>
+            <div class="desc">«Alle som …»-spørringer. Det dobbelte NOT EXISTS-trikset.</div>
+          </div>
+          <div class="min">~8 min</div>
+        </div>
+        <div class="path-step">
+          <div class="num">10</div>
+          <div>
+            <div class="title"><a href="relasjonsalgebra.html#runner">Bygg en spørring</a></div>
+            <div class="desc">Interaktiv runner som viser hva σ → ⋈ → π gjør med datasettet.</div>
+          </div>
+          <div class="min">~5 min</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── Deler ─────────── -->
   <section id="deler">
     <div class="container">
       <div class="section-badge">Deler</div>
@@ -64,7 +180,7 @@
           <span class="sp-icon">2A</span>
           <div class="sp-info">
             <div class="sp-title">Relasjonsmodellen</div>
-            <div class="sp-desc">Skjema, attributter, domener, primær- og fremmednøkler, integritetskrav</div>
+            <div class="sp-desc">Skjema, attributter, domener, primær- og fremmednøkler, integritetskrav, NULL og 3-verdig logikk</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -72,7 +188,7 @@
           <span class="sp-icon">2B</span>
           <div class="sp-info">
             <div class="sp-title">Relasjonsalgebra</div>
-            <div class="sp-desc">σ select, π project, ⋈ join, ∪ ∩ − ÷ — med eksempler</div>
+            <div class="sp-desc">σ, π, ×, ∪, −, ρ, ⋈, ∩, ÷ — med eksempler, Venn-diagrammer og en interaktiv runner</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -80,234 +196,233 @@
     </div>
   </section>
 
+  <!-- ─────────── Begrepskart ─────────── -->
+  <section id="begrepskart">
+    <div class="container">
+      <div class="section-badge">Begreper</div>
+      <h2>Et minimalt kart</h2>
+      <p class="section-intro">Hvordan begrepene henger sammen — bruk det som sjekkliste.</p>
+
+      <figure class="concept-map">
+        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .b   { fill: #f4f1ea; stroke: #1a1612; stroke-width: 1.1; }
+              .bh  { fill: #1f4e79; fill-opacity: .12; stroke: #1f4e79; }
+              .lbl { font-family: 'IBM Plex Mono'; font-size: 12px; fill: #1a1612; }
+              .lbl-c { font-family: 'IBM Plex Mono'; font-size: 12px; fill: #1f4e79; }
+              .e { stroke: #6b6257; stroke-width: 1; fill: none; }
+              .e-faded { stroke: #a39886; stroke-width: 1; fill: none; stroke-dasharray: 3 3; }
+              .cap { font-family: 'IBM Plex Mono'; font-size: 10px; fill: #6b6257; }
+            </style>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b6257"/>
+            </marker>
+          </defs>
+
+          <!-- Relasjon i sentrum -->
+          <rect class="bh" x="290" y="150" width="140" height="60" rx="6"/>
+          <text class="lbl-c" x="360" y="175" text-anchor="middle">Relasjon</text>
+          <text class="cap"   x="360" y="194" text-anchor="middle">tabell · mengde av tupler</text>
+
+          <!-- Skjema -->
+          <rect class="b" x="40" y="40" width="140" height="50" rx="6"/>
+          <text class="lbl" x="110" y="62" text-anchor="middle">Skjema</text>
+          <text class="cap" x="110" y="78" text-anchor="middle">attributter + domener</text>
+
+          <!-- Instans -->
+          <rect class="b" x="40" y="270" width="140" height="50" rx="6"/>
+          <text class="lbl" x="110" y="292" text-anchor="middle">Instans</text>
+          <text class="cap" x="110" y="308" text-anchor="middle">tuplene akkurat nå</text>
+
+          <!-- Nøkler -->
+          <rect class="b" x="540" y="40" width="140" height="60" rx="6"/>
+          <text class="lbl" x="610" y="62" text-anchor="middle">Nøkler</text>
+          <text class="cap" x="610" y="78" text-anchor="middle">super · kandidat</text>
+          <text class="cap" x="610" y="92" text-anchor="middle">primær</text>
+
+          <!-- Fremmednøkkel -->
+          <rect class="b" x="540" y="160" width="140" height="50" rx="6"/>
+          <text class="lbl" x="610" y="182" text-anchor="middle">Fremmednøkkel</text>
+          <text class="cap" x="610" y="198" text-anchor="middle">refererer primærnøkkel</text>
+
+          <!-- Integritet -->
+          <rect class="b" x="540" y="270" width="140" height="50" rx="6"/>
+          <text class="lbl" x="610" y="292" text-anchor="middle">Integritet</text>
+          <text class="cap" x="610" y="308" text-anchor="middle">domene · entitet · referanse</text>
+
+          <!-- Algebra -->
+          <rect class="bh" x="290" y="280" width="140" height="60" rx="6"/>
+          <text class="lbl-c" x="360" y="302" text-anchor="middle">Relasjonsalgebra</text>
+          <text class="cap"   x="360" y="320" text-anchor="middle">σ π × ∪ − ρ ⋈ ∩ ÷</text>
+
+          <!-- SQL -->
+          <rect class="b" x="290" y="40" width="140" height="60" rx="6"/>
+          <text class="lbl" x="360" y="62" text-anchor="middle">SQL</text>
+          <text class="cap" x="360" y="78" text-anchor="middle">deklarativ overflate</text>
+          <text class="cap" x="360" y="92" text-anchor="middle">(kap. 3–5)</text>
+
+          <!-- Edges -->
+          <line class="e" x1="180" y1="65"  x2="290" y2="170" marker-end="url(#ar)"/>
+          <line class="e" x1="180" y1="295" x2="290" y2="200" marker-end="url(#ar)"/>
+          <line class="e" x1="540" y1="70"  x2="430" y2="160" marker-end="url(#ar)"/>
+          <line class="e" x1="540" y1="180" x2="430" y2="180" marker-end="url(#ar)"/>
+          <line class="e" x1="540" y1="295" x2="430" y2="200" marker-end="url(#ar)"/>
+          <line class="e" x1="360" y1="210" x2="360" y2="280" marker-end="url(#ar)"/>
+          <line class="e-faded" x1="360" y1="100" x2="360" y2="150" marker-end="url(#ar)"/>
+
+          <text class="cap" x="248" y="138">brukes i</text>
+          <text class="cap" x="368" y="135" font-style="italic">basert på</text>
+        </svg>
+        <figcaption>Relasjonen er sentralt. SQL bygger på relasjonsalgebraen, som opererer på relasjonene.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ─────────── Test deg selv ─────────── -->
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <p class="section-intro">15 spørsmål som dekker hele kapittelet — fra modell til algebra. Ikke bla til svaret før du har et eget forsøk.</p>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 2?</div>
+        <div class="q-label">Spørsmål 1 · Lett · Modell</div>
+        <div class="q-text">Hva betyr det at en relasjon er en <em>mengde</em> av tupler, og hvilke to praktiske konsekvenser har det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 2]</div>
+          <div class="answer">Det betyr at (1) <strong>rekkefølgen</strong> på rader er irrelevant — du kan ikke spørre etter «den tredje raden», og (2) <strong>duplikater</strong> ikke finnes — to identiske rader er per definisjon én rad. SQL tar et praktisk avvik fra dette og bruker multimengder (bag-semantikk) — derfor må du skrive <code>DISTINCT</code> for å få mengdesemantikk.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 2 i praksis?</div>
+        <div class="q-label">Spørsmål 2 · Lett · Modell</div>
+        <div class="q-text">Forklar forskjellen på <em>skjema</em> og <em>instans</em>.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 2]</div>
+          <div class="answer"><strong>Skjemaet</strong> er den logiske strukturen — attributtnavn, domener, nøkler, fremmednøkler. Det endres sjelden. <strong>Instansen</strong> er øyeblikks­bildet av tuplene som finnes nå, og endres ved hver INSERT/UPDATE/DELETE. Sammenlign med programmering: skjema = type, instans = verdi.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 3 · Middels · Atomisitet</div>
+        <div class="q-text">Hvilket av disse er ikke en gyldig relasjon i Codds forstand, og hvorfor?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 2]</div>
+          <div class="answer">Et eksempel som <code>person(navn, telefoner)</code> der <code>telefoner</code> inneholder en liste eller mengde, bryter med kravet om <strong>atomiske domener</strong>. Løsningen er en separat tabell <code>person_phone(person_id, phone)</code> med én rad per telefonnummer.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 2 i praksis?</div>
+        <div class="q-label">Spørsmål 4 · Middels · Nøkler</div>
+        <div class="q-text">Skjemaet er <code>enrollment(student_id, course_id, semester, year, grade)</code>. Hva er den minimale primærnøkkelen, og kan du ha to ulike kandidatnøkler her?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 2]</div>
+          <div class="answer">Primærnøkkel: <code>{student_id, course_id, semester, year}</code> — en student kan ta samme kurs på nytt i et annet semester. Andre kandidater er sjeldne her, men hvis hver student bare kan ta hvert kurs én gang totalt, kunne <code>{student_id, course_id}</code> fungert. Da må forretningsregelen være eksplisitt — kandidatnøkkel er en egenskap ved skjemaet, ikke ved en tilfeldig instans.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 2?</div>
+        <div class="q-label">Spørsmål 5 · Vanskelig · Nøkler</div>
+        <div class="q-text">En kollega argumenterer for at e-post kan være primærnøkkel for <code>users</code>. Hva er problemene med det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 2]</div>
+          <div class="answer">(1) <strong>Ikke stabil</strong> — folk bytter e-post; det betyr cascading oppdateringer i alle FK-er som peker hit. (2) <strong>Personopplysning</strong> — havner alle steder primærnøkkelen brukes, gir GDPR-utfordringer. (3) <strong>Lengde</strong> — e-poster er lange og varierer; en syntetisk INT-id er raskere som indeksnøkkel. Praksis: bruk syntetisk id som primærnøkkel og legg <code>UNIQUE</code> på e-post.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 6 · Middels · Fremmednøkler</div>
+        <div class="q-text">Du har <code>orders → customers</code> via fremmednøkkel. Hvilken delete-strategi er <em>aldri</em> god her, og hvorfor?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 2]</div>
+          <div class="answer"><strong>CASCADE</strong> er problematisk — sletter du en kunde, mister du hele ordrehistorikken, som du normalt trenger for regnskap, retur og rapportering. Bedre: RESTRICT (blokker sletting) eller bruk en «soft delete» (<code>customers.deleted_at</code>) slik at historikken blir bevart. SET NULL bryter referanse­integritet i nyttigheten — orden hører til <em>noen</em>, ikke ingen.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 2 i praksis?</div>
+        <div class="q-label">Spørsmål 7 · Lett · Integritet</div>
+        <div class="q-text">Hva er entitetsintegritet, og hvorfor følger den naturlig fra hva primærnøkkelen skal gjøre?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 2]</div>
+          <div class="answer">Entitetsintegritet: ingen del av primærnøkkelen kan være NULL. Følger fordi primærnøkkelen skal <em>identifisere</em> en rad — og NULL betyr «ukjent» og er ikke engang lik seg selv. To rader med NULL i primærnøkkelen vil ikke kunne skilles.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 8 · Vanskelig · NULL</div>
+        <div class="q-text">Hvorfor kan <code>NOT IN</code> med en sub-spørring som inneholder NULL gi <em>ingen</em> rader, selv om du venter mange?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 2]</div>
+          <div class="answer">Fordi <code>x NOT IN (a, b, NULL)</code> er ekvivalent med <code>x ≠ a ∧ x ≠ b ∧ x ≠ NULL</code>. Den siste er alltid UNKNOWN, og UNKNOWN i AND-kjede gir UNKNOWN totalt — som filtreres ut i WHERE. Bytt til <code>NOT EXISTS</code> eller filtrer NULL-er ut av sub-spørringen først.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 2?</div>
+        <div class="q-label">Spørsmål 9 · Lett · Algebra</div>
+        <div class="q-text">List de seks fundamentale operatorene i relasjons­algebra, og en avledet operator du oftere bruker.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 2]</div>
+          <div class="answer">Fundamentale: <code>σ</code> select, <code>π</code> project, <code>×</code> kartesisk produkt, <code>∪</code> union, <code>−</code> differanse, <code>ρ</code> rename. Avledet: <code>⋈</code> join (= σ etter ×), <code>∩</code> intersect (= R − (R − S)), <code>÷</code> division.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 10 · Middels · Algebra</div>
+        <div class="q-text">Skriv et relasjons­algebra-uttrykk som finner navnet til alle Physics-instruktører som tjener mer enn 80 000.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 2]</div>
+          <div class="answer"><code>π<sub>name</sub>(σ<sub>dept_name = "Physics" ∧ salary &gt; 80000</sub>(instructor))</code>. Alternativt kan du sammensette to selects: <code>π<sub>name</sub>(σ<sub>salary &gt; 80000</sub>(σ<sub>dept_name = "Physics"</sub>(instructor)))</code> — de gir samme resultat.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 2 i praksis?</div>
+        <div class="q-label">Spørsmål 11 · Middels · Join</div>
+        <div class="q-text">Hva er forskjellen mellom <em>natural join</em> og <em>theta-join</em>? Når blir natural join farlig?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 2]</div>
+          <div class="answer">Natural join matcher implisitt på <em>alle attributter med samme navn</em> i begge relasjonene, og slår sammen til én kolonne. Theta-join lar deg oppgi et eksplisitt predikat. Natural join blir farlig når skjemaer endres — legges et nytt likt-navngitt attributt til (f.eks. <code>created_at</code>), endres semantikken stille uten at spørringen feiler. Eksplisitt <code>JOIN ... ON</code> er tryggere i produksjonskode.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 12 · Middels · Outer join</div>
+        <div class="q-text">Hvilken instruktør-rad mister du i <code>instructor ⋈ teaches</code>, og hvilken algebra-operator beholder den?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 2]</div>
+          <div class="answer">Du mister enhver instructor uten match i <code>teaches</code> — altså instruktører som ikke underviser noe kurs. <strong>Left outer join</strong> <code>instructor ⟕ teaches</code> beholder alle rader fra venstre side; manglende attributter fra høyre fylles med NULL.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 2?</div>
+        <div class="q-label">Spørsmål 13 · Vanskelig · Mengde­operatorer</div>
+        <div class="q-text">Hvorfor må <code>R</code> og <code>S</code> være «kompatible» for at <code>R ∪ S</code> skal være lov, og hva betyr kompatibel her?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 2]</div>
+          <div class="answer">Resultatet av union må selv være en relasjon — én klar liste av attributter med klare typer. Kompatibel betyr (1) samme aritet, og (2) samme type på den i-te attributten i begge. Det er <em>posisjon</em> som teller, ikke navn — du må projisere først for å justere skjemaene hvis de avviker.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 2 i praksis?</div>
+        <div class="q-label">Spørsmål 14 · Vanskelig · Division</div>
+        <div class="q-text">Forklar med ord hva <code>R ÷ S</code> beregner, og gi et naturlig eksempel.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 2]</div>
+          <div class="answer"><code>R ÷ S</code> finner de tuplene fra <code>R</code> (over attributtene som <em>ikke</em> er i <code>S</code>) som er paret med <em>hver eneste</em> rad i <code>S</code>. Klassisk: <code>tatt(student, kurs) ÷ påkrevd(kurs)</code> gir studenter som har tatt alle påkrevde kurs. I SQL implementeres det med dobbel <code>NOT EXISTS</code>.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 2 er faglig best?</div>
+        <div class="q-label">Spørsmål 15 · Vanskelig · Optimalisering</div>
+        <div class="q-text">Hvorfor er det nyttig at <code>σ<sub>p</sub>(R ⋈ S) ≡ (σ<sub>p</sub>(R)) ⋈ S</code> når <code>p</code> bare nevner attributter i <code>R</code> (for inner join)? Hva gjør optimalisatoren med dette?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 2]</div>
+          <div class="answer">Optimalisatoren bruker «push selection past join»: ved å filtrere R først reduseres antall rader som må joines, og dermed kostnaden av joinen (som er en av de dyreste operasjonene). Dette er en av flere ekvivalensregler som lar planleggeren bygge billigere fysiske planer uten å endre resultatet. Husk: regelen gjelder ikke ubetinget for outer joins — der introduseres NULL-er som kan endre semantikken.</div>
         </div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 2 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 2?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 2 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 2 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 2 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 2 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 2 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 2?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 2 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 2]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 2 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 2]</div>
-        </div>
+      <div class="callout">
+        <span class="label">Klar for kapittel 3?</span>
+        <p>Når disse 15 sitter, er du klar for SQL — som tar hele algebraen og kler den i syntaks. Gå videre til <a href="../kap3/">kapittel 3</a>.</p>
       </div>
     </div>
   </section>
