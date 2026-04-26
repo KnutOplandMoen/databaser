@@ -107,7 +107,7 @@
       <p>Hele kapittelet henger på dette ene bildet. Hver «boks» kjenner bare boksene umiddelbart over og under seg. SQL-laget snakker om rader; lagringslaget snakker om blokker. Resten av kapittelet handler om hvordan disse to verdenene møtes.</p>
 
       <figure class="stack-fig">
-        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hierarki-title">
+        <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hierarki-title">
           <title id="hierarki-title">Lagringshierarki: device, blokk, record, felt</title>
           <defs>
             <marker id="arr1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
@@ -115,76 +115,84 @@
             </marker>
           </defs>
 
+          <!-- Top row: structural breakdown DEVICE -> BLOKK -> RECORD -> FELT -->
+
           <!-- Device -->
-          <g transform="translate(40,30)">
-            <rect width="160" height="70" rx="6" fill="#e8e3d6" stroke="#1f4e79" stroke-width="2"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">DEVICE</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">SSD eller HDD</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">deviceId + offset</text>
+          <g transform="translate(20,30)">
+            <rect width="150" height="70" rx="6" fill="#e8e3d6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">DEVICE</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">SSD eller HDD</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">deviceId + offset</text>
           </g>
 
           <!-- Block -->
-          <g transform="translate(280,30)">
-            <rect width="160" height="70" rx="6" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">BLOKK / SIDE</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">~16 KiB</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">BlockId = (dev, idx)</text>
+          <g transform="translate(210,30)">
+            <rect width="150" height="70" rx="6" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">BLOKK / SIDE</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">~16 KiB</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">BlockId = (dev, idx)</text>
           </g>
 
           <!-- Record -->
-          <g transform="translate(520,30)">
-            <rect width="160" height="70" rx="6" fill="#e8e3d6" stroke="#7a4a2d" stroke-width="2"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#7a4a2d" font-weight="700">RECORD / RAD</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">én rad i tabell</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">RID = (BlockId, slot)</text>
+          <g transform="translate(400,30)">
+            <rect width="150" height="70" rx="6" fill="#e8e3d6" stroke="#7a4a2d" stroke-width="2"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#7a4a2d" font-weight="700">RECORD / RAD</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">én rad i tabell</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">RID = (BlockId, slot)</text>
           </g>
 
           <!-- Field -->
-          <g transform="translate(280,170)">
-            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#3d6b3a" stroke-width="2"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#3d6b3a" font-weight="700">FELT / ATTRIBUTT</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">empno, name, ...</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">fixed eller variable</text>
+          <g transform="translate(590,30)">
+            <rect width="150" height="70" rx="6" fill="#f4f1ea" stroke="#3d6b3a" stroke-width="2"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#3d6b3a" font-weight="700">FELT / ATTRIBUTT</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">empno, name, ...</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">fixed eller variable</text>
           </g>
 
-          <!-- Buffer pool -->
-          <g transform="translate(40,170)">
-            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#c68a1f" stroke-width="2"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#c68a1f" font-weight="700">BUFFER POOL</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">RAM-cache av blokker</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">hash-indeksert</text>
+          <!-- Bottom row: side concepts -->
+
+          <!-- Buffer pool (under BLOKK) -->
+          <g transform="translate(210,200)">
+            <rect width="150" height="70" rx="6" fill="#f4f1ea" stroke="#c68a1f" stroke-width="2"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#c68a1f" font-weight="700">BUFFER POOL</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">RAM-cache av blokker</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">hash-indeksert</text>
           </g>
 
-          <!-- SQL -->
-          <g transform="translate(520,170)">
-            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="2" stroke-dasharray="4,3"/>
-            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">SQL-LAGET</text>
-            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">ser bare rader</text>
-            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">vet ikke om blokker</text>
+          <!-- SQL (under RECORD) -->
+          <g transform="translate(400,200)">
+            <rect width="150" height="70" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="2" stroke-dasharray="4,3"/>
+            <text x="75" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">SQL-LAGET</text>
+            <text x="75" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">ser bare rader</text>
+            <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">vet ikke om blokker</text>
           </g>
 
-          <!-- Arrows -->
-          <line x1="200" y1="65" x2="280" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
-          <line x1="440" y1="65" x2="520" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
-          <line x1="600" y1="100" x2="600" y2="170" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
-          <line x1="440" y1="200" x2="360" y2="200" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
-          <line x1="200" y1="200" x2="280" y2="200" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
-          <line x1="120" y1="100" x2="120" y2="170" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <!-- Top-row arrows -->
+          <line x1="170" y1="65" x2="210" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="360" y1="65" x2="400" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="550" y1="65" x2="590" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
 
-          <!-- Labels -->
-          <text x="240" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">leses inn</text>
-          <text x="480" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">inneholder</text>
-          <text x="610" y="140" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">deles i</text>
-          <text x="240" y="194" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">tilbys som</text>
+          <!-- Vertical dashed: BLOKK <-> BUFFER POOL, RECORD <-> SQL -->
+          <line x1="285" y1="100" x2="285" y2="200" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <line x1="475" y1="100" x2="475" y2="200" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+          <!-- Top-row labels -->
+          <text x="190" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">leses inn</text>
+          <text x="380" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">inneholder</text>
+          <text x="570" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">deles i</text>
+
+          <!-- Vertical dashed labels -->
+          <text x="293" y="155" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">cacher i RAM</text>
+          <text x="483" y="155" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">eksponeres som</text>
 
           <!-- Bottom note -->
-          <g transform="translate(40,290)">
-            <rect width="640" height="50" rx="6" fill="#ddd5c4"/>
-            <text x="320" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">DBMS-jobben: minimer antall blokker som må flyttes mellom device og buffer pool.</text>
-            <text x="320" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">Indekser, clustering og smart bufring er alle svar på det samme problemet.</text>
+          <g transform="translate(20,295)">
+            <rect width="720" height="50" rx="6" fill="#ddd5c4"/>
+            <text x="360" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">DBMS-jobben: minimer antall blokker som må flyttes mellom device og buffer pool.</text>
+            <text x="360" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">Indekser, clustering og smart bufring er alle svar på det samme problemet.</text>
           </g>
         </svg>
-        <figcaption>Lagringshierarkiet — fra fysisk device opp til logiske rader. Resten av kapittelet utdyper hver av disse boksene.</figcaption>
+        <figcaption>Lagringshierarkiet — fra fysisk device opp til logiske rader. Buffer pool og SQL-laget henger på siden: den ene cacher blokker, den andre ser bare rader.</figcaption>
       </figure>
 
       <div class="quiz" data-quiz>
@@ -308,7 +316,7 @@
       <p>På eksamen må du kunne resonnere om antall blokk-aksesser. Skissen under gir deg de fire vanligste lagringsalternativene side om side.</p>
 
       <figure class="stack-fig">
-        <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg">
           <title>Fire lagringsalternativer</title>
 
           <!-- Heap -->
@@ -406,11 +414,12 @@
 
           <!-- Verdict bar -->
           <g transform="translate(20,200)">
-            <rect width="680" height="60" rx="6" fill="#ddd5c4"/>
-            <text x="340" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">
-              Velg etter spørringsmønster: mange likhetssøk + få endringer → hash; range-spørringer → clustered B+; ad-hoc + flere indekser → heap + B+.
+            <rect width="680" height="80" rx="6" fill="#ddd5c4"/>
+            <text x="340" y="22" text-anchor="middle" font-family="Newsreader" font-size="12" fill="#1a1612" font-style="italic">
+              <tspan x="340" dy="0">Velg etter spørringsmønster: mange likhetssøk + få endringer → hash;</tspan>
+              <tspan x="340" dy="16">range-spørringer → clustered B+; ad-hoc + flere indekser → heap + B+.</tspan>
             </text>
-            <text x="340" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">På eksamen: regn ut antall blokker for hver av de fire alternativene før du velger.</text>
+            <text x="340" y="68" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">På eksamen: regn ut antall blokker for hver av de fire alternativene før du velger.</text>
           </g>
         </svg>
         <figcaption>Fire lagringsalternativer side om side. Tallene under er for samme tabell (100 000 rader, 80-byte records, 4 KiB-blokker).</figcaption>

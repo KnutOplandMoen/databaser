@@ -709,7 +709,7 @@
       <p>Hashing leverer det heapfilen ikke kan: <strong>O(1) likhetssøk</strong>. Men den har en akilleshæl — du må bestemme antall blokker på forhånd.</p>
 
       <figure class="fig-frame">
-        <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg">
           <text x="20" y="20" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79">h(K) = K mod 4</text>
 
           <!-- Hash to bucket -->
@@ -750,7 +750,7 @@
             <line x1="-40" y1="20" x2="0" y2="20" stroke="#7a4a2d" stroke-width="1.5" stroke-dasharray="2,2"/>
           </g>
 
-          <text x="20" y="200" font-family="IBM Plex Sans" font-size="12" fill="#6b6257">
+          <text x="20" y="230" font-family="IBM Plex Sans" font-size="12" fill="#6b6257">
             For å sette inn nøkkel 26: h(26) = 2. Bøtte 2 er full → må til <tspan fill="#7a4a2d">overflow-blokk</tspan>. Lange overflow-kjeder dreper ytelsen.
           </text>
         </svg>
