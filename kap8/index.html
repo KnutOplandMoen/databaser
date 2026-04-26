@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kapittel 8 — Transaksjoner</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="kap8.css">
 </head>
 <body>
 
@@ -27,46 +28,115 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · Forelesning 14–16 · Del 2</div>
       <h1>Transaksjoner — <em>ACID i praksis</em></h1>
-      <p class="lede">Hvordan databaser garanterer alt-eller-ingenting under samtidig last og krasj.</p>
+      <p class="lede">Hvordan databasen gir alt-eller-ingenting selv når mange brukere kjører samtidig og strømmen plutselig går.</p>
     </div>
   </header>
 
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#hvorfor">Hvorfor transaksjoner?</a></li>
+        <li><span class="toc-num">02</span><a href="#kart">Kart over kapittelet</a></li>
+        <li><span class="toc-num">03</span><a href="#deler">Tre deler</a></li>
+        <li><span class="toc-num">04</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
+        <li><span class="toc-num">05</span><a href="#sjekk">Sjekk forhåndskunnskapen</a></li>
       </ol>
     </div>
   </nav>
 
-  <section id="overblikk">
+  <section id="hvorfor">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
-      <h2>Tre forelesninger, tre temaer</h2>
+      <div class="section-badge">01 · Motivasjon</div>
+      <h2>Hvorfor finnes <em>transaksjoner</em>?</h2>
+      <p class="dropcap">Tenk deg en bankoverføring: «trekk 100 kr fra konto A, sett 100 kr inn på konto B». To skriveoperasjoner. Hvis maskinen krasjer mellom dem, har banken nettopp slettet 100 kr av kundens penger — og 100 kr fra balansen. To samtidige overføringer kan også havne i klinsj og ende i tull selv uten krasj.</p>
+      <p>En <strong>transaksjon</strong> er en logisk arbeidsenhet som binder slike steg sammen. Databasen lover fire ting:</p>
       <ul>
-        <li><strong>Teori</strong> — ACID, schedule, serializability, recoverability</li>
-        <li><strong>Samtidighet</strong> — låser (2PL), MVCC, isolation levels</li>
-        <li><strong>Recovery</strong> — log, undo/redo, ARIES, sjekkpunkter</li>
+        <li><strong>Alt eller ingenting</strong> — enten gjøres alle stegene, eller ingen.</li>
+        <li><strong>Konsistens bevares</strong> — integritetskrav (PK, FK, CHECK) holder etter commit.</li>
+        <li><strong>Som om alene</strong> — to samtidige transaksjoner skal ikke se hverandre halvferdige.</li>
+        <li><strong>Varig</strong> — etter commit overlever resultatet enhver krasj.</li>
       </ul>
+      <p>Disse fire er kjent som <strong>ACID</strong>. Hele kapittel 8 forklarer hvordan databasen faktisk leverer dem.</p>
+    </div>
+  </section>
+
+  <section id="kart">
+    <div class="container">
+      <div class="section-badge">02 · Helhetsbilde</div>
+      <h2>Kartet over alt som skjer</h2>
+      <p>Tre hovedmekanismer jobber sammen i bakgrunnen hver gang du skriver <code>BEGIN; … COMMIT;</code>:</p>
+
+      <figure>
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Arkitektur for transaksjonshåndtering: applikasjon, transaksjons­manager, scheduler/lock manager, recovery manager, buffer pool, disk og logg.">
+          <defs>
+            <marker id="arrow8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#3d3832"/>
+            </marker>
+          </defs>
+          <!-- Application -->
+          <rect x="20" y="20" width="170" height="60" rx="6" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.5"/>
+          <text x="105" y="50" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Applikasjon</text>
+          <text x="105" y="68" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">BEGIN / COMMIT</text>
+
+          <!-- Transaction Manager -->
+          <rect x="270" y="20" width="200" height="60" rx="6" fill="#e6edf6" stroke="#1f4e79" stroke-width="1.5"/>
+          <text x="370" y="50" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Transaction Manager</text>
+          <text x="370" y="68" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">tildeler TxID, koordinerer</text>
+
+          <!-- Scheduler / Concurrency -->
+          <rect x="40" y="140" width="220" height="80" rx="6" fill="#fff4e0" stroke="#c68a1f" stroke-width="1.5"/>
+          <text x="150" y="166" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Scheduler · Lock Manager</text>
+          <text x="150" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">2PL · MVCC · isolation</text>
+          <text x="150" y="204" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="12" fill="#3d6b3a">Garanterer Isolation</text>
+
+          <!-- Recovery -->
+          <rect x="290" y="140" width="220" height="80" rx="6" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.5"/>
+          <text x="400" y="166" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Recovery Manager</text>
+          <text x="400" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">WAL · undo · redo · ARIES</text>
+          <text x="400" y="204" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="12" fill="#3d6b3a">Garanterer Atomicity + Durability</text>
+
+          <!-- Buffer pool -->
+          <rect x="540" y="140" width="160" height="80" rx="6" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.5"/>
+          <text x="620" y="170" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Buffer Pool</text>
+          <text x="620" y="190" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">sider i RAM</text>
+
+          <!-- Disk -->
+          <rect x="120" y="260" width="190" height="46" rx="6" fill="#ddd5c4" stroke="#3d3832" stroke-width="1.2"/>
+          <text x="215" y="290" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#1a1612">Database-disk (sider)</text>
+
+          <rect x="370" y="260" width="190" height="46" rx="6" fill="#ddd5c4" stroke="#3d3832" stroke-width="1.2"/>
+          <text x="465" y="290" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="#1a1612">Logg-disk (LSN-er)</text>
+
+          <!-- Arrows -->
+          <line x1="190" y1="50" x2="270" y2="50" stroke="#3d3832" stroke-width="1.5" marker-end="url(#arrow8)"/>
+          <line x1="320" y1="80" x2="170" y2="140" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+          <line x1="400" y1="80" x2="400" y2="140" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+          <line x1="450" y1="80" x2="600" y2="140" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+          <line x1="620" y1="220" x2="465" y2="260" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+          <line x1="540" y1="220" x2="215" y2="260" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+          <line x1="400" y1="220" x2="400" y2="260" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
+        </svg>
+        <figcaption>De tre delene av kapittelet henger på samme arkitektur: <em>scheduler/lock manager</em> håndterer Isolation, mens <em>recovery manager</em> sammen med loggen sikrer Atomicity og Durability.</figcaption>
+      </figure>
+
       <div class="callout callout-blue">
         <span class="label">Slides</span>
-        <p><a href="../powerpoints/transaksjoner.pdf">transaksjoner.pdf</a> dekker hele kapittelet med figurer.</p>
+        <p>Slidene <a href="../powerpoints/transaksjoner.pdf">transaksjoner.pdf</a> dekker hele kapittelet. Underkapitlene under er bygd opp som lese-stier — figurer og quizzer underveis, ikke bare i slutten.</p>
       </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
-      <h2>Utforsk <em>kapittelet</em></h2>
+      <div class="section-badge">03 · Deler</div>
+      <h2>Tre forelesninger, tre <em>spor</em></h2>
+      <p>Hver underside er bygd opp progressivt: konsept → figur → eksempel → quiz. Følg dem i rekkefølge første gang.</p>
       <div class="subpage-list">
         <a href="intro-og-teori.html" class="subpage-card">
           <span class="sp-icon">8A</span>
           <div class="sp-info">
             <div class="sp-title">Intro og teori</div>
-            <div class="sp-desc">Notater kap. 15–16. ACID, schedule, conflict/view serializability, recoverability, cascadeless</div>
+            <div class="sp-desc">F14 · Notater kap. 15–16 · ACID, schedules, conflict serializability, recoverability/ACA/strict, presedensgraf</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -74,7 +144,7 @@
           <span class="sp-icon">8B</span>
           <div class="sp-info">
             <div class="sp-title">Samtidighet og låser</div>
-            <div class="sp-desc">Notater kap. 16–17. 2PL, deadlock, lock granularity, timestamp ordering, MVCC, isolation levels</div>
+            <div class="sp-desc">F15 · Notater kap. 16–17 · Anomalier, S/X-låser, 2PL, deadlocks, MVCC/snapshot, isolation levels</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -82,7 +152,7 @@
           <span class="sp-icon">8C</span>
           <div class="sp-info">
             <div class="sp-title">Recovery</div>
-            <div class="sp-desc">Notater kap. 18. Log records, undo/redo, ARIES, sjekkpunkter, fuzzy checkpoint</div>
+            <div class="sp-desc">F16 · Notater kap. 18 · Logg, WAL, force/steal, undo/redo, ARIES sine tre faser, sjekkpunkter</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -90,235 +160,80 @@
     </div>
   </section>
 
-  <section id="quiz">
+  <section id="nokkelbegreper">
     <div class="container">
-      <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="section-badge">04 · Vokabular</div>
+      <h2>Begrepene du møter igjen</h2>
+      <p>Disse går igjen i alle tre delene. Trenger du å slå dem opp senere — det er her.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Begrep</th><th>Forkortet</th><th>Hva det betyr</th></tr></thead>
+          <tbody>
+            <tr><td>Transaksjon</td><td>T<sub>i</sub></td><td>Atomisk arbeidsenhet — ender med commit eller abort.</td></tr>
+            <tr><td>Schedule (historie)</td><td>H</td><td>Sekvens av <code>r/w/c/a</code>-operasjoner fra flere transaksjoner.</td></tr>
+            <tr><td>Conflict</td><td>—</td><td>To operasjoner på samme dataelement, ulike transaksjoner, minst én er write.</td></tr>
+            <tr><td>Serializable</td><td>—</td><td>Schedule har samme effekt som en eller annen seriell rekkefølge.</td></tr>
+            <tr><td>Two-phase locking</td><td>2PL</td><td>Først alle låser, så ingen flere — garanterer conflict-serializability.</td></tr>
+            <tr><td>MVCC</td><td>—</td><td>Multi-version. Reads ser snapshot, writes lager ny versjon.</td></tr>
+            <tr><td>Log Sequence Number</td><td>LSN</td><td>Monotont voksende ID på log-record. Også per side (PageLSN).</td></tr>
+            <tr><td>WAL-regel</td><td>—</td><td>Loggen må på disk <em>før</em> dataen.</td></tr>
+            <tr><td>Compensating Log Record</td><td>CLR</td><td>«Undo som er en redo» — gjør tilbakerulling idempotent.</td></tr>
+            <tr><td>Dirty Page Table</td><td>DPT</td><td>Sider som har endringer i buffer som ikke er på disk.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 8]</div>
+  <section id="sjekk">
+    <div class="container">
+      <div class="section-badge">05 · Forhåndssjekk</div>
+      <h2>Sjekk hva du allerede har med deg</h2>
+      <p class="section-intro">Tre raske spørsmål før du dykker inn. Du finner full forklaring i underkapitlene.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Forhåndssjekk 1 · Lett</div>
+        <div class="q-text">Hvilken bokstav i ACID handler om at <em>ingen andre</em> transaksjoner skal se en halvferdig endring?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Atomicity — alt eller ingenting</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Consistency — integritetskrav holder</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">I</span><span>Isolation — det ser ut som om transaksjonen er alene</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Durability — endringene overlever krasj</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig — Isolation.</strong> Det er Isolation som styrer at samtidige transaksjoner ikke skal forstyrre hverandre. Atomicity handler om alt-eller-ingenting <em>innad</em> i én transaksjon, og Durability handler om hva som overlever krasj.
         </div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 8]</div>
+      <div class="mcq" data-mcq>
+        <div class="q-label">Forhåndssjekk 2 · Middels</div>
+        <div class="q-text">Hva er hovedgrunnen til at vi ikke bare kjører transaksjoner serielt etter hverandre?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>SQL-standarden forbyr det</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Vi taper massiv ytelse — moderne maskiner og I/O-venting krever samtidighet</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Det bryter med ACID</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det er umulig å implementere</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig — ytelse.</strong> Serielle schedules er <em>helt korrekte</em>, men sløser CPU og I/O. Mens én transaksjon venter på disk kan andre kjøre. Hele triksen er å la flere kjøre samtidig <em>og</em> bevise at resultatet er det samme som en eller annen seriell rekkefølge.
         </div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 8]</div>
+      <div class="mcq" data-mcq>
+        <div class="q-label">Forhåndssjekk 3 · Vanskelig</div>
+        <div class="q-text">Hvilken komponent garanterer Atomicity og Durability når strømmen plutselig går?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Lock manager (2PL)</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Recovery manager + loggen, via WAL og undo/redo</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Buffer-pool — sidene er der allerede</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>SQL-kompilatoren — den vet hva som skal kjøres</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig — recovery + logg.</strong> Lock manager har ansvar for Isolation, ikke kraschsikkerhet. Buffer-pool er bare RAM som forsvinner ved strømbrudd. Recovery manager bruker logg-records på disk (WAL-regelen) til å rulle frem committed transaksjoner og rulle tilbake løsere etter krasj.
         </div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 8?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 8 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 8]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 8 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 8]</div>
-        </div>
-      </div>
+      <p style="margin-top:1.5rem; font-style: italic; color: var(--ink-faded);">Klar? Begynn med <a href="intro-og-teori.html">8A · Intro og teori</a>.</p>
     </div>
   </section>
 </main>
@@ -333,6 +248,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

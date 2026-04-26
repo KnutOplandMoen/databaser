@@ -25,45 +25,128 @@
 <main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 4 · Forelesning 7–9</div>
+      <div class="eyebrow">Kapittel 4 · Forelesning 7–9 · Lærebok 6.1–6.9, 7.1–7.3, 7.6</div>
       <h1>Relasjonsdatabase<em>design</em></h1>
-      <p class="lede">Fra ER-diagram til BCNF — hvordan unngå redundans, anomali og oppdateringskaos.</p>
+      <p class="lede">Fra virkeligheten via et ER-diagram til et normalformet skjema — uten redundans, uten anomali, uten oppdateringskaos.</p>
     </div>
   </header>
 
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#hvorfor">Hvorfor design</a></li>
+        <li><span class="toc-num">02</span><a href="#reise">Designreisen</a></li>
+        <li><span class="toc-num">03</span><a href="#deler">Tre underkapitler</a></li>
+        <li><span class="toc-num">04</span><a href="#sjekkliste">Sjekkliste</a></li>
+        <li><span class="toc-num">05</span><a href="#quiz">Sluttquiz</a></li>
       </ol>
     </div>
   </nav>
 
-  <section id="overblikk">
+  <section id="hvorfor">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
-      <h2>Hvorfor bry seg om design</h2>
-      <ul>
-        <li>Dårlig design → redundans → oppdateringsanomali</li>
-        <li>ER-modell er <em>konseptuelt</em>; relasjonsskjema er <em>logisk</em></li>
-        <li>Normalformer gir mekaniske garantier — du kan oppdage feil før dataen kommer inn</li>
-        <li>BCNF i praksis: ofte godt nok, av og til for strikt (3NF beholder dependency preservation)</li>
-      </ul>
+      <div class="section-badge">01 · Helhetsbilde</div>
+      <h2>Hvorfor bry seg om <em>design</em></h2>
+      <p class="dropcap">Et dårlig databaseskjema lager det samme problemet om og om igjen: samme faktum lagres flere steder, oppdateringer lekker ut av synkronisering, og du klarer ikke registrere viktig informasjon før noen helt annen rad er på plass. Resultatet kalles <em>anomali</em> — og det er ikke en bugg du kan rette i applikasjonskoden, det er en <em>strukturell</em> svakhet i selve skjemaet.</p>
+
+      <div class="callout">
+        <span class="label">Sentral idé</span>
+        <p>Design er ikke et estetisk valg. Det er et matematisk spørsmål: <strong>kan jeg representere alle gyldige situasjoner uten redundans, uten å miste informasjon, og uten å måtte sjekke regler på tvers av tabeller?</strong></p>
+      </div>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Konseptuelt</div>
+          <div class="fc-val"><strong>ER-diagram.</strong> Tegn problemet før du skriver tabeller. Snakker med stakeholders.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Logisk</div>
+          <div class="fc-val"><strong>Relasjonsskjema.</strong> Konkrete tabeller med kolonner, nøkler og fremmednøkler.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Mekanisk</div>
+          <div class="fc-val"><strong>Normalformer.</strong> Bevisbare garantier for at ingen redundansmønstre slipper gjennom.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reise">
+    <div class="container">
+      <div class="section-badge">02 · Designreisen</div>
+      <h2>Fra virkelighet til <em>BCNF</em></h2>
+      <p>Hele kapittelet kan tegnes som én pil — men hvert pilhopp har sine egne regler og sine egne fallgruver.</p>
+
+      <figure>
+        <svg class="svg-fig" viewBox="0 0 760 220" role="img" aria-label="Designflyt fra virkelighet til BCNF">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#1a1612"/>
+            </marker>
+          </defs>
+          <!-- Stage boxes -->
+          <g>
+            <rect x="20"  y="70" width="120" height="80" rx="6" class="ent-rect"/>
+            <text x="80"  y="105" text-anchor="middle" font-weight="600">Virkelighet</text>
+            <text x="80"  y="125" text-anchor="middle" class="label-mono">krav, regler</text>
+          </g>
+          <g>
+            <rect x="180" y="70" width="120" height="80" rx="6" class="ent-rect"/>
+            <text x="240" y="100" text-anchor="middle" font-weight="600">ER-diagram</text>
+            <text x="240" y="120" text-anchor="middle" class="label-mono">4A · konsept</text>
+            <text x="240" y="138" text-anchor="middle" class="label-mono">6.1–6.6</text>
+          </g>
+          <g>
+            <rect x="340" y="70" width="120" height="80" rx="6" class="ent-rect"/>
+            <text x="400" y="100" text-anchor="middle" font-weight="600">Tabeller</text>
+            <text x="400" y="120" text-anchor="middle" class="label-mono">4B · logisk</text>
+            <text x="400" y="138" text-anchor="middle" class="label-mono">6.7, 6.9, 7.1</text>
+          </g>
+          <g>
+            <rect x="500" y="70" width="120" height="80" rx="6" class="ent-rect"/>
+            <text x="560" y="100" text-anchor="middle" font-weight="600">FD-analyse</text>
+            <text x="560" y="120" text-anchor="middle" class="label-mono">4C · normaler</text>
+            <text x="560" y="138" text-anchor="middle" class="label-mono">7.2–7.3</text>
+          </g>
+          <g>
+            <rect x="660" y="70" width="80"  height="80" rx="6" class="ent-rect" style="stroke:#1f4e79;stroke-width:2"/>
+            <text x="700" y="105" text-anchor="middle" font-weight="600" fill="#1f4e79">BCNF</text>
+            <text x="700" y="125" text-anchor="middle" class="label-mono">7.6</text>
+          </g>
+          <!-- Arrows -->
+          <line x1="140" y1="110" x2="178" y2="110" class="edge" marker-end="url(#arr)"/>
+          <line x1="300" y1="110" x2="338" y2="110" class="edge" marker-end="url(#arr)"/>
+          <line x1="460" y1="110" x2="498" y2="110" class="edge" marker-end="url(#arr)"/>
+          <line x1="620" y1="110" x2="658" y2="110" class="edge" marker-end="url(#arr)"/>
+          <!-- Labels above arrows -->
+          <text x="159" y="100" text-anchor="middle" class="label-mono" fill="#1f4e79">tegn</text>
+          <text x="319" y="100" text-anchor="middle" class="label-mono" fill="#1f4e79">reduser</text>
+          <text x="479" y="100" text-anchor="middle" class="label-mono" fill="#1f4e79">analyser</text>
+          <text x="639" y="100" text-anchor="middle" class="label-mono" fill="#1f4e79">dekomponer</text>
+
+          <!-- Note row -->
+          <text x="380" y="195" text-anchor="middle" font-style="italic" fill="#3d3832">Hvert hopp er mekanisk — fallgruver kommer av å hoppe over et trinn.</text>
+        </svg>
+        <figcaption>Designreisen: konseptuell modell → logisk skjema → normalisert skjema.</figcaption>
+      </figure>
+
+      <div class="callout callout-blue">
+        <span class="label">Pensum-mapping</span>
+        <p><strong>F7</strong> dekker ER-modellen (lærebok 6.1–6.6). <strong>F8</strong> dekker reduksjon til skjema, designproblemer og motivasjon for normalformer (6.7, 6.9, 7.1). <strong>F9</strong> dekker funksjonelle avhengigheter, dekomponering og BCNF (7.1–7.3, 7.6).</p>
+      </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
+      <div class="section-badge">03 · Tre underkapitler</div>
       <h2>Utforsk <em>kapittelet</em></h2>
       <div class="subpage-list">
         <a href="er-modellen.html" class="subpage-card">
           <span class="sp-icon">4A</span>
           <div class="sp-info">
             <div class="sp-title">ER-modellen</div>
-            <div class="sp-desc">Entiteter, attributter, relasjoner, kardinalitet, svake entiteter, generalisering</div>
+            <div class="sp-desc">Entiteter, attributter, relasjoner, kardinalitet, svake entiteter, ISA-hierarkier — med diagram-eksempler og innebygde quizzer.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -71,7 +154,7 @@
           <span class="sp-icon">4B</span>
           <div class="sp-info">
             <div class="sp-title">ER → relasjonsskjema</div>
-            <div class="sp-desc">Reduksjonsregler, designproblemer, motivasjon for normalformer</div>
+            <div class="sp-desc">Reduksjonsregler steg for steg, ISA-strategier, og en interaktiv oversettelse fra diagram til tabeller. Anomali introduseres mot slutten.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -79,7 +162,7 @@
           <span class="sp-icon">4C</span>
           <div class="sp-info">
             <div class="sp-title">Normalformer</div>
-            <div class="sp-desc">Funksjonelle avhengigheter, dekomponering, 1NF / 2NF / 3NF / BCNF</div>
+            <div class="sp-desc">FD-er, lukning (med interaktiv kalkulator), 1NF–BCNF, dekomponering, og et fullt gjennomarbeidet eksempel.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -87,234 +170,168 @@
     </div>
   </section>
 
+  <section id="sjekkliste">
+    <div class="container">
+      <div class="section-badge">04 · Sjekkliste</div>
+      <h2>Du <em>mestrer</em> kapittel 4 når du kan…</h2>
+      <ul>
+        <li>tegne et ER-diagram for et naturlig språk-krav, inkludert svake entiteter og ISA-hierarkier</li>
+        <li>oversette diagrammet til et relasjonsskjema med riktige primær- og fremmednøkler</li>
+        <li>identifisere oppdaterings-, innsettings- og sletteanomalier i et gitt skjema</li>
+        <li>liste opp de funksjonelle avhengighetene og beregne lukningen <code>X⁺</code></li>
+        <li>avgjøre om et gitt skjema er i 3NF eller BCNF — og begrunne det</li>
+        <li>dekomponere et ikke-BCNF-skjema lossless og forklare hva man eventuelt taper i dependency preservation</li>
+      </ul>
+    </div>
+  </section>
+
   <section id="quiz">
     <div class="container">
-      <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <h2>Sluttquiz · Test <em>helheten</em></h2>
+      <p class="section-intro">Tolv spørsmål på tvers av 4A, 4B og 4C. Klikk på svaralternativene — riktig svar låser oppgaven; feil kan du prøve igjen.</p>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 1 · Lett · ER-modellen</div>
+        <div class="q-text">Hva skiller en <strong>svak entitet</strong> fra en sterk entitet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Svake entiteter har ingen attributter.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Svake entiteter har ingen egen primærnøkkel — de identifiseres kun gjennom en eier-entitet.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Svake entiteter representerer alltid svake forretningskrav.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Svake entiteter må alltid være i 1:1-relasjon med eieren.</button></li>
+        </ul>
+        <div class="mcq-feedback">En svak entitet trenger eierens nøkkel + en diskriminator for å skille instanser. Den tegnes med dobbel ramme i ER-diagrammet.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 2 · Middels · ER → tabell</div>
+        <div class="q-text">For en N:M-relasjon mellom <code>Student</code> og <code>Emne</code> i et ER-diagram, hvordan oversettes denne best til relasjonsskjema?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Legg en fremmednøkkel til <code>Emne</code> inn i <code>Student</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Legg en fremmednøkkel til <code>Student</code> inn i <code>Emne</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Lag en egen tabell <code>StudentTarEmne</code> med fremmednøkler til begge, hvor (StudentID, EmneID) er primærnøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Slå sammen <code>Student</code> og <code>Emne</code> til én bred tabell.</button></li>
+        </ul>
+        <div class="mcq-feedback">N:M kan ikke representeres med fremmednøkkel på «den ene siden» — det finnes ingen «en» side. Mellomtabellen er den eneste lossless løsningen.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 3 · Lett · Anomali</div>
+        <div class="q-text">Et tabellskjema lagrer instruktørens lønn og avdelingsbudsjett i samme rad. Hva er hovedrisikoen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">For lite plass på disk.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Oppdateringsanomali: budsjettet er gjentatt i mange rader, og en oppdatering kan glemme noen.</button></li>
+          <li><button class="mcq-opt" data-correct="0">SQL kan ikke representere flere kolonner i samme rad.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Spørringen blir tregere fordi vi har for få joins.</button></li>
+        </ul>
+        <div class="mcq-feedback">Redundans er ikke i seg selv ulovlig — problemet er at konsistens må håndheves manuelt for hver oppdatering. Det er den klassiske oppdateringsanomalien.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 4 · Middels · FD</div>
+        <div class="q-text">Hvilken FD <strong>holder</strong> på relasjonsskjemaet <code>Bil(regnr, modell, eier_pnr, eier_navn)</code>, gitt at hver bil har én eier og hvert personnummer hører til én person?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0"><code>modell → regnr</code></button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>regnr → modell, eier_pnr, eier_navn</code> og <code>eier_pnr → eier_navn</code></button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>eier_navn → eier_pnr</code></button></li>
+          <li><button class="mcq-opt" data-correct="0">Ingen FD-er holder fordi vi ikke vet hva som er primærnøkkel.</button></li>
+        </ul>
+        <div class="mcq-feedback">regnr er superkey, så regnr bestemmer alt. eier_pnr bestemmer eier_navn fordi personnummer er unikt. Eier_navn → eier_pnr holder ikke (flere personer kan hete det samme).</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 5 · Vanskelig · Lukning</div>
+        <div class="q-text">Gitt R(A,B,C,D) med FD-mengde F = {A→B, B→C, C→D}. Hva er lukningen <code>{A}⁺</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">{A}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A, B}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A, B, C}</button></li>
+          <li><button class="mcq-opt" data-correct="1">{A, B, C, D}</button></li>
+        </ul>
+        <div class="mcq-feedback">Start med {A}. A→B gir B, så {A,B}. B→C gir C, så {A,B,C}. C→D gir D, så {A,B,C,D}. Siden lukningen er hele R, er A en supernøkkel.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 6 · Middels · BCNF</div>
+        <div class="q-text">Et skjema er i <strong>BCNF</strong> hvis…</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">…alle attributter er atomære.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…det finnes minst én kandidatnøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="1">…for alle ikke-trivielle FD-er <code>α → β</code> som holder, så er <code>α</code> en supernøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…alle ikke-nøkkelattributter avhenger transitivt av primærnøkkelen.</button></li>
+        </ul>
+        <div class="mcq-feedback">BCNF er definert i termer av FD-er og supernøkler. Atomaritet er 1NF. 3NF tillater visse FD-er som BCNF nekter (når β−α ligger i en kandidatnøkkel).</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 7 · Vanskelig · Lossless join</div>
+        <div class="q-text">Vi splitter R(A,B,C,D) i R₁(A,B) og R₂(B,C,D). FD-mengden er {B→C, C→D}. Er dekomposisjonen lossless?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">Ja — skjæringen {B} er supernøkkel for R₂ siden B→CD følger fra FD-mengden.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Nei — fordi A ikke er med i R₂.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bare hvis B er primærnøkkel i R.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Lossless join kan ikke avgjøres uten konkrete data.</button></li>
+        </ul>
+        <div class="mcq-feedback">Test: <code>R₁ ∩ R₂ = {B}</code>. Beregn {B}⁺ = {B, C, D}, som dekker R₂. Da er {B} supernøkkel for R₂, og dekomposisjonen er lossless.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 8 · Middels · 3NF vs BCNF</div>
+        <div class="q-text">Hvorfor velger man av og til 3NF i stedet for BCNF?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">3NF gir mindre redundans enn BCNF.</button></li>
+          <li><button class="mcq-opt" data-correct="0">3NF kan oppnås uten å splitte tabeller.</button></li>
+          <li><button class="mcq-opt" data-correct="1">3NF er garantert dependency-preserving og lossless. BCNF kan tape dependency preservation.</button></li>
+          <li><button class="mcq-opt" data-correct="0">BCNF er ikke definert for relasjoner med mer enn fire attributter.</button></li>
+        </ul>
+        <div class="mcq-feedback">Trade-off-en: BCNF eliminerer mer redundans, men når en FD ikke kan «holdes» i én tabell etter dekomponering, går dependency preservation tapt. 3NF beholder alle FD-er.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 9 · Lett · ISA</div>
+        <div class="q-text">Hva betyr <strong>disjoint</strong> i en ISA-spesialisering?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Hver superklasse-instans må være i en subklasse.</button></li>
+          <li><button class="mcq-opt" data-correct="1">En superklasse-instans kan være medlem i <em>høyst én</em> subklasse.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Subklassene har ingen felles attributter.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Subklassene må ligge i separate tabeller.</button></li>
+        </ul>
+        <div class="mcq-feedback">«Disjoint» er ortogonalt med «total». Disjoint = ingen overlapp mellom subklasser. Total = alle superklasse-instanser hører til en subklasse.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 10 · Middels · Anomali</div>
+        <div class="q-text">Hvilken anomali oppstår når man <strong>ikke får lagt inn</strong> en ny avdeling fordi det ennå ikke finnes ansatte i den?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Sletteanomali</button></li>
+          <li><button class="mcq-opt" data-correct="0">Oppdateringsanomali</button></li>
+          <li><button class="mcq-opt" data-correct="1">Innsettingsanomali</button></li>
+          <li><button class="mcq-opt" data-correct="0">Lossless-anomali</button></li>
+        </ul>
+        <div class="mcq-feedback">Innsettingsanomali = det vi ønsker å lagre, kan ikke uttrykkes uten å lyve om noe annet (eller fylle inn null). Symptom på at avdelings-fakta er smeltet inn i ansattes tabell.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 11 · Vanskelig · Kandidatnøkler</div>
+        <div class="q-text">Gitt R(A,B,C,D,E) med FD-er {AB→C, C→D, D→E}. Hvilket sett er kandidatnøkkel?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">{A}</button></li>
+          <li><button class="mcq-opt" data-correct="1">{A, B}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A, B, C}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{C, D}</button></li>
+        </ul>
+        <div class="mcq-feedback">{A,B}⁺ = {A,B,C,D,E} via AB→C, C→D, D→E. {A}⁺={A} dekker ikke alt. {A,B,C} er supernøkkel men ikke minimal — C kan fjernes.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 4?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 4 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 4]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 4 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 4]</div>
-        </div>
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 12 · Vanskelig · Designvalg</div>
+        <div class="q-text">Du har et 3NF-skjema som taper dependency preservation hvis du dekomponerer videre til BCNF. Hva er den faglig <em>beste</em> avveiningen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Alltid velg BCNF — redundans er aldri akseptabelt.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alltid velg 3NF — BCNF er bare teori.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Vurder hvor kostbar oppdateringskontroll blir uten dependency preservation. I praksis foretrekkes BCNF i lærebøker, fordi SQL ikke uttrykker generelle FD-er likevel.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bruk 1NF og legg alt i én bred tabell.</button></li>
+        </ul>
+        <div class="mcq-feedback">Lærebokas anbefaling: gå for BCNF når mulig, fordi SQL likevel bare kan håndheve nøkkel-FD-er effektivt — så «mistet» dependency preservation ville ha vært en illusjon i 3NF også.</div>
       </div>
     </div>
   </section>

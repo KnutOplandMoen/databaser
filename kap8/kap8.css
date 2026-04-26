@@ -1,0 +1,342 @@
+/* ─────────────────────────── Chapter 8 components ─────────────────────────── */
+
+/* Transaction timeline — two columns showing T1 / T2 interleaving */
+.tx-timeline {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 0;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  margin: 1.4rem 0;
+  overflow: hidden;
+}
+.tx-timeline .tx-head {
+  background: var(--paper-darker);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  border-bottom: 1px solid var(--line-soft);
+}
+.tx-timeline .tx-step,
+.tx-timeline .tx-cell {
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px dotted var(--line-soft);
+}
+.tx-timeline .tx-step {
+  background: var(--paper-dark);
+  color: var(--ink-faded);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.tx-timeline .tx-cell.has-op { color: var(--ink); background: rgba(31, 78, 121, 0.04); }
+.tx-timeline .tx-cell.write { color: var(--rust); font-weight: 500; }
+.tx-timeline .tx-cell.commit { color: var(--green); font-weight: 600; }
+.tx-timeline .tx-cell.abort { color: var(--blue); font-weight: 600; }
+.tx-timeline .tx-cell.empty { color: var(--ink-ghost); }
+.tx-timeline > div:nth-last-child(-n+3) { border-bottom: none; }
+
+.tx-timeline.three-col { grid-template-columns: 60px 1fr 1fr 1fr; }
+.tx-timeline.three-col > div:nth-last-child(-n+4) { border-bottom: none; }
+
+/* Step-through animated transaction — buttons to step forward/back */
+.tx-stepper {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 1.2rem 1.4rem;
+  margin: 1.4rem 0;
+}
+.tx-stepper-controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 1rem;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+.tx-stepper-controls button {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  background: var(--rust);
+  color: var(--paper);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.tx-stepper-controls button:hover { background: var(--rust-dark); }
+.tx-stepper-controls button:disabled { opacity: 0.4; cursor: default; }
+.tx-stepper-controls .step-counter { color: var(--ink-faded); font-family: var(--mono); font-size: 0.8rem; }
+.tx-stepper-narration {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  background: var(--paper);
+  border-left: 3px solid var(--ochre);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  min-height: 2.4rem;
+}
+
+/* In timeline, steps highlight as we step */
+.tx-timeline .tx-cell.active {
+  background: var(--packet-hl);
+  color: var(--rust-dark);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--rust);
+}
+.tx-timeline .tx-cell.past { opacity: 0.7; }
+.tx-timeline .tx-cell.future { opacity: 0.35; }
+
+/* Account state display for bank examples */
+.state-display {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.state-box {
+  flex: 1 1 120px;
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  text-align: center;
+  transition: background .25s, color .25s, transform .15s;
+}
+.state-box .state-label { font-size: 0.7rem; color: var(--ink-faded); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.state-box.changed { background: rgba(198, 138, 31, 0.18); color: var(--rust-dark); transform: scale(1.04); }
+
+/* Lock compatibility matrix */
+.lock-matrix {
+  margin: 1.4rem 0;
+}
+.lock-matrix table {
+  width: auto;
+  margin: 0 auto;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+}
+.lock-matrix th, .lock-matrix td {
+  text-align: center;
+  padding: 0.55rem 1.2rem;
+  border: 1px solid var(--line-soft);
+}
+.lock-matrix .yes { color: var(--green); font-weight: 600; }
+.lock-matrix .no  { color: var(--rust); font-weight: 600; }
+
+/* 2PL mountain figure caption */
+.legend-row {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-faded);
+  margin-top: 0.4rem;
+  justify-content: center;
+}
+.legend-row .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+/* Multiple-choice quiz */
+.mcq {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 1.2rem 1.4rem;
+  margin: 1.4rem 0;
+}
+.mcq .q-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  margin-bottom: 0.5rem;
+}
+.mcq .q-text { font-size: 1.05rem; color: var(--ink); margin-bottom: 0.9rem; }
+.mcq-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.mcq-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 0.98rem;
+  color: var(--ink);
+  transition: background .12s, border-color .12s;
+}
+.mcq-option:hover { background: rgba(31, 78, 121, 0.06); border-color: var(--rust); }
+.mcq-option .marker {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ink-ghost);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-faded);
+}
+.mcq-option.correct {
+  background: rgba(61, 107, 58, 0.12);
+  border-color: var(--green);
+  cursor: default;
+}
+.mcq-option.correct .marker {
+  background: var(--green);
+  color: var(--paper);
+  border-color: var(--green);
+}
+.mcq-option.wrong {
+  background: rgba(122, 74, 45, 0.10);
+  border-color: var(--blue);
+  cursor: default;
+}
+.mcq-option.wrong .marker {
+  background: var(--blue);
+  color: var(--paper);
+  border-color: var(--blue);
+}
+.mcq-option.locked { cursor: default; opacity: 0.65; }
+.mcq-feedback {
+  display: none;
+  margin-top: 0.9rem;
+  padding: 0.8rem 1rem;
+  background: var(--paper);
+  border-left: 3px solid var(--green);
+  border-radius: 0 4px 4px 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.mcq-feedback.show { display: block; }
+.mcq-feedback.wrong-feedback { border-left-color: var(--blue); }
+
+/* Anomaly cards (lost update, dirty read, etc.) */
+.anomaly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.8rem;
+  margin: 1.4rem 0;
+}
+.anomaly-card {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--rust);
+  border-radius: 0 5px 5px 0;
+  padding: 0.9rem 1.1rem;
+}
+.anomaly-card h4 {
+  margin: 0 0 0.4rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rust);
+}
+.anomaly-card p { margin: 0; font-size: 0.94rem; color: var(--ink-soft); }
+
+/* ARIES phases */
+.aries-phases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin: 1.4rem 0;
+}
+.aries-phase {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  padding: 1rem 1.1rem;
+  position: relative;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.aries-phase.active {
+  background: rgba(31, 78, 121, 0.10);
+  border-color: var(--rust);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+.aries-phase .phase-num {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--ink-ghost);
+  letter-spacing: 0.1em;
+}
+.aries-phase h4 { margin: 0 0 0.3rem; font-family: var(--serif); font-size: 1.05rem; text-transform: none; letter-spacing: 0; color: var(--rust); }
+.aries-phase p { margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+
+@media (max-width: 720px) {
+  .aries-phases { grid-template-columns: 1fr; }
+  .tx-timeline { font-size: 0.82rem; }
+}
+
+/* Animated SVG strokes */
+@keyframes drawStroke {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Concept hierarchy diagram */
+.hierarchy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 1.4rem 0;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+}
+.hierarchy .level {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 0.5rem 1.4rem;
+  text-align: center;
+  position: relative;
+}
+.hierarchy .level.l1 { background: rgba(61, 107, 58, 0.10); border-color: var(--green); width: 80%; }
+.hierarchy .level.l2 { width: 65%; }
+.hierarchy .level.l3 { width: 50%; }
+.hierarchy .level.l4 { width: 36%; background: rgba(31, 78, 121, 0.10); border-color: var(--rust); }
+.hierarchy .level small { display: block; font-family: var(--serif); font-size: 0.78rem; color: var(--ink-faded); margin-top: 2px; font-style: italic; }
+
+/* Code-like SQL/log block with line numbers */
+.numlog {
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  padding: 0.6rem 0.4rem;
+  margin: 1.2rem 0;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+  overflow-x: auto;
+}
+.numlog table { width: 100%; border-collapse: collapse; }
+.numlog th { background: transparent; font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+.numlog td { padding: 0.25rem 0.6rem; border-bottom: 1px dotted var(--line-soft); }
+.numlog tr:last-child td { border-bottom: none; }
+.numlog .lsn { color: var(--ink-faded); }
+.numlog .op-update { color: var(--rust); }
+.numlog .op-commit { color: var(--green); font-weight: 600; }
+.numlog .op-abort  { color: var(--blue); font-weight: 600; }
+.numlog .op-clr    { color: var(--ochre); font-weight: 600; }
+.numlog .op-ckpt   { color: var(--ink-faded); font-style: italic; }
+.numlog tr.highlight td { background: var(--packet-hl); }

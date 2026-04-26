@@ -5,6 +5,327 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spørringsutføring — Kap 7</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* ─── Sidetilpasset stil for figurer, animasjoner og interaktivitet ─── */
+  .viz {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1.4rem 1.2rem;
+    margin: 1.6rem 0;
+  }
+  .viz-title {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 0.8rem;
+  }
+  .viz-stage {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 1rem;
+    overflow: auto;
+  }
+  .viz-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--line-soft);
+  }
+  .viz-btn {
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    background: var(--rust);
+    color: var(--paper);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .viz-btn:hover { background: var(--rust-dark); }
+  .viz-btn:disabled { background: var(--ink-ghost); cursor: default; }
+  .viz-btn.ghost {
+    background: transparent;
+    color: var(--rust);
+    border: 1px solid var(--rust);
+  }
+  .viz-btn.ghost:hover { background: rgba(31,78,121,0.08); }
+  .viz-status {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-left: auto;
+  }
+
+  /* Block-row visualisering for sortering / scan */
+  .block-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0.5rem 0;
+  }
+  .block-row .lbl {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    width: 110px;
+    flex-shrink: 0;
+  }
+  .blk {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    padding: 4px 8px;
+    border-radius: 3px;
+    min-width: 36px;
+    text-align: center;
+    transition: background .25s, border-color .25s, color .25s, transform .25s;
+  }
+  .blk.read     { background: #fff5dc; border-color: var(--ochre); color: var(--ink); }
+  .blk.sorted   { background: #e2efe1; border-color: var(--green); color: var(--ink); }
+  .blk.merged   { background: #d8e6e2; border-color: #2e6f63; color: var(--ink); }
+  .blk.match    { background: #d6e3f0; border-color: var(--rust); color: var(--rust-dark); font-weight: 600; transform: translateY(-2px); }
+  .blk.outer    { background: #f0e3d6; border-color: var(--blue); }
+  .blk.inner    { background: #efe9d8; border-color: #aa8a45; }
+  .blk.dim      { opacity: 0.35; }
+  .blk.buffer   { background: #ece2cd; border: 2px dashed var(--ink-faded); }
+
+  /* External merge sort tre */
+  .merge-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    align-items: stretch;
+  }
+  .merge-pass {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .merge-pass-label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .run {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    transition: border-color .25s, background .25s;
+  }
+  .run.active { border-color: var(--rust); background: #f0e6db; }
+  .run .blk { background: var(--paper-darker); border-color: var(--line); padding: 3px 6px; min-width: 28px; }
+  .run.active .blk { background: #fff5dc; border-color: var(--ochre); color: var(--ink); }
+
+  /* Nested loop join scene */
+  .nl-scene {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    align-items: start;
+  }
+  .nl-table {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.7rem;
+  }
+  .nl-table h4 {
+    margin: 0 0 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faded);
+  }
+  .nl-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .nl-pair {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: var(--paper-dark);
+    border: 1px solid var(--line);
+    transition: all .2s;
+  }
+  .nl-pair.outer-active { background: var(--blue); color: var(--paper); border-color: var(--blue); }
+  .nl-pair.inner-active { background: var(--ochre); color: var(--ink); border-color: var(--ochre); }
+  .nl-pair.match { background: var(--green); color: var(--paper); border-color: var(--green); transform: scale(1.05); }
+  .nl-pair.miss { opacity: 0.5; }
+  .nl-counter {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 0.6rem;
+  }
+  .nl-counter strong { color: var(--rust); }
+
+  /* Sort-merge join two-pointer */
+  .sm-scene {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+  }
+  .sm-list {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.7rem;
+  }
+  .sm-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .sm-pointer {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background .25s;
+    background: transparent;
+  }
+  .sm-row.cursor-r .sm-pointer { background: var(--rust); }
+  .sm-row.cursor-s .sm-pointer { background: var(--ochre); }
+  .sm-row.both .sm-pointer { background: var(--green); }
+  .sm-key {
+    font-weight: 600;
+    color: var(--ink);
+    width: 30px;
+  }
+  .sm-row.match { background: rgba(61,107,58,0.15); border-radius: 3px; }
+
+  /* Hash join visualisering */
+  .hash-scene { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 1rem; align-items: start; }
+  .hash-col { background: var(--paper); border: 1px solid var(--line-soft); border-radius: 4px; padding: 0.7rem; }
+  .hash-col h4 { margin: 0 0 0.5rem; font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faded); }
+  .hash-bucket {
+    border-bottom: 1px dashed var(--line-soft);
+    padding: 4px 0;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    transition: background .25s;
+  }
+  .hash-bucket:last-child { border-bottom: none; }
+  .hash-bucket.hit { background: rgba(31,78,121,0.12); }
+  .hash-arrow {
+    font-family: var(--mono);
+    color: var(--rust);
+    font-size: 1.4rem;
+    text-align: center;
+    align-self: center;
+    transition: opacity .25s;
+    opacity: 0;
+  }
+  .hash-arrow.show { opacity: 1; }
+
+  /* Kostnadstabell */
+  .cost-table th { background: var(--paper-darker); }
+  .cost-table .num { font-family: var(--mono); text-align: right; }
+  .cost-table tr.winner td { background: rgba(61,107,58,0.10); }
+  .cost-table tr.winner .num { color: var(--green); font-weight: 600; }
+
+  /* EXPLAIN-tre */
+  .plan-tree {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    background: var(--ink);
+    color: #e8e3d6;
+    padding: 1rem 1.2rem;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+  .plan-tree .op  { color: #ffc97a; }
+  .plan-tree .tbl { color: #b6d8ff; }
+  .plan-tree .cost { color: #a39886; }
+  .plan-tree .arrow { color: var(--ochre); }
+
+  /* Helhetsbilde-pipeline */
+  .pipeline {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin: 1rem 0;
+  }
+  .pipe-stage {
+    flex: 1 1 140px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.7rem 0.8rem;
+    position: relative;
+  }
+  .pipe-stage h4 {
+    margin: 0 0 0.3rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--rust);
+  }
+  .pipe-stage p {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .pipe-arrow {
+    font-family: var(--mono);
+    color: var(--ink-ghost);
+    align-self: center;
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 720px) {
+    .nl-scene, .sm-scene, .hash-scene { grid-template-columns: 1fr; }
+    .pipe-arrow { display: none; }
+    .block-row .lbl { width: 100%; }
+  }
+
+  /* Embedded mini-quiz inline */
+  .quiz.inline {
+    background: rgba(31,78,121,0.05);
+    border-left: 3px solid var(--rust);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Section progress dots */
+  .progress-bar {
+    display: flex;
+    gap: 4px;
+    margin: 1rem 0 0.6rem;
+  }
+  .progress-bar .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line);
+  }
+  .progress-bar .dot.done { background: var(--green); }
+  .progress-bar .dot.current { background: var(--rust); }
+</style>
 </head>
 <body>
 
@@ -25,106 +346,622 @@
 <main data-chapter="Kapittel 7: Spørringsutføring">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 7 · Forelesning 13</div>
+      <div class="eyebrow">Kapittel 7 · Forelesning 13 · Bratsberg kap. 12–14</div>
       <h1>Aksessmetoder, sortering, <em>join-algoritmer</em></h1>
-      <p class="lede">Bratsbergs notater kap 12–14. Hvordan plan-treet faktisk eksekveres mot data.</p>
+      <p class="lede">Hva skjer egentlig mellom <code>SELECT …</code> og resultatet? Vi følger en spørring fra parser til disk — og regner I/O-kost for hvert valg underveis.</p>
       <nav class="toc">
-        <a href="#aksess"><span>01</span> Aksessmetoder</a>
-        <a href="#sortering"><span>02</span> External merge sort</a>
-        <a href="#nested-loop"><span>03</span> Nested loop join</a>
-        <a href="#sort-merge"><span>04</span> Sort-merge join</a>
-        <a href="#hash-join"><span>05</span> Hash join</a>
-        <a href="#kost"><span>06</span> Kostnadsestimering</a>
-        <a href="#explain"><span>07</span> EXPLAIN</a>
+        <a href="#overblikk"><span>01</span> Helhetsbilde</a>
+        <a href="#aksess"><span>02</span> Aksessmetoder</a>
+        <a href="#scan-kost"><span>03</span> Scan-kost</a>
+        <a href="#sortering"><span>04</span> External merge sort</a>
+        <a href="#nested-loop"><span>05</span> Nested loop join</a>
+        <a href="#sort-merge"><span>06</span> Sort-merge join</a>
+        <a href="#hash-join"><span>07</span> Hash join</a>
+        <a href="#kost"><span>08</span> Kostnadsestimering</a>
+        <a href="#explain"><span>09</span> EXPLAIN</a>
+        <a href="#sluttquiz"><span>10</span> Sluttquiz</a>
       </nav>
     </div>
   </header>
 
+  <!-- ──────────────────────── 01 OVERBLIKK ──────────────────────── -->
+  <section id="overblikk">
+    <div class="container">
+      <div class="section-badge">01 · Helhetsbilde</div>
+      <h2>Fra SQL-tekst til <em>resultat</em></h2>
+      <p class="dropcap">Når du sender en SQL-spørring til databasen, går den gjennom en kjede av komponenter før den faktisk berører data på disk. Hvert ledd har en jobb — og kapittel 7 handler om de siste leddene: <em>hvordan</em> data hentes, sorteres og joines.</p>
+
+      <div class="viz">
+        <div class="viz-title">Spørringspipeline</div>
+        <div class="pipeline">
+          <div class="pipe-stage"><h4>1 · Parser</h4><p>SQL-tekst → algebraisk tre. Sjekker syntaks og slår opp tabeller i SQL-dictionary.</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage"><h4>2 · Optimizer</h4><p>Genererer flere planer, leser statistikk, velger den med lavest forventet I/O-kost.</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage"><h4>3 · Executor</h4><p>Kjører plan-treet rotnoden ned. Bruker aksessmetoder mot lagring.</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-stage"><h4>4 · Storage</h4><p>Heap-fil, B+-tre, hash-fil. Leverer blokker via buffer-poolen.</p></div>
+        </div>
+      </div>
+
+      <p>Optimizeren regnes som «black art» — den vurderer alle joinrekkefølger, alle aksessmetoder, alle sorterings­strategier og velger billigst plan. Vi skal forstå <em>hvilke valg</em> den har, og <em>hvorfor</em> de koster det de koster.</p>
+
+      <div class="callout">
+        <span class="label">Hovedinnsikt</span>
+        <p><strong>Alt måles i blokk-I/O.</strong> RAM-operasjoner regnes som «gratis» sammenlignet med å lese en blokk fra disk. Derfor handler så mye av kapittelet om å minimere antall blokker som leses og skrives.</p>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Hvorfor lager optimizeren <em>flere</em> planer for samme spørring i stedet for å bruke en fast oppskrift?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi billigste plan avhenger av tabellstørrelser, indekser, fordeling av verdier og bufferstørrelse — ting som varierer mellom spørringer og over tid. En fast oppskrift ville vært god for noen tilfeller og katastrofal for andre. Optimizeren bruker statistikk fra dictionaryet til å estimere kost og velge.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────── 02 AKSESSMETODER ──────────────────────── -->
   <section id="aksess">
     <div class="container">
-      <div class="section-badge">01 · Aksessmetoder</div>
-      <h2>Tre måter å hente rader</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <div class="section-badge">02 · Aksessmetoder</div>
+      <h2>Fire måter å lagre <em>én</em> tabell</h2>
+      <p>Hvor billig en spørring kan kjøres henger på <em>hvordan</em> tabellen er lagret. Pensum bruker fire varianter, og vi skal gjenta det samme eksemplet på alle for å se kostnadsforskjellen.</p>
+
+      <h3>Eksempel: tabellen <code>Employee</code></h3>
       <ul>
-        <li>Full table scan — alle blokker</li>
-        <li>Index scan — gå gjennom indeks, slå opp i tabell</li>
-        <li>Index-only scan — alle nødvendige kolonner i indeksen</li>
-        <li>Bitmap scan — kombinerer flere indekser</li>
+        <li><strong>100 000 rader</strong>, hver er 80 bytes</li>
+        <li><strong>Blokkstørrelse</strong>: 4 KiB = 4096 bytes</li>
+        <li>Skjema: <code>Employee(empno, name, age, depno, salary)</code></li>
       </ul>
+
+      <div class="viz">
+        <div class="viz-title">Lagringsalternativ — antall blokker</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead>
+              <tr><th>Lagring</th><th>Records/blokk</th><th>Blader</th><th>Indeks-blokker</th><th class="num">Totalt</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Heap-fil</td>
+                <td class="mono-cell">⌊4096/80⌋ = 51</td>
+                <td class="mono-cell">⌈100 000/51⌉ = 1961</td>
+                <td>—</td>
+                <td class="num">1961</td>
+              </tr>
+              <tr>
+                <td>Clustered B+-tre</td>
+                <td class="mono-cell">⌊4096·⅔/80⌋ = 34</td>
+                <td class="mono-cell">⌈100 000/34⌉ = 2942</td>
+                <td class="mono-cell">13 + 1 = 14</td>
+                <td class="num">2956</td>
+              </tr>
+              <tr>
+                <td>Heap + unclustered B+</td>
+                <td class="mono-cell">170 (i indeks)</td>
+                <td class="mono-cell">589 (indeksblader)</td>
+                <td class="mono-cell">3 + 1 = 4</td>
+                <td class="num">1961 + 593</td>
+              </tr>
+              <tr>
+                <td>Clustered hash</td>
+                <td class="mono-cell">⌊4096·0.8/80⌋ = 40</td>
+                <td class="mono-cell">⌈100 000/40⌉ = 2500</td>
+                <td>—</td>
+                <td class="num">2500</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.88rem; color:var(--ink-faded); margin-top:0.6rem;">⅔-faktoren for B+-tre kommer av at noder typisk er to-tredjedeler fulle. Hash bruker 80&nbsp;% fyllgrad.</p>
+      </div>
+
+      <h3>De fire aksessmetodene</h3>
+      <ul>
+        <li><strong>Full table scan</strong> — les <em>alle</em> blokker. Brukes når det ikke finnes nyttig indeks, eller når vi henter «mye» av tabellen uansett.</li>
+        <li><strong>Index scan</strong> — gå ned i B+-treet til riktig blad, bruk pekere til å lese radene fra heap.</li>
+        <li><strong>Index-only scan</strong> — alle kolonnene som trengs ligger i indeksen selv. Vi slipper å besøke heap-filen.</li>
+        <li><strong>Bitmap scan</strong> — bygg en bitmap over RID-er fra én eller flere indekser, sorter, slå opp i datafilen i blokk-rekkefølge. Viktig for «AND»-betingelser med flere indekser.</li>
+      </ul>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Hvorfor er en <em>index-only scan</em> ofte vesentlig billigere enn en vanlig index scan, selv når begge bruker samme indeks?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi index-only slipper det dyre steget: å følge pekere ut til heap-filen for hver match. Hvis vi finner 20 000 treff, må en vanlig index scan i verste fall lese 20 000 ekstra blokker (én per RID). Index-only gir hele svaret fra indeksen og bruker bare bladnodene.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ──────────────────────── 03 SCAN-KOST ──────────────────────── -->
+  <section id="scan-kost">
+    <div class="container">
+      <div class="section-badge">03 · Kostnad pr. spørringstype</div>
+      <h2>Den <em>samme</em> spørringen, ulik lagring</h2>
+      <p>Nå sammenligner vi: hva koster <code>SELECT</code>-en med predikatet <code>WHERE key = c</code>, <code>WHERE key &gt; c</code> og full <code>SELECT *</code> på de fire lagrings­alternativene? Tabellen er den samme <code>Employee</code>-eksemplet (100 000 rader, 1961 heap-blokker).</p>
+
+      <div class="viz">
+        <div class="viz-title">SELECT * FROM Employee &nbsp;—&nbsp; alle rader</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Lagring</th><th>Strategi</th><th class="num">Blokker lest</th></tr></thead>
+            <tbody>
+              <tr class="winner"><td>Heap</td><td>Full scan</td><td class="num">1961</td></tr>
+              <tr><td>Clustered B+</td><td>Tre nivåer ned, så scan blader</td><td class="num">2 + 2942 = 2944</td></tr>
+              <tr class="winner"><td>Heap + unclustered</td><td>Bare scan heap (indeksen hjelper ikke her)</td><td class="num">1961</td></tr>
+              <tr><td>Clustered hash</td><td>Scan hele hash-fila</td><td class="num">2500</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.9rem; color:var(--ink-soft); margin:0.6rem 0 0;">Heap vinner — ingen indeks-overhead, og ekstra utfylling i B+/hash blir bare ekstra arbeid når vi vil ha alt likevel.</p>
+      </div>
+
+      <div class="viz">
+        <div class="viz-title">SELECT … WHERE empno = 42 &nbsp;—&nbsp; punktoppslag på unik nøkkel</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Lagring</th><th>Strategi</th><th class="num">Blokker lest</th></tr></thead>
+            <tbody>
+              <tr><td>Heap</td><td>Lineær scan, gj.snitt halvparten</td><td class="num">≈ 981</td></tr>
+              <tr><td>Clustered B+</td><td>Tre nivåer ned (+ binærsøk i blokk)</td><td class="num">3</td></tr>
+              <tr><td>Heap + unclustered</td><td>3 ned i indeks + 1 i heap</td><td class="num">4</td></tr>
+              <tr class="winner"><td>Clustered hash</td><td>Hash → blokk (+ litt overflow)</td><td class="num">≈ 1.2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="viz">
+        <div class="viz-title">SELECT … WHERE empno &gt; 80000 &nbsp;—&nbsp; range-spørring (20 % treff)</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Lagring</th><th>Strategi</th><th class="num">Blokker lest</th></tr></thead>
+            <tbody>
+              <tr><td>Heap</td><td>Full scan (ingen sortering å utnytte)</td><td class="num">1961</td></tr>
+              <tr class="winner"><td>Clustered B+</td><td>Ned i tre + scan 20 % av bladene</td><td class="num">2 + 0.2·2942 = 591</td></tr>
+              <tr><td>Heap + unclustered</td><td>2 + 118 + opptil 20 000 RID-er ⟶ <em>velg heller heap-scan!</em></td><td class="num">1961 (ikke indeks)</td></tr>
+              <tr><td>Clustered hash</td><td>Hash bevarer ikke orden — full scan</td><td class="num">2500</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-blue">
+          <span class="label">Klassisk feilvalg</span>
+          <p>Med unclustered indeks og bred range-treff kan optimizeren ende opp med å lese hver datablokk flere ganger. Da er en ren <em>heap-scan</em> nesten alltid raskere — og dette er en sentral grunn til at <em>clustered</em> versus <em>unclustered</em> betyr så mye for ytelsen.</p>
+        </div>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Du har en unclustered B+-indeks på <code>salary</code>, og kjører <code>WHERE salary &gt; 0</code> (alle ansatte tjener noe). Hvorfor velger optimizeren <em>full table scan</em> framfor indeksen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi en full match betyr at vi i verste fall følger 100 000 RID-pekere — én blokk-aksess pr. rad — totalt mye mer enn ~1961 blokker for full scan. Optimizerens kostnadsmodell ser at indeksen er <em>verre</em> her selv om den teknisk «matcher» predikatet.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────── 04 EXTERNAL MERGE SORT ──────────────────────── -->
   <section id="sortering">
     <div class="container">
-      <div class="section-badge">02 · External merge sort</div>
-      <h2>Sortering når data ikke får plass i RAM</h2>
+      <div class="section-badge">04 · External merge sort</div>
+      <h2>Sortering når <em>RAM ikke holder</em></h2>
+      <p>Mange spørringer trenger sortert resultat: <code>ORDER BY</code>, <code>GROUP BY</code>, <code>DISTINCT</code>, sort-merge join. Når tabellen er større enn RAM, bruker vi <em>external merge sort</em>. Idéen er to faser:</p>
+
+      <ol>
+        <li><strong>Initialfase:</strong> Les inn så mye som får plass i bufferet, sorter internt, skriv ut som en sortert «run».</li>
+        <li><strong>Mergefase:</strong> Merge flere runs om gangen til vi har én sortert fil.</li>
+      </ol>
+
+      <h3>Formler</h3>
       <ul>
-        <li>Pass 1: les inn B blokker, sorter internt, skriv ut "runs"</li>
-        <li>Pass 2+: merge B−1 runs om gangen</li>
-        <li>Antall passes: ⌈log_(B−1)(N/B)⌉</li>
-        <li>I/O-kost: 2N · (antall passes)</li>
+        <li>Antall initialruns: <code>n_R = ⌈b / n_B⌉</code> &nbsp; (b = antall datablokker, n_B = antall bufferblokker)</li>
+        <li>Mergegrad: <code>d_M = n_B − 1</code> (én buffer reserveres til output)</li>
+        <li>Antall mergepasser: <code>⌈log_(d_M)(n_R)⌉</code></li>
+        <li>Total I/O: <code>2b · (1 + antall mergepasser)</code></li>
       </ul>
+
+      <h3>Eksempel fra pensum</h3>
+      <p>n_B = 5, b = 1024. Da er n_R = ⌈1024/5⌉ = 205, og d_M = 4. Antall mergepasser = ⌈log₄(205)⌉ = 4. Total I/O = 2·1024·(1+4) = <strong>10 240 blokker</strong>.</p>
+
+      <div class="viz" id="sort-viz">
+        <div class="viz-title">Animasjon: external merge sort, n_B = 3, 9 blokker</div>
+        <div class="viz-stage" id="sort-stage"></div>
+        <div class="viz-controls">
+          <button class="viz-btn" id="sort-step">Neste steg</button>
+          <button class="viz-btn ghost" id="sort-reset">Nullstill</button>
+          <span class="viz-status" id="sort-status">Klar — 9 usorterte blokker, buffer = 3</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Intuisjon</span>
+        <p>Hvert pass leser <em>og</em> skriver hele datasettet — derfor 2b. En større buffer gir høyere mergegrad, færre passer og mindre I/O. Det er <em>ikke</em> RAM-tregheten som dominerer, men antall ganger vi må røre disken.</p>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Regneoppgave</div>
+        <div class="q-text">Tabellen din er 200 blokker, og du har 11 buffer­blokker. Hvor mange mergepasser trenger du?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">n_R = ⌈200/11⌉ = 19 initialruns. d_M = 10. Antall mergepasser = ⌈log₁₀(19)⌉ = <strong>2</strong>. Total I/O = 2·200·(1+2) = 1200 blokker.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ──────────────────────── 05 NESTED LOOP JOIN ──────────────────────── -->
   <section id="nested-loop">
     <div class="container">
-      <div class="section-badge">03 · Nested loop join</div>
-      <h2>For hver rad i ytre … for hver rad i indre …</h2>
+      <div class="section-badge">05 · Nested loop join</div>
+      <h2>For hver rad i ytre … <em>for hver</em> rad i indre</h2>
+      <p>Den mest grunnleggende join-algoritmen, og — som pensum understreker — ofte den raskeste når en av tabellene er liten eller når vi har en god indeks på indre.</p>
+
+      <h3>Block nested loop</h3>
+      <p>I praksis sammenligner vi ikke <em>én rad om gangen</em>; vi laster en bunke blokker fra ytre tabell inn i bufferet, og scanner indre én blokk om gangen for hver bunke.</p>
+
+      <h3>Eksempel fra pensum</h3>
       <ul>
-        <li>Naiv: O(|R| · |S|) blokker</li>
-        <li>Block nested loop — hent en blokk om gangen</li>
-        <li>Index nested loop — bruk indeks på indre</li>
-        <li>Når lønner det seg: liten ytre tabell, indeks på indre</li>
+        <li><code>Department</code> = 5 blokker (500 rader, 100 pr. blokk)</li>
+        <li><code>Employee</code> = 1000 blokker</li>
+        <li>Buffer = 5 blokker (3 til ytre, 1 til indre, 1 til output)</li>
+        <li>Spørring: <code>Employee ⋈ Department WHERE dname='Sales'</code></li>
       </ul>
+
+      <div class="viz">
+        <div class="viz-title">Tre scenarioer — hvilken rekkefølge?</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Strategi</th><th>Regnestykke</th><th class="num">Blokker</th></tr></thead>
+            <tbody>
+              <tr class="winner"><td>Department ytre, Employee indre</td><td class="mono-cell">5 + ⌈5/3⌉·1000 = 5 + 2·1000</td><td class="num">2005</td></tr>
+              <tr><td>Employee ytre, Department indre</td><td class="mono-cell">1000 + ⌈1000/3⌉·5 = 1000 + 334·5</td><td class="num">2670</td></tr>
+              <tr class="winner"><td>Filtrer Department først (én rad)</td><td class="mono-cell">5 (lese Dept) + 1000 (Employee én gang)</td><td class="num">≈ 1001</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Tommelfingerregel</span>
+        <p><strong>Liten tabell utenfor, stor tabell innenfor.</strong> Antall passes over indre tabell er <code>⌈|ytre| / (n_B − 2)⌉</code> — minimere dette betyr å minimere ytre.</p>
+      </div>
+
+      <h3>Animasjon — nested loop med matching</h3>
+      <p>To små tabeller, R og S. Vi joiner på lik nøkkel. Klikk «Neste» og se hvordan ytre står stille mens indre scanner — og hvordan to vinduer av matchende rader fanges opp.</p>
+
+      <div class="viz" id="nl-viz">
+        <div class="viz-title">For each block in R: for each block in S: probe</div>
+        <div class="viz-stage">
+          <div class="nl-scene">
+            <div class="nl-table">
+              <h4>R (ytre)</h4>
+              <div id="nl-R"></div>
+            </div>
+            <div class="nl-table">
+              <h4>S (indre)</h4>
+              <div id="nl-S"></div>
+            </div>
+          </div>
+          <div class="nl-counter" id="nl-counter">Sammenligninger: <strong>0</strong> · Treff: <strong>0</strong></div>
+        </div>
+        <div class="viz-controls">
+          <button class="viz-btn" id="nl-step">Neste sammenligning</button>
+          <button class="viz-btn ghost" id="nl-auto">Spill auto</button>
+          <button class="viz-btn ghost" id="nl-reset">Nullstill</button>
+          <span class="viz-status" id="nl-status">Klar</span>
+        </div>
+      </div>
+
+      <h3>Index nested loop</h3>
+      <p>Hvis indre tabell har en indeks på join-attributtet, hopper vi over hele scanningen og slår opp direkte. Da blir kostnaden ca. <code>|R| · (kost pr. oppslag)</code>, ofte 3–4 blokker pr. rad i R. Dramatisk billigere når R er liten.</p>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Du joiner en tabell på 10 blokker med en på 10 000 blokker. Hvilken bør være ytre, og hvorfor?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Den lille (10 blokker) bør være ytre. Da scanner vi den store kun <code>⌈10/(n_B−2)⌉</code> ganger. Hadde vi snudd, måtte vi scannet den lille <code>⌈10000/(n_B−2)⌉</code> ganger — flere hundre passer.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ──────────────────────── 06 SORT-MERGE JOIN ──────────────────────── -->
   <section id="sort-merge">
     <div class="container">
-      <div class="section-badge">04 · Sort-merge join</div>
-      <h2>Sorter begge, gå parallelt</h2>
+      <div class="section-badge">06 · Sort-merge join</div>
+      <h2>Sorter <em>begge</em>, gå parallelt</h2>
+      <p>Når begge tabellene er store, eller allerede sortert på join-attributtet, blir to-pekere-strategien attraktiv. Vi sorterer R og S én gang (ofte med external merge sort), og går så gjennom dem samtidig.</p>
+
+      <h3>Algoritmen</h3>
+      <ol>
+        <li>Sorter R på <code>r.k</code>, sorter S på <code>s.k</code>.</li>
+        <li>To pekere <em>i</em> på R, <em>j</em> på S, begge starter på 0.</li>
+        <li>Hvis <code>R[i].k &lt; S[j].k</code> → <em>i++</em>. Hvis &gt; → <em>j++</em>. Hvis = → emit, og avanser likt.</li>
+        <li>Stopp når en av listene er tom.</li>
+      </ol>
+
+      <div class="viz" id="sm-viz">
+        <div class="viz-title">To-pekere på sorterte lister</div>
+        <div class="viz-stage">
+          <div class="sm-scene">
+            <div class="sm-list">
+              <h4>R sortert på k</h4>
+              <div id="sm-R"></div>
+            </div>
+            <div class="sm-list">
+              <h4>S sortert på k</h4>
+              <div id="sm-S"></div>
+            </div>
+          </div>
+          <div class="nl-counter" id="sm-counter">Match-par funnet: <strong>0</strong></div>
+        </div>
+        <div class="viz-controls">
+          <button class="viz-btn" id="sm-step">Neste steg</button>
+          <button class="viz-btn ghost" id="sm-reset">Nullstill</button>
+          <span class="viz-status" id="sm-status">i=0, j=0</span>
+        </div>
+      </div>
+
+      <h3>Når lønner det seg?</h3>
       <ul>
-        <li>Sorter R og S på join-attributt</li>
-        <li>Gå parallelt med to pekere</li>
-        <li>Bra hvis input allerede er sortert</li>
+        <li>Når begge tabellene allerede er sortert (f.eks. fra clustered indeks) — da er kostnaden bare scan.</li>
+        <li>Når begge er store og join-resultatet skal sorteres uansett.</li>
+        <li>Mindre bra hvis kun én tabell er liten — da er nested loop med indeks oftest billigere.</li>
       </ul>
     </div>
   </section>
 
+  <!-- ──────────────────────── 07 HASH JOIN ──────────────────────── -->
   <section id="hash-join">
     <div class="container">
-      <div class="section-badge">05 · Hash join</div>
-      <h2>Build + probe</h2>
-      <ul>
-        <li>Build phase: lag hash-tabell på mindre tabell</li>
-        <li>Probe phase: for hver rad i andre tabell, slå opp</li>
-        <li>Grace hash join når ikke alt får plass i minnet</li>
-      </ul>
+      <div class="section-badge">07 · Hash join</div>
+      <h2>Bygg en hash-tabell, <em>probe</em> mot den</h2>
+      <p>Hvis ingen er sortert og vi ikke har en god indeks på indre, kan hash join være billigste valg.</p>
+
+      <h3>Build + probe</h3>
+      <ol>
+        <li><strong>Build phase</strong>: Velg den minste tabellen (<em>build side</em>). Les den én gang og bygg en hash-tabell på join-attributtet i RAM.</li>
+        <li><strong>Probe phase</strong>: Les den større tabellen (<em>probe side</em>) én blokk om gangen. For hver rad: hash join-verdien, slå opp i bucket, emit alle treff.</li>
+      </ol>
+
+      <div class="viz" id="hash-viz">
+        <div class="viz-title">Build hash på R (liten), probe S (stor)</div>
+        <div class="viz-stage">
+          <div class="hash-scene">
+            <div class="hash-col">
+              <h4>R (liten — build)</h4>
+              <div id="hash-R"></div>
+            </div>
+            <div class="hash-col">
+              <h4>Hash-tabell</h4>
+              <div id="hash-table"></div>
+            </div>
+            <div class="hash-col">
+              <h4>S (stor — probe)</h4>
+              <div id="hash-S"></div>
+            </div>
+          </div>
+          <div class="nl-counter" id="hash-counter">Build: <strong>0</strong> rader · Probe-treff: <strong>0</strong></div>
+        </div>
+        <div class="viz-controls">
+          <button class="viz-btn" id="hash-step">Neste steg</button>
+          <button class="viz-btn ghost" id="hash-reset">Nullstill</button>
+          <span class="viz-status" id="hash-status">Fase: build</span>
+        </div>
+      </div>
+
+      <h3>Grace hash join</h3>
+      <p>Når den lille tabellen ikke får plass i RAM, partisjonerer vi <em>begge</em> tabeller med samme hash-funksjon i en forfase. Da er det nok å ha én partisjon i minnet om gangen — vanlig hash join på hver partisjon. I/O-kost: 3·(|R|+|S|).</p>
+
+      <div class="callout">
+        <span class="label">Hash vs sort-merge</span>
+        <p>Hash er ofte raskere når én tabell er klart mindre, mens sort-merge skinner når begge er sortert eller når vi trenger sortert output uansett. Optimizeren regner kost for begge og velger.</p>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Hash join er ikke nyttig for <em>ulikhets-join</em> som <code>R.x &lt; S.y</code>. Hvorfor?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi hash-strukturen gir oss <em>like</em> verdier i samme bucket. Den sier ingenting om hvilke verdier som er mindre eller større. Sort-merge fungerer for ulikhet (med litt modifikasjon), og nested loop fungerer alltid — men koster mer.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ──────────────────────── 08 KOSTNADSESTIMERING ──────────────────────── -->
   <section id="kost">
     <div class="container">
-      <div class="section-badge">06 · Kostnadsestimering</div>
-      <h2>Statistikk og selektivitet</h2>
+      <div class="section-badge">08 · Kostnadsestimering</div>
+      <h2>Hvordan optimizeren <em>gjetter</em></h2>
+      <p>Optimizeren sammenligner planer, men har ikke kjørt dem ennå. Den må <em>estimere</em> kost basert på statistikk. Hva har den å jobbe med?</p>
+
+      <h3>Statistikk i SQL-dictionaryet</h3>
       <ul>
-        <li>Tellinger, distinct values, histogrammer</li>
-        <li>Selektivitet av predikater</li>
-        <li>Optimalisator velger plan med lavest forventet I/O-kost</li>
+        <li><strong>n(R)</strong> — antall rader i R</li>
+        <li><strong>b(R)</strong> — antall blokker som inneholder R</li>
+        <li><strong>V(A, R)</strong> — antall distinkte verdier av attributt A i R</li>
+        <li><strong>min/max</strong> — for B+-indeksert attributt</li>
+        <li><strong>histogrammer</strong> — fordeling av verdier (bin-baserte estimater)</li>
+        <li><strong>Indeksinfo</strong>: høyde av B+-treet, om det er clustered, fyllgrad</li>
       </ul>
+
+      <h3>Selektivitet</h3>
+      <p>Selektivitet er andelen rader som passer et predikat. Optimizeren bruker enkle modeller:</p>
+      <ul>
+        <li><code>WHERE A = c</code> &nbsp;⇒&nbsp; sel ≈ 1 / V(A, R)</li>
+        <li><code>WHERE A &gt; c</code> &nbsp;⇒&nbsp; sel ≈ (max − c) / (max − min)</li>
+        <li><code>WHERE p₁ AND p₂</code> &nbsp;⇒&nbsp; sel ≈ sel(p₁) · sel(p₂) (antar uavhengighet)</li>
+      </ul>
+
+      <div class="callout callout-blue">
+        <span class="label">Histogrammer</span>
+        <p>Den enkle min/max-formelen feiler når data er skjev. Histogrammer deler verdiområdet i bins og lagrer telling pr. bin — selektiviteten regnes pr. bin og summeres. Det er hovedgrunnen til at <code>ANALYZE</code> i moderne databaser samler histogrammer.</p>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Optimizeren estimerer 100 rader — i virkeligheten kommer det 1 million. Hva er den vanligste konsekvensen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Den valgte planen er ofte feil — typisk en nested loop som var billig for 100 rader, men forferdelig for 1M (kvadratisk eksplosjon). Symptom: spørringen som vanligvis tar 50&nbsp;ms tar plutselig minutter. Fix: <code>ANALYZE</code> for å oppdatere statistikk, eller sjekke om histogrammer er utdaterte.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ──────────────────────── 09 EXPLAIN ──────────────────────── -->
   <section id="explain">
     <div class="container">
-      <div class="section-badge">07 · EXPLAIN</div>
-      <h2>Be DBMS om planen</h2>
+      <div class="section-badge">09 · EXPLAIN</div>
+      <h2>Be databasen <em>vise planen</em></h2>
+      <p>Når noe går tregt, er <code>EXPLAIN</code> det viktigste verktøyet. Den lar deg se eksakt hva optimizeren har valgt — uten å kjøre spørringen — og <code>EXPLAIN ANALYZE</code> kjører den i tillegg og rapporterer faktisk tid.</p>
+
+      <h3>Eksempel-plan</h3>
+      <pre class="plan-tree"><span class="op">HashJoin</span>  <span class="cost">(cost=1245.00..1899.32 rows=4500)</span>
+  Hash Cond: (e.depno = d.dno)
+  <span class="arrow">→</span> <span class="op">SeqScan</span> on <span class="tbl">employee e</span>  <span class="cost">(cost=0..961 rows=100000)</span>
+  <span class="arrow">→</span> <span class="op">Hash</span>  <span class="cost">(cost=10.50..10.50 rows=1)</span>
+        <span class="arrow">→</span> <span class="op">IndexScan</span> using <span class="tbl">dept_name_idx</span> on <span class="tbl">department d</span>
+              Index Cond: (dname = 'Sales')</pre>
+
+      <h3>Hvordan lese treet</h3>
       <ul>
-        <li>EXPLAIN / EXPLAIN ANALYZE</li>
-        <li>Lese plantreet: rotnoden er resultatet</li>
-        <li>Kostnad i pseudo-units, faktisk tid med ANALYZE</li>
+        <li><strong>Rotnode</strong> er øverst og produserer det endelige resultatet.</li>
+        <li><strong>Innrykk</strong> = barn. Barna leverer rader til foreldrene.</li>
+        <li><code>cost</code> har to tall: oppstart..total, i pseudo-units.</li>
+        <li><code>rows</code> er optimizerens estimat — sammenlign med faktisk fra <code>ANALYZE</code>.</li>
       </ul>
+
+      <div class="callout">
+        <span class="label">Praktisk tips</span>
+        <p>Det viktigste å sjekke i en EXPLAIN ANALYZE: <em>store avvik</em> mellom estimerte og faktiske rader. Et estimat på 10 rader som faktisk gir 100 000 betyr at planen er valgt på sviktende grunnlag — kjør <code>ANALYZE</code> på tabellen.</p>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Du ser en plan med <code>SeqScan</code> på en tabell med 5 millioner rader, men du har en indeks på filterkolonnen. Hva kan være årsaken?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Mange muligheter: (1) selektiviteten er for lav — predikatet matcher så mange rader at full scan er billigere, (2) indeksen er unclustered og predikatet treffer mange rader, (3) statistikken er utdatert og optimizeren tror tabellen er liten, (4) datatypen i predikatet matcher ikke indeksen (impliciit cast), (5) funksjonsbruk på kolonnen (<code>WHERE upper(name)=…</code>) hindrer indeksbruk.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────── 10 SLUTTQUIZ ──────────────────────── -->
+  <section id="sluttquiz">
+    <div class="container">
+      <div class="section-badge">10 · Sluttquiz</div>
+      <h2>Test deg selv på <em>hele</em> kapittelet</h2>
+      <p class="section-intro">Tolv blandet vanskelighetsspørsmål. Klikk «Se svar» når du har tenkt.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">1 · Lett · Helhetsbilde</div>
+        <div class="q-text">Hvilken komponent velger plan, og hvilken kjører den?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Optimizeren</strong> velger plan basert på statistikk og kostnadsestimater. <strong>Executoren</strong> kjører plan-treet rotnoden ned, kaller aksessmetoder mot lagring.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">2 · Middels · Aksessmetoder</div>
+        <div class="q-text">Hvilke fire grunnleggende aksessmetoder finnes, og hva er forskjellen mellom <em>index scan</em> og <em>index-only scan</em>?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Full table scan, index scan, index-only scan, bitmap scan. Vanlig index scan finner RID-er i indeksen og besøker heap-fila for hver match. Index-only slipper heap-besøket fordi <em>alle</em> nødvendige kolonner ligger i indeksen — vesentlig billigere ved mange treff.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">3 · Lett · Lagring</div>
+        <div class="q-text">Hvor mange blokker har en heap-fil med 100 000 rader à 80 bytes ved 4 KiB blokker?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Records pr. blokk = ⌊4096/80⌋ = 51. Antall blokker = ⌈100 000/51⌉ = <strong>1961</strong>.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">4 · Middels · Range-spørring</div>
+        <div class="q-text">På samme tabell er det en unclustered B+-indeks på <code>empno</code>. Hvorfor velger optimizeren full table scan for <code>WHERE empno &gt; 80000</code> (20 % treff)?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Unclustered betyr at radene ligger spredt i heap. 20 % av 100 000 = 20 000 RID-pekere som hver kan kreve ett blokkoppslag. Det blir &gt; 20 000 blokker, mot ~1961 ved full scan. Full scan vinner stort.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">5 · Vanskelig · External merge sort</div>
+        <div class="q-text">Hvorfor er total I/O for external merge sort <code>2b · (1 + #merge-passes)</code> og ikke <code>b · #passes</code>?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Hvert pass både <em>leser</em> og <em>skriver</em> hele datasettet — derav 2b. Initialfasen er ett 2b-pass i seg selv. Mergefasen har k passer, hver 2b. Sum = 2b·(1+k).</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">6 · Middels · Sort-formel</div>
+        <div class="q-text">b = 500 blokker, n_B = 6 buffer. Hva blir n_R, d_M og antall passer?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">n_R = ⌈500/6⌉ = 84. d_M = 5. Antall mergepasser = ⌈log₅(84)⌉ = 3 (siden 5²=25 &lt; 84 ≤ 5³=125). Total I/O = 2·500·(1+3) = 4000 blokker.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">7 · Lett · Nested loop</div>
+        <div class="q-text">Hvilken tabell skal være ytre i en block nested loop join?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Den <strong>minste</strong>. Da scanner vi indre tabell færrest ganger, fordi antall passer over indre er <code>⌈|ytre| / (n_B−2)⌉</code>.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">8 · Vanskelig · NL-kost</div>
+        <div class="q-text">R = 200 blokker, S = 5000 blokker, buffer = 12. Block nested loop med R ytre — hva blir kostnaden? Og hvis vi snur?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">R ytre: 200 + ⌈200/(12−2)⌉ · 5000 = 200 + 20·5000 = <strong>100 200</strong>. <br>S ytre: 5000 + ⌈5000/10⌉·200 = 5000 + 500·200 = <strong>105 000</strong>. R som ytre vinner.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">9 · Middels · Sort-merge</div>
+        <div class="q-text">Når er sort-merge join klart raskere enn hash join?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">(a) Når begge tabeller allerede er sortert på join-attributtet — da unngår vi sort-fasen helt. (b) Når resultatet uansett skal sorteres (ORDER BY på join-attributtet). Hash mister disse fordelene fordi den må regenerere sortert orden.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">10 · Vanskelig · Hash join</div>
+        <div class="q-text">Hvorfor velger man å bygge hash-tabellen på den <em>minste</em> tabellen?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Hash-tabellen må holdes i minnet (i klassisk hash join). Mindre build-side ⇒ får plass i mindre buffer ⇒ unngår grace-fasen og I/O-kost ved partisjonering. Build-fasen er én scan av build-side; probe-fasen er én scan av probe-side. Strukturelt symmetrisk i I/O, men hash-tabellens minneforbruk avgjør hvilken side som passer.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">11 · Middels · Selektivitet</div>
+        <div class="q-text">Tabellen har V(<code>city</code>) = 50 distinkte byer. Estimer selektiviteten av <code>WHERE city = 'Trondheim'</code> uten histogram.</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">sel ≈ 1/50 = 0.02 (2 %). Antakelsen er <em>uniform fordeling</em> — den feiler om Oslo har halvparten av radene. Det er nettopp slik skjevhet histogrammer fanger opp.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">12 · Vanskelig · EXPLAIN</div>
+        <div class="q-text">EXPLAIN ANALYZE viser <code>rows=12</code> men <code>actual rows=180000</code> for et SeqScan-trinn. Hva er konsekvensen lenger oppe i planen, og hva gjør du?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">Optimizeren har valgt videre planoperatorer (typisk en nested loop) basert på troen om at output er &lt; 20 rader. Med 180 000 rader får man kvadratisk eksplosjon i øvre nivå. Tiltak: kjør <code>ANALYZE table</code> for å oppdatere statistikk, vurder histogram med flere bins, og se om predikatet bruker funksjon/cast som hindrer indeksbruk.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Videre lesning</span>
+        <p>Nå er du klar for <a href="../kap8/">kapittel 8 — Transaksjoner</a>. Spørringer er bare halve historien; den andre halvparten er hvordan vi kjører <em>flere</em> spørringer samtidig uten å trampe på hverandre.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -139,6 +976,315 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script>
+// ─────────── EXTERNAL MERGE SORT ANIMATION ───────────
+(function () {
+  var stage = document.getElementById('sort-stage');
+  var statusEl = document.getElementById('sort-status');
+  if (!stage) return;
+
+  // 9 blokker, hver med 3 verdier. Buffer = 3 ⇒ 3 initialruns à 3 blokker.
+  var initialBlocks = [
+    [62, 31, 88], [44, 12, 77], [9, 53, 21],
+    [38, 71, 5],  [26, 60, 14], [82, 49, 33],
+    [17, 95, 4],  [58, 22, 86], [40, 11, 69]
+  ];
+  // Initialruns etter intern sort (3 blokker hver, sortert):
+  var initialSorted = [
+    [9, 12, 21, 31, 44, 53, 62, 77, 88],
+    [5, 14, 26, 33, 38, 49, 60, 71, 82],
+    [4, 11, 17, 22, 40, 58, 69, 86, 95]
+  ];
+  // Pass 1 merge: alle 3 til én sortert run
+  var allSorted = [4,5,9,11,12,14,17,21,22,26,31,33,38,40,44,49,53,58,60,62,69,71,77,82,86,88,95];
+
+  var step = 0;
+  function render() {
+    var html = '';
+    if (step === 0) {
+      html += '<div class="merge-pass"><div class="merge-pass-label">Input — 9 usorterte blokker</div>';
+      html += '<div class="block-row"><span class="lbl">Disk</span>';
+      initialBlocks.forEach(function(b){
+        html += '<div class="run">';
+        b.forEach(function(v){ html += '<div class="blk">'+v+'</div>'; });
+        html += '</div>';
+      });
+      html += '</div></div>';
+    } else if (step === 1) {
+      html += '<div class="merge-pass"><div class="merge-pass-label">Pass 0 — initialfase: les 3 blokker, sorter i RAM, skriv som run</div>';
+      for (var i = 0; i < 3; i++) {
+        html += '<div class="block-row"><span class="lbl">Run '+(i+1)+'</span><div class="run sorted">';
+        initialSorted[i].forEach(function(v){ html += '<div class="blk sorted">'+v+'</div>'; });
+        html += '</div></div>';
+      }
+      html += '</div>';
+    } else if (step === 2) {
+      html += '<div class="merge-pass"><div class="merge-pass-label">Pass 1 — merge alle runs (d_M = n_B − 1 = 2, men her får alle 3 plass siden vi har 3 buffer + 1 = 4)</div>';
+      html += '<div class="block-row"><span class="lbl">Sortert</span><div class="run sorted">';
+      allSorted.forEach(function(v){ html += '<div class="blk merged">'+v+'</div>'; });
+      html += '</div></div>';
+      html += '<p style="font-family:var(--mono); font-size:0.82rem; color:var(--ink-faded); margin-top:0.6rem;">Total I/O for eksempelet: 2·9·(1+1) = 36 blokker</p>';
+      html += '</div>';
+    }
+    stage.innerHTML = html;
+  }
+
+  document.getElementById('sort-step').addEventListener('click', function(){
+    step = Math.min(step + 1, 2);
+    var msgs = ['9 usorterte blokker, buffer = 3', 'Initialfase ferdig — 3 sorterte runs', 'Mergefase ferdig — én sortert sekvens'];
+    statusEl.textContent = msgs[step];
+    render();
+    if (step === 2) this.disabled = true;
+  });
+  document.getElementById('sort-reset').addEventListener('click', function(){
+    step = 0;
+    document.getElementById('sort-step').disabled = false;
+    statusEl.textContent = 'Klar — 9 usorterte blokker, buffer = 3';
+    render();
+  });
+
+  render();
+})();
+
+// ─────────── NESTED LOOP JOIN ANIMATION ───────────
+(function () {
+  var rEl = document.getElementById('nl-R');
+  var sEl = document.getElementById('nl-S');
+  var counterEl = document.getElementById('nl-counter');
+  var statusEl = document.getElementById('nl-status');
+  if (!rEl) return;
+
+  var R = [{k:1,v:'Ada'},{k:3,v:'Bob'},{k:5,v:'Cleo'},{k:8,v:'Dan'}];
+  var S = [{k:2,v:'X'},{k:3,v:'Y'},{k:5,v:'Z'},{k:5,v:'W'},{k:7,v:'V'}];
+
+  var i = 0, j = 0, comparisons = 0, matches = 0, autoTimer = null;
+
+  function render() {
+    var rh = '<div class="nl-row">';
+    R.forEach(function(r, idx){
+      var cls = 'nl-pair';
+      if (idx === i) cls += ' outer-active';
+      else if (idx < i) cls += ' miss';
+      rh += '<div class="'+cls+'">'+r.k+':'+r.v+'</div>';
+    });
+    rh += '</div>';
+    rEl.innerHTML = rh;
+
+    var sh = '<div class="nl-row">';
+    S.forEach(function(s, idx){
+      var cls = 'nl-pair';
+      if (idx === j && i < R.length) {
+        cls += (R[i] && R[i].k === s.k) ? ' match' : ' inner-active';
+      }
+      sh += '<div class="'+cls+'">'+s.k+':'+s.v+'</div>';
+    });
+    sh += '</div>';
+    sEl.innerHTML = sh;
+
+    counterEl.innerHTML = 'Sammenligninger: <strong>'+comparisons+'</strong> · Treff: <strong>'+matches+'</strong>';
+  }
+
+  function step() {
+    if (i >= R.length) {
+      statusEl.textContent = 'Ferdig';
+      stopAuto();
+      return false;
+    }
+    comparisons++;
+    if (R[i].k === S[j].k) matches++;
+    j++;
+    if (j >= S.length) { j = 0; i++; }
+    statusEl.textContent = i < R.length ? ('i='+i+', j='+j) : 'Ferdig';
+    render();
+    return i < R.length;
+  }
+
+  function reset() {
+    i = 0; j = 0; comparisons = 0; matches = 0;
+    statusEl.textContent = 'i=0, j=0';
+    stopAuto();
+    render();
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    document.getElementById('nl-auto').textContent = 'Spill auto';
+  }
+
+  document.getElementById('nl-step').addEventListener('click', step);
+  document.getElementById('nl-reset').addEventListener('click', reset);
+  document.getElementById('nl-auto').addEventListener('click', function(){
+    if (autoTimer) { stopAuto(); return; }
+    this.textContent = 'Stopp';
+    autoTimer = setInterval(function(){
+      if (!step()) stopAuto();
+    }, 500);
+  });
+
+  render();
+})();
+
+// ─────────── SORT-MERGE JOIN ANIMATION ───────────
+(function () {
+  var rEl = document.getElementById('sm-R');
+  var sEl = document.getElementById('sm-S');
+  var counterEl = document.getElementById('sm-counter');
+  var statusEl = document.getElementById('sm-status');
+  if (!rEl) return;
+
+  var R = [{k:2,v:'a'},{k:5,v:'b'},{k:5,v:'c'},{k:8,v:'d'},{k:11,v:'e'}];
+  var S = [{k:3,v:'X'},{k:5,v:'Y'},{k:7,v:'Z'},{k:8,v:'W'},{k:8,v:'V'}];
+
+  var i = 0, j = 0, matches = 0, done = false;
+  // Mark match-rows after full algorithm so highlight persists
+  var matchedR = new Set(), matchedS = new Set();
+
+  function render() {
+    var rh = '';
+    R.forEach(function(r, idx){
+      var cls = 'sm-row';
+      if (idx === i && !done) cls += ' cursor-r';
+      if (matchedR.has(idx)) cls += ' match';
+      rh += '<div class="'+cls+'"><div class="sm-pointer"></div><div class="sm-key">'+r.k+'</div><div>'+r.v+'</div></div>';
+    });
+    rEl.innerHTML = rh;
+
+    var sh = '';
+    S.forEach(function(s, idx){
+      var cls = 'sm-row';
+      if (idx === j && !done) cls += ' cursor-s';
+      if (matchedS.has(idx)) cls += ' match';
+      sh += '<div class="'+cls+'"><div class="sm-pointer"></div><div class="sm-key">'+s.k+'</div><div>'+s.v+'</div></div>';
+    });
+    sEl.innerHTML = sh;
+    counterEl.innerHTML = 'Match-par funnet: <strong>'+matches+'</strong>';
+  }
+
+  function step() {
+    if (done) return;
+    if (i >= R.length || j >= S.length) {
+      done = true; statusEl.textContent = 'Ferdig'; render(); return;
+    }
+    if (R[i].k < S[j].k) {
+      i++; statusEl.textContent = 'R[i] < S[j] → i++';
+    } else if (R[i].k > S[j].k) {
+      j++; statusEl.textContent = 'R[i] > S[j] → j++';
+    } else {
+      // Match. Emit alle (R[i], S[j']) hvor S[j'].k == R[i].k. For enkelhets skyld emit én og avanser j.
+      matchedR.add(i); matchedS.add(j); matches++;
+      // Look ahead i S for flere med samme k
+      var k = R[i].k;
+      var j2 = j + 1;
+      while (j2 < S.length && S[j2].k === k) {
+        matchedS.add(j2); matches++; j2++;
+      }
+      statusEl.textContent = 'Match k='+k+' — emit, avanser i';
+      i++;
+    }
+    if (i >= R.length || j >= S.length) done = true;
+    render();
+  }
+
+  function reset() {
+    i = 0; j = 0; matches = 0; done = false;
+    matchedR = new Set(); matchedS = new Set();
+    statusEl.textContent = 'i=0, j=0';
+    render();
+  }
+
+  document.getElementById('sm-step').addEventListener('click', step);
+  document.getElementById('sm-reset').addEventListener('click', reset);
+  render();
+})();
+
+// ─────────── HASH JOIN ANIMATION ───────────
+(function () {
+  var rEl = document.getElementById('hash-R');
+  var sEl = document.getElementById('hash-S');
+  var hEl = document.getElementById('hash-table');
+  var counterEl = document.getElementById('hash-counter');
+  var statusEl = document.getElementById('hash-status');
+  if (!rEl) return;
+
+  var R = [{k:3,v:'Ada'},{k:7,v:'Bob'},{k:11,v:'Cleo'},{k:14,v:'Dan'}];
+  var S = [{k:7,v:'X'},{k:5,v:'Y'},{k:11,v:'Z'},{k:3,v:'W'},{k:9,v:'V'}];
+  var BUCKETS = 4;
+  function h(k){ return k % BUCKETS; }
+
+  var phase = 'build', buildIdx = 0, probeIdx = 0;
+  var table = {}; for (var b = 0; b < BUCKETS; b++) table[b] = [];
+  var hits = 0;
+  var lastProbeBucket = -1;
+
+  function render() {
+    // R column
+    var rh = '';
+    R.forEach(function(r, idx){
+      var cls = 'hash-bucket';
+      if (phase === 'build' && idx === buildIdx - 1) cls += ' hit';
+      rh += '<div class="'+cls+'">'+r.k+': '+r.v+'  <span style="color:var(--ink-faded)">→ b'+h(r.k)+'</span></div>';
+    });
+    rEl.innerHTML = rh;
+
+    // Hash table
+    var hh = '';
+    for (var b = 0; b < BUCKETS; b++) {
+      var cls = 'hash-bucket';
+      if (b === lastProbeBucket) cls += ' hit';
+      hh += '<div class="'+cls+'"><strong>b'+b+'</strong>: ';
+      hh += table[b].map(function(e){ return e.k+':'+e.v; }).join(', ') || '<em style="color:var(--ink-faded)">—</em>';
+      hh += '</div>';
+    }
+    hEl.innerHTML = hh;
+
+    // S column
+    var sh = '';
+    S.forEach(function(s, idx){
+      var cls = 'hash-bucket';
+      if (phase === 'probe' && idx === probeIdx - 1) cls += ' hit';
+      sh += '<div class="'+cls+'">'+s.k+': '+s.v+'  <span style="color:var(--ink-faded)">→ b'+h(s.k)+'</span></div>';
+    });
+    sEl.innerHTML = sh;
+
+    counterEl.innerHTML = 'Build: <strong>'+buildIdx+'</strong> rader · Probe-treff: <strong>'+hits+'</strong>';
+    statusEl.textContent = 'Fase: '+phase;
+  }
+
+  function step() {
+    if (phase === 'build') {
+      if (buildIdx < R.length) {
+        var r = R[buildIdx];
+        table[h(r.k)].push(r);
+        buildIdx++;
+        lastProbeBucket = -1;
+        if (buildIdx === R.length) phase = 'probe';
+      }
+    } else if (phase === 'probe') {
+      if (probeIdx < S.length) {
+        var s = S[probeIdx];
+        var b = h(s.k);
+        lastProbeBucket = b;
+        // Count hits
+        table[b].forEach(function(e){ if (e.k === s.k) hits++; });
+        probeIdx++;
+        if (probeIdx === S.length) phase = 'ferdig';
+      }
+    }
+    render();
+  }
+
+  function reset() {
+    phase = 'build'; buildIdx = 0; probeIdx = 0; hits = 0;
+    table = {}; for (var b = 0; b < BUCKETS; b++) table[b] = [];
+    lastProbeBucket = -1;
+    render();
+  }
+
+  document.getElementById('hash-step').addEventListener('click', step);
+  document.getElementById('hash-reset').addEventListener('click', reset);
+  render();
+})();
+</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

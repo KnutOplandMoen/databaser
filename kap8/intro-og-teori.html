@@ -3,8 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transaksjoner: intro og teori — Kap 8</title>
+<title>Transaksjoner: intro og teori — Kap 8A</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="kap8.css">
+<style>
+  /* Page-local styles for precedence graph */
+  svg.pgraph .edge { stroke-dasharray: 5; stroke-dashoffset: 5; opacity: 0; transition: opacity .4s, stroke-dashoffset .8s; }
+  svg.pgraph .edge.shown { opacity: 1; stroke-dashoffset: 0; }
+  .pg-op { display: inline-block; padding: 4px 10px; margin: 3px; border-radius: 14px; background: var(--paper-darker); color: var(--ink-faded); font-family: var(--mono); font-size: 0.88rem; transition: background .2s, color .2s; }
+  .pg-op.revealed { background: var(--rust); color: var(--paper); }
+  .verdict { display: none; margin-top: 1rem; padding: 0.8rem 1rem; background: rgba(61, 107, 58, 0.10); border-left: 3px solid var(--green); border-radius: 0 4px 4px 0; }
+  .verdict.show { display: block; }
+  .verdict.cycle { background: rgba(122, 74, 45, 0.10); border-left-color: var(--blue); }
+</style>
 </head>
 <body>
 
@@ -27,100 +38,452 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8A · Forelesning 14</div>
       <h1>Intro og <em>teori</em></h1>
-      <p class="lede">Bratsbergs notater kap 15–16. ACID, schedules, serializability — vokabularet for resten av kapittelet.</p>
+      <p class="lede">Notater kap. 15–16. Vokabularet for resten av kapittelet — ACID, schedules, conflict-serializability og recoverability. Klikk deg gjennom eksemplene.</p>
       <nav class="toc">
         <a href="#acid"><span>01</span> ACID</a>
-        <a href="#schedule"><span>02</span> Schedules</a>
-        <a href="#serial"><span>03</span> Serializability</a>
-        <a href="#conflict"><span>04</span> Conflict serializability</a>
-        <a href="#view"><span>05</span> View serializability</a>
-        <a href="#recover"><span>06</span> Recoverability</a>
-        <a href="#cascade"><span>07</span> Cascadeless og strict</a>
+        <a href="#schedule"><span>02</span> Schedule</a>
+        <a href="#bank"><span>03</span> Bankeksempel</a>
+        <a href="#conflict"><span>04</span> Conflict</a>
+        <a href="#serial"><span>05</span> Serializability</a>
+        <a href="#pgraph"><span>06</span> Presedensgraf</a>
+        <a href="#recover"><span>07</span> Recoverability</a>
+        <a href="#hierarki"><span>08</span> Hierarkiet</a>
+        <a href="#oppsummering"><span>09</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
+  <!-- ─────────────────────────── 01 ACID ─────────────────────────── -->
   <section id="acid">
     <div class="container">
       <div class="section-badge">01 · ACID</div>
-      <h2>De fire garantiene</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>Atomicity — alt eller ingenting</li>
-        <li>Consistency — bevarer integritetskrav</li>
-        <li>Isolation — ser ut som om alene</li>
-        <li>Durability — overlever krasj etter commit</li>
-      </ul>
+      <h2>De fire <em>garantiene</em></h2>
+      <p>ACID er ikke fire uavhengige funksjoner — det er fire måter å beskrive samme grunnløfte: <em>en transaksjon ser ut som en atomisk, varig, alenestående endring av en konsistent database</em>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:8%">Bokstav</th><th style="width:22%">Egenskap</th><th>Hva den lover</th><th>Hvem leverer</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>Atomicity</td><td>Alle stegene gjennomføres, eller ingen. Ingen «halvferdige» transaksjoner kan observeres etterpå.</td><td>Recovery (undo)</td></tr>
+            <tr><td><strong>C</strong></td><td>Consistency</td><td>Hver transaksjon tar databasen fra én lovlig tilstand til en annen — PK, FK, CHECK osv. holder.</td><td>SQL-modellen + bruker</td></tr>
+            <tr><td><strong>I</strong></td><td>Isolation</td><td>Selv om mange kjører samtidig, skal effekten være som en eller annen seriell rekkefølge.</td><td>Concurrency control (8B)</td></tr>
+            <tr><td><strong>D</strong></td><td>Durability</td><td>Etter <code>COMMIT</code> overlever resultatet alt — strømbrudd, krasj, OS-kill.</td><td>WAL + redo (8C)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="label">Merk</span>
+        <p>«Consistency» har to betydninger i kurset. I ACID handler det om brukerens integritetskrav. I <em>concurrency control</em> brukes det også om at samtidige effekter er konsistente (samme som serielle). Forelesningen følger første betydning.</p>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk forståelsen · ACID</div>
+        <div class="q-text">En transaksjon overfører 100 kr fra konto A til B. Maskinen krasjer rett etter at A er trukket, men før B er kreditert. Etter recovery er A og B begge tilbake til startverdiene. Hvilken egenskap er nettopp demonstrert?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="true"><span class="marker">A</span><span>Atomicity — alt-eller-ingenting holdt selv ved krasj</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Consistency — saldoen er konsistent</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Isolation — ingen andre så halvferdig overføring</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Durability — endringene overlevde</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Atomicity.</strong> Recovery rullet tilbake en halvferdig transaksjon — det er definisjonen av «alt eller ingenting». Durability ville handlet om at en <em>committed</em> overføring overlevde. Konsistens følger som konsekvens, men er ikke det som ble demonstrert direkte.
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 02 Schedule ─────────────────────────── -->
   <section id="schedule">
     <div class="container">
-      <div class="section-badge">02 · Schedules</div>
-      <h2>Sammenflettede operasjoner</h2>
+      <div class="section-badge">02 · Schedule</div>
+      <h2>Sammenflettede <em>operasjoner</em></h2>
+      <p>For å kunne snakke matematisk om hva som er lov og ulovlig, abstraherer vi vekk SQL og ser bare på fire operasjoner:</p>
       <ul>
-        <li>Schedule = sekvens av read/write/commit/abort fra flere transaksjoner</li>
-        <li>Seriell schedule — én ferdig før neste starter</li>
-        <li>Hvorfor ikke alltid serielt? Ytelse.</li>
+        <li><code>r<sub>i</sub>(X)</code> — transaksjon <em>i</em> leser dataelement X</li>
+        <li><code>w<sub>i</sub>(X)</code> — transaksjon <em>i</em> skriver dataelement X</li>
+        <li><code>c<sub>i</sub></code> — commit av T<sub>i</sub></li>
+        <li><code>a<sub>i</sub></code> — abort av T<sub>i</sub></li>
       </ul>
+      <p>En <strong>schedule</strong> (eller historie) er en sekvens av slike operasjoner fra én eller flere transaksjoner. <em>Seriell</em> schedule = ingen interleaving (én transaksjon helt ferdig før neste begynner).</p>
+
+      <pre><code>Seriell:        r1(A); w1(A); c1; r2(A); w2(A); c2;
+Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
+
+      <p>Spørsmålet hele dette kapittelet handler om: <em>hvilke interleavede schedules er trygge — det vil si gir samme resultat som en eller annen seriell?</em></p>
     </div>
   </section>
 
-  <section id="serial">
+  <!-- ─────────────────────────── 03 Bank-eksempel (interactive stepper) ─────────────────────────── -->
+  <section id="bank">
     <div class="container">
-      <div class="section-badge">03 · Serializability</div>
-      <h2>Ekvivalent med en seriell</h2>
+      <div class="section-badge">03 · Eksempel</div>
+      <h2>Bankoverføring vs. <em>renteberegning</em></h2>
+      <p>To transaksjoner kjører samtidig på kontoer A og B (start: A=200, B=100):</p>
       <ul>
-        <li>Mål: la samtidige transaksjoner se ut som om de var serielle</li>
-        <li>Kort: schedule S er serializable hvis det finnes seriell S' med samme effekt</li>
+        <li><strong>T1</strong> — overfør 100 fra B til A: <code>r1(B); w1(B = B−100); r1(A); w1(A = A+100); c1;</code></li>
+        <li><strong>T2</strong> — gi 6 % rente på begge: <code>r2(A); w2(A = A·1.06); r2(B); w2(B = B·1.06); c2;</code></li>
       </ul>
+      <p>Avhengig av flettingen kan resultatet bli <em>riktig</em> (samme som T1;T2 eller T2;T1) — eller helt feil. Klikk gjennom problemet under:</p>
+
+      <div class="tx-stepper" data-stepper
+        data-narrations='[
+          "Trykk «Neste» for å starte. Begge kontoer i utgangstilstand: A=200, B=100.",
+          "T1 leser B = 100.",
+          "T1 skriver B = 100 − 100 = 0. Pengene er trukket fra B.",
+          "Nå hopper schedulen over til T2. T2 leser A = 200 (gammel verdi — overføringen til A er ikke gjort enda).",
+          "T2 skriver A = 200 · 1.06 = 212. Renten ble beregnet før overføringen kom inn.",
+          "T2 leser B = 0 (allerede trukket).",
+          "T2 skriver B = 0 · 1.06 = 0. Rente på 0 = 0.",
+          "T2 commit.",
+          "T1 leser A = 212.",
+          "T1 skriver A = 212 + 100 = 312. Overføringen lander.",
+          "T1 commit. Slutt: A=312, B=0. Sum = 312. Total burde vært (200+100)·1.06 = 318. Banken tapte 6 kr.",
+          "Schedulen ga galt resultat — den er ikke serializable. Vi trenger regler for å hindre dette."
+        ]'
+        data-states='[
+          {"A":"200","B":"100"},
+          {"A":"200","B":"100"},
+          {"A":"200","B":"0"},
+          {"A":"200","B":"0"},
+          {"A":"212","B":"0"},
+          {"A":"212","B":"0"},
+          {"A":"212","B":"0"},
+          {"A":"212","B":"0"},
+          {"A":"212","B":"0"},
+          {"A":"312","B":"0"},
+          {"A":"312","B":"0"},
+          {"A":"312","B":"0"}
+        ]'>
+
+        <div class="tx-timeline">
+          <div class="tx-head">Steg</div>
+          <div class="tx-head">T1 — overfør</div>
+          <div class="tx-head">T2 — rente</div>
+
+          <div class="tx-step">1</div>
+          <div class="tx-cell has-op">r<sub>1</sub>(B) → 100</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">2</div>
+          <div class="tx-cell write">w<sub>1</sub>(B = 0)</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">3</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell has-op">r<sub>2</sub>(A) → 200</div>
+
+          <div class="tx-step">4</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell write">w<sub>2</sub>(A = 212)</div>
+
+          <div class="tx-step">5</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell has-op">r<sub>2</sub>(B) → 0</div>
+
+          <div class="tx-step">6</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell write">w<sub>2</sub>(B = 0)</div>
+
+          <div class="tx-step">7</div>
+          <div class="tx-cell empty">·</div>
+          <div class="tx-cell commit">c<sub>2</sub></div>
+
+          <div class="tx-step">8</div>
+          <div class="tx-cell has-op">r<sub>1</sub>(A) → 212</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">9</div>
+          <div class="tx-cell write">w<sub>1</sub>(A = 312)</div>
+          <div class="tx-cell empty">·</div>
+
+          <div class="tx-step">10</div>
+          <div class="tx-cell commit">c<sub>1</sub></div>
+          <div class="tx-cell empty">·</div>
+        </div>
+
+        <div class="state-display">
+          <div class="state-box" data-state="A"><span class="state-label">Konto A</span><span class="state-value">200</span></div>
+          <div class="state-box" data-state="B"><span class="state-label">Konto B</span><span class="state-value">100</span></div>
+        </div>
+
+        <div class="tx-stepper-narration">Trykk «Neste» for å starte.</div>
+
+        <div class="tx-stepper-controls">
+          <button data-step-prev>‹ Forrige</button>
+          <button data-step-next>Neste ›</button>
+          <button data-step-reset style="background:var(--ink-faded)">Nullstill</button>
+          <span class="step-counter">Steg 0 / 10</span>
+        </div>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Bankeksempel</div>
+        <div class="q-text">I steget over ble «overføringens andre halvdel» (innskuddet på A) klemt mellom T2 sine to operasjoner. Hva er navnet på selve fenomenet — at T2 så A før T1 var ferdig?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Inkonsistent / feil resultat — schedulen er ikke serializable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Phantom read</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Lost update</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Ikke-serializable.</strong> «Dirty read» ville krevd at T2 leste en <em>uncommitted</em> verdi fra T1 — her leste T2 bare gamle (committed) verdier. Likevel er resultatet ikke ekvivalent med noen seriell ordning. Vi skal lære navnet på de spesifikke anomaliene i 8B; her holder det å se at <em>noe</em> er galt.
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 04 Conflict ─────────────────────────── -->
   <section id="conflict">
     <div class="container">
-      <div class="section-badge">04 · Conflict serializability</div>
-      <h2>Bytt om ikke-konflikterende</h2>
-      <ul>
-        <li>Konflikt: to operasjoner på samme data, minst én er write</li>
-        <li>Conflict-graf: kant fra T_i til T_j hvis T_i har konfliktende op før T_j</li>
-        <li>Conflict-serializable ⇔ acyclic graf</li>
-      </ul>
+      <div class="section-badge">04 · Conflict</div>
+      <h2>Når er to operasjoner i <em>konflikt</em>?</h2>
+      <p>Tre vilkår, alle må være oppfylt:</p>
+      <ol>
+        <li>De tilhører <strong>ulike</strong> transaksjoner.</li>
+        <li>De berører <strong>samme</strong> dataelement.</li>
+        <li>Minst én av dem er en <strong>write</strong>.</li>
+      </ol>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Par</th><th>I konflikt?</th><th>Grunn</th></tr></thead>
+          <tbody>
+            <tr><td><code>r<sub>1</sub>(X), r<sub>2</sub>(X)</code></td><td><span class="yes" style="color: var(--green); font-weight:600">Nei</span></td><td>Begge leser — å bytte rekkefølge endrer ingenting.</td></tr>
+            <tr><td><code>r<sub>1</sub>(X), w<sub>2</sub>(X)</code></td><td><span style="color: var(--rust); font-weight:600">Ja</span></td><td>T1 ser ulike verdier avhengig av rekkefølge.</td></tr>
+            <tr><td><code>w<sub>1</sub>(X), r<sub>2</sub>(X)</code></td><td><span style="color: var(--rust); font-weight:600">Ja</span></td><td>Samme grunn motsatt vei.</td></tr>
+            <tr><td><code>w<sub>1</sub>(X), w<sub>2</sub>(X)</code></td><td><span style="color: var(--rust); font-weight:600">Ja</span></td><td>Sluttverdien er forskjellig.</td></tr>
+            <tr><td><code>r<sub>1</sub>(X), w<sub>2</sub>(Y)</code></td><td><span style="color: var(--green); font-weight:600">Nei</span></td><td>Ulike dataelementer, helt uavhengige.</td></tr>
+            <tr><td><code>r<sub>1</sub>(X), w<sub>1</sub>(X)</code></td><td><span style="color: var(--green); font-weight:600">Nei</span></td><td>Samme transaksjon — ikke en konflikt mellom transaksjoner.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Intuisjonen: <em>to operasjoner er i konflikt hvis det å bytte rekkefølgen kan gi et annet resultat på databasen.</em></p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Tenk selv · Konflikt</div>
+        <div class="q-text">Hvor mange par er i konflikt i schedulen <code>r1(A); w2(A); w1(A); r2(B); c1; c2;</code>? List dem.</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <strong>To par.</strong>
+            <ul style="margin: 0.4rem 0 0 0;">
+              <li><code>r1(A) ↔ w2(A)</code> — ulike Tx, samme element, én er write.</li>
+              <li><code>w2(A) ↔ w1(A)</code> — to writes på samme element.</li>
+            </ul>
+            <code>r2(B)</code> er alene om B, så ingen konflikt med noe annet. Commits er ikke operasjoner på dataelementer.
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="view">
+  <!-- ─────────────────────────── 05 Serializability ─────────────────────────── -->
+  <section id="serial">
     <div class="container">
-      <div class="section-badge">05 · View serializability</div>
-      <h2>Litt mer permissivt</h2>
+      <div class="section-badge">05 · Serializability</div>
+      <h2>Ekvivalent med en <em>seriell</em></h2>
+      <p>En schedule er <strong>serializable</strong> hvis det finnes en seriell schedule med <em>samme effekt på databasen</em>. Vi vil ha serializable, ikke seriell — fordi vi vil ha samtidighet uten å gi opp korrekthet.</p>
+
+      <p>To viktige underklasser:</p>
       <ul>
-        <li>Tre vilkår: same initial reads, samme W-R-relasjoner, samme final writes</li>
-        <li>NP-hardt å avgjøre i sin alminnelighet</li>
-        <li>Conflict ⊂ View</li>
+        <li><strong>Conflict-serializable</strong> — kan omformes til en seriell ved å bytte om <em>nabo-operasjoner som ikke er i konflikt</em>. Strengere, men <em>billig å sjekke</em> (precedence-graf).</li>
+        <li><strong>View-serializable</strong> — schedulen leser og produserer samme final-state som en seriell. Mer permissiv, men NP-hardt å avgjøre i alminnelighet.</li>
       </ul>
+
+      <p>I praksis brukes <em>conflict-serializability</em> overalt fordi 2PL (kapittel 8B) implementerer akkurat den.</p>
+
+      <p style="font-style:italic; color: var(--ink-soft);">Conflict-serializable ⇒ View-serializable ⇒ Serializable. Motsatt vei holder ikke.</p>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 06 Presedensgraf ─────────────────────────── -->
+  <section id="pgraph">
+    <div class="container">
+      <div class="section-badge">06 · Algoritmen</div>
+      <h2>Sjekk med <em>presedensgraf</em></h2>
+      <p>Resepten for å avgjøre om en schedule er conflict-serializable:</p>
+      <ol>
+        <li>Lag én node per transaksjon.</li>
+        <li>For hvert konfliktpar — hvis T<sub>i</sub> sin operasjon kommer før T<sub>j</sub> sin, tegn en pil <strong>T<sub>i</sub> → T<sub>j</sub></strong>.</li>
+        <li><strong>Acyclic graf ⇔ schedule er conflict-serializable.</strong> En topologisk sortering gir den ekvivalente serielle rekkefølgen.</li>
+      </ol>
+
+      <h3 style="margin-top:2rem;">Eksempel 1 — uten sykel</h3>
+      <p>Schedule H<sub>1</sub>: <code>r<sub>2</sub>(A); r<sub>1</sub>(B); w<sub>2</sub>(A); r<sub>3</sub>(A); w<sub>1</sub>(B); w<sub>3</sub>(A); r<sub>2</sub>(B); w<sub>2</sub>(B);</code></p>
+
+      <div class="tx-stepper" data-precedence>
+        <p style="font-family: var(--mono); font-size: 0.85rem; margin-bottom: 0.6rem; color: var(--ink-faded);">Klikk «Vis neste konflikt» for å bygge grafen steg for steg:</p>
+        <div>
+          <span class="pg-op" data-op data-edges="">r2(A)</span>
+          <span class="pg-op" data-op data-edges="">r1(B)</span>
+          <span class="pg-op" data-op data-edges="">w2(A) — konflikt med r2(A)? nei (samme Tx)</span>
+          <span class="pg-op" data-op data-edges="2-3">r3(A) — konflikt med w2(A): T2→T3</span>
+          <span class="pg-op" data-op data-edges="1-2">w1(B) — w1(B) konflikt­bygger med kommende r2(B): T1→T2</span>
+          <span class="pg-op" data-op data-edges="">w3(A) — konflikter med r2(A), w2(A) men disse er allerede dekket</span>
+          <span class="pg-op" data-op data-edges="">r2(B) — leser etter w1(B): T1→T2 (allerede)</span>
+          <span class="pg-op" data-op data-edges="">w2(B)</span>
+        </div>
+
+        <figure style="margin-top: 1rem;">
+          <svg class="pgraph" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Presedensgraf for H1">
+            <defs>
+              <marker id="parr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e79"/>
+              </marker>
+            </defs>
+            <!-- Nodes -->
+            <circle cx="80" cy="100" r="28" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="80" y="106" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T1</text>
+            <circle cx="200" cy="100" r="28" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="200" y="106" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T2</text>
+            <circle cx="320" cy="100" r="28" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="320" y="106" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T3</text>
+
+            <!-- Edges -->
+            <line class="edge" data-edge="1-2" x1="108" y1="100" x2="172" y2="100" stroke="#1f4e79" stroke-width="2" marker-end="url(#parr1)"/>
+            <line class="edge" data-edge="2-3" x1="228" y1="100" x2="292" y2="100" stroke="#1f4e79" stroke-width="2" marker-end="url(#parr1)"/>
+          </svg>
+          <figcaption>Resultat: T1 → T2 → T3. Ingen sykel — schedulen er conflict-serializable, ekvivalent med seriell <code>T1; T2; T3</code>.</figcaption>
+        </figure>
+
+        <div class="verdict" data-pg-verdict>
+          <strong>Acyclic ✓</strong> — graf har ingen sykel. H<sub>1</sub> er conflict-serializable, og topologisk sortering gir serielle ordning <code>T1; T2; T3</code>.
+        </div>
+
+        <div class="tx-stepper-controls">
+          <button data-pg-step>Vis neste konflikt</button>
+          <button data-pg-reset style="background:var(--ink-faded)">Nullstill</button>
+        </div>
+      </div>
+
+      <h3 style="margin-top:2rem;">Eksempel 2 — med sykel</h3>
+      <p>Schedule H<sub>2</sub>: <code>r<sub>2</sub>(A); r<sub>1</sub>(B); w<sub>2</sub>(A); r<sub>2</sub>(B); r<sub>3</sub>(A); w<sub>1</sub>(B); w<sub>3</sub>(A); w<sub>2</sub>(B);</code></p>
+      <figure>
+        <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Presedensgraf med sykel">
+          <defs>
+            <marker id="parr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+          <circle cx="80" cy="140" r="28" fill="#f0e7da" stroke="#7a4a2d" stroke-width="2"/>
+          <text x="80" y="146" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T1</text>
+          <circle cx="320" cy="140" r="28" fill="#f0e7da" stroke="#7a4a2d" stroke-width="2"/>
+          <text x="320" y="146" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T2</text>
+          <circle cx="200" cy="50" r="28" fill="#f0e7da" stroke="#7a4a2d" stroke-width="2"/>
+          <text x="200" y="56" text-anchor="middle" font-family="Newsreader, serif" font-size="18" fill="#1a1612">T3</text>
+
+          <line x1="105" y1="130" x2="178" y2="65" stroke="#7a4a2d" stroke-width="2" marker-end="url(#parr2)"/>
+          <line x1="222" y1="65" x2="296" y2="130" stroke="#7a4a2d" stroke-width="2" marker-end="url(#parr2)"/>
+          <line x1="295" y1="155" x2="110" y2="155" stroke="#7a4a2d" stroke-width="2" marker-end="url(#parr2)"/>
+
+          <text x="135" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">T1→T3</text>
+          <text x="245" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">T3→T2</text>
+          <text x="180" y="180" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">T2→T1</text>
+        </svg>
+        <figcaption>Sykel T1 → T3 → T2 → T1. <strong>Ikke conflict-serializable.</strong> Ingen seriell ordning gir samme resultat.</figcaption>
+      </figure>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Presedensgraf</div>
+        <div class="q-text">En presedensgraf for fire transaksjoner har kanter T1→T2, T2→T3, T3→T4, T4→T1. Hva betyr dette?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Schedulen er conflict-serializable; ordningen er T1, T2, T3, T4</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Det er en sykel — schedulen er ikke conflict-serializable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Schedulen er view-serializable men ikke conflict-serializable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det betyr at minst to transaksjoner må aborteres</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Sykel ⇒ ikke conflict-serializable.</strong> Vi kan ikke topologisk sortere en syklisk graf. Det betyr ikke automatisk at noen må aborteres — det betyr bare at <em>denne</em> schedulen ikke er ekvivalent med en seriell. Schedulen skal forhindres på forhånd (typisk av 2PL).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 07 Recoverability ─────────────────────────── -->
   <section id="recover">
     <div class="container">
-      <div class="section-badge">06 · Recoverability</div>
-      <h2>Aborter må ikke ødelegge committed transaksjoner</h2>
-      <ul>
-        <li>Recoverable — T_j commit etter T_i commit hvis T_j leste fra T_i</li>
-        <li>Cascading aborts hvis ikke recoverable</li>
-      </ul>
+      <div class="section-badge">07 · Recoverability</div>
+      <h2>Når kan vi <em>angre</em> en abort?</h2>
+      <p>Conflict-serializability handler om resultatet er korrekt <em>hvis ingen aborter</em>. Men aborter skjer hele tiden — deadlocks, krasj, brukervalg. Spørsmålet er: <em>kan vi rulle tilbake en transaksjon uten å ødelegge committed andre?</em></p>
+
+      <h3>Recoverable schedule</h3>
+      <p>En schedule er <strong>recoverable</strong> hvis hver transaksjon T<sub>j</sub> som har lest fra T<sub>i</sub>, committer <em>etter</em> T<sub>i</sub>. Da kan vi alltid rulle tilbake T<sub>i</sub> sammen med T<sub>j</sub> hvis T<sub>i</sub> aborter.</p>
+
+      <pre><code>Recoverable:    w1(A); w1(B); r2(A); c1; c2;
+Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's data, men T1 kan fortsatt aborte!</code></pre>
+
+      <h3>Avoid Cascading Aborts (ACA / cascadeless)</h3>
+      <p>En sterkere garanti: en transaksjon leser <em>bare</em> committed verdier. Da slipper vi <em>cascading aborts</em> — situasjoner der én abort tvinger frem flere.</p>
+
+      <h3>Strict</h3>
+      <p>Sterkest: en transaksjon kan verken lese eller skrive over uncommitted verdier. Dette gjør undo trivielt — vi kan rulle tilbake bare ved å skrive «before-image» tilbake.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Tenk selv · Recoverable</div>
+        <div class="q-text">Schedule: <code>w1(A); w2(A); c1; c2;</code> — er den recoverable? Cascadeless? Strict?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <strong>Recoverable:</strong> Ja. T2 leste ikke noe fra T1 — T2 skrev bare. Recoverable trenger bare commit-rekkefølgen for <em>read-from</em>.<br/>
+            <strong>Cascadeless:</strong> Ja, av samme grunn — T2 leste ingenting uncommitted.<br/>
+            <strong>Strict:</strong> Nei. T2 skrev <em>over</em> en uncommitted verdi (w1(A)). Hvis T1 aborterer, kan vi ikke gjenopprette w1(A) ved bare å bruke before-image — T2 har allerede skrevet på toppen.
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="cascade">
+  <!-- ─────────────────────────── 08 Hierarki ─────────────────────────── -->
+  <section id="hierarki">
     <div class="container">
-      <div class="section-badge">07 · Cascadeless og strict</div>
-      <h2>Hierarki av schedule-klasser</h2>
+      <div class="section-badge">08 · Hierarkiet</div>
+      <h2>Set-relasjonen mellom <em>schedule-klasser</em></h2>
+      <p>Klassene former et strengt hierarki — strengere lenger ned betyr færre tillatte schedules, mer trygghet, men også mindre samtidighet.</p>
+
+      <div class="hierarchy">
+        <div class="level l1">Alle schedules<small>matematisk univers</small></div>
+        <div class="level l2">Recoverable<small>aborter ødelegger ikke committed Tx</small></div>
+        <div class="level l3">Cascadeless (ACA)<small>les bare committed verdier</small></div>
+        <div class="level l4">Strict<small>verken les eller overskriv uncommitted</small></div>
+      </div>
+
+      <p style="text-align:center; font-family: var(--mono); font-size: 0.92rem; color: var(--ink-soft);">Strict ⊂ ACA ⊂ Recoverable ⊂ Alle schedules</p>
+
+      <p>Tilsvarende har vi for samtidighet: <em>Seriell ⊂ Conflict-serializable ⊂ View-serializable ⊂ Alle schedules</em>. De to hierarkiene er ortogonale — recoverability handler om aborter, serializability om samtidighet.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Hierarki</div>
+        <div class="q-text">Hvilken kombinasjon vil de fleste kommersielle SQL-databaser <em>i praksis</em> garantere?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Seriell + recoverable</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Conflict-serializable + strict (eller cascadeless)</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>View-serializable + recoverable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Alle schedules + strict</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Conflict-serializable + strict.</strong> Strict 2PL (kapittel 8B) gir akkurat denne kombinasjonen automatisk: 2PL ⇒ conflict-serializable, og «hold X-låser til commit/abort» ⇒ strict. View-serializable er teoretisk større, men i praksis ikke verdt kompleksiteten å detektere.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 09 Oppsummering ─────────────────────────── -->
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">09 · Oppsummering</div>
+      <h2>Kort oppsummert</h2>
       <ul>
-        <li>Cascadeless — les bare committed data</li>
-        <li>Strict — verken les eller overskriv ucommitted</li>
-        <li>Serial ⊂ Strict ⊂ Cascadeless ⊂ Recoverable</li>
+        <li><strong>ACID</strong> = Atomicity, Consistency, Isolation, Durability. Fire garantier som henger sammen.</li>
+        <li>En <strong>schedule</strong> er en sekvens av <code>r/w/c/a</code>-operasjoner fra flere transaksjoner.</li>
+        <li>To operasjoner er i <strong>konflikt</strong> hvis de tilhører ulike Tx, samme element, og minst én er write.</li>
+        <li><strong>Conflict-serializable</strong> = kan omformes til seriell ved å bytte ikke-konflikt-naboer ⇔ <strong>presedensgraf er acyklisk</strong>.</li>
+        <li><strong>Recoverable</strong> ⊃ <strong>cascadeless (ACA)</strong> ⊃ <strong>strict</strong>. Strict gjør undo trivielt.</li>
+        <li>Praksisstandard: conflict-serializable + strict — leveres «gratis» av strict 2PL.</li>
       </ul>
+
+      <p style="margin-top:2rem; font-style: italic; color: var(--ink-soft);">Klar for neste? <a href="samtidighet-og-laser.html">8B · Samtidighet og låser →</a></p>
     </div>
   </section>
 </main>
@@ -135,6 +498,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

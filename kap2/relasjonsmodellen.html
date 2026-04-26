@@ -5,6 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Relasjonsmodellen — Kap 2</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* Sidespesifikke små utvidelser — bygger på style.css */
+  .pill-row { display:flex; flex-wrap:wrap; gap:.5rem; margin:.6rem 0 1.2rem; }
+  .pill { font-family: var(--mono); font-size:.78rem; padding:4px 10px; border-radius:14px; background: var(--paper-dark); border:1px solid var(--line-soft); color: var(--ink-soft); }
+  .pill.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+
+  .keyrow { display:grid; grid-template-columns: 110px 1fr; gap:.4rem 1rem; margin:1rem 0; }
+  .keyrow .k { font-family: var(--mono); font-size:.85rem; color: var(--rust); padding-top:2px; }
+  .keyrow .v { font-size:.98rem; }
+
+  .figgrid { display:grid; grid-template-columns: 1fr 1fr; gap:1rem; }
+  @media (max-width: 720px) { .figgrid { grid-template-columns: 1fr; } }
+
+  .pk-cell { background: rgba(31, 78, 121, 0.10); }
+  .pk-cell::after { content: " 🔑"; opacity: .7; font-size: .8em; }
+  .fk-cell { background: rgba(198, 138, 31, 0.18); }
+
+  table.demo th { white-space: nowrap; }
+  table.demo .label { font-family: var(--mono); font-size:.72rem; color: var(--ink-faded); }
+
+  /* Truth-table */
+  table.tt { max-width: 460px; }
+  table.tt td.t { color: var(--green); font-weight: 600; }
+  table.tt td.f { color: #a33; font-weight: 600; }
+  table.tt td.u { color: var(--ochre); font-weight: 600; font-style: italic; }
+
+  /* Liten "step" i en mini-animation av cascade */
+  .cascade-stage { display:flex; gap:1rem; align-items:flex-start; flex-wrap: wrap; margin: 1rem 0; }
+  .cascade-stage svg { background: var(--paper); border: 1px solid var(--line-soft); border-radius: 6px; }
+  .cascade-controls { display:flex; gap:.5rem; margin: .5rem 0 1rem; }
+  .cascade-controls button { font-family: var(--sans); font-size:.85rem; background: var(--paper); border:1px solid var(--line); padding: 6px 12px; border-radius: 14px; cursor:pointer; color: var(--ink-soft); }
+  .cascade-controls button.active { background: var(--rust); color: var(--paper); border-color: var(--rust); }
+  .cascade-row { transition: opacity .35s ease, transform .35s ease; }
+  .cascade-row.gone { opacity: 0; transform: translateX(8px); }
+  .cascade-row.nullified { opacity: .55; }
+  .cascade-tag { font-family: var(--mono); font-size: 11px; }
+
+  /* små venn-diagrammer er ikke nødvendig her — det dekkes på algebrasiden */
+</style>
 </head>
 <body>
 
@@ -25,81 +64,526 @@
 <main data-chapter="Kapittel 2: Relasjonsmodellen og relasjonsalgebra">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 2 · 2A</div>
+      <div class="eyebrow">Kapittel 2 · 2A · Lærebok 2.1–2.5</div>
       <h1>Relasjons<em>modellen</em></h1>
-      <p class="lede">Den formelle modellen bak SQL: relasjoner, attributter, nøkler og integritetskrav.</p>
+      <p class="lede">Den formelle modellen bak SQL: tabeller med skjema, tupler over domener, og nøkler som binder alt sammen.</p>
       <nav class="toc">
         <a href="#hvorfor"><span>01</span> Hvorfor relasjoner</a>
-        <a href="#skjema"><span>02</span> Skjema og instans</a>
-        <a href="#nokler"><span>03</span> Nøkler</a>
-        <a href="#integritet"><span>04</span> Integritetskrav</a>
-        <a href="#null"><span>05</span> NULL og treverdig logikk</a>
+        <a href="#strukturen"><span>02</span> Strukturen</a>
+        <a href="#skjema"><span>03</span> Skjema vs. instans</a>
+        <a href="#nokler"><span>04</span> Nøkler</a>
+        <a href="#fremmednokler"><span>05</span> Fremmednøkler</a>
+        <a href="#integritet"><span>06</span> Integritetskrav</a>
+        <a href="#null"><span>07</span> NULL og 3-verdig logikk</a>
+        <a href="#oppsummering"><span>08</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
+  <!-- ─────────── 01 Hvorfor ─────────── -->
   <section id="hvorfor">
     <div class="container">
       <div class="section-badge">01 · Hvorfor relasjoner</div>
-      <h2>Codd 1970 — én datatype</h2>
-      <p class="dropcap">[Innledende avsnitt — fyll inn. Bullet-stubber:]</p>
-      <ul>
-        <li>Hvordan så data ut før relasjonsmodellen</li>
-        <li>Codd-paperets nøkkelinnsikt: deklarativ tilgang</li>
-        <li>Forholdet mellom relasjonsmodell og SQL</li>
-      </ul>
+      <h2>Codd 1970 — én datatype, én operasjons­familie</h2>
+
+      <p class="dropcap">Før 1970 var data lagret i hierarkiske og nettverkbaserte modeller, der applikasjonen måtte kjenne den fysiske layouten — pekere, lister, tre-traverseringer. Bytter man indeks eller filformat, må alle programmer skrives om.</p>
+
+      <p>Edgar F. Codd publiserte i 1970 artikkelen <em>«A Relational Model of Data for Large Shared Data Banks»</em> hos IBM. Innsikten var radikalt enkel:</p>
+
+      <blockquote>All data er bare <strong>tabeller</strong>. Spørringer er funksjoner som tar tabeller inn og gir tabeller ut. Brukeren beskriver <em>hva</em> som skal hentes — systemet finner ut <em>hvordan</em>.</blockquote>
+
+      <p>Det er denne deklarative tankegangen som gjør at SQL kan optimaliseres, indekser kan endres, og maskinvare kan byttes ut — uten at applikasjonen merker noe. Codd fikk Turing-prisen for arbeidet.</p>
+
+      <div class="callout">
+        <span class="label">Sammenheng</span>
+        <p>SQL er den deklarative overflaten. <strong>Relasjons­algebra</strong> (kapittel 2B) er det formelle fundamentet — det er det optimalisatoren faktisk manipulerer når den planlegger en spørring.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Kontrollspørsmål · Lett</div>
+        <div class="q-text">Hva er hovedforskjellen mellom relasjonsmodellen og tidligere modeller (hierarkisk/nettverk)?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Relasjonsmodellen er <em>deklarativ</em>: brukeren oppgir hvilken data hen vil ha, ikke hvordan den skal hentes. Dette skiller logisk modell fra fysisk lagring, slik at indekser, filformat og maskinvare kan endres uten at spørringer må skrives om.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 02 Strukturen ─────────── -->
+  <section id="strukturen">
+    <div class="container">
+      <div class="section-badge">02 · Strukturen</div>
+      <h2>Tabell, attributt, tuppel, domene</h2>
+
+      <p>En <strong>relasjon</strong> er en tabell. Hver kolonne er et <strong>attributt</strong> med et tilhørende <strong>domene</strong> (mengden av lovlige verdier). Hver rad er et <strong>tuppel</strong>.</p>
+
+      <div class="figgrid">
+        <figure>
+          <table class="demo">
+            <caption class="label">instructor</caption>
+            <thead>
+              <tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="pk-cell">10101</td><td>Srinivasan</td><td>Comp.&nbsp;Sci.</td><td>65 000</td></tr>
+              <tr><td class="pk-cell">22222</td><td>Einstein</td><td>Physics</td><td>95 000</td></tr>
+              <tr><td class="pk-cell">33456</td><td>Gold</td><td>Physics</td><td>87 000</td></tr>
+              <tr><td class="pk-cell">76766</td><td>Crick</td><td>Biology</td><td>72 000</td></tr>
+            </tbody>
+          </table>
+          <figcaption>Relasjonen <code>instructor</code> med 4 attributter og 4 tupler. <code>ID</code> (markert) er primærnøkkel.</figcaption>
+        </figure>
+
+        <figure>
+          <svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg">
+            <!-- konseptdiagram: relasjon = mengde tupler -->
+            <rect x="20" y="20" width="320" height="180" rx="8" fill="#fff" stroke="#c9c0ae"/>
+            <text x="180" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#6b6257">RELASJON r (skjema R)</text>
+            <line x1="40" y1="56" x2="320" y2="56" stroke="#c9c0ae"/>
+            <!-- tupler som rektangler -->
+            <g font-family="IBM Plex Mono" font-size="11" fill="#1a1612">
+              <rect x="40"  y="68"  width="280" height="22" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="50"  y="83">(10101, "Srinivasan", "Comp. Sci.", 65000)</text>
+              <rect x="40"  y="96"  width="280" height="22" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="50"  y="111">(22222, "Einstein",   "Physics",    95000)</text>
+              <rect x="40"  y="124" width="280" height="22" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="50"  y="139">(33456, "Gold",       "Physics",    87000)</text>
+              <rect x="40"  y="152" width="280" height="22" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="50"  y="167">(76766, "Crick",      "Biology",    72000)</text>
+            </g>
+            <text x="180" y="195" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="12" fill="#6b6257">en mengde av tupler — rekkefølge er irrelevant</text>
+          </svg>
+          <figcaption>Matematisk er en relasjon en <em>mengde</em> av tupler. Rekkefølge spiller ingen rolle, og duplikater eksisterer ikke.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Atomiske domener (1. normalform)</h3>
+      <p>Codd krevde at alle attributtverdier er <strong>atomiske</strong> — de betraktes som udelelige enheter. Det er ikke lov å lagre <code>{555-1234, 555-9999}</code> som én verdi i kolonnen <code>phone</code>. Lister, sett, og nestede strukturer skal flates ut til egne tabeller. Dette er kjernen i 1. normalform (1NF).</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Hvorfor atomisk?</span>
+        <p>Hvis verdier kan være sammensatte, mister du muligheten til å skrive enkle predikater (<code>WHERE phone = '555-1234'</code>) og må i stedet manipulere indre struktur — akkurat det Codd ville unngå.</p>
+      </div>
+
+      <h3>Egenskapene som følger av at relasjoner er mengder</h3>
+      <ul>
+        <li><strong>Ingen duplikater</strong> — to identiske rader er per definisjon én rad.</li>
+        <li><strong>Ingen rekkefølge</strong> — du kan ikke spørre etter «den tredje raden».</li>
+        <li><strong>Ingen kolonnerekkefølge</strong> i ren teori — i praksis har SQL en, men spørringer bør referere til kolonner ved navn.</li>
+      </ul>
+
+      <div class="callout">
+        <span class="label">SQL vs. relasjonsalgebra</span>
+        <p>SQL bruker <em>multimengder</em> (bags) — duplikater er tillatt med mindre du sier <code>DISTINCT</code>. Det er en praktisk avvik fra Codds rene mengdedefinisjon, men semantikken må du være våken på.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Kontrollspørsmål · Middels</div>
+        <div class="q-text">En kollega lagrer kolonnen <code>tags</code> som en kommaseparert streng <code>"matte,db,vår26"</code>. Hvorfor bryter dette med relasjonsmodellen, og hva er den vanlige løsningen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Verdien er ikke atomisk — den har indre struktur som applikasjonen må parse. Du mister muligheten til å indeksere og spørre direkte («finn alt med tag = 'db'»). Standardløsningen er en separat tabell <code>article_tag(article_id, tag)</code> — én rad per kombinasjon.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 03 Skjema vs instans ─────────── -->
   <section id="skjema">
     <div class="container">
-      <div class="section-badge">02 · Skjema og instans</div>
-      <h2>Skjema er strukturen, instans er dataen</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>Relasjon R(A₁, A₂, …, Aₙ) — attributter med domener</li>
-        <li>Tupler som mengde, ikke sekvens</li>
-        <li>Skjema vs. instans: strukturen er stabil, instansen endrer seg</li>
-      </ul>
+      <div class="section-badge">03 · Skjema vs. instans</div>
+      <h2>Strukturen er stabil — innholdet er ikke</h2>
+
+      <div class="keyrow">
+        <div class="k">Skjema</div>
+        <div class="v"><strong>Logisk design</strong>. Liste med attributter og deres domener: <code>instructor(ID, name, dept_name, salary)</code>. Endres sjelden. Tilsvarer en <em>typedefinisjon</em> i et programmeringsspråk.</div>
+        <div class="k">Instans</div>
+        <div class="v"><strong>Et øyeblikksbilde</strong> av tuplene som finnes akkurat nå. Endres ved hver <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>. Tilsvarer en <em>verdi</em> av en variabel.</div>
+        <div class="k">Database­skjema</div>
+        <div class="v">Samlingen av <em>alle</em> relasjons­skjemaene + nøkler og fremmednøkler.</div>
+        <div class="k">Database­instans</div>
+        <div class="v">Samlingen av alle relasjons­instansene på et gitt tidspunkt.</div>
+      </div>
+
+      <p>Ofte bruker vi samme navn — «<code>instructor</code>» — for både skjema og instans, og lar konteksten avgjøre. Når det er viktig, sier vi eksplisitt «<em>instructor-skjemaet</em>» eller «<em>en instans av instructor</em>».</p>
+
+      <h3>Notasjon</h3>
+      <p>Et relasjonsskjema skrives <code>R(A<sub>1</sub>, A<sub>2</sub>, …, A<sub>n</sub>)</code>, der <code>A<sub>i</sub></code> er attributter. Et tuppel <code>t ∈ R</code> har én verdi per attributt. <code>t[A<sub>i</sub>]</code> er verdien til attributt <code>A<sub>i</sub></code> i tuplet <code>t</code>.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Kontrollspørsmål · Lett</div>
+        <div class="q-text">Hvilket av disse er en del av <em>skjemaet</em> til <code>instructor</code>, og ikke en del av en bestemt instans?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Attributtnavn (<code>ID</code>, <code>name</code>, <code>dept_name</code>, <code>salary</code>), domener (heltall, tekst, tekst, kroner) og constraints (<code>ID</code> er primærnøkkel) er <strong>skjema</strong>. Konkrete tupler — at Einstein finnes med ID 22222 — er instans.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 04 Nøkler ─────────── -->
   <section id="nokler">
     <div class="container">
-      <div class="section-badge">03 · Nøkler</div>
-      <h2>Hva identifiserer en rad</h2>
-      <ul>
-        <li>Supernøkkel — en mengde som er unik</li>
-        <li>Kandidatnøkkel — minimal supernøkkel</li>
-        <li>Primærnøkkel — den valgte kandidatnøkkelen</li>
-        <li>Fremmednøkkel — referanse til en annen tabells primærnøkkel</li>
-      </ul>
+      <div class="section-badge">04 · Nøkler</div>
+      <h2>Hva som identifiserer en rad</h2>
+
+      <p>Vi må kunne skille tupler. Nøkler formaliserer hvilke attributt­kombinasjoner som er garantert unike.</p>
+
+      <div class="pill-row">
+        <span class="pill">Supernøkkel</span>
+        <span class="pill">Kandidatnøkkel</span>
+        <span class="pill">Primærnøkkel</span>
+        <span class="pill">Fremmednøkkel</span>
+      </div>
+
+      <h3>Supernøkkel</h3>
+      <p>En mengde attributter <code>K ⊆ R</code> er en supernøkkel hvis <strong>ingen to tupler</strong> i noen lovlig instans kan ha samme verdi på alle attributter i <code>K</code>. Formelt: for alle <code>t<sub>1</sub> ≠ t<sub>2</sub></code>, <code>t<sub>1</sub>[K] ≠ t<sub>2</sub>[K]</code>.</p>
+      <p>I <code>instructor(ID, name, dept_name, salary)</code> er <code>{ID}</code> en supernøkkel. Det er <code>{ID, name}</code> også — alle supersett av en supernøkkel er supernøkler. Men <code>{name}</code> alene er <em>ikke</em>, fordi to professorer kan hete det samme.</p>
+
+      <h3>Kandidatnøkkel</h3>
+      <p>En <strong>minimal</strong> supernøkkel: ingen ekte delmengde av den er supernøkkel. Hvis <code>{ID}</code> er supernøkkel, er <code>{ID, name}</code> ikke kandidat — du kan fjerne <code>name</code> og fortsatt ha unikhet.</p>
+      <p>En relasjon kan ha flere kandidat­nøkler. <code>person(ssn, fødselsdato, navn, …)</code> kan ha både <code>{ssn}</code> og — hvis det er garantert — <code>{fødselsdato, navn}</code> som kandidater.</p>
+
+      <h3>Primærnøkkel</h3>
+      <p>Den kandidatnøkkelen <em>designeren</em> velger som primær identifikator. Markeres med understreking i skjema: <code>instructor(<u>ID</u>, name, dept_name, salary)</code>. Bør være kort, stabil (sjelden endring), og helst syntetisk (autoincrement, UUID).</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Velg primærnøkkel med hodet</span>
+        <p>Adresse er en <em>dårlig</em> primærnøkkel — den endrer seg når folk flytter. Personnummer fungerer i Norge (stabilt), men er sensitivt og finnes ikke alltid. I praksis lager man oftest en syntetisk <code>id</code>-kolonne.</p>
+      </div>
+
+      <h3>Visualisering — supernøkkel ⊃ kandidat ⊃ primær</h3>
+      <figure>
+        <svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .lbl { font-family: 'IBM Plex Mono'; font-size:11px; }
+              .lbl-r { font-family: 'IBM Plex Mono'; font-size:10px; fill:#6b6257; }
+            </style>
+          </defs>
+          <ellipse cx="240" cy="110" rx="220" ry="95" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <text class="lbl-r" x="60"  y="40">supernøkler — alle unike kombinasjoner</text>
+          <ellipse cx="240" cy="115" rx="150" ry="70" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <text class="lbl-r" x="120" y="60">kandidatnøkler — minimale supernøkler</text>
+          <ellipse cx="240" cy="120" rx="60"  ry="35" fill="#1f4e79" fill-opacity="0.18" stroke="#1f4e79"/>
+          <text class="lbl" x="240" y="118" text-anchor="middle" fill="#1a1612">primærnøkkel</text>
+          <text class="lbl-r" x="240" y="138" text-anchor="middle">{ID}</text>
+
+          <text class="lbl" x="240" y="92" text-anchor="middle">{ID, name}, {ID, salary}, …</text>
+          <text class="lbl" x="240" y="180" text-anchor="middle">{ID, name, dept_name, salary}</text>
+        </svg>
+        <figcaption>Inklusjons­hierarki. Primærnøkkel ⊆ kandidatnøkler ⊆ supernøkler.</figcaption>
+      </figure>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Oppgave · Middels</div>
+        <div class="q-text">I tabellen <code>section(course_id, sec_id, semester, year, building, room, time_slot)</code>: hvorfor er ikke <code>{course_id}</code> alene en kandidatnøkkel?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Et kurs kan tilbys flere ganger — i ulike semestre, og med flere parallelle seksjoner i samme semester (CS-190 har sec_id 1 og 2 i Spring 2017). Du trenger derfor minst <code>{course_id, sec_id, semester, year}</code> for å garantere unikhet.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Tankegang · Vanskelig</div>
+        <div class="q-text">I en gitt instans har ingen to instructor-tupler samme <code>name</code>. Kan vi konkludere med at <code>name</code> er en supernøkkel?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Nei. En supernøkkel er en egenskap ved <em>skjemaet</em> (alle lovlige instanser), ikke ved en spesifikk instans. To personer kan godt hete «Jens Hansen» — at de tilfeldigvis ikke gjør det <em>nå</em>, gir ingen garanti for fremtiden. Skjemaet beskriver hva som er <strong>tillatt</strong>; nøkkel-egenskapen må følge av forretnings­regelen, ikke av tilfeldig dataliv.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 05 Fremmednøkler ─────────── -->
+  <section id="fremmednokler">
+    <div class="container">
+      <div class="section-badge">05 · Fremmednøkler</div>
+      <h2>Pekere mellom tabeller</h2>
+
+      <p>En <strong>fremmednøkkel</strong> er en attributtmengde <code>A</code> i relasjon <code>r<sub>1</sub></code> som refererer til primærnøkkelen <code>B</code> i relasjon <code>r<sub>2</sub></code>. Krav: for hvert tuppel i <code>r<sub>1</sub></code> må verdien av <code>A</code> finnes som verdi av <code>B</code> i <code>r<sub>2</sub></code> — eller være NULL.</p>
+
+      <div class="figgrid">
+        <figure>
+          <table class="demo">
+            <caption class="label">department (referert)</caption>
+            <thead><tr><th>dept_name</th><th>building</th><th>budget</th></tr></thead>
+            <tbody>
+              <tr><td class="pk-cell">Comp. Sci.</td><td>Taylor</td><td>100 000</td></tr>
+              <tr><td class="pk-cell">Physics</td><td>Watson</td><td>70 000</td></tr>
+              <tr><td class="pk-cell">Biology</td><td>Watson</td><td>90 000</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <figure>
+          <table class="demo">
+            <caption class="label">instructor (refererende)</caption>
+            <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th></tr></thead>
+            <tbody>
+              <tr><td class="pk-cell">10101</td><td>Srinivasan</td><td class="fk-cell">Comp. Sci.</td><td>65 000</td></tr>
+              <tr><td class="pk-cell">22222</td><td>Einstein</td><td class="fk-cell">Physics</td><td>95 000</td></tr>
+              <tr><td class="pk-cell">33456</td><td>Gold</td><td class="fk-cell">Physics</td><td>87 000</td></tr>
+            </tbody>
+          </table>
+        </figure>
+      </div>
+      <p style="text-align:center; color: var(--ink-faded); font-style: italic; font-size: .9rem;">Fremmednøkkel: <code>instructor.dept_name → department.dept_name</code></p>
+
+      <h3>Skjemadiagram</h3>
+      <p>Et skjemadiagram tegner relasjoner som bokser, primærnøkler understreket, og fremmednøkler som piler.</p>
+
+      <figure>
+        <svg viewBox="0 0 540 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .box { fill: #f4f1ea; stroke: #1a1612; stroke-width: 1.2; }
+              .head { fill: #1f4e79; font-family:'IBM Plex Mono'; font-size:12px; font-weight:700; }
+              .attr { font-family:'IBM Plex Mono'; font-size:11px; fill:#1a1612; }
+              .pk { text-decoration: underline; }
+            </style>
+            <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1612"/>
+            </marker>
+          </defs>
+
+          <!-- department -->
+          <rect class="box" x="20"  y="40" width="150" height="100"/>
+          <text class="head" x="95" y="58" text-anchor="middle">department</text>
+          <line x1="20" y1="64" x2="170" y2="64" stroke="#c9c0ae"/>
+          <text class="attr pk" x="32" y="84">dept_name</text>
+          <text class="attr"    x="32" y="104">building</text>
+          <text class="attr"    x="32" y="124">budget</text>
+
+          <!-- instructor -->
+          <rect class="box" x="350" y="40" width="170" height="120"/>
+          <text class="head" x="435" y="58" text-anchor="middle">instructor</text>
+          <line x1="350" y1="64" x2="520" y2="64" stroke="#c9c0ae"/>
+          <text class="attr pk" x="362" y="84">ID</text>
+          <text class="attr"    x="362" y="104">name</text>
+          <text class="attr"    x="362" y="124">dept_name</text>
+          <text class="attr"    x="362" y="144">salary</text>
+
+          <!-- course -->
+          <rect class="box" x="350" y="190" width="170" height="100"/>
+          <text class="head" x="435" y="208" text-anchor="middle">course</text>
+          <line x1="350" y1="214" x2="520" y2="214" stroke="#c9c0ae"/>
+          <text class="attr pk" x="362" y="234">course_id</text>
+          <text class="attr"    x="362" y="254">title</text>
+          <text class="attr"    x="362" y="274">dept_name</text>
+
+          <!-- arrows -->
+          <path d="M 360 124 C 260 124, 220 84, 175 84" fill="none" stroke="#1a1612" stroke-width="1.2" marker-end="url(#arrow)"/>
+          <path d="M 360 274 C 260 274, 220 100, 175 100" fill="none" stroke="#1a1612" stroke-width="1.2" marker-end="url(#arrow)"/>
+        </svg>
+        <figcaption>Skjemadiagram. Pilen peker fra fremmednøkkel til primærnøkkelen den refererer.</figcaption>
+      </figure>
+
+      <h3>Referanseintegritet og hva som skjer ved sletting</h3>
+      <p>Når du sletter et tuppel i den refererte tabellen (<code>department</code>), må DBMS-en bestemme hva som skal skje med tupler som peker til det. Standard­alternativene i SQL:</p>
+
+      <div class="cascade-controls">
+        <button class="active" data-mode="restrict">RESTRICT</button>
+        <button data-mode="cascade">CASCADE</button>
+        <button data-mode="setnull">SET NULL</button>
+      </div>
+      <div class="cascade-stage" id="cascade-demo" aria-live="polite">
+        <svg viewBox="0 0 460 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .cb { fill: #f4f1ea; stroke: #c9c0ae; }
+              .ch { font-family:'IBM Plex Mono'; font-size:11px; font-weight:700; fill:#1f4e79; }
+              .ct { font-family:'IBM Plex Mono'; font-size:11px; fill:#1a1612; }
+              .target { fill: #c68a1f; fill-opacity: .35; stroke:#c68a1f; }
+            </style>
+          </defs>
+
+          <!-- department -->
+          <rect class="cb" x="20" y="20" width="170" height="22"/>
+          <text class="ch" x="30" y="36">department</text>
+          <rect class="cb" x="20" y="48" width="170" height="22"/>
+          <text class="ct" x="30" y="64">Comp. Sci. · Taylor</text>
+          <rect class="cb target" x="20" y="76" width="170" height="22" id="dept-target"/>
+          <text class="ct" x="30" y="92">Physics · Watson  ⟵ DELETE</text>
+          <rect class="cb" x="20" y="104" width="170" height="22"/>
+          <text class="ct" x="30" y="120">Biology · Watson</text>
+
+          <!-- instructor -->
+          <rect class="cb" x="270" y="20" width="170" height="22"/>
+          <text class="ch" x="280" y="36">instructor</text>
+          <g id="inst-rows">
+            <g class="cascade-row" data-keep="1">
+              <rect class="cb" x="270" y="48" width="170" height="22"/>
+              <text class="ct" x="280" y="64">10101 · Srinivasan · CS</text>
+            </g>
+            <g class="cascade-row" data-keep="0" id="inst-eins">
+              <rect class="cb" x="270" y="76" width="170" height="22"/>
+              <text class="ct" x="280" y="92" id="inst-eins-text">22222 · Einstein · Physics</text>
+            </g>
+            <g class="cascade-row" data-keep="0" id="inst-gold">
+              <rect class="cb" x="270" y="104" width="170" height="22"/>
+              <text class="ct" x="280" y="120" id="inst-gold-text">33456 · Gold · Physics</text>
+            </g>
+            <g class="cascade-row" data-keep="1">
+              <rect class="cb" x="270" y="132" width="170" height="22"/>
+              <text class="ct" x="280" y="148">76766 · Crick · Biology</text>
+            </g>
+          </g>
+
+          <!-- arrow -->
+          <path d="M 200 87 C 230 87, 230 87, 270 87" fill="none" stroke="#1a1612" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+          <text x="230" y="200" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#6b6257" id="cascade-msg">RESTRICT: slett blokkeres — det finnes refererende rader.</text>
+        </svg>
+      </div>
+
+      <ul>
+        <li><strong>RESTRICT</strong> (eller <strong>NO ACTION</strong>) — slett blokkeres. Standard i mange DBMS.</li>
+        <li><strong>CASCADE</strong> — referanser slettes med. Brukes ofte ved <em>komposisjon</em> (en ordrelinje gir ikke mening uten ordren).</li>
+        <li><strong>SET NULL</strong> — fremmednøkkelen settes til NULL. Krever at kolonnen ikke er <code>NOT NULL</code>.</li>
+        <li><strong>SET DEFAULT</strong> — settes til default-verdi (sjeldnere brukt).</li>
+      </ul>
+
+      <div class="callout">
+        <span class="label">Generalisering</span>
+        <p>Fremmednøkkel-constraints er et spesialtilfelle av <em>referanseintegritets-constraints</em>, der det refererte attributtet må være primærnøkkel. Den generelle varianten (henvist attributt trenger ikke være primærnøkkel) støttes sjelden direkte av kommersielle DBMS.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Praktisk · Middels</div>
+        <div class="q-text">Du har <code>orders(<u>order_id</u>, customer_id, …)</code> og <code>order_lines(<u>order_id, line_no</u>, product, …)</code> hvor <code>order_lines.order_id</code> refererer til <code>orders.order_id</code>. Hvilken delete-strategi er mest naturlig her?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>CASCADE</strong> — en ordrelinje uten en ordre er meningsløs (komposisjon). Sletter du ordren, skal linjene følge med. SET NULL gir foreldreløse linjer; RESTRICT tvinger deg til å rydde manuelt før du kan slette.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 06 Integritet ─────────── -->
   <section id="integritet">
     <div class="container">
-      <div class="section-badge">04 · Integritetskrav</div>
+      <div class="section-badge">06 · Integritetskrav</div>
       <h2>Hva DBMS-en garanterer</h2>
-      <ul>
-        <li>Domenebegrensning — verdier av riktig type</li>
-        <li>Entitetsintegritet — primærnøkkel ikke NULL</li>
-        <li>Referanseintegritet — fremmednøkler peker på reelle rader</li>
-        <li>CASCADE / SET NULL / RESTRICT ved sletting</li>
-      </ul>
+
+      <p>Integritets­krav er regler som <em>alle</em> instanser må oppfylle. De er en del av skjemaet, og DBMS-en håndhever dem ved hver oppdatering.</p>
+
+      <div class="keyrow">
+        <div class="k">Domene­integritet</div>
+        <div class="v">Verdier må være av riktig type/format (<code>salary INT</code>, <code>email LIKE '%@%'</code>, <code>CHECK(salary &gt;= 0)</code>).</div>
+        <div class="k">Entitets­integritet</div>
+        <div class="v">Primærnøkkel kan ikke være NULL. Følger av at NULL ikke kan brukes til å identifisere en rad — to NULL-er er ikke nødvendigvis like.</div>
+        <div class="k">Referanse­integritet</div>
+        <div class="v">Fremmednøkler må peke på eksisterende rader (eller være NULL).</div>
+        <div class="k">Nøkkel­begrensning</div>
+        <div class="v"><code>UNIQUE</code> garanterer at kandidatnøkler faktisk er unike på tvers av instansen.</div>
+        <div class="k">Forretnings­regler</div>
+        <div class="v">Spesifikke for domenet (<code>start_date &lt; end_date</code>, <code>discount &lt;= price</code>). Uttrykkes via <code>CHECK</code>, <code>TRIGGER</code> eller assertions.</div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Begrep · Lett</div>
+        <div class="q-text">Hva er forskjellen mellom <em>entitetsintegritet</em> og <em>referanseintegritet</em>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Entitetsintegritet</strong>: primærnøkkelen i en relasjon må være ikke-NULL og unik (intern garanti for at hver entitet er identifiserbar). <strong>Referanseintegritet</strong>: en fremmednøkkel må peke på en faktisk eksisterende primærnøkkel-verdi i en annen tabell (ekstern garanti for konsistens mellom relasjoner).</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────── 07 NULL ─────────── -->
   <section id="null">
     <div class="container">
-      <div class="section-badge">05 · NULL og treverdig logikk</div>
+      <div class="section-badge">07 · NULL og 3-verdig logikk</div>
       <h2>Når «ukjent» roter alt til</h2>
+
+      <p>NULL er en spesialverdi som betyr «ukjent» eller «ikke aktuelt». Den hører ikke til noe domene, og oppfører seg derfor unormalt i sammenligninger.</p>
+
+      <h3>Sammenligning med NULL gir ikke FALSE — den gir UNKNOWN</h3>
+      <p>Predikatet <code>salary &gt; 50000</code> evaluerer til <strong>UNKNOWN</strong> hvis <code>salary IS NULL</code>. Det er heller ikke TRUE og ikke FALSE — det er en tredje sannhetsverdi. Derfor får SQL en <em>treverdig logikk</em>.</p>
+
+      <div class="figgrid">
+        <figure>
+          <table class="tt">
+            <caption class="label">AND</caption>
+            <thead><tr><th></th><th>T</th><th>F</th><th>U</th></tr></thead>
+            <tbody>
+              <tr><th>T</th><td class="t">T</td><td class="f">F</td><td class="u">U</td></tr>
+              <tr><th>F</th><td class="f">F</td><td class="f">F</td><td class="f">F</td></tr>
+              <tr><th>U</th><td class="u">U</td><td class="f">F</td><td class="u">U</td></tr>
+            </tbody>
+          </table>
+          <figcaption>F dominerer i AND — gir alltid F.</figcaption>
+        </figure>
+        <figure>
+          <table class="tt">
+            <caption class="label">OR</caption>
+            <thead><tr><th></th><th>T</th><th>F</th><th>U</th></tr></thead>
+            <tbody>
+              <tr><th>T</th><td class="t">T</td><td class="t">T</td><td class="t">T</td></tr>
+              <tr><th>F</th><td class="t">T</td><td class="f">F</td><td class="u">U</td></tr>
+              <tr><th>U</th><td class="t">T</td><td class="u">U</td><td class="u">U</td></tr>
+            </tbody>
+          </table>
+          <figcaption>T dominerer i OR — gir alltid T.</figcaption>
+        </figure>
+      </div>
+
+      <h3>WHERE filtrerer bort UNKNOWN</h3>
+      <p>SQL beholder bare rader der WHERE-predikatet er TRUE. UNKNOWN behandles som FALSE i dette filteret. Derfor er resultatet av <code>SELECT * FROM emp WHERE bonus &gt; 0</code> <em>ikke</em> komplementært til <code>SELECT * FROM emp WHERE bonus &lt;= 0</code> — rader med <code>bonus = NULL</code> mangler i begge.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">IS NULL, ikke = NULL</span>
+        <p><code>x = NULL</code> er alltid UNKNOWN — også når <code>x</code> selv er NULL. Bruk derfor alltid <code>x IS NULL</code> / <code>x IS NOT NULL</code> for å teste for fravær.</p>
+      </div>
+
+      <h3>Konsekvenser i praksis</h3>
       <ul>
-        <li>NULL = «ukjent» / «ikke relevant»</li>
-        <li>Treverdig logikk: TRUE / FALSE / UNKNOWN</li>
-        <li>WHERE filtrerer bort UNKNOWN — overraskende ofte</li>
-        <li>IS NULL vs. = NULL</li>
+        <li><strong>Aggregater hopper over NULL</strong> — <code>AVG(salary)</code> teller bare ikke-NULL rader. Unntak: <code>COUNT(*)</code> teller alle rader.</li>
+        <li><strong>NOT IN ⟵⟶ NULL</strong> — <code>x NOT IN (1, 2, NULL)</code> blir UNKNOWN selv når <code>x = 3</code>. Klassisk kilde til «manglende rader».</li>
+        <li><strong>UNIQUE-constraint</strong> tillater normalt flere NULL-verdier (de regnes ikke som «like»).</li>
       </ul>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Felle · Vanskelig</div>
+        <div class="q-text">Tabellen <code>emp(name, dept)</code> har 5 rader; én har <code>dept = NULL</code>. Hva returnerer <code>SELECT name FROM emp WHERE dept &lt;&gt; 'HR'</code>?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Bare ansatte med <em>kjent</em> avdeling ulik 'HR' — raden med NULL kommer ikke med, fordi <code>NULL &lt;&gt; 'HR'</code> er UNKNOWN, og UNKNOWN filtreres bort. Vil du ha NULL med, må du skrive <code>WHERE dept IS NULL OR dept &lt;&gt; 'HR'</code>.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Refleksjon · Middels</div>
+        <div class="q-text">Hvorfor sier vi at NULL «bør unngås når mulig»? Når er det likevel uunngåelig?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">NULL gjør spørringer subtile (3-verdig logikk, NOT IN-feller, aggregater). Mange skjemafeil løses bedre ved å splitte i flere relasjoner — f.eks. en egen <code>employee_phone</code>-tabell heller enn nullbar <code>phone</code>. NULL er likevel uunngåelig for ekte valgfri informasjon (utløpsdato før den er satt, partneradresse i CV-er, osv.).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 08 Oppsummering ─────────── -->
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">08 · Oppsummering</div>
+      <h2>Du bør nå kunne …</h2>
+      <ul>
+        <li>… forklare hvorfor relasjons­modellen vant fram (deklarativ tilgang, separasjon av logisk og fysisk lag).</li>
+        <li>… definere <em>relasjon</em>, <em>tuppel</em>, <em>attributt</em>, <em>domene</em>, og hvorfor atomiske domener er viktig.</li>
+        <li>… skille <em>skjema</em> fra <em>instans</em>.</li>
+        <li>… identifisere supernøkler, kandidatnøkler og primærnøkler i et gitt skjema.</li>
+        <li>… tegne et skjemadiagram med fremmednøkler og argumentere for delete-strategi.</li>
+        <li>… forklare entitets- og referanseintegritet.</li>
+        <li>… resonnere om NULL og treverdig logikk.</li>
+      </ul>
+
+      <div class="callout">
+        <span class="label">Neste skritt</span>
+        <p>Med modellen på plass kan vi nå snakke om <strong>operasjoner</strong> på relasjoner — det formelle språket SQL bygger på. Gå videre til <a href="relasjonsalgebra.html">2B · Relasjonsalgebra</a>.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -114,6 +598,40 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script>
+  // Cascade-demo: vis hvordan RESTRICT/CASCADE/SET NULL oppfører seg
+  (function () {
+    const buttons = document.querySelectorAll('.cascade-controls button');
+    const eins = document.getElementById('inst-eins');
+    const gold = document.getElementById('inst-gold');
+    const einsText = document.getElementById('inst-eins-text');
+    const goldText = document.getElementById('inst-gold-text');
+    const msg = document.getElementById('cascade-msg');
+
+    function setMode(mode) {
+      buttons.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      eins.classList.remove('gone', 'nullified');
+      gold.classList.remove('gone', 'nullified');
+      einsText.textContent = '22222 · Einstein · Physics';
+      goldText.textContent = '33456 · Gold · Physics';
+
+      if (mode === 'restrict') {
+        msg.textContent = 'RESTRICT: slett blokkeres — det finnes refererende rader.';
+      } else if (mode === 'cascade') {
+        eins.classList.add('gone');
+        gold.classList.add('gone');
+        msg.textContent = 'CASCADE: refererende rader slettes med.';
+      } else if (mode === 'setnull') {
+        eins.classList.add('nullified');
+        gold.classList.add('nullified');
+        einsText.textContent = '22222 · Einstein · NULL';
+        goldText.textContent = '33456 · Gold · NULL';
+        msg.textContent = 'SET NULL: fremmednøkkelen nullstilles. Krever at kolonnen tillater NULL.';
+      }
+    }
+    buttons.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  })();
+</script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

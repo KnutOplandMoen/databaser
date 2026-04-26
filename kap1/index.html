@@ -5,6 +5,511 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kapittel 1 — Introduksjon til databaser</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* ─── Kap 1 lokal styling ─── */
+  .definition-box {
+    background: linear-gradient(135deg, rgba(31,78,121,0.08), rgba(122,74,45,0.04));
+    border: 1px solid var(--line-soft);
+    border-left: 4px solid var(--rust);
+    padding: 1.4rem 1.6rem;
+    border-radius: 6px;
+    margin: 1.6rem 0;
+  }
+  .definition-box .def-label {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.4rem;
+  }
+  .definition-box .def-text {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .definition-box .def-text em { font-style: italic; color: var(--rust); }
+
+  /* Application grid */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 1.4rem 0;
+  }
+  .app-tile {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    text-align: center;
+    transition: background .15s, transform .15s, border-color .15s;
+    cursor: default;
+  }
+  .app-tile:hover { background: var(--paper); border-color: var(--rust); transform: translateY(-2px); }
+  .app-tile .tile-icon { font-family: var(--mono); font-size: 0.78rem; color: var(--rust); letter-spacing: 0.1em; }
+  .app-tile .tile-title { font-family: var(--serif); font-size: 1rem; margin-top: 4px; }
+  .app-tile .tile-desc { font-size: 0.82rem; color: var(--ink-faded); margin-top: 4px; line-height: 1.4; }
+
+  /* Problem cards (file-system disadvantages) */
+  .problem-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin: 1.4rem 0;
+  }
+  .problem-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-top: 3px solid var(--blue);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+  }
+  .problem-card h4 {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0 0 0.4rem;
+  }
+  .problem-card p { font-size: 0.93rem; color: var(--ink-soft); margin: 0; line-height: 1.55; }
+
+  /* Race condition animator */
+  .race-sim {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1.4rem 1.6rem;
+    margin: 1.6rem 0;
+  }
+  .race-board {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: stretch;
+    margin: 1rem 0 1.2rem;
+  }
+  .race-actor {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    min-height: 110px;
+  }
+  .race-actor .actor-name {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .race-actor .actor-state {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-top: 0.6rem;
+    min-height: 1.4rem;
+  }
+  .race-actor.dim { opacity: 0.55; }
+  .race-actor.active { border-color: var(--rust); background: rgba(31,78,121,0.06); }
+  .race-balance {
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.4rem;
+    border-radius: 6px;
+    padding: 0.8rem 1.4rem;
+    min-width: 120px;
+  }
+  .race-balance .bal-label {
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: var(--ink-ghost);
+    margin-bottom: 4px;
+  }
+  .race-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  .race-btn {
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    background: var(--rust);
+    color: var(--paper);
+    border: none;
+    padding: 7px 14px;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .race-btn:hover { background: var(--rust-dark); }
+  .race-btn:disabled { background: var(--ink-ghost); cursor: not-allowed; }
+  .race-btn.secondary { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+  .race-btn.secondary:hover { border-color: var(--rust); color: var(--rust); background: transparent; }
+  .race-log {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: var(--paper);
+    border-left: 2px solid var(--line);
+    padding: 0.8rem 1rem;
+    min-height: 5rem;
+    max-height: 12rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+  .race-log .log-entry { display: block; }
+  .race-log .log-entry.t1 { color: var(--rust); }
+  .race-log .log-entry.t2 { color: var(--blue); }
+  .race-log .log-entry.bad { color: #b3261e; font-weight: 600; }
+  .race-log .log-entry.ok { color: var(--green); font-weight: 600; }
+
+  /* Three-level abstraction stack */
+  .abstraction-stack {
+    margin: 1.6rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .abstr-layer {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    background: var(--paper-dark);
+    transition: background .2s, border-color .2s, transform .2s;
+    cursor: default;
+  }
+  .abstr-layer:hover { background: var(--paper); border-color: var(--rust); transform: translateX(3px); }
+  .abstr-layer .layer-tag {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rust);
+    text-align: center;
+    padding: 6px 0;
+    background: rgba(31,78,121,0.1);
+    border-radius: 4px;
+  }
+  .abstr-layer.view-layer .layer-tag { background: rgba(61,107,58,0.13); color: var(--green); }
+  .abstr-layer.logical-layer .layer-tag { background: rgba(31,78,121,0.13); color: var(--rust); }
+  .abstr-layer.physical-layer .layer-tag { background: rgba(122,74,45,0.13); color: var(--blue); }
+  .abstr-layer .layer-body h4 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 0 0.2rem;
+  }
+  .abstr-layer .layer-body p { font-size: 0.9rem; color: var(--ink-soft); margin: 0; }
+
+  /* Schema vs instance */
+  .si-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.6rem 0;
+  }
+  .si-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+  }
+  .si-card .si-label {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.6rem;
+  }
+  .si-card pre {
+    margin: 0;
+    background: var(--paper);
+    font-size: 0.82rem;
+  }
+
+  /* ACID explorer */
+  .acid-explorer {
+    margin: 1.6rem 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .acid-letter {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: transform .15s, background .15s, border-color .15s;
+  }
+  .acid-letter:hover { background: var(--paper); border-color: var(--rust); transform: translateY(-2px); }
+  .acid-letter.active {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+    transform: translateY(-2px);
+  }
+  .acid-letter .letter {
+    font-family: var(--serif);
+    font-size: 2.2rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--rust);
+  }
+  .acid-letter.active .letter { color: var(--paper); }
+  .acid-letter .word {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-top: 0.4rem;
+  }
+  .acid-letter.active .word { color: var(--paper); }
+  .acid-detail {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--rust);
+    padding: 1.2rem 1.4rem;
+    border-radius: 0 6px 6px 0;
+    margin-top: 0.6rem;
+    min-height: 7rem;
+  }
+  .acid-detail h4 {
+    font-family: var(--serif);
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 0 0.4rem;
+    font-size: 1.15rem;
+  }
+  .acid-detail p { margin: 0 0 0.5rem; }
+  .acid-detail .ex {
+    font-style: italic;
+    color: var(--ink-faded);
+    font-size: 0.95rem;
+    border-left: 2px solid var(--line);
+    padding-left: 0.8rem;
+    margin-top: 0.6rem;
+  }
+
+  /* Engine SVG layout */
+  .engine-fig {
+    background: var(--paper-dark);
+    padding: 1.4rem;
+    border-radius: 8px;
+    margin: 1.6rem 0;
+    text-align: center;
+  }
+  .engine-fig svg { max-width: 100%; height: auto; }
+  .engine-fig .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 0.8rem;
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+  }
+  .engine-fig .legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  .engine-fig .legend .l-query::before { background: var(--rust); }
+  .engine-fig .legend .l-storage::before { background: var(--blue); }
+  .engine-fig .legend .l-tx::before { background: var(--green); }
+
+  /* Tier comparison */
+  .tier-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.6rem 0;
+  }
+  .tier-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .tier-card h4 {
+    font-family: var(--serif);
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 1.15rem;
+    margin: 0 0 0.6rem;
+  }
+  .tier-card .tier-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0.8rem 0;
+  }
+  .tier-card .tier-box {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 0.6rem 0.8rem;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+  .tier-card .tier-arrow { font-family: var(--mono); color: var(--ink-ghost); font-size: 1rem; }
+  .tier-card .tier-pros {
+    font-size: 0.85rem;
+    color: var(--ink-faded);
+    margin-top: 0.6rem;
+    font-style: italic;
+  }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    margin: 2rem 0;
+    padding-left: 1.4rem;
+    border-left: 2px solid var(--line);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.6rem;
+    padding-left: 0.4rem;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.85rem;
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
+    background: var(--rust);
+    border-radius: 50%;
+    border: 2px solid var(--paper);
+    box-shadow: 0 0 0 2px var(--rust);
+  }
+  .timeline-item .tl-year {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    color: var(--rust);
+    text-transform: uppercase;
+  }
+  .timeline-item .tl-title {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    margin: 2px 0 4px;
+    color: var(--ink);
+  }
+  .timeline-item .tl-body {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+
+  /* Datamodell tabs */
+  .model-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 1.4rem 0 0;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .model-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 0.92rem;
+    color: var(--ink-faded);
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    margin-bottom: -1px;
+  }
+  .model-tab:hover { color: var(--ink); }
+  .model-tab.active {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+    font-weight: 500;
+  }
+  .model-panel {
+    display: none;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-top: none;
+    padding: 1.2rem 1.4rem;
+    border-radius: 0 0 6px 6px;
+  }
+  .model-panel.active { display: block; }
+
+  /* User personas */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 1.4rem 0;
+  }
+  .persona {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+  }
+  .persona .p-role {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--rust);
+    margin-bottom: 0.4rem;
+  }
+  .persona .p-name {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+  .persona .p-body {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 720px) {
+    .race-board { grid-template-columns: 1fr; }
+    .acid-explorer { grid-template-columns: repeat(2, 1fr); }
+    .si-comparison, .tier-compare { grid-template-columns: 1fr; }
+    .abstr-layer { grid-template-columns: 1fr; }
+    .abstr-layer .layer-tag { text-align: left; }
+  }
+</style>
 </head>
 <body>
 
@@ -25,295 +530,783 @@
 <main data-chapter="Kapittel 1: Introduksjon til databaser">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 1 · Forelesning 1</div>
+      <div class="eyebrow">Kapittel 1 · Forelesning 1 · Lærebok kap. 1</div>
       <h1>Introduksjon til <em>databaser</em></h1>
-      <p class="lede">Hva er en database, hvorfor trenger vi et DBMS, og hvordan henger alle delene i kurset sammen.</p>
+      <p class="lede">Hva er en database, hvorfor trenger vi et DBMS, og hvilke deler av systemet sørger for at det hele fungerer — uten at applikasjonen må tenke på det.</p>
     </div>
   </header>
 
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#arkitektur">Arkitektur</a></li>
-        <li><span class="toc-num">03</span><a href="#acid">ACID</a></li>
-        <li><span class="toc-num">04</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#hva-er">Hva er en database?</a></li>
+        <li><span class="toc-num">02</span><a href="#hvorfor-dbms">Hvorfor DBMS?</a></li>
+        <li><span class="toc-num">03</span><a href="#datamodeller">Datamodeller</a></li>
+        <li><span class="toc-num">04</span><a href="#abstraksjon">Tre lag av abstraksjon</a></li>
+        <li><span class="toc-num">05</span><a href="#skjema-instans">Skjema vs. instans</a></li>
+        <li><span class="toc-num">06</span><a href="#sprak">Database­språk (DDL/DML)</a></li>
+        <li><span class="toc-num">07</span><a href="#acid">ACID</a></li>
+        <li><span class="toc-num">08</span><a href="#arkitektur">DBMS-arkitektur</a></li>
+        <li><span class="toc-num">09</span><a href="#klient">Klient­arkitektur</a></li>
+        <li><span class="toc-num">10</span><a href="#brukere">Brukere og DBA</a></li>
+        <li><span class="toc-num">11</span><a href="#historikk">Historikk</a></li>
+        <li><span class="toc-num">12</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
 
-  <section id="overblikk">
+  <!-- ─────────────────────────── 1. HVA ER EN DATABASE ─────────────────────────── -->
+  <section id="hva-er">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
+      <div class="section-badge">01 · Helhetsbilde</div>
       <h2>Hva er en <em>database</em></h2>
-      <p class="section-intro">Bullet-stubber:</p>
+
+      <p class="dropcap">En <strong>database</strong> er en samling sammen­hengende data som beskriver en virksomhet — kunder og kontoer i en bank, studenter og emner ved et universitet, brukere og innlegg på et sosialt nettverk. Et <strong>databasebehandlingssystem</strong> (DBMS) er et programvarelag som lar mange brukere lagre, oppdatere og hente disse dataene <em>samtidig</em>, <em>effektivt</em>, og <em>uten å miste dem</em>.</p>
+
+      <div class="definition-box">
+        <div class="def-label">Definisjon</div>
+        <div class="def-text">Et <em>DBMS</em> er en samling sammenhengende data og et sett med programmer for å aksessere disse dataene. Hovedmålet er å gi en lagringsmekanisme som er både <em>praktisk</em> og <em>effektiv</em>.</div>
+      </div>
+
+      <h3>Tre kjennetegn på data som hører hjemme i en database</h3>
       <ul>
-        <li>Persistente, strukturerte data som mange klienter deler</li>
-        <li>Hvorfor DBMS over filsystem (samtidighet, integritet, recovery, abstraksjon)</li>
-        <li>Datamodeller: relasjonell vs. dokument vs. graf</li>
-        <li>Skjema vs. instans</li>
+        <li><strong>Verdifulle</strong> — virksomheten kan ikke fungere uten dem.</li>
+        <li><strong>Store</strong> — vesentlig større enn det som får plass i hovedminnet.</li>
+        <li><strong>Delte</strong> — flere brukere og applikasjoner aksesserer dem samtidig.</li>
       </ul>
+
+      <h3>Hvor møter du databaser?</h3>
+      <div class="app-grid">
+        <div class="app-tile"><div class="tile-icon">BANK</div><div class="tile-title">Kontoer &amp; lån</div><div class="tile-desc">Saldoer, transaksjoner, kreditt­kort­oppgjør</div></div>
+        <div class="app-tile"><div class="tile-icon">EDU</div><div class="tile-title">Universitet</div><div class="tile-desc">Studenter, emner, karakterer</div></div>
+        <div class="app-tile"><div class="tile-icon">WEB</div><div class="tile-title">Sosiale medier</div><div class="tile-desc">Brukere, koblinger, innlegg</div></div>
+        <div class="app-tile"><div class="tile-icon">SHOP</div><div class="tile-title">Netthandel</div><div class="tile-desc">Ordre, lager, anbefalinger</div></div>
+        <div class="app-tile"><div class="tile-icon">FLY</div><div class="tile-title">Reservasjoner</div><div class="tile-desc">Setekart i sann tid</div></div>
+        <div class="app-tile"><div class="tile-icon">TLF</div><div class="tile-title">Telekom</div><div class="tile-desc">Samtaler, fakturering, forbruk</div></div>
+        <div class="app-tile"><div class="tile-icon">GIS</div><div class="tile-title">Navigasjon</div><div class="tile-desc">Veier, ruter, stedsdata</div></div>
+        <div class="app-tile"><div class="tile-icon">DOC</div><div class="tile-title">Dokument­arkiv</div><div class="tile-desc">Patenter, artikler, forskning</div></div>
+      </div>
+
+      <div class="callout">
+        <span class="label">To bruks­modi</span>
+        <p><strong>OLTP</strong> (online transaction processing) — mange brukere, hver henter/oppdaterer små datamengder. Bank, butikk, registrering. Dette er hoved­fokus i dette kurset.</p>
+        <p><strong>OLAP / data analytics</strong> — færre brukere, hver leser store datamengder for å oppdage mønstre og lage prediksjoner. Lånevurdering, anbefalings­motor, business intelligence. Dekkes kort i F10.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">En liten Excel-fil på din egen PC med fem rader om venners bursdager — er dette en database i kursets forstand?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Nei. Det er strukturerte data, men det er ikke <em>verdifullt for en virksomhet</em>, ikke <em>stort</em>, og ikke <em>delt mellom mange brukere</em>. En database er noe DBMS-en hjelper til med å håndtere — samtidighet, integritet, recovery — og en regneark­fil trenger ingenting av dette.</div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="arkitektur">
+  <!-- ─────────────────────────── 2. HVORFOR DBMS ─────────────────────────── -->
+  <section id="hvorfor-dbms">
     <div class="container">
-      <div class="section-badge">Arkitektur</div>
-      <h2>DBMS-en i fugleperspektiv</h2>
-      <p class="section-intro">Foregriper Del 2 — alle delene som dukker opp senere.</p>
-      <ul>
-        <li>SQL-kompilator → algebra-tre</li>
-        <li>Optimizer → kostnadsbasert plan</li>
-        <li>Executor → kjører plan, snakker med buffer/lås/log</li>
-        <li>Buffer pool → blokker i minnet</li>
-        <li>Disk → heapfiler + indekser</li>
-        <li>Logg → garanterer durability + atomicity</li>
-      </ul>
+      <div class="section-badge">02 · Motivasjon</div>
+      <h2>Hvorfor ikke bare bruke <em>filer</em></h2>
+
+      <p>Før relasjons­databasenes inntog ble bedrifter drevet av hjemme­snekrede fil­basert systemer: Hvert program leste og skrev sine egne filer i sitt eget format. Det fungerer for små problemer. Det havarerer i stor skala — av seks bestemte grunner.</p>
+
+      <div class="problem-list">
+        <div class="problem-card">
+          <h4>1. Redundans og inkonsistens</h4>
+          <p>Samme student lagres både i musikk-instituttets fil og i matematikk-instituttets fil. Endrer hun adresse, oppdateres bare den ene. Nå er adressen feil — i én av filene.</p>
+        </div>
+        <div class="problem-card">
+          <h4>2. Vanskelig dataaksess</h4>
+          <p>«Finn alle studenter i postnummer 7491 som har tatt over 60 studiepoeng» — finnes det ikke et program for, så må noen skrive ett. Hvert nytt spørsmål krever ny kode.</p>
+        </div>
+        <div class="problem-card">
+          <h4>3. Dataisolering</h4>
+          <p>Data er spredt over filer i ulike formater. Å samle dem i én rapport krever mye lim-kode.</p>
+        </div>
+        <div class="problem-card">
+          <h4>4. Integritets­problemer</h4>
+          <p>Regelen «konto­saldoen kan ikke gå under null» må kodes inn i hvert eneste program som rører saldoen. Glemmer ett program det, brytes regelen.</p>
+        </div>
+        <div class="problem-card">
+          <h4>5. Atomicity-problemer</h4>
+          <p>Pengeoverføring er to skritt: trekk fra A, legg til B. Hvis maskinen krasjer mellom dem, er pengene borte. Et fil­system har ingen «alt-eller-ingenting».</p>
+        </div>
+        <div class="problem-card">
+          <h4>6. Samtidighets­anomalier</h4>
+          <p>To kasserere trekker fra samme konto samtidig. Begge leser saldoen først, regner uavhengig, og overskriver hverandre. Pengene «forsvinner». Se simulator under.</p>
+        </div>
+        <div class="problem-card">
+          <h4>7. Sikkerhets­problemer</h4>
+          <p>Ikke alle skal se alt. I et fil-system er tilgangs­kontroll ad hoc og lett å glemme. DBMS-en sentraliserer det.</p>
+        </div>
+      </div>
+
+      <h3>Lost update — en konkret race condition</h3>
+      <p>Konto A har <strong>10 000 kr</strong>. To kasserere skal samtidig trekke fra: kasserer T₁ skal ta <strong>500 kr</strong>, T₂ skal ta <strong>100 kr</strong>. Riktig svar er <strong>9 400 kr</strong>. Klikk gjennom for å se hva som faktisk kan skje.</p>
+
+      <div class="race-sim" id="race-sim">
+        <div class="race-board">
+          <div class="race-actor" id="actor-t1">
+            <div class="actor-name">Kasserer T₁ — trekker 500 kr</div>
+            <div class="actor-state" id="state-t1">venter…</div>
+          </div>
+          <div class="race-balance">
+            <div class="bal-label">KONTO A</div>
+            <div id="bal-display">10 000</div>
+          </div>
+          <div class="race-actor" id="actor-t2">
+            <div class="actor-name">Kasserer T₂ — trekker 100 kr</div>
+            <div class="actor-state" id="state-t2">venter…</div>
+          </div>
+        </div>
+        <div class="race-controls">
+          <button class="race-btn" data-step="t1read">T₁ leser saldo</button>
+          <button class="race-btn" data-step="t2read">T₂ leser saldo</button>
+          <button class="race-btn" data-step="t1write">T₁ skriver tilbake</button>
+          <button class="race-btn" data-step="t2write">T₂ skriver tilbake</button>
+          <button class="race-btn secondary" id="race-reset">Nullstill</button>
+        </div>
+        <div class="race-log" id="race-log"><span class="log-entry">// Klikk knappene over i den rekkefølgen du vil. Prøv f.eks. T₁ les → T₂ les → T₁ skriv → T₂ skriv.</span></div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Lærdom</span>
+        <p>Begge kasserererne <em>tror</em> de har gjort jobben riktig. Men siden T₂ leste saldoen før T₁ rakk å skrive, baserer T₂ seg på en utdatert verdi. Bankens 500 kr forsvinner i tynn luft. <strong>DBMS-en løser dette med transaksjoner og låser</strong> (Kap. 8).</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">I race condition-eksempelet over — hvilket av filsystem-problemene fra lista løser DBMS-en når den hindrer dette?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Samtidighets­anomalier</strong> (lost update). DBMS-en bruker concurrency control — typisk to-fase låsing — for å sikre at to transaksjoner som leser og skriver samme data, ikke kan flette operasjonene sine slik at en oppdatering går tapt.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">Hvorfor er <em>atomicity</em> umulig å sikre i et naivt filsystem-basert oppsett?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Et filsystem garanterer ikke at flere relaterte skrivinger enten alle slår igjennom eller ingen gjør det. Hvis maskinen krasjer mellom skriving til fil A og fil B, kan halve operasjonen ha lykkes. DBMS-en løser dette ved å logge intensjoner i en <em>WAL</em> (Kap. 8) og spille inn / rulle tilbake ved oppstart etter krasj.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 3. DATAMODELLER ─────────────────────────── -->
+  <section id="datamodeller">
+    <div class="container">
+      <div class="section-badge">03 · Konseptuell ramme</div>
+      <h2>Hva er en <em>datamodell</em></h2>
+
+      <p>En <strong>datamodell</strong> er et begreps­apparat for å beskrive data, sammenhengene mellom dem, og hvilke regler som må gjelde. Modellen gir oss et språk å snakke om data i, uavhengig av lagrings­detaljer.</p>
+
+      <div class="model-tabs" role="tablist">
+        <button class="model-tab active" data-model="rel">Relasjonell</button>
+        <button class="model-tab" data-model="er">Entity-Relationship</button>
+        <button class="model-tab" data-model="semi">Semi-strukturert</button>
+        <button class="model-tab" data-model="obj">Objekt-basert</button>
+      </div>
+
+      <div class="model-panel active" data-panel="rel">
+        <h4 style="margin-top:0">Relasjonsmodellen — tabeller med navngitte kolonner</h4>
+        <p>Edgar Codd, 1970. Data lagres som <em>relasjoner</em> (tabeller) med faste kolonner. Hver rad er én oppføring. Sammenhenger uttrykkes ved at en kolonne i én tabell refererer til en kolonne i en annen.</p>
+        <pre><code>instructor                        department
++-------+------------+----------+ +-----------+----------+--------+
+| ID    | name       | dept     | | dept      | building | budget |
++-------+------------+----------+ +-----------+----------+--------+
+| 22222 | Einstein   | Physics  | | Physics   | Watson   |  70000 |
+| 76766 | Crick      | Biology  | | Biology   | Watson   |  90000 |
+| 10101 | Srinivasan | Comp.Sci.| | Comp.Sci. | Taylor   | 100000 |
++-------+------------+----------+ +-----------+----------+--------+</code></pre>
+        <p>Dominerende modell i dag. Hele Del 1 av kurset handler om denne. Detaljer: <a href="../kap2/relasjonsmodellen.html">Kap. 2</a>.</p>
+      </div>
+
+      <div class="model-panel" data-panel="er">
+        <h4 style="margin-top:0">ER-modellen — bokser, romber, linjer</h4>
+        <p>Brukes til design, ikke til lagring. <em>Entiteter</em> er ting (Student, Emne), <em>relasjoner</em> er sammenhenger (Student tar Emne). Tegnes som diagram, oversettes deretter til tabeller. Detaljer: <a href="../kap4/er-modellen.html">Kap. 4</a>.</p>
+        <pre><code>  ┌──────────┐         ┌────────┐         ┌──────┐
+  │ Student  │────◇────│  tar   │────◇────│ Emne │
+  └──────────┘         └────────┘         └──────┘</code></pre>
+      </div>
+
+      <div class="model-panel" data-panel="semi">
+        <h4 style="margin-top:0">Semi-strukturerte data — JSON, XML</h4>
+        <p>Hver post kan ha sitt eget sett med attributter. Bra for løs struktur, vanskelig for konsistente spørringer. Eksempel:</p>
+        <pre><code>{ "id": 22222, "name": "Einstein", "dept": "Physics" }
+{ "id": 76766, "name": "Crick",
+  "dept": "Biology", "office": "Watson 305",
+  "publications": ["dna-1953", "..."] }</code></pre>
+      </div>
+
+      <div class="model-panel" data-panel="obj">
+        <h4 style="margin-top:0">Objekt-basert</h4>
+        <p>Inspirert av OOP. Klasser, arv, metoder lagret i databasen. I dag stort sett integrert som «object-relational» utvidelser av relasjons­databaser snarere enn som egen modell.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">Hva er hoved­forskjellen mellom relasjons­modellen og en semi-strukturert modell som JSON?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">I relasjons­modellen har <em>alle</em> rader i en tabell <em>samme</em> sett attributter — strukturen er fast og deklarert i skjemaet. I semi-strukturerte modeller kan hver post ha sitt eget sett attributter. Det gir fleksibilitet, men gjør spørringer og integritets­sjekker vanskeligere.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 4. ABSTRAKSJON ─────────────────────────── -->
+  <section id="abstraksjon">
+    <div class="container">
+      <div class="section-badge">04 · Tre nivåer</div>
+      <h2>Lag av <em>abstraksjon</em></h2>
+
+      <p>Et DBMS skjuler implementasjons­detaljer. Bruker som kjører en SQL-spørring trenger ikke vite at radene ligger som komprimerte byte i 8 KB-blokker på en SSD, eller at det finnes en B+-tre-indeks som gjør oppslaget raskt. Denne separasjonen organiseres i tre lag.</p>
+
+      <div class="abstraction-stack">
+        <div class="abstr-layer view-layer">
+          <div class="layer-tag">View</div>
+          <div class="layer-body">
+            <h4>Visningsnivå — hva brukeren får se</h4>
+            <p>Skreddersydd delmengde av databasen. Sekretæren ser ikke lønninger; lønnings­avdelingen ser ikke karakterer. Flere visninger over samme logiske skjema.</p>
+          </div>
+        </div>
+        <div class="abstr-layer logical-layer">
+          <div class="layer-tag">Logisk</div>
+          <div class="layer-body">
+            <h4>Logisk nivå — hva som lagres og hvordan det henger sammen</h4>
+            <p>Tabeller, kolonner, fremmednøkler, integritets­krav. Programmerer­nes hverdag. SQL opererer her. DBA-en designer dette nivået.</p>
+          </div>
+        </div>
+        <div class="abstr-layer physical-layer">
+          <div class="layer-tag">Fysisk</div>
+          <div class="layer-body">
+            <h4>Fysisk nivå — hvordan det virkelig ligger på disk</h4>
+            <p>Heap-filer, blokk­størrelser, indekser, kompresjon, plassering på SSD/HDD. Skjult bak det logiske skjemaet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Sentralt begrep</span>
+        <p><strong>Fysisk dataindependence</strong> — hvis du bytter ut en heap-fil med en B+-tre-organisert fil for å gjøre range-spørringer raskere, skal ingenting på det logiske nivået trenge å endres. Applikasjonen merker det ikke (utover at den blir raskere).</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">Du legger til en B+-tre-indeks på <code>instructor.dept_name</code>. Hvilket lag endres, og hvilke applikasjoner må skrives om?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Bare det <strong>fysiske</strong> nivået endres. Det logiske skjemaet (tabellene, kolonnene, integritets­kravene) er det samme, og dermed trenger <em>ingen</em> applikasjon å skrives om. Optimizer­en merker indeksen og bruker den hvor den hjelper. Dette er presist det <em>physical data independence</em> kjøper oss.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 5. SKJEMA VS INSTANS ─────────────────────────── -->
+  <section id="skjema-instans">
+    <div class="container">
+      <div class="section-badge">05 · Statisk vs. dynamisk</div>
+      <h2>Skjema og <em>instans</em></h2>
+
+      <p>Skjemaet er <em>designet</em> — strukturen, typene, reglene. Det er som type­deklarasjonene i et program. Instansen er <em>innholdet i øyeblikket</em> — det som ligger i tabellene akkurat nå. Den endres for hver INSERT, UPDATE, DELETE; skjemaet endres knapt.</p>
+
+      <div class="si-comparison">
+        <div class="si-card">
+          <div class="si-label">Skjema (sjelden endret)</div>
+<pre><code>CREATE TABLE instructor (
+  ID        CHAR(5)        PRIMARY KEY,
+  name      VARCHAR(20)    NOT NULL,
+  dept_name VARCHAR(20),
+  salary    NUMERIC(8, 2)
+);</code></pre>
+        </div>
+        <div class="si-card">
+          <div class="si-label">Instans kl. 12:00</div>
+<pre><code>22222  Einstein    Physics    95000
+12121  Wu          Finance    90000
+10101  Srinivasan  Comp.Sci.  65000
+...</code></pre>
+          <div class="si-label" style="margin-top:0.8rem">Instans kl. 12:01 (etter en INSERT)</div>
+<pre><code>22222  Einstein    Physics    95000
+12121  Wu          Finance    90000
+10101  Srinivasan  Comp.Sci.  65000
+99999  Hopper      Comp.Sci.  88000   ← ny
+...</code></pre>
+        </div>
+      </div>
+
+      <p>Analogi: I et Java-program er <code>class Instructor { ... }</code> skjemaet, og den faktiske <code>List&lt;Instructor&gt;</code> i minnet er instansen — samme kode, ulik tilstand fra øyeblikk til øyeblikk.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">Du legger til en ny rad i <code>instructor</code>. Hva endres — skjemaet, instansen, eller begge?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Bare <strong>instansen</strong>. Skjemaet ville bare endret seg om du f.eks. hadde lagt til en ny <em>kolonne</em> via <code>ALTER TABLE</code>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 6. SPRÅK ─────────────────────────── -->
+  <section id="sprak">
+    <div class="container">
+      <div class="section-badge">06 · DDL og DML</div>
+      <h2>Database­språk</h2>
+
+      <p>SQL er to språk i ett. <strong>DDL</strong> (Data Definition Language) brukes til å definere skjemaet — <code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>. <strong>DML</strong> (Data Manipulation Language) brukes til å lese og endre data — <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>.</p>
+
+      <h3>DDL — definere strukturen</h3>
+<pre><code>CREATE TABLE department (
+  dept_name VARCHAR(20) PRIMARY KEY,
+  building  VARCHAR(15),
+  budget    NUMERIC(12, 2) CHECK (budget &gt;= 0)
+);
+
+ALTER TABLE instructor
+  ADD CONSTRAINT fk_dept
+  FOREIGN KEY (dept_name) REFERENCES department(dept_name);</code></pre>
+
+      <p>DDL-utdata legges i <strong>data dictionary</strong> — en intern tabell med metadata om alle tabeller, kolonner, og constraints. DBMS-en konsulterer denne før hver eneste spørring.</p>
+
+      <h3>DML — manipulere innholdet</h3>
+<pre><code>SELECT instructor.name
+FROM   instructor
+WHERE  instructor.dept_name = 'History';</code></pre>
+
+      <p>Resultatet er en ny tabell med én kolonne (<code>name</code>) og radene til alle historikere. SQL er <em>deklarativt</em>: vi sier <em>hva</em> vi vil ha, ikke <em>hvordan</em> den skal hentes. Optimizer­en velger plan.</p>
+
+      <div class="callout">
+        <span class="label">Deklarativ vs. prosedurell</span>
+        <p><strong>Prosedurelt</strong>: «Åpne fila, gå til posisjon 0, les 1024 byte, finn kolonne dept, sammenlign med 'History', skriv ut name, gjenta…». Brukeren forteller hvordan.</p>
+        <p><strong>Deklarativt (SQL)</strong>: «Gi meg navnet på instruktørene i historie». Brukeren forteller hva. DBMS-en velger den effektive planen — og kan velge en <em>annen</em> plan i morgen, hvis dataene har endret seg.</p>
+      </div>
+
+      <h3>Integritets­krav som DDL kan uttrykke</h3>
+      <ul>
+        <li><strong>Domene­krav</strong> — kolonnen er <code>NUMERIC(8,2)</code>, kan ikke inneholde tekst.</li>
+        <li><strong>Referansiell integritet</strong> — <code>instructor.dept_name</code> må finnes i <code>department.dept_name</code>.</li>
+        <li><strong>Autorisasjon</strong> — hvem får read, insert, update, delete?</li>
+      </ul>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">Hvorfor er en deklarativ DML som SQL bedre enn et prosedurelt bibliotek av C-funksjoner for de fleste applikasjoner?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">To grunner: (1) <strong>Optimizing</strong> — siden brukeren bare sier <em>hva</em>, kan DBMS-en velge en effektiv plan basert på indekser, statistikk, og blokk­layout. Brukeren slipper å vite om disse. (2) <strong>Fysisk uavhengighet</strong> — endrer fysisk lagring seg, eller blir det lagt til en indeks, fortsetter samme SQL å virke uten kode­endring. Et prosedurelt API er låst til implementasjonen.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 7. ACID ─────────────────────────── -->
   <section id="acid">
     <div class="container">
-      <div class="section-badge">ACID</div>
-      <h2>Fire bokstaver, fire garantier</h2>
+      <div class="section-badge">07 · Transaksjons­garantier</div>
+      <h2>Fire bokstaver, fire <em>garantier</em></h2>
+
+      <p>En <strong>transaksjon</strong> er en logisk arbeidsenhet — én eller flere SQL-setninger som hører sammen. DBMS-en garanterer fire egenskaper for enhver transaksjon. Klikk en bokstav for detaljer.</p>
+
+      <div class="acid-explorer" id="acid-explorer">
+        <div class="acid-letter active" data-acid="A">
+          <div class="letter">A</div>
+          <div class="word">Atomicity</div>
+        </div>
+        <div class="acid-letter" data-acid="C">
+          <div class="letter">C</div>
+          <div class="word">Consistency</div>
+        </div>
+        <div class="acid-letter" data-acid="I">
+          <div class="letter">I</div>
+          <div class="word">Isolation</div>
+        </div>
+        <div class="acid-letter" data-acid="D">
+          <div class="letter">D</div>
+          <div class="word">Durability</div>
+        </div>
+      </div>
+
+      <div class="acid-detail" id="acid-detail">
+        <h4 id="acid-h">Atomicity — alt eller ingenting</h4>
+        <p id="acid-p">Hver transaksjon er udelelig. Enten utføres alle skritt, eller ingen. Hvis maskinen krasjer halvveis, ryddes det halv­utførte vekk under recovery.</p>
+        <div class="ex" id="acid-ex">Eksempel: pengeoverføring fra A til B er to skritt — trekk fra A, legg til B. Krasjer maskinen mellom dem, ruller atomicity tilbake debiteringen.</div>
+      </div>
+
+      <p style="margin-top:1.4rem">Recovery-manager (Kap. 8) sørger for atomicity og durability ved å skrive en logg-post for hver endring <em>før</em> selve datasiden flushes. Concurrency-control-manager sørger for isolation ved bruk av låser eller multiversioning.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">To brukere registrerer seg samtidig på det siste ledige seminar­emnet. Hvilken ACID-egenskap forhindrer at begge får plass når det egentlig bare er én ledig?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Isolation</strong>. Hver transaksjon skal kjøre som om den var alene. Med riktig isolering vil den ene transaksjonen «se» den andres oppdatering først etter at den er ferdig — slik at bare én av dem leser «1 ledig» og oppdaterer til «0», og den andre tvinges til å se «0» og avvises. (I den underliggende mekanismen handler det om låser eller serializability — men på papiret er det isolation.)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 8. ARKITEKTUR ─────────────────────────── -->
+  <section id="arkitektur">
+    <div class="container">
+      <div class="section-badge">08 · DBMS-en innenfra</div>
+      <h2>Database­motorens <em>komponenter</em></h2>
+
+      <p>Et DBMS er ikke ett program — det er et knippe samarbeidende moduler. Tre hoved­komponenter: <strong>query processor</strong> (forstår SQL), <strong>storage manager</strong> (snakker med disk), og <strong>transaction manager</strong> (lover ACID).</p>
+
+      <figure class="engine-fig">
+        <svg viewBox="0 0 720 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DBMS arkitektur">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#6b6257"/>
+            </marker>
+            <style>
+              .lbl { font: 500 13px 'IBM Plex Sans', sans-serif; fill: #1a1612; }
+              .sub { font: 11px 'IBM Plex Mono', monospace; fill: #6b6257; }
+              .grp-title { font: 600 11px 'IBM Plex Mono', monospace; fill: #6b6257; letter-spacing: 0.1em; }
+              .arr { stroke: #6b6257; stroke-width: 1.5; fill: none; }
+            </style>
+          </defs>
+
+          <!-- Users -->
+          <rect x="20" y="20" width="120" height="56" rx="6" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <text x="80" y="42" class="lbl" text-anchor="middle">Naive brukere</text>
+          <text x="80" y="60" class="sub" text-anchor="middle">webskjema</text>
+
+          <rect x="155" y="20" width="120" height="56" rx="6" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <text x="215" y="42" class="lbl" text-anchor="middle">Application progr.</text>
+          <text x="215" y="60" class="sub" text-anchor="middle">JDBC / ODBC</text>
+
+          <rect x="290" y="20" width="120" height="56" rx="6" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <text x="350" y="42" class="lbl" text-anchor="middle">Sofistikerte</text>
+          <text x="350" y="60" class="sub" text-anchor="middle">SQL-konsoll</text>
+
+          <rect x="425" y="20" width="120" height="56" rx="6" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <text x="485" y="42" class="lbl" text-anchor="middle">DBA</text>
+          <text x="485" y="60" class="sub" text-anchor="middle">admin-verktøy</text>
+
+          <!-- Query processor -->
+          <rect x="40" y="105" width="640" height="115" rx="8" fill="#fbf7ee" stroke="#1f4e79" stroke-width="1.5"/>
+          <text x="60" y="124" class="grp-title">QUERY PROCESSOR</text>
+
+          <rect x="60" y="135" width="180" height="70" rx="5" fill="#1f4e79" />
+          <text x="150" y="160" text-anchor="middle" fill="#f4f1ea" style="font: 500 13px 'IBM Plex Sans', sans-serif;">DDL-interpreter</text>
+          <text x="150" y="178" text-anchor="middle" fill="#a39886" style="font: 11px 'IBM Plex Mono', monospace;">CREATE TABLE…</text>
+
+          <rect x="265" y="135" width="180" height="70" rx="5" fill="#1f4e79" />
+          <text x="355" y="160" text-anchor="middle" fill="#f4f1ea" style="font: 500 13px 'IBM Plex Sans', sans-serif;">DML-kompilator</text>
+          <text x="355" y="178" text-anchor="middle" fill="#a39886" style="font: 11px 'IBM Plex Mono', monospace;">SQL → plan</text>
+
+          <rect x="470" y="135" width="190" height="70" rx="5" fill="#1f4e79" />
+          <text x="565" y="160" text-anchor="middle" fill="#f4f1ea" style="font: 500 13px 'IBM Plex Sans', sans-serif;">Query evaluation</text>
+          <text x="565" y="178" text-anchor="middle" fill="#a39886" style="font: 11px 'IBM Plex Mono', monospace;">kjører plan</text>
+
+          <!-- Storage + Transaction -->
+          <rect x="40" y="245" width="400" height="170" rx="8" fill="#fbf7ee" stroke="#7a4a2d" stroke-width="1.5"/>
+          <text x="60" y="264" class="grp-title">STORAGE MANAGER</text>
+
+          <rect x="60" y="275" width="170" height="56" rx="5" fill="#7a4a2d" />
+          <text x="145" y="300" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Sans', sans-serif;">Buffer manager</text>
+          <text x="145" y="316" text-anchor="middle" fill="#ddd5c4" style="font: 10px 'IBM Plex Mono', monospace;">RAM ↔ disk</text>
+
+          <rect x="245" y="275" width="170" height="56" rx="5" fill="#7a4a2d" />
+          <text x="330" y="300" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Sans', sans-serif;">File manager</text>
+          <text x="330" y="316" text-anchor="middle" fill="#ddd5c4" style="font: 10px 'IBM Plex Mono', monospace;">heap, indekser</text>
+
+          <rect x="60" y="343" width="355" height="56" rx="5" fill="#7a4a2d" />
+          <text x="237" y="368" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Sans', sans-serif;">Authorization &amp; integrity</text>
+          <text x="237" y="384" text-anchor="middle" fill="#ddd5c4" style="font: 10px 'IBM Plex Mono', monospace;">CHECK / FK / GRANT</text>
+
+          <rect x="460" y="245" width="220" height="170" rx="8" fill="#fbf7ee" stroke="#3d6b3a" stroke-width="1.5"/>
+          <text x="480" y="264" class="grp-title">TRANSACTION MGR</text>
+
+          <rect x="478" y="275" width="190" height="56" rx="5" fill="#3d6b3a" />
+          <text x="573" y="300" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Sans', sans-serif;">Concurrency ctrl</text>
+          <text x="573" y="316" text-anchor="middle" fill="#d8e0cf" style="font: 10px 'IBM Plex Mono', monospace;">låser, MVCC</text>
+
+          <rect x="478" y="343" width="190" height="56" rx="5" fill="#3d6b3a" />
+          <text x="573" y="368" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Sans', sans-serif;">Recovery manager</text>
+          <text x="573" y="384" text-anchor="middle" fill="#d8e0cf" style="font: 10px 'IBM Plex Mono', monospace;">WAL, ARIES</text>
+
+          <!-- Disk -->
+          <ellipse cx="360" cy="442" rx="180" ry="12" fill="#3d3832" />
+          <text x="360" y="446" text-anchor="middle" fill="#f4f1ea" style="font: 500 12px 'IBM Plex Mono', monospace;">DISK · datafiler · indekser · datakatalog · logg</text>
+
+          <!-- Arrows -->
+          <path class="arr" d="M80,76 L150,135" marker-end="url(#arr)"/>
+          <path class="arr" d="M215,76 L355,135" marker-end="url(#arr)"/>
+          <path class="arr" d="M350,76 L355,135" marker-end="url(#arr)"/>
+          <path class="arr" d="M485,76 L565,135" marker-end="url(#arr)"/>
+          <path class="arr" d="M150,205 L150,275" marker-end="url(#arr)"/>
+          <path class="arr" d="M355,205 L330,275" marker-end="url(#arr)"/>
+          <path class="arr" d="M565,205 L573,275" marker-end="url(#arr)"/>
+          <path class="arr" d="M237,399 L300,430" marker-end="url(#arr)"/>
+          <path class="arr" d="M573,399 L450,432" marker-end="url(#arr)"/>
+        </svg>
+        <figcaption>DBMS-arkitektur. Klienter snakker med query processor; lagring og transaksjon­håndtering er skjult bak.</figcaption>
+        <div class="legend">
+          <span class="l-query">Query processor</span>
+          <span class="l-storage">Storage manager</span>
+          <span class="l-tx">Transaction manager</span>
+        </div>
+      </figure>
+
+      <h3>Hva gjør hver komponent?</h3>
       <ul>
-        <li><strong>Atomicity</strong> — alt-eller-ingenting</li>
-        <li><strong>Consistency</strong> — bevarer integritetskrav</li>
-        <li><strong>Isolation</strong> — som om transaksjonen var alene</li>
-        <li><strong>Durability</strong> — etter commit overlever data krasj</li>
+        <li><strong>DDL-interpreter</strong> — leser <code>CREATE TABLE</code> osv. og legger metadata i datakatalogen.</li>
+        <li><strong>DML-kompilator</strong> — oversetter SQL til en kostnads­basert spørreplan; gjør spørrings­optimalisering.</li>
+        <li><strong>Query evaluation engine</strong> — kjører planen; ber storage manager om data og lar transaction manager gjøre gjeldende.</li>
+        <li><strong>Buffer manager</strong> — holder de heteste blokkene i RAM så de ikke må leses fra disk hver gang.</li>
+        <li><strong>File manager</strong> — vet hvilke blokker som er ledige, hvor radene ligger, hvilke indekser som peker hvor.</li>
+        <li><strong>Concurrency control</strong> — sørger for at parallelle transaksjoner ikke ødelegger for hverandre.</li>
+        <li><strong>Recovery manager</strong> — skriver logg, ruller tilbake aborterte transaksjoner, gjenoppretter etter krasj.</li>
+      </ul>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">Når du kjører en SELECT i SQL, hvilken komponent gjør først om SQL-teksten til en plan?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>DML-kompilatoren</strong>. Den parser SQL-en, sjekker mot datakatalogen at tabellene/kolonnene finnes, lager flere alternative spørreplaner (rekkefølge på joins, valg av indekser, valg av algoritmer) og velger den med lavest estimert kostnad. Først da overleverer den planen til <em>query evaluation engine</em>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 9. KLIENTARKITEKTUR ─────────────────────────── -->
+  <section id="klient">
+    <div class="container">
+      <div class="section-badge">09 · Hvor sitter logikken</div>
+      <h2>To-tier vs. <em>tre-tier</em></h2>
+
+      <p>Når en applikasjon snakker med databasen, kan den enten gjøre det direkte fra klienten (to-tier) eller gå via en applikasjonsserver (tre-tier). Moderne web- og mobil-applikasjoner er nesten alltid tre-tier.</p>
+
+      <div class="tier-compare">
+        <div class="tier-card">
+          <h4>To-tier</h4>
+          <div class="tier-stack">
+            <div class="tier-box">Klient (med SQL-kall)</div>
+            <div class="tier-arrow">↓ nettverk</div>
+            <div class="tier-box">DBMS</div>
+          </div>
+          <div class="tier-pros">Enkelt. Brukes i interne verktøy. Sårbart for sikkerhet — klienten har DB-passord.</div>
+        </div>
+        <div class="tier-card">
+          <h4>Tre-tier</h4>
+          <div class="tier-stack">
+            <div class="tier-box">Klient (front-end)</div>
+            <div class="tier-arrow">↓ HTTP</div>
+            <div class="tier-box">Applikasjonsserver</div>
+            <div class="tier-arrow">↓ JDBC/ODBC</div>
+            <div class="tier-box">DBMS</div>
+          </div>
+          <div class="tier-pros">Forretnings­logikk samlet i midten. Bedre sikkerhet, ytelse og skalering. Standard for web og mobil.</div>
+        </div>
+      </div>
+
+      <h3>Sentralisert, parallell, distribuert</h3>
+      <ul>
+        <li><strong>Sentralisert</strong> — én maskin, eventuelt med flere CPU-er som deler minne.</li>
+        <li><strong>Parallell</strong> — en klynge av maskiner samarbeider om en database for å håndtere store volum.</li>
+        <li><strong>Distribuert</strong> — data ligger geografisk spredd på flere maskiner.</li>
       </ul>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 10. BRUKERE ─────────────────────────── -->
+  <section id="brukere">
+    <div class="container">
+      <div class="section-badge">10 · Personae</div>
+      <h2>Hvem bruker en <em>database</em></h2>
+
+      <div class="persona-grid">
+        <div class="persona">
+          <div class="p-role">Naive brukere</div>
+          <div class="p-name">Studenten som registrerer seg</div>
+          <div class="p-body">Møter databasen via et web­skjema. Vet ikke at det finnes en database der bak. Behovet: én oppgave skal gå glatt.</div>
+        </div>
+        <div class="persona">
+          <div class="p-role">Application programmers</div>
+          <div class="p-name">Utvikleren av studweb</div>
+          <div class="p-body">Skriver applikasjonen som tar imot skjema-data, kaller SQL via JDBC eller ORM, og presenterer resultatet i HTML.</div>
+        </div>
+        <div class="persona">
+          <div class="p-role">Sophisticated users</div>
+          <div class="p-name">Analytikeren med ad-hoc-spørsmål</div>
+          <div class="p-body">Skriver SQL eller bruker BI-verktøy direkte mot databasen. Ingen forhåndslagde grensesnitt.</div>
+        </div>
+        <div class="persona">
+          <div class="p-role">DBA</div>
+          <div class="p-name">Database­administratoren</div>
+          <div class="p-body">Ansvar: skjemadesign, indekser, autorisering, backup, ytelses­overvåkning, oppgraderinger.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">Når en student logger inn i Inspera og leverer en oppgave, hvilken brukertype er hun?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Naiv bruker</strong>. Hun har ingen anelse om hvilken tabell som oppdateres når hun klikker «Lever», og det er hele poenget — view-laget skjuler alt det.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 11. HISTORIKK ─────────────────────────── -->
+  <section id="historikk">
+    <div class="container">
+      <div class="section-badge">11 · Et halvt århundre</div>
+      <h2>Database­systemenes <em>historie</em></h2>
+
+      <p>Det er nyttig å se hvor relasjons­modellen kom fra — og hva som finnes ved siden av den i dag.</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="tl-year">1950–60-tall</div>
+          <div class="tl-title">Magnetbånd og sekvensielle data</div>
+          <div class="tl-body">Lønn ble kjørt ved at to bånd ble lest synkront og et tredje skrevet. Ingen direkte oppslag — alt sekvensielt. Punche­kort var fortsatt viktig.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">Sent 1960–70-tall</div>
+          <div class="tl-title">Harddisken endrer alt</div>
+          <div class="tl-body">Med disk kunne data nås direkte uavhengig av rekkefølge. <em>Network</em>- og <em>hierarchical</em>-modellene tillot lister og trær på disk — men programmereren måtte navigere strukturen for hånd.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">1970</div>
+          <div class="tl-title">Codd publiserer relasjons­modellen</div>
+          <div class="tl-body">«A Relational Model for Large Shared Data Banks». Én datatype (tabellen), én operasjon-familie (relasjons­algebra). Programmereren slipper å vite hvordan dataene er lagret. Codd får senere Turing-prisen.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">1970–80-tall</div>
+          <div class="tl-title">System R og Ingres beviser ytelsen</div>
+          <div class="tl-body">IBMs System R og Berkeleys Ingres gjør relasjons­ideen praktisk. SQL kommer fra System R. Tidlig 80-tall: relasjons­databaser har kjørt forbi nettverk- og hierarkiske systemer i ytelse — og de er <em>mye</em> enklere å bruke. Oracle, DB2 og Ingres-produktet etableres.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">1990-tall</div>
+          <div class="tl-title">Webben kommer</div>
+          <div class="tl-body">Databaser må håndtere langt høyere transaksjons­volum, 24/7-tilgjengelighet, web-grensesnitt. Beslutningsstøtte og data warehousing blomstrer. PostgreSQL og MySQL blir populære som åpen kildekode.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">2000-tall</div>
+          <div class="tl-title">Semi-strukturert &amp; NoSQL</div>
+          <div class="tl-body">XML, JSON, sosiale grafer presser nye datatyper inn i databasene. NoSQL-bevegelsen — Cassandra, MongoDB, Redis — bytter bort konsistens­garantier mot skalerbarhet. Column-stores og map-reduce dukker opp for analytics.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">2010-tall</div>
+          <div class="tl-title">Skyen og NewSQL</div>
+          <div class="tl-body">Bedrifter outsourcer database­drift til skyen. NoSQL-systemene legger gradvis tilbake konsistens­garantier; relasjons­databaser legger til skalerings­funksjoner. «NewSQL» (Spanner, CockroachDB) tilbyr SQL og ACID over et distribuert system.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-year">I dag</div>
+          <div class="tl-title">Mer SQL enn noen gang</div>
+          <div class="tl-body">SQL er fremdeles bransjens lingua franca for strukturert data. Vector-databaser (LLM-embeddings), tids­serie-databaser og graf-databaser dekker spesielle nisjer. Men når en startup spør «hvilken database», er svaret nesten alltid PostgreSQL.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 12. QUIZ ─────────────────────────── -->
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <p class="section-intro">Et siste sett spørsmål som dekker hele kapittelet — fra terminologi til hvor­for-spørsmål.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 1?</div>
+        <div class="q-text">Definer kort: hva er forskjellen mellom en <em>database</em> og et <em>DBMS</em>?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 1]</div>
+          <div class="answer">Databasen er <em>dataene</em> — de lagrede fakta om en virksomhet. DBMS-en er <em>programvaren</em> som lar brukerne lagre, hente og oppdatere disse dataene effektivt og konsistent. PostgreSQL er et DBMS; tabellene i din applikasjon utgjør én database.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 1 i praksis?</div>
+        <div class="q-label">Spørsmål 2 · Lett</div>
+        <div class="q-text">Hva står ACID for?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 1]</div>
+          <div class="answer"><strong>A</strong>tomicity — alt-eller-ingenting. <strong>C</strong>onsistency — bevarer integritets­krav. <strong>I</strong>solation — som om transaksjonen var alene. <strong>D</strong>urability — etter commit overlever data krasj.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 1 er faglig best?</div>
+        <div class="q-label">Spørsmål 3 · Middels</div>
+        <div class="q-text">Forklar fysisk dataindependence med ett eksempel.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 1]</div>
+          <div class="answer">Fysisk dataindependence er evnen til å endre den fysiske lagringen uten å måtte endre det logiske skjemaet eller applikasjonene. Eksempel: Du legger til en B+-tre-indeks på <code>order(customer_id)</code>. Tabellens skjema er uendret, eksisterende SQL fortsetter å virke uten endring; optimizer­en bruker bare indeksen når den hjelper. Applikasjonen merker ingenting — annet enn at noen spørringer går raskere.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 1 i praksis?</div>
+        <div class="q-text">Nevn tre konkrete problemer med å oppbevare bedrifts­data i flat-fil-systemer som DBMS-er løser.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 1]</div>
+          <div class="answer">Velg blant: data­redundans (samme info i flere filer som kommer ut av synk), vanskelig ad-hoc-aksess (krever ny kode for hvert nytt spørsmål), integritets­problemer (regler må kodes i hvert program), atomicity-problemer (krasj kan etterlate halv­utførte multi-fil-oppdateringer), samtidighets­problemer (tap-av-oppdatering når flere skriver samtidig), sikkerhets­problemer (vanskelig å begrense tilgang granular).</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 1?</div>
+        <div class="q-label">Spørsmål 5 · Middels</div>
+        <div class="q-text">Hvorfor er SQL deklarativt et viktig prinsipp — sett fra et yte- og vedlikeholds­perspektiv?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 1]</div>
+          <div class="answer">Fordi DBMS-en, ikke applikasjonen, velger hvordan spørringen kjøres. Det betyr (1) optimaliseren kan velge en bedre plan i morgen — f.eks. bruke en ny indeks som DBA-en la til — uten at applikasjonen røres, og (2) den fysiske lagringen kan endres (B-trær, hashing, kompresjon, partisjonering) uten at SQL-en skrives om. Dette gir både ytelse <em>og</em> vedlikeholdbarhet.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 1 er faglig best?</div>
+        <div class="q-label">Spørsmål 6 · Middels</div>
+        <div class="q-text">Hva er forskjellen mellom skjema og instans? Gi en analogi til et programmerings­språk.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 1]</div>
+          <div class="answer">Skjema = struktur/blueprint (tabeller, kolonner, typer, integritets­krav). Instans = innholdet i øyeblikket (de faktiske radene). Analogt med Java: <code>class Person { String name; int age; }</code> er skjemaet; den konkrete <code>List&lt;Person&gt;</code> i minnet med Ada og Linus er instansen. Skjemaet endres sjelden, instansen endres for hver INSERT/UPDATE/DELETE.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 1 i praksis?</div>
+        <div class="q-label">Spørsmål 7 · Vanskelig</div>
+        <div class="q-text">To brukere kjører samtidig en transaksjon som leser kontosaldoen, regner ny verdi og skriver tilbake. Begge transaksjonene har egen «logikk» som er korrekt isolert sett. Hvorfor er konsistens­kravet «sum av saldoer skal være uforandret etter en intern overføring» likevel ikke nok til å garantere riktig resultat? Hvilken ACID-egenskap kommer i tillegg?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 1]</div>
+          <div class="answer">Consistency krever bare at <em>hver enkelt</em> transaksjon, kjørt alene, transformerer en gyldig databasetilstand til en annen gyldig tilstand. Hvis to transaksjoner flettes vilkårlig, kan begge oppfylle sin egen konsistens­regel og likevel etterlate en sum som er feil. Det er <strong>Isolation</strong> som garanterer at parallelle transaksjoner gir samme resultat som om de hadde kjørt etter hverandre — derfor er C og I gjensidig nødvendige, ikke overlappende.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 1 er faglig best?</div>
+        <div class="q-text">Hva er forskjellen mellom to-tier og tre-tier-arkitektur, og hvorfor velger moderne webapplikasjoner tre-tier?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 1]</div>
+          <div class="answer">To-tier: klienten snakker direkte med databasen via SQL. Forretnings­logikken ligger i klienten. Tre-tier: klienten snakker med en applikasjons­server (HTTP), som så snakker med databasen. Forretnings­logikken er sentralisert i app-serveren. Tre-tier vinner fordi (a) klienten trenger ingen database­legitimasjon, (b) man kan ha mange klient­typer (web, mobil, …) mot samme logikk, (c) lettere å skalere ved å legge til flere app-servere bak en lastbalanserer, (d) bedre sikkerhet og auditabilitet.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 1?</div>
+        <div class="q-label">Spørsmål 9 · Middels</div>
+        <div class="q-text">Hvilken DBMS-komponent er ansvarlig for at en commit-et transaksjon overlever en strøm­svikt?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 1]</div>
+          <div class="answer"><strong>Recovery manager</strong>. Den skriver en logg-post (Write-Ahead Logging) for hver endring til en seig logg på disk <em>før</em> dataselve sidene flushes. Etter krasj leser den loggen og spiller om/ruller tilbake slik at alle commit-ede transaksjoner vises i databasen, og alle uavsluttede ryddes vekk. Dette dekkes i Kap. 8.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 1 er faglig best?</div>
+        <div class="q-text">Hvorfor oppsto NoSQL-systemer i 2000-tallet, og hva tilbød de som tradisjonelle SQL-databaser ikke gjorde?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 1]</div>
+          <div class="answer">Web-applikasjoner med eksplosive data­volum (sosiale medier, e-handel) hadde to behov tradisjonelle relasjons­databaser strevde med: (1) <em>horisontal skalering</em> over mange maskiner, og (2) <em>fleksible, ofte semi-strukturerte data</em>. NoSQL-systemer (Cassandra, MongoDB, …) byttet bort streng konsistens (CAP-teoremet — valgte tilgjengelighet og partisjons­toleranse over konsistens) og deklarative spørringer mot enklere skalering, eventual consistency, og skjema-flexibilitet. I dag har mange NoSQL-systemer beveget seg tilbake mot sterke garantier, og NewSQL-systemer prøver å gi det beste av begge.</div>
         </div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 1?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 1?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 1?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 1 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 1]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 1 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 1]</div>
-        </div>
-      </div>
+      <p style="margin-top:2.5rem; text-align:center; color:var(--ink-faded); font-style:italic;">Når du synes disse spørsmålene sitter, er du klar for <a href="../kap2/">Kapittel 2 — Relasjonsmodellen</a>.</p>
     </div>
   </section>
 </main>
@@ -324,6 +1317,144 @@
     <p>NTNU · TDT4145 · Vår 2026</p>
   </div>
 </footer>
+
+<script>
+  // ─── Race-condition simulator ───
+  (function () {
+    var initial = 10000;
+    var balance = initial;
+    var t1 = { name: 'T₁', amount: 500, read: null, written: false, color: 't1' };
+    var t2 = { name: 'T₂', amount: 100, read: null, written: false, color: 't2' };
+    var balDisp = document.getElementById('bal-display');
+    var stT1 = document.getElementById('state-t1');
+    var stT2 = document.getElementById('state-t2');
+    var actT1 = document.getElementById('actor-t1');
+    var actT2 = document.getElementById('actor-t2');
+    var log = document.getElementById('race-log');
+    var sim = document.getElementById('race-sim');
+    if (!sim) return;
+
+    function fmt(n) { return n.toLocaleString('no-NO').replace(/,/g, ' '); }
+
+    function render() {
+      balDisp.textContent = fmt(balance);
+      stT1.textContent = t1.read === null ? 'venter…' : (t1.written ? 'ferdig' : 'leste ' + fmt(t1.read));
+      stT2.textContent = t2.read === null ? 'venter…' : (t2.written ? 'ferdig' : 'leste ' + fmt(t2.read));
+      actT1.classList.toggle('dim', t1.written);
+      actT2.classList.toggle('dim', t2.written);
+    }
+
+    function append(html, cls) {
+      var entry = document.createElement('span');
+      entry.className = 'log-entry' + (cls ? ' ' + cls : '');
+      entry.innerHTML = html;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function checkDone() {
+      if (t1.written && t2.written) {
+        var correct = initial - t1.amount - t2.amount;
+        if (balance === correct) {
+          append('// Resultat: ' + fmt(balance) + ' kr — riktig.', 'ok');
+        } else {
+          var lost = correct - balance < 0 ? balance - correct : correct - balance;
+          append('// Resultat: ' + fmt(balance) + ' kr. Riktig svar var ' + fmt(correct) + '. ' + fmt(lost) + ' kr ' + (balance > correct ? 'dukket opp av tomme luften' : 'forsvant') + '.', 'bad');
+        }
+      }
+    }
+
+    document.querySelectorAll('#race-sim .race-btn[data-step]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var step = btn.dataset.step;
+        if (step === 't1read' && t1.read === null) {
+          t1.read = balance;
+          append('T₁ leser saldo: ' + fmt(balance) + ' kr', 't1');
+        } else if (step === 't2read' && t2.read === null) {
+          t2.read = balance;
+          append('T₂ leser saldo: ' + fmt(balance) + ' kr', 't2');
+        } else if (step === 't1write' && t1.read !== null && !t1.written) {
+          var newVal = t1.read - t1.amount;
+          balance = newVal;
+          t1.written = true;
+          append('T₁ skriver: ' + fmt(t1.read) + ' − 500 = ' + fmt(newVal) + ' kr', 't1');
+          checkDone();
+        } else if (step === 't2write' && t2.read !== null && !t2.written) {
+          var newVal2 = t2.read - t2.amount;
+          balance = newVal2;
+          t2.written = true;
+          append('T₂ skriver: ' + fmt(t2.read) + ' − 100 = ' + fmt(newVal2) + ' kr', 't2');
+          checkDone();
+        }
+        render();
+      });
+    });
+
+    document.getElementById('race-reset').addEventListener('click', function () {
+      balance = initial;
+      t1 = { name: 'T₁', amount: 500, read: null, written: false };
+      t2 = { name: 'T₂', amount: 100, read: null, written: false };
+      log.innerHTML = '';
+      append('// Nullstilt. Konto A: 10 000 kr. Prøv en ny rekkefølge.');
+      render();
+    });
+
+    render();
+  })();
+
+  // ─── Datamodell tabs ───
+  (function () {
+    var tabs = document.querySelectorAll('.model-tab');
+    var panels = document.querySelectorAll('.model-panel');
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var key = tab.dataset.model;
+        tabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
+        panels.forEach(function (p) { p.classList.toggle('active', p.dataset.panel === key); });
+      });
+    });
+  })();
+
+  // ─── ACID explorer ───
+  (function () {
+    var data = {
+      A: {
+        title: 'Atomicity — alt eller ingenting',
+        body: 'Hver transaksjon er udelelig. Enten utføres alle skritt, eller ingen. Hvis maskinen krasjer halvveis, ryddes det halv­utførte vekk under recovery.',
+        ex: 'Eksempel: pengeoverføring fra A til B er to skritt — trekk fra A, legg til B. Krasjer maskinen mellom dem, ruller atomicity tilbake debiteringen.'
+      },
+      C: {
+        title: 'Consistency — bevarer integritets­krav',
+        body: 'Etter at transaksjonen er ferdig, må databasen fortsatt oppfylle alle integritets­krav (primær­nøkler, fremmed­nøkler, CHECK-constraints, applikasjons­invarianter).',
+        ex: 'Eksempel: «sum av saldoer på A og B er konstant under en intern overføring». Programmereren ansvarlig — DBMS-en håndhever bare deklarerte constraints, ikke enhver applikasjons­invariant.'
+      },
+      I: {
+        title: 'Isolation — som om transaksjonen var alene',
+        body: 'Selv om mange transaksjoner kjører parallelt, ser hver enkelt en konsistent verden — som om den var alene om databasen. DBMS-en realiserer dette med låser eller multi-version concurrency control (MVCC).',
+        ex: 'Eksempel: to brukere registrerer seg på det siste seminar­plassen. Isolation gjør at bare én av dem ser «1 ledig» — den andre må se «0».'
+      },
+      D: {
+        title: 'Durability — overlever krasj',
+        body: 'Når DBMS-en sier «commit», så skal endringen overleve strøm­brudd, krasj og oppstart på nytt. Realiseres med en write-ahead log som flushes til persistent lagring før commit returnerer.',
+        ex: 'Eksempel: du klikker «Bestill» på Komplett, ser ordren bekreftet, og strømmen går. Når serveren kommer opp igjen, er ordren der — durability garanterer det.'
+      }
+    };
+    var letters = document.querySelectorAll('.acid-letter');
+    var h = document.getElementById('acid-h');
+    var p = document.getElementById('acid-p');
+    var ex = document.getElementById('acid-ex');
+    letters.forEach(function (el) {
+      el.addEventListener('click', function () {
+        var key = el.dataset.acid;
+        letters.forEach(function (l) { l.classList.toggle('active', l === el); });
+        var d = data[key];
+        h.textContent = d.title;
+        p.textContent = d.body;
+        ex.textContent = d.ex;
+      });
+    });
+  })();
+</script>
 
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>

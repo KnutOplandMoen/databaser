@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kapittel 6 — Lagring og indekser</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* Chapter 6 specific extras */
+  .stack-fig { background: var(--paper-dark); border-radius: 8px; padding: 1.4rem; margin: 1.6rem 0; }
+  .stack-fig svg { display: block; width: 100%; height: auto; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; margin: 1.4rem 0; }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 1.6rem; }
+  .pill { font-family: var(--mono); font-size: 0.78rem; padding: 4px 10px; border-radius: 12px; background: rgba(31,78,121,0.08); color: var(--rust); letter-spacing: 0.05em; }
+  .key-card { background: var(--paper); border: 1px solid var(--line-soft); border-radius: 8px; padding: 1rem 1.2rem; }
+  .key-card h4 { margin-top: 0; }
+  .key-card p { margin-bottom: 0; font-size: 0.96rem; }
+  .num-bullet { counter-reset: nb; list-style: none; padding-left: 0; }
+  .num-bullet li { counter-increment: nb; position: relative; padding-left: 2.4rem; margin-bottom: 0.7rem; }
+  .num-bullet li::before { content: counter(nb); position: absolute; left: 0; top: 0.05em; font-family: var(--mono); font-size: 0.78rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--rust); color: var(--paper); display: grid; place-items: center; font-weight: 600; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.4rem 0; }
+  @media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
+  .stat-box { background: var(--paper-dark); border: 1px solid var(--line-soft); border-radius: 8px; padding: 1rem; text-align: center; }
+  .stat-num { font-family: var(--serif); font-size: 2rem; color: var(--rust); display: block; line-height: 1; margin-bottom: 0.3rem; }
+  .stat-lbl { font-family: var(--mono); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faded); }
+</style>
 </head>
 <body>
 
@@ -27,47 +47,239 @@
     <div class="container">
       <div class="eyebrow">Kapittel 6 · Forelesning 11–12 · Del 2</div>
       <h1>Lagring og <em>indekser</em></h1>
-      <p class="lede">Hvor data faktisk ligger — record-format, blokker, buffer pool, og hvordan B+-trær gir oss raske oppslag.</p>
+      <p class="lede">Hvor data faktisk ligger — fra rotende disk til en blokk i bufferet, og hvordan B+-treet finner riktig rad på 3 oppslag.</p>
+      <div class="pill-row">
+        <span class="pill">Bratsbergs notater 1–11</span>
+        <span class="pill">Forelesning 11–12</span>
+        <span class="pill">lagring.pdf</span>
+      </div>
     </div>
   </header>
 
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#hvorfor">Hvorfor lagring?</a></li>
+        <li><span class="toc-num">02</span><a href="#hierarki">Hierarkiet</a></li>
+        <li><span class="toc-num">03</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
+        <li><span class="toc-num">04</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">05</span><a href="#oppsummering">Oppsummering</a></li>
+        <li><span class="toc-num">06</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
 
-  <section id="overblikk">
+  <section id="hvorfor">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
-      <h2>Den fysiske verden</h2>
-      <ul>
-        <li>SSD vs HDD — hvorfor det betyr noe for layout</li>
-        <li>Hierarki: device → blokk → record → felt</li>
-        <li>RID = (BlockId, slot) — hvordan vi peker på en rad</li>
-        <li>Buffer pool: lese fra disk er dyrt, hold ting i minnet</li>
-      </ul>
-      <div class="callout callout-blue">
-        <span class="label">Slides</span>
-        <p><a href="../powerpoints/lagring.pdf">lagring.pdf</a> dekker akkurat dette kapittelet. Bratsbergs notater er hovedkilde.</p>
+      <div class="section-badge">01 · Helhetsbilde</div>
+      <h2>Hvorfor bryr vi oss om <em>hvor</em> dataen ligger?</h2>
+      <p class="dropcap">Et SQL-spørsmål som <code>SELECT * FROM Employee WHERE empno = 4711</code> ser uskyldig ut. Bak kulissene må DBMS-en finne én rad blant millioner. Det kan ta 1 millisekund eller 10 sekunder — forskjellen ligger i <strong>hvordan dataene er lagret på disken</strong> og <strong>hvilke indekser</strong> som finnes.</p>
+
+      <p>RAM-aksess tar ~100 nanosekunder. Et tilfeldig HDD-oppslag tar ~10 millisekunder — fem størrelsesordener tregere. Så regelen er enkel: <strong>tell antall blokker du må lese fra disken</strong>. Det er nesten alltid den dominerende kostnaden.</p>
+
+      <div class="stat-row">
+        <div class="stat-box">
+          <span class="stat-num">~100 ns</span>
+          <span class="stat-lbl">RAM-aksess</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">~100 µs</span>
+          <span class="stat-lbl">SSD random read</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">~10 ms</span>
+          <span class="stat-lbl">HDD random seek</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Mental modell</span>
+        <p>Tenk på diskaksess som å sende en bud til arkivet i kjelleren — og RAM som å åpne en bok som ligger på pulten. Indekser er kort sagt smarte triks for å sende færrest mulig bud.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="hierarki">
+    <div class="container">
+      <div class="section-badge">02 · Hierarkiet</div>
+      <h2>Fra <em>device</em> til <em>felt</em></h2>
+      <p>Hele kapittelet henger på dette ene bildet. Hver «boks» kjenner bare boksene umiddelbart over og under seg. SQL-laget snakker om rader; lagringslaget snakker om blokker. Resten av kapittelet handler om hvordan disse to verdenene møtes.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hierarki-title">
+          <title id="hierarki-title">Lagringshierarki: device, blokk, record, felt</title>
+          <defs>
+            <marker id="arr1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#6b6257"/>
+            </marker>
+          </defs>
+
+          <!-- Device -->
+          <g transform="translate(40,30)">
+            <rect width="160" height="70" rx="6" fill="#e8e3d6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">DEVICE</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">SSD eller HDD</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">deviceId + offset</text>
+          </g>
+
+          <!-- Block -->
+          <g transform="translate(280,30)">
+            <rect width="160" height="70" rx="6" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">BLOKK / SIDE</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">~16 KiB</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">BlockId = (dev, idx)</text>
+          </g>
+
+          <!-- Record -->
+          <g transform="translate(520,30)">
+            <rect width="160" height="70" rx="6" fill="#e8e3d6" stroke="#7a4a2d" stroke-width="2"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#7a4a2d" font-weight="700">RECORD / RAD</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">én rad i tabell</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">RID = (BlockId, slot)</text>
+          </g>
+
+          <!-- Field -->
+          <g transform="translate(280,170)">
+            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#3d6b3a" stroke-width="2"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#3d6b3a" font-weight="700">FELT / ATTRIBUTT</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">empno, name, ...</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">fixed eller variable</text>
+          </g>
+
+          <!-- Buffer pool -->
+          <g transform="translate(40,170)">
+            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#c68a1f" stroke-width="2"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#c68a1f" font-weight="700">BUFFER POOL</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">RAM-cache av blokker</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">hash-indeksert</text>
+          </g>
+
+          <!-- SQL -->
+          <g transform="translate(520,170)">
+            <rect width="160" height="70" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="2" stroke-dasharray="4,3"/>
+            <text x="80" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">SQL-LAGET</text>
+            <text x="80" y="50" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612">ser bare rader</text>
+            <text x="80" y="64" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">vet ikke om blokker</text>
+          </g>
+
+          <!-- Arrows -->
+          <line x1="200" y1="65" x2="280" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="440" y1="65" x2="520" y2="65" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="600" y1="100" x2="600" y2="170" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="440" y1="200" x2="360" y2="200" stroke="#6b6257" stroke-width="1.5" marker-end="url(#arr1)"/>
+          <line x1="200" y1="200" x2="280" y2="200" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <line x1="120" y1="100" x2="120" y2="170" stroke="#6b6257" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+          <!-- Labels -->
+          <text x="240" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">leses inn</text>
+          <text x="480" y="58" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">inneholder</text>
+          <text x="610" y="140" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">deles i</text>
+          <text x="240" y="194" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">tilbys som</text>
+
+          <!-- Bottom note -->
+          <g transform="translate(40,290)">
+            <rect width="640" height="50" rx="6" fill="#ddd5c4"/>
+            <text x="320" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">DBMS-jobben: minimer antall blokker som må flyttes mellom device og buffer pool.</text>
+            <text x="320" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">Indekser, clustering og smart bufring er alle svar på det samme problemet.</text>
+          </g>
+        </svg>
+        <figcaption>Lagringshierarkiet — fra fysisk device opp til logiske rader. Resten av kapittelet utdyper hver av disse boksene.</figcaption>
+      </figure>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Lett</div>
+        <div class="q-text">En RID er definert som <em>(BlockId, slot)</em>. Hvorfor brukes ikke bare en absolutt offset i filen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <strong>Fordi vi vil kunne flytte recorden inne i blokken.</strong> RID-en er semilogisk: BlockId-delen er fysisk (peker direkte til en blokk), men slot-delen er logisk — slot directory-en oversetter slot-nummeret til faktisk offset i blokken. Da kan vi kompaktere blokken (fjerne hull etter slettinger) uten at RID-er ute i indeksene blir ugyldige.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="nokkelbegreper">
+    <div class="container">
+      <div class="section-badge">03 · Nøkkelbegreper</div>
+      <h2>Tolv ord som låser opp kapittelet</h2>
+      <p>Hvis du forstår disse 12, har du forstått kjernen. Resten er detaljer.</p>
+
+      <div class="two-col">
+        <div class="key-card">
+          <h4>Blokk (page)</h4>
+          <p>Den minste enheten DBMS-en leser eller skriver. Typisk 4–32 KiB. All koblingen mellom disk og minne skjer i blokker — aldri på rad-nivå.</p>
+        </div>
+        <div class="key-card">
+          <h4>Record / RID</h4>
+          <p>En rad lagret som bytes. RID = (BlockId, slot) er den faste pekeren som indekser bruker.</p>
+        </div>
+        <div class="key-card">
+          <h4>Slot directory</h4>
+          <p>En vektor på slutten av blokken som peker inn i blokken. Lar deg flytte recordene uten å ugyldiggjøre RID-ene.</p>
+        </div>
+        <div class="key-card">
+          <h4>Buffer pool</h4>
+          <p>RAM-arealet hvor blokker holdes mens de er i bruk. Hash-indeksert på BlockId. Erstatningsstrategi: LRU, MRU eller clock.</p>
+        </div>
+        <div class="key-card">
+          <h4>Heapfil</h4>
+          <p>Tabell uten orden. Insert er O(1), søk er O(N). Brukes typisk når det finnes en separat indeks ved siden av.</p>
+        </div>
+        <div class="key-card">
+          <h4>Hashfil</h4>
+          <p>Konstant-tid likhetsoppslag. Statisk hashing får overflow-problemer; extendible hashing løser det med en directory.</p>
+        </div>
+        <div class="key-card">
+          <h4>B+-tre</h4>
+          <p>Balansert flerveistre med høy fanout. Alle data ligger i bladene; interne noder er bare guide. Bladene er lenket sammen for raske range-scans.</p>
+        </div>
+        <div class="key-card">
+          <h4>Clustered indeks</h4>
+          <p>Radene i tabellen er fysisk sortert etter indeksnøkkelen. Maks én per tabell. Drastisk raskere for range-spørringer.</p>
+        </div>
+        <div class="key-card">
+          <h4>Unclustered indeks</h4>
+          <p>Indeksen peker inn i en separat heapfil. Kan ha mange per tabell, men hver match krever ekstra blokkaksess.</p>
+        </div>
+        <div class="key-card">
+          <h4>Sparse vs dense</h4>
+          <p>Dense = én indekspost per record. Sparse = én per blokk (kun mulig på clustered data). Sekundærindekser er alltid dense.</p>
+        </div>
+        <div class="key-card">
+          <h4>Fanout</h4>
+          <p>Hvor mange barn en intern node har. Høyere fanout → færre nivåer → færre disk-I/O per oppslag.</p>
+        </div>
+        <div class="key-card">
+          <h4>Fill degree</h4>
+          <p>Statistisk 2/3 i et B+-tre. Når du regner kapasitet i en oppgave: <code>floor(blokk · 2/3 / recsize)</code>.</p>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk forståelsen · Middels</div>
+        <div class="q-text">Du har en tabell med 1 million rader og legger til en B+-tree-indeks med fanout 200. Omtrent hvor mange diskaksesser trengs for ett likhets-oppslag?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <strong>3–4 blokker.</strong> Høyden er <code>log<sub>200</sub>(1 000 000) ≈ 2.6</code>, dvs. 3 nivåer i selve treet. Hvis indeksen er <em>unclustered</em> trenger vi i tillegg én aksess i heapfilen for selve raden — totalt 4. Hvis den er <em>clustered</em> ligger raden allerede i bladet — 3.
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
+      <div class="section-badge">04 · Deler</div>
       <h2>Utforsk <em>kapittelet</em></h2>
+      <p>Kapittelet er delt i to halvdeler. Begynn med 6A — du må forstå hvordan en rad ligger i en blokk før indekser gir mening.</p>
       <div class="subpage-list">
         <a href="lagring.html" class="subpage-card">
           <span class="sp-icon">6A</span>
           <div class="sp-info">
-            <div class="sp-title">Lagring — record format, blokker, buffer</div>
-            <div class="sp-desc">Notater kap. 1–8. DBMS-arkitektur, fixed/variable records, slot directory, RID, heapfiler, hashing</div>
+            <div class="sp-title">Lagring — record-format, blokker, buffer, hashing</div>
+            <div class="sp-desc">Notater kap. 1–8. Animasjoner av slot directory, buffer pool og extendible hashing. 8 quizer.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -75,241 +287,252 @@
           <span class="sp-icon">6B</span>
           <div class="sp-info">
             <div class="sp-title">B+-trær og indekser</div>
-            <div class="sp-desc">Notater kap. 9–11. Søk/innsetting/sletting, clustered vs. unclustered, sparse vs. dense</div>
+            <div class="sp-desc">Notater kap. 9–11. Interaktivt B+-tre — sett inn nøkler og se tre-splitting. 9 quizer.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Slides og notater</span>
+        <p>Hovedkilde: <a href="../powerpoints/lagring.pdf">lagring.pdf</a> + Bratsbergs notater kap. 1–11. Læreboka dekker ikke lagringsdelen — disse to filene <em>er</em> pensum.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">05 · Oppsummering</div>
+      <h2>Et bilde du må kunne <em>tegne</em></h2>
+      <p>På eksamen må du kunne resonnere om antall blokk-aksesser. Skissen under gir deg de fire vanligste lagringsalternativene side om side.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
+          <title>Fire lagringsalternativer</title>
+
+          <!-- Heap -->
+          <g transform="translate(20,20)">
+            <text x="80" y="14" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">1 · HEAP</text>
+            <g>
+              <rect x="0" y="22" width="160" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <rect x="0" y="46" width="160" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <rect x="0" y="70" width="160" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <rect x="0" y="94" width="160" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <text x="80" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">17, 4, 92, 8</text>
+              <text x="80" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">31, 22, 14</text>
+              <text x="80" y="84" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">5, 19, 73, 11</text>
+              <text x="80" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">2, 47, 13</text>
+            </g>
+            <text x="80" y="140" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Insert: O(1)</text>
+            <text x="80" y="156" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Søk: full scan</text>
+          </g>
+
+          <!-- Hash -->
+          <g transform="translate(200,20)">
+            <text x="80" y="14" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">2 · HASH</text>
+            <g>
+              <rect x="0" y="22" width="60" height="22" fill="#ddd5c4" stroke="#c9c0ae"/>
+              <text x="30" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">h=0</text>
+              <rect x="0" y="46" width="60" height="22" fill="#ddd5c4" stroke="#c9c0ae"/>
+              <text x="30" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">h=1</text>
+              <rect x="0" y="70" width="60" height="22" fill="#ddd5c4" stroke="#c9c0ae"/>
+              <text x="30" y="84" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">h=2</text>
+              <rect x="0" y="94" width="60" height="22" fill="#ddd5c4" stroke="#c9c0ae"/>
+              <text x="30" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">h=3</text>
+
+              <rect x="80" y="22" width="80" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <text x="120" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">8, 16, 24</text>
+              <rect x="80" y="46" width="80" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <text x="120" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">5, 13, 21</text>
+              <rect x="80" y="70" width="80" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <text x="120" y="84" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">10, 14, 22</text>
+              <rect x="80" y="94" width="80" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <text x="120" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">3, 11, 19</text>
+
+              <line x1="60" y1="33" x2="80" y2="33" stroke="#6b6257"/>
+              <line x1="60" y1="57" x2="80" y2="57" stroke="#6b6257"/>
+              <line x1="60" y1="81" x2="80" y2="81" stroke="#6b6257"/>
+              <line x1="60" y1="105" x2="80" y2="105" stroke="#6b6257"/>
+            </g>
+            <text x="80" y="140" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Likhet: O(1)</text>
+            <text x="80" y="156" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Range: full scan</text>
+          </g>
+
+          <!-- Clustered B+ -->
+          <g transform="translate(380,20)">
+            <text x="80" y="14" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">3 · CLUSTERED B+</text>
+            <rect x="60" y="22" width="40" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="80" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">14|33</text>
+            <rect x="0" y="60" width="50" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+            <rect x="55" y="60" width="50" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+            <rect x="110" y="60" width="50" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+            <text x="25" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">2,5,11</text>
+            <text x="80" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">14,22,28</text>
+            <text x="135" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">33,41</text>
+            <line x1="65" y1="44" x2="25" y2="60" stroke="#1f4e79"/>
+            <line x1="80" y1="44" x2="80" y2="60" stroke="#1f4e79"/>
+            <line x1="95" y1="44" x2="135" y2="60" stroke="#1f4e79"/>
+            <line x1="50" y1="71" x2="55" y2="71" stroke="#3d6b3a" stroke-width="2"/>
+            <line x1="105" y1="71" x2="110" y2="71" stroke="#3d6b3a" stroke-width="2"/>
+            <text x="80" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#3d6b3a">← bladlenker →</text>
+            <text x="80" y="140" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Likhet: 3 blokker</text>
+            <text x="80" y="156" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Range: super-rask</text>
+          </g>
+
+          <!-- Heap + uncluster -->
+          <g transform="translate(560,20)">
+            <text x="80" y="14" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">4 · HEAP + B+</text>
+            <rect x="60" y="22" width="40" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="80" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">indeks</text>
+            <rect x="0" y="60" width="50" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <rect x="55" y="60" width="50" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <rect x="110" y="60" width="50" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="25" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="8">k→RID</text>
+            <text x="80" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="8">k→RID</text>
+            <text x="135" y="74" text-anchor="middle" font-family="IBM Plex Mono" font-size="8">k→RID</text>
+            <line x1="65" y1="44" x2="25" y2="60" stroke="#1f4e79"/>
+            <line x1="80" y1="44" x2="80" y2="60" stroke="#1f4e79"/>
+            <line x1="95" y1="44" x2="135" y2="60" stroke="#1f4e79"/>
+
+            <rect x="20" y="100" width="120" height="22" fill="#e8e3d6" stroke="#c9c0ae"/>
+            <text x="80" y="114" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">heap (usortert)</text>
+            <line x1="25" y1="82" x2="60" y2="100" stroke="#7a4a2d" stroke-dasharray="3,2"/>
+            <line x1="80" y1="82" x2="100" y2="100" stroke="#7a4a2d" stroke-dasharray="3,2"/>
+            <line x1="135" y1="82" x2="120" y2="100" stroke="#7a4a2d" stroke-dasharray="3,2"/>
+            <text x="80" y="140" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Likhet: 3 + 1</text>
+            <text x="80" y="156" text-anchor="middle" font-family="Newsreader" font-size="11" fill="#1a1612">Range: random I/O</text>
+          </g>
+
+          <!-- Verdict bar -->
+          <g transform="translate(20,200)">
+            <rect width="680" height="60" rx="6" fill="#ddd5c4"/>
+            <text x="340" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">
+              Velg etter spørringsmønster: mange likhetssøk + få endringer → hash; range-spørringer → clustered B+; ad-hoc + flere indekser → heap + B+.
+            </text>
+            <text x="340" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">På eksamen: regn ut antall blokker for hver av de fire alternativene før du velger.</text>
+          </g>
+        </svg>
+        <figcaption>Fire lagringsalternativer side om side. Tallene under er for samme tabell (100 000 rader, 80-byte records, 4 KiB-blokker).</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="label">Eksamen-trick</span>
+        <p>Når du regner kostnaden av en spørring, gjør det alltid for <em>hver</em> av de fire alternativene over og sammenlikn — det er nettopp det Bratsberg gjør i kapittel 12.</p>
       </div>
     </div>
   </section>
 
   <section id="quiz">
     <div class="container">
-      <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="section-badge">06 · Test deg selv</div>
+      <h2>Helhetsspørsmål</h2>
+      <p class="section-intro">12 spørsmål som dekker hele kapittelet. Detaljerte spørsmål om lagring og B+-trær finner du på de respektive underkapitlene.</p>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 6?</div>
+        <div class="q-label">1 · Lett</div>
+        <div class="q-text">Hva er den minste enheten DBMS-en leser eller skriver mellom disk og RAM?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 6]</div>
+          <div class="answer">En <strong>blokk</strong> (også kalt <em>page</em>), typisk 4–32 KiB. DBMS-en jobber aldri på rad-nivå mot disk — selv om du bare trenger én rad, må hele blokken den ligger i leses inn.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 6 i praksis?</div>
+        <div class="q-label">2 · Lett</div>
+        <div class="q-text">Hva står RID for, og hva består den av?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 6]</div>
+          <div class="answer"><strong>Record IDentifier</strong> = (BlockId, slot). BlockId peker på en blokk fysisk; slot er en logisk indeks i slot directory inne i blokken. Indekser bruker RID som peker fra indeksposten til selve raden.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 6 er faglig best?</div>
+        <div class="q-label">3 · Middels</div>
+        <div class="q-text">Hvorfor velger DBMS-er typisk å bruke sin egen buffer pool i stedet for å la operativsystemet håndtere caching via virtual memory?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 6]</div>
+          <div class="answer">Fordi DBMS-en <strong>kjenner semantikken</strong> i dataene. Den vet når en blokk vil bli lest igjen snart, kan prefetche når den ser en table scan, vet hvilke blokker som må skrives før commit (recovery), og kan pinne blokker som er midt i en transaksjon. Operativsystemet ser bare anonyme sidefeil og bruker generiske heuristikker.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 6 i praksis?</div>
+        <div class="q-label">4 · Middels</div>
+        <div class="q-text">En tabell har 1 000 000 rader, 80 bytes per record, blokkstørrelse 4 KiB. Den ligger i en heapfil. En likhets-spørring på en ikke-indeksert kolonne — hvor mange blokker leses i gjennomsnitt?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 6]</div>
+          <div class="answer">Records per blokk: <code>floor(4096/80) = 51</code>. Antall blokker: <code>ceil(1 000 000/51) = 19 608</code>. Uten indeks må vi gjøre full scan, men i snitt finner vi raden halvveis: <strong>~9804 blokker</strong>. (Hvis kolonnen er unik kan vi stoppe på den treffes; hvis ikke, må vi skanne alt: ~19 608.)</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 6?</div>
+        <div class="q-label">5 · Middels</div>
+        <div class="q-text">Hva er forskjellen på en clustered og en unclustered indeks, og hvor mange clustered indekser kan en tabell ha?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 6]</div>
+          <div class="answer">I en <strong>clustered indeks</strong> ligger radene fysisk sortert etter indeksnøkkelen — bladene i B+-treet inneholder selve radene. I en <strong>unclustered indeks</strong> peker indeksen via RID inn i en separat heapfil. En tabell kan ha <strong>maks én clustered indeks</strong> (siden det bare er én fysisk sortering), men kan ha mange unclustered.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 6 er faglig best?</div>
+        <div class="q-label">6 · Vanskelig</div>
+        <div class="q-text">Hvorfor er en hash-indeks ubrukelig for spørringer som <code>WHERE age &gt; 50</code>, mens en B+-tree-indeks håndterer det effektivt?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 6]</div>
+          <div class="answer">En hash-funksjon spreder nøkler tilfeldig over blokkene — <strong>nærliggende verdier ender på helt forskjellige steder</strong>. For å finne alle med age &gt; 50 må du hashe alle mulige verdier eller skanne hele filen. B+-treet derimot holder nøklene <strong>sortert</strong>; én traversering ned til 51, så følge bladlenkene sidelengs til slutten. Range-spørringer er en av de viktigste grunnene til at B+-trær dominerer.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 6 i praksis?</div>
+        <div class="q-label">7 · Middels</div>
+        <div class="q-text">I et B+-tre er <em>fyllingsgraden</em> statistisk 2/3. Hva betyr det praktisk når du regner kapasitet?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 6]</div>
+          <div class="answer">Når nøkler settes inn i tilfeldig rekkefølge, vil hver blokk i snitt være ~67 % full (resten er ledig fra splittinger). Når du regner antall bladblokker for N records: <code>ceil(N / floor(blokkstørrelse · 2/3 / recsize))</code>. Eksempel: 4 KiB blokk, 120-byte records → <code>floor(4096 · 2/3 / 120) = 22</code> records per blokk.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 6 er faglig best?</div>
+        <div class="q-label">8 · Vanskelig</div>
+        <div class="q-text">En unclustered B+-tree-indeks for spørringen <code>WHERE empno > 90000</code> hvor 20 % av radene matcher — hvorfor kan en full table scan faktisk være raskere?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 6]</div>
+          <div class="answer">Hver indekstreff på <em>unclustered</em> peker til en <strong>tilfeldig</strong> blokk i heapen. 20 000 treff = potensielt 20 000 random I/O-er. En full scan leser bare ~20 000 blokker <em>sekvensielt</em>, og sekvensiell I/O er størrelsesordener raskere enn random på både HDD og SSD. Optimalisatoren bruker selektivitet for å bytte til full scan over en terskel (typisk ~5–15 % treff).</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 6?</div>
+        <div class="q-label">9 · Middels</div>
+        <div class="q-text">Hvorfor heter det B<em>plus</em>-tre, og hva er forskjellen fra et vanlig B-tre?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 6]</div>
+          <div class="answer">I et <strong>B-tre</strong> kan data ligge i interne noder. I et <strong>B+-tre</strong> ligger <em>alle</em> data i bladene; interne noder inneholder bare separator-nøkler som guide. Dette gir to fordeler: (1) interne noder blir mindre → høyere fanout → kortere tre; (2) bladene kan lenkes sammen for raske range-scans, noe som er umulig i et B-tre.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 6 er faglig best?</div>
+        <div class="q-label">10 · Vanskelig</div>
+        <div class="q-text">Hva er problemet med statisk hashing, og hvordan løser extendible hashing det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 6]</div>
+          <div class="answer"><strong>Statisk hashing</strong> har et fast antall blokker N — hvis du undervurderer datamengden, fylles bøttene opp og du får lange overflow-kjeder som dreper ytelsen. <strong>Extendible hashing</strong> bruker en directory mellom hash-verdien og blokkene. Når en blokk blir full, dobler man directory-en (eller bare splitter blokken hvis local depth &lt; global depth) og rehasher kun den ene blokken. Vekstratet er smertefritt, og oppslag tar fortsatt 1 ekstra aksess (directory + datablokk).</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 6 i praksis?</div>
+        <div class="q-label">11 · Middels</div>
+        <div class="q-text">Hva betyr <em>pinning</em> av en blokk i buffer pool, og når brukes det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 6]</div>
+          <div class="answer">Pinning markerer en buffer-frame som «ikke kandidat for eviction». Brukes mens en operasjon aktivt holder pekere inn i blokken — typisk under en B+-tree-traversering eller mens en transaksjon endrer recordene. Når operasjonen er ferdig, unpinnes blokken og kan kastes ut igjen.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 6 er faglig best?</div>
+        <div class="q-label">12 · Vanskelig</div>
+        <div class="q-text">Du designer skjemaet for en tabell <code>Order(orderId, customerId, date, total)</code>. Spørringene er hovedsakelig <code>WHERE customerId = ? AND date BETWEEN ? AND ?</code>. Hvilken indeks anbefaler du, og hvorfor er rekkefølgen viktig?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 6?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 6 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 6 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 6 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 6?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 6 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 6 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 6 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 6 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 6 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 6?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 6 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 6]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 6 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 6]</div>
+          <div class="answer">En sammensatt indeks <strong>(customerId, date)</strong>. Komposittnøkler sorteres leksikografisk, så vi ønsker det <em>mest selektive</em> attributtet først (customerId — fast verdi i WHERE), deretter range-attributtet (date). Da finner B+-treet først alle rader for kunden, og innenfor den gruppen er datoene sortert — så vi kan skanne sidelengs i bladet til vi går utenfor range-en. Hvis vi snur til (date, customerId), må vi skanne alle datoer i intervallet og deretter filtrere på kunde, langt mindre effektivt.</div>
         </div>
       </div>
     </div>

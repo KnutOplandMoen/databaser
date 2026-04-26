@@ -25,7 +25,7 @@
 <main data-chapter="Kapittel 3: SQL">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 3 · Forelesning 3–6</div>
+      <div class="eyebrow">Kapittel 3 · Forelesning 3–6 · Lærebok 3.1–5.4</div>
       <h1>SQL — fra <em>SELECT</em> til triggere</h1>
       <p class="lede">Det praktiske språket man faktisk bruker. Fire forelesninger, fire deler — fra grunnleggende spørringer til prosedyrer og rekursjon.</p>
     </div>
@@ -34,300 +34,388 @@
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#overblikk">Hva er SQL</a></li>
+        <li><span class="toc-num">02</span><a href="#anatomi">Anatomi av en spørring</a></li>
+        <li><span class="toc-num">03</span><a href="#deler">Lærebokens deler</a></li>
+        <li><span class="toc-num">04</span><a href="#sjekkliste">Sjekkliste</a></li>
+        <li><span class="toc-num">05</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
 
   <section id="overblikk">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
-      <h2>SQL er stort — del det opp</h2>
-      <p class="section-intro">Bullet-stubber:</p>
-      <ul>
-        <li>DDL (CREATE/ALTER) vs. DML (SELECT/INSERT/UPDATE/DELETE) vs. DCL (GRANT/REVOKE)</li>
-        <li>Standard vs. dialekt — vi bruker stort sett ANSI-SQL</li>
-        <li>Optimalisatorens jobb: gjøre din SELECT om til en god plan</li>
-      </ul>
+      <div class="section-badge">01 · Helhetsbilde</div>
+      <h2>SQL er <em>flere</em> språk i ett</h2>
+      <p class="dropcap">SQL ble utviklet av IBM tidlig på 1970-tallet som <em>Sequel</em>, en del av System R-prosjektet, og standardisert av ANSI/ISO i 1986. I dag er det det udiskutable standardspråket for relasjonsdatabaser. Men SQL er ikke <em>ett</em> språk — det er en familie underspråk som dekker alt fra å definere skjemaer til å gi rettigheter til brukere.</p>
+
+      <p>Kjenner du dimensjonene under, blir det mye lettere å forstå hvor i SQL en gitt kommando hører hjemme:</p>
+
+      <figure>
+        <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="13">
+          <defs>
+            <style>
+              .lang-card { fill: #f4f1ea; stroke: #c9c0ae; stroke-width: 1; }
+              .lang-title { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+              .ddl-c { fill: rgba(31, 78, 121, 0.10); stroke: #1f4e79; }
+              .dml-c { fill: rgba(122, 74, 45, 0.10); stroke: #7a4a2d; }
+              .dcl-c { fill: rgba(61, 107, 58, 0.10); stroke: #3d6b3a; }
+              .tcl-c { fill: rgba(198, 138, 31, 0.10); stroke: #c68a1f; }
+            </style>
+          </defs>
+          <rect class="lang-card ddl-c" x="20"  y="30"  width="160" height="220" rx="6"/>
+          <rect class="lang-card dml-c" x="200" y="30"  width="160" height="220" rx="6"/>
+          <rect class="lang-card dcl-c" x="380" y="30"  width="160" height="220" rx="6"/>
+          <rect class="lang-card tcl-c" x="560" y="30"  width="140" height="220" rx="6"/>
+
+          <text class="lang-title" x="100" y="56" text-anchor="middle" fill="#1f4e79">DDL</text>
+          <text x="100" y="76" text-anchor="middle" fill="#3d3832">data-definition</text>
+          <text x="100" y="108" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">CREATE</text>
+          <text x="100" y="128" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">ALTER</text>
+          <text x="100" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">DROP</text>
+          <text x="100" y="168" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">CREATE INDEX</text>
+          <text x="100" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">CREATE VIEW</text>
+          <text x="100" y="220" text-anchor="middle" font-size="11" fill="#6b6257" font-style="italic">skjema, struktur</text>
+
+          <text class="lang-title" x="280" y="56" text-anchor="middle" fill="#7a4a2d">DML</text>
+          <text x="280" y="76" text-anchor="middle" fill="#3d3832">data-manipulation</text>
+          <text x="280" y="108" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">SELECT</text>
+          <text x="280" y="128" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">INSERT</text>
+          <text x="280" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">UPDATE</text>
+          <text x="280" y="168" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">DELETE</text>
+          <text x="280" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">MERGE</text>
+          <text x="280" y="220" text-anchor="middle" font-size="11" fill="#6b6257" font-style="italic">data inn/ut</text>
+
+          <text class="lang-title" x="460" y="56" text-anchor="middle" fill="#3d6b3a">DCL</text>
+          <text x="460" y="76" text-anchor="middle" fill="#3d3832">data-control</text>
+          <text x="460" y="108" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">GRANT</text>
+          <text x="460" y="128" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">REVOKE</text>
+          <text x="460" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">CREATE ROLE</text>
+          <text x="460" y="220" text-anchor="middle" font-size="11" fill="#6b6257" font-style="italic">rettigheter</text>
+
+          <text class="lang-title" x="630" y="56" text-anchor="middle" fill="#c68a1f">TCL</text>
+          <text x="630" y="76" text-anchor="middle" fill="#3d3832">transaction</text>
+          <text x="630" y="108" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">BEGIN</text>
+          <text x="630" y="128" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">COMMIT</text>
+          <text x="630" y="148" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">ROLLBACK</text>
+          <text x="630" y="168" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">SAVEPOINT</text>
+          <text x="630" y="220" text-anchor="middle" font-size="11" fill="#6b6257" font-style="italic">begynner/avslutter</text>
+        </svg>
+        <figcaption>SQL er fire underspråk som lever i samme syntaks. Forelesning 3–4 er nesten utelukkende DML; F5 berører DDL og DCL; F6 går videre til kontrollflyt.</figcaption>
+      </figure>
+
       <div class="callout">
-        <span class="label">Merk</span>
-        <p>SQL-syntaks for transaksjoner (BEGIN/COMMIT/ROLLBACK) introduseres i del 3, men <em>teorien</em> hører hjemme i Kap 8.</p>
+        <span class="label">Nøkkelinnsikt</span>
+        <p>SQL er <em>deklarativt</em>: du sier <em>hva</em> du vil ha, ikke <em>hvordan</em> det skal hentes. Optimalisatoren oversetter <code>SELECT … FROM … WHERE …</code> til en eksekverbar plan basert på indekser, statistikk og kostnadsmodeller. Vi lærer SQL i kap. 3, men optimaliseringen ligger i kap. 7.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Lett</div>
+        <div class="q-text">Du legger til en kolonne i en eksisterende tabell. Hvilket underspråk er det?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">DML — du endrer hvordan data ser ut</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">DDL — du endrer skjemaet til relasjonen</button></li>
+          <li><button class="mcq-opt" data-letter="C">DCL — du gir bredere tilgang til en attributt</button></li>
+          <li><button class="mcq-opt" data-letter="D">TCL — det skjer alltid i en transaksjon</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig. <code>ALTER TABLE … ADD COLUMN …</code> endrer <em>strukturen</em> (skjemaet) til relasjonen, ikke radene. Det er DDL-territorium.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="anatomi">
+    <div class="container">
+      <div class="section-badge">02 · Anatomi</div>
+      <h2>Hjertet i SQL: <em>SELECT … FROM … WHERE …</em></h2>
+      <p>Selv om mye av kapitlet handler om DDL, integritet og prosedyrer, er det <code>SELECT</code>-spørringen du møter mest. Den har tre obligatoriske komponenter pluss flere valgfrie. <strong>Husk:</strong> SQL <em>skrives</em> i én rekkefølge, men <em>evalueres</em> i en helt annen.</p>
+
+      <div class="fig-anim" data-anim data-max-step="6">
+        <figure>
+          <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="13">
+            <defs>
+              <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+              </marker>
+            </defs>
+
+            <!-- Written order (left) -->
+            <text x="120" y="30" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257" letter-spacing="0.12em">SLIK SKRIVER DU</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="13">
+              <text x="40" y="60" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">SELECT</tspan> name, salary*1.1</text>
+              <text x="40" y="90" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">FROM</tspan>   instructor</text>
+              <text x="40" y="120" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">WHERE</tspan>  dept_name = 'CS'</text>
+              <text x="40" y="150" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">GROUP BY</tspan> dept_name</text>
+              <text x="40" y="180" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">HAVING</tspan> COUNT(*) > 2</text>
+              <text x="40" y="210" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">ORDER BY</tspan> salary DESC</text>
+              <text x="40" y="240" data-show-on="1,2,3,4,5,6"><tspan fill="#1f4e79" font-weight="700">LIMIT</tspan> 5;</text>
+            </g>
+
+            <!-- Logical order (right) -->
+            <text x="450" y="30" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257" letter-spacing="0.12em">SLIK EVALUERES DEN</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="13" fill="#3d3832">
+              <text x="450" y="60"  data-show-on="1,2,3,4,5,6">1. <tspan fill="#7a4a2d" font-weight="700">FROM</tspan>      → kartesisk produkt</text>
+              <text x="450" y="90"  data-show-on="2,3,4,5,6">2. <tspan fill="#7a4a2d" font-weight="700">WHERE</tspan>     → filtrer rader</text>
+              <text x="450" y="120" data-show-on="3,4,5,6">3. <tspan fill="#7a4a2d" font-weight="700">GROUP BY</tspan>  → bunt rader</text>
+              <text x="450" y="150" data-show-on="4,5,6">4. <tspan fill="#7a4a2d" font-weight="700">HAVING</tspan>    → filtrer grupper</text>
+              <text x="450" y="180" data-show-on="5,6">5. <tspan fill="#7a4a2d" font-weight="700">SELECT</tspan>    → kolonner/uttrykk</text>
+              <text x="450" y="210" data-show-on="6">6. <tspan fill="#7a4a2d" font-weight="700">ORDER BY</tspan>  → sorter</text>
+              <text x="450" y="240" data-show-on="6">7. <tspan fill="#7a4a2d" font-weight="700">LIMIT</tspan>     → top-N</text>
+            </g>
+
+            <!-- Big aha-arrow -->
+            <path d="M250 285 Q360 305 440 285" stroke="#1f4e79" stroke-width="1.5" fill="none" marker-end="url(#arr3)"/>
+            <text x="350" y="305" text-anchor="middle" font-style="italic" fill="#6b6257" font-size="12">SELECT skrives først, men evalueres nesten sist</text>
+          </svg>
+          <figcaption>Klikk gjennom stegene under for å se evalueringsrekkefølgen som styrer hva som er lovlig hvor (f.eks. hvorfor <code>WHERE</code> ikke kan referere til en kolonnealias fra <code>SELECT</code>).</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">FROM</button>
+          <button data-step="2">WHERE</button>
+          <button data-step="3">GROUP&nbsp;BY</button>
+          <button data-step="4">HAVING</button>
+          <button data-step="5">SELECT</button>
+          <button data-step="6">ORDER/LIMIT</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 6</span>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Vanlig fallgruve</span>
+        <p>Fordi <code>SELECT</code> evalueres etter <code>WHERE</code>, kan du <em>ikke</em> bruke en kolonnealias definert i <code>SELECT</code> i en <code>WHERE</code>-betingelse på samme spørringsnivå. Dette er en hyppig eksamensspørsmål-felle.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Hvilken av spørringene under <em>kompilerer ikke</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">SELECT salary*1.1 FROM instructor WHERE dept_name='CS';</button></li>
+          <li><button class="mcq-opt" data-correct="1">SELECT salary*1.1 AS hike FROM instructor WHERE hike > 80000;</button></li>
+          <li><button class="mcq-opt">SELECT salary*1.1 AS hike FROM instructor ORDER BY hike;</button></li>
+          <li><button class="mcq-opt">SELECT name FROM instructor WHERE salary > (SELECT AVG(salary) FROM instructor);</button></li>
+        </ul>
+        <div class="mcq-feedback">Korrekt. <code>WHERE</code> evalueres før <code>SELECT</code>, så aliaset <code>hike</code> finnes ikke ennå. <code>ORDER BY</code> evalueres derimot <em>etter</em> <code>SELECT</code> og kan trygt bruke aliaser.</div>
       </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
+      <div class="section-badge">03 · Deler</div>
       <h2>Utforsk <em>kapittelet</em></h2>
+      <p>Hver delside dekker én forelesning og bygger på den foregående. Ta dem i rekkefølge første gang.</p>
+
       <div class="subpage-list">
         <a href="ddl-og-spoerringer.html" class="subpage-card">
           <span class="sp-icon">3A</span>
           <div class="sp-info">
-            <div class="sp-title">DDL og spørringer</div>
-            <div class="sp-desc">CREATE TABLE, SELECT, WHERE, ORDER BY, aggregat, GROUP BY/HAVING, mengdeoperatorer</div>
+            <div class="sp-title">DDL og spørringer <span class="pill rust">F3</span> <span class="pill">3.1–3.7, 3.9</span></div>
+            <div class="sp-desc">CREATE TABLE og typer · SELECT/FROM/WHERE · ORDER BY/DISTINCT · aggregat og GROUP BY · UNION/INTERSECT/EXCEPT</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
         <a href="joins-og-subqueries.html" class="subpage-card">
           <span class="sp-icon">3B</span>
           <div class="sp-info">
-            <div class="sp-title">Joins og subqueries</div>
-            <div class="sp-desc">INNER/OUTER JOIN, ON vs USING, korrelerte subqueries, EXISTS, IN, ANY/ALL</div>
+            <div class="sp-title">Joins og subqueries <span class="pill rust">F4</span> <span class="pill">3.8, 4.1</span></div>
+            <div class="sp-desc">INNER/LEFT/RIGHT/FULL JOIN · ON vs USING · self-join · skalar/tabell-subquery · EXISTS/IN/ANY/ALL · korrelerte subqueries · WITH/CTE</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
         <a href="views-transaksjoner-integritet.html" class="subpage-card">
           <span class="sp-icon">3C</span>
           <div class="sp-info">
-            <div class="sp-title">Views, transaksjoner, integritet</div>
-            <div class="sp-desc">VIEW, CREATE INDEX, GRANT/REVOKE, CHECK/ASSERTION, BEGIN/COMMIT</div>
+            <div class="sp-title">Views, transaksjoner, integritet <span class="pill rust">F5</span> <span class="pill">4.2–4.7, 16.5.1, 17.1</span></div>
+            <div class="sp-desc">CREATE VIEW · BEGIN/COMMIT/ROLLBACK-syntaks · NOT NULL/UNIQUE/PK/FK · CASCADE/SET NULL · CHECK · CREATE INDEX · GRANT/REVOKE</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
         <a href="prosedyrer-triggere-rekursjon.html" class="subpage-card">
           <span class="sp-icon">3D</span>
           <div class="sp-info">
-            <div class="sp-title">Prosedyrer, triggere, rekursjon</div>
-            <div class="sp-desc">STORED PROCEDURE, FUNCTION, TRIGGER, WITH RECURSIVE</div>
+            <div class="sp-title">Prosedyrer, triggere, rekursjon <span class="pill rust">F6</span> <span class="pill">4.5, 4.7, 5.2–5.4</span></div>
+            <div class="sp-desc">CREATE FUNCTION/PROCEDURE · IN/OUT/INOUT · BEFORE/AFTER trigger · NEW/OLD · WITH RECURSIVE · transitive lukninger</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
+      </div>
+
+      <div class="callout">
+        <span class="label">Merk</span>
+        <p>SQL-syntaks for transaksjoner (<code>BEGIN/COMMIT/ROLLBACK</code>) introduseres i del 3C, men <em>teorien</em> bak — ACID, isolasjon, samtidighet, recovery — hører hjemme i kapittel 8.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="sjekkliste">
+    <div class="container">
+      <div class="section-badge">04 · Sjekkliste</div>
+      <h2>Når du er ferdig med kap. 3 skal du …</h2>
+      <div class="fact-grid">
+        <div class="fact-card"><div class="fc-key">Skrive</div><div class="fc-val">CREATE TABLE med PK, FK, NOT NULL, CHECK og forklare <em>hvorfor</em> integritetskravene er der.</div></div>
+        <div class="fact-card"><div class="fc-key">Lese</div><div class="fc-val">En 3-5-tabell-spørring og forutsi resultatsettet — inkludert NULL-oppførsel og duplikathåndtering.</div></div>
+        <div class="fact-card"><div class="fc-key">Velge</div><div class="fc-val">Riktig JOIN-type. Vite forskjellen på INNER, LEFT, FULL, og når en CROSS JOIN er det du faktisk vil ha.</div></div>
+        <div class="fact-card"><div class="fc-key">Omforme</div><div class="fc-val">En IN-subquery til EXISTS og motsatt — og forklare når NOT IN feiler i møte med NULL.</div></div>
+        <div class="fact-card"><div class="fc-key">Kjenne</div><div class="fc-val">Når en VIEW er oppdaterbar, og hva CHECK OPTION gjør.</div></div>
+        <div class="fact-card"><div class="fc-key">Forstå</div><div class="fc-val">Hva en BEFORE/AFTER row-trigger faktisk kjører på, og hvorfor trigger-kaskader er farlige.</div></div>
+        <div class="fact-card"><div class="fc-key">Skrive</div><div class="fc-val">En WITH RECURSIVE-spørring som regner ut transitive lukning (forfedre, naborelasjoner).</div></div>
+        <div class="fact-card"><div class="fc-key">Begrunne</div><div class="fc-val">Når GRANT … WITH GRANT OPTION er nyttig og hvilken risiko det medfører.</div></div>
       </div>
     </div>
   </section>
 
   <section id="quiz">
     <div class="container">
-      <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <div class="section-badge">05 · Test deg selv</div>
+      <h2>Konsept-quiz</h2>
+      <p class="section-intro">Tolv flervalgsspørsmål på tvers av hele kapitlet. Detaljerte spørsmål per tema finner du på hver delside.</p>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q1 · Lett</div>
+        <div class="q-text">Hvilken kommando fjerner radene <em>uten</em> å slette skjemaet til tabellen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">DROP TABLE r;</button></li>
+          <li><button class="mcq-opt" data-correct="1">DELETE FROM r;</button></li>
+          <li><button class="mcq-opt">ALTER TABLE r RESET;</button></li>
+          <li><button class="mcq-opt">CREATE TABLE r AS SELECT * FROM r WHERE 1=0;</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>DELETE FROM r;</code> fjerner alle rader, men beholder definisjonen. <code>DROP TABLE</code> ville slettet selve tabellen.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q2 · Lett</div>
+        <div class="q-text">SQL fjerner duplikater i resultatet kun når du …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">… bruker GROUP BY</button></li>
+          <li><button class="mcq-opt" data-correct="1">… eksplisitt skriver DISTINCT eller bruker UNION/INTERSECT/EXCEPT (uten ALL)</button></li>
+          <li><button class="mcq-opt">… har en primærnøkkel på tabellen</button></li>
+          <li><button class="mcq-opt">… aldri — SQL er settbasert per definisjon</button></li>
+        </ul>
+        <div class="mcq-feedback">Default-semantikken i SQL er <em>multiset</em> (bag), ikke set. Du må be om dedup eksplisitt.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q3 · Middels</div>
+        <div class="q-text"><code>SELECT COUNT(*)</code> og <code>SELECT COUNT(salary)</code> kan gi forskjellige svar fordi …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">… COUNT(*) er udefinert i SQL-standarden</button></li>
+          <li><button class="mcq-opt" data-correct="1">… COUNT(col) hopper over rader der col er NULL, men COUNT(*) teller alle rader</button></li>
+          <li><button class="mcq-opt">… COUNT(*) bruker bare primærnøkkelen</button></li>
+          <li><button class="mcq-opt">… COUNT(col) returnerer alltid antall distinkte verdier</button></li>
+        </ul>
+        <div class="mcq-feedback">Aggregatfunksjoner (untatt <code>COUNT(*)</code>) ignorerer NULL.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q4 · Middels</div>
+        <div class="q-text"><code>WHERE x = NULL</code> returnerer aldri rader. Hva er den rette forklaringen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">SQL forbyr likhetstest mot NULL — det gir feil</button></li>
+          <li><button class="mcq-opt" data-correct="1">Sammenligning med NULL gir <em>UNKNOWN</em>, og WHERE filtrerer bort alt som ikke er TRUE</button></li>
+          <li><button class="mcq-opt">NULL er det samme som tomstring; bruk x = ''</button></li>
+          <li><button class="mcq-opt">Det er en bug i de fleste DBMS</button></li>
+        </ul>
+        <div class="mcq-feedback">SQL bruker tre-verdi-logikk. Bruk <code>x IS NULL</code> for å sjekke om x mangler.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q5 · Middels</div>
+        <div class="q-text">En INNER JOIN mellom to tabeller på en match-betingelse er logisk ekvivalent med …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">… kartesisk produkt etterfulgt av WHERE med samme betingelse</button></li>
+          <li><button class="mcq-opt">… NATURAL JOIN — alltid</button></li>
+          <li><button class="mcq-opt">… UNION mellom de to tabellene</button></li>
+          <li><button class="mcq-opt">… alltid en LEFT JOIN, men implementert raskere</button></li>
+        </ul>
+        <div class="mcq-feedback">JOIN er bare syntaktisk sukker for kartesisk produkt + filter. NATURAL JOIN er en spesialvariant som matcher alle felles attributter.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q6 · Vanskelig</div>
+        <div class="q-text">Hvilken spørring er ekvivalent med <code>WHERE x IN (SELECT y FROM t)</code> selv når y kan være NULL?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">WHERE x = ANY (SELECT y FROM t)</button></li>
+          <li><button class="mcq-opt" data-correct="1">WHERE EXISTS (SELECT 1 FROM t WHERE t.y = x)</button></li>
+          <li><button class="mcq-opt">WHERE x = (SELECT y FROM t LIMIT 1)</button></li>
+          <li><button class="mcq-opt">WHERE x NOT IN (SELECT y FROM t)</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>= ANY</code> er teoretisk ekvivalent, men <code>EXISTS</code> er mest robust. Den klassiske fellen er <em>NOT IN</em> — den feiler stille om subqueryen returnerer minst én NULL.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q7 · Middels</div>
+        <div class="q-text">En view <code>CREATE VIEW v AS SELECT a, b FROM t WHERE c > 0</code> er <em>ikke</em> oppdaterbar via INSERT hvis …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">… t har en NOT NULL-kolonne som ikke er med i v sine kolonner</button></li>
+          <li><button class="mcq-opt">… c er en numerisk kolonne</button></li>
+          <li><button class="mcq-opt">… v ikke er materialisert</button></li>
+          <li><button class="mcq-opt">… det finnes en indeks på t</button></li>
+        </ul>
+        <div class="mcq-feedback">Et view er oppdaterbart kun hvis SQL kan invertere mappingen entydig. En NOT NULL-kolonne som er skjult av view-et hindrer INSERT.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q8 · Middels</div>
+        <div class="q-text">Hva betyr <code>ON DELETE CASCADE</code> i en foreign key-deklarasjon?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Forhindrer slettinger av referert rad</button></li>
+          <li><button class="mcq-opt" data-correct="1">Sletter også referansene i den refererende tabellen automatisk</button></li>
+          <li><button class="mcq-opt">Setter foreign key-feltet til NULL ved sletting</button></li>
+          <li><button class="mcq-opt">Krever brukeren har CASCADE-privilegiet</button></li>
+        </ul>
+        <div class="mcq-feedback">Alternativene er RESTRICT (default — nekt sletting), SET NULL og SET DEFAULT.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q9 · Vanskelig</div>
+        <div class="q-text">Når er en CHECK-betingelse <em>ikke</em> tilstrekkelig for å håndheve en regel?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Når regelen involverer aritmetikk</button></li>
+          <li><button class="mcq-opt">Når regelen er på én enkelt kolonne</button></li>
+          <li><button class="mcq-opt" data-correct="1">Når regelen krysser flere rader/tabeller (f.eks. «total budsjett ≤ X»)</button></li>
+          <li><button class="mcq-opt">Når regelen bruker et kolonnenavn</button></li>
+        </ul>
+        <div class="mcq-feedback">CHECK gjelder per rad. Krav på tvers av rader trenger en ASSERTION (sjeldent støttet) eller en trigger.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q10 · Middels</div>
+        <div class="q-text">Du vil at en trigger skal kjøre <em>én gang</em> når én UPDATE-setning oppdaterer 1000 rader. Hva velger du?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">FOR EACH ROW BEFORE UPDATE</button></li>
+          <li><button class="mcq-opt">FOR EACH ROW AFTER UPDATE</button></li>
+          <li><button class="mcq-opt" data-correct="1">FOR EACH STATEMENT AFTER UPDATE</button></li>
+          <li><button class="mcq-opt">CHECK CONSTRAINT</button></li>
+        </ul>
+        <div class="mcq-feedback">FOR EACH ROW kjører 1000 ganger. FOR EACH STATEMENT kjører én gang per setning, uavhengig av antall berørte rader.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q11 · Vanskelig</div>
+        <div class="q-text">En rekursiv WITH RECURSIVE krever et anker (basistilfelle) og et rekursivt uttrykk. Hva er anker-uttrykket?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">SELECT-en som ikke refererer til CTE-navnet selv</button></li>
+          <li><button class="mcq-opt">Det største antall rader systemet vil tillate</button></li>
+          <li><button class="mcq-opt">En FOREIGN KEY-deklarasjon</button></li>
+          <li><button class="mcq-opt">Setningen UNION ALL</button></li>
+        </ul>
+        <div class="mcq-feedback">Anker-leddet er den ikke-rekursive SELECT-en som starter iterasjonen. UNION ALL kombinerer anker med det rekursive leddet.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 3]</div>
-        </div>
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q12 · Vanskelig</div>
+        <div class="q-text">Hvilket utsagn er sant om GRANT … WITH GRANT OPTION?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Det er det samme som å gjøre brukeren til superbruker</button></li>
+          <li><button class="mcq-opt" data-correct="1">Mottakeren får lov å videregi privilegiet til andre</button></li>
+          <li><button class="mcq-opt">Privilegiet kan ikke kalles tilbake (REVOKE) etterpå</button></li>
+          <li><button class="mcq-opt">Det fungerer kun på views, ikke tabeller</button></li>
+        </ul>
+        <div class="mcq-feedback">Mottakeren kan GRANT-e videre. Når kilden REVOKE-er, faller hele kjeden av delegasjoner kaskadert (cascading revoke).</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 3?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 3 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 3]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 3 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 3]</div>
-        </div>
-      </div>
+      <p style="margin-top:1.6rem; font-size:0.95rem; color: var(--ink-faded);">Klar for mer fordypning? Hopp til <a href="ddl-og-spoerringer.html">3A — DDL og spørringer</a>.</p>
     </div>
   </section>
 </main>
