@@ -26,16 +26,18 @@
 <main data-chapter="Kapittel 3: SQL">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 3 · 3C · Forelesning 5</div>
+      <div class="eyebrow">Kapittel 3 · 3C · Forelesning 5 · Lærebok 4.2–4.7, 16.5.1, 17.1</div>
       <h1>Views, <em>transaksjoner</em>, integritet</h1>
-      <p class="lede">Lærebokas 4.2–4.7, 16.5.1, 17.1. Logiske abstraksjoner, integritetsregler og syntaks for transaksjoner.</p>
+      <p class="lede">Logiske abstraksjoner over data, regler som forhindrer tull, og syntaksen som binder flere endringer sammen i én atomær enhet.</p>
       <nav class="toc">
         <a href="#views"><span>01</span> Views</a>
-        <a href="#tx-syntax"><span>02</span> Transaksjons-DDL</a>
+        <a href="#oppdaterbare"><span>02</span> Oppdaterbare views</a>
         <a href="#integritet"><span>03</span> Integritetskrav</a>
-        <a href="#assertion"><span>04</span> CHECK · ASSERTION</a>
-        <a href="#index"><span>05</span> CREATE INDEX</a>
-        <a href="#auth"><span>06</span> Autorisasjon</a>
+        <a href="#fk-actions"><span>04</span> ON DELETE / ON UPDATE</a>
+        <a href="#assertion"><span>05</span> CHECK · ASSERTION</a>
+        <a href="#tx-syntax"><span>06</span> Transaksjons-syntaks</a>
+        <a href="#index"><span>07</span> CREATE INDEX</a>
+        <a href="#auth"><span>08</span> GRANT · REVOKE</a>
       </nav>
     </div>
   </header>
@@ -43,72 +45,399 @@
   <section id="views">
     <div class="container">
       <div class="section-badge">01 · Views</div>
-      <h2>Lagrede spørringer</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <h2>Lagrede spørringer som virtuelle tabeller</h2>
+      <p class="dropcap">En <em>view</em> er en navngitt SELECT. Den oppfører seg som en tabell — du kan velge fra den, joine den, lage views over views — men dataene ligger i de underliggende tabellene. Views er kraftige fordi de gir to ting: (1) gjenbrukbar kompleksitet og (2) en sikkerhetsmekanisme der brukere får se en utsnitt uten å få tilgang til hele basen.</p>
+
+      <pre><code><span class="sql-kw">CREATE VIEW</span> faculty <span class="sql-kw">AS</span>
+  <span class="sql-kw">SELECT</span> ID, name, dept_name
+  <span class="sql-kw">FROM</span> instructor;
+
+<span class="sql-com">-- Brukes som en helt vanlig tabell:</span>
+<span class="sql-kw">SELECT</span> name <span class="sql-kw">FROM</span> faculty <span class="sql-kw">WHERE</span> dept_name = <span class="sql-str">'Biology'</span>;</code></pre>
+
+      <h3>Virtuell vs. materialisert</h3>
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Virtuelt view (default)</div>
+          <div class="fc-val">SELECT-en re-evalueres hver gang viewet brukes. Alltid friskt, men kan være dyrt.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Materialisert view</div>
+          <div class="fc-val">Resultatet lagres fysisk. Raskt å lese, men må vedlikeholdes når underliggende data endres.</div>
+        </div>
+      </div>
+
+      <figure>
+        <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+          <defs>
+            <marker id="arrV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+            </marker>
+          </defs>
+          <rect x="40" y="40" width="140" height="60" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <text x="110" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">instructor</text>
+          <text x="110" y="80" text-anchor="middle" font-size="10" fill="#6b6257">basetabell</text>
+
+          <rect x="40" y="120" width="140" height="60" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <text x="110" y="140" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">teaches</text>
+          <text x="110" y="160" text-anchor="middle" font-size="10" fill="#6b6257">basetabell</text>
+
+          <rect x="260" y="65" width="200" height="90" fill="rgba(31, 78, 121, 0.10)" stroke="#1f4e79" stroke-dasharray="4 3"/>
+          <text x="360" y="90" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">faculty_load</text>
+          <text x="360" y="110" text-anchor="middle" font-size="10" fill="#3d3832">CREATE VIEW … AS</text>
+          <text x="360" y="125" text-anchor="middle" font-size="10" fill="#3d3832">SELECT name, COUNT(*)</text>
+          <text x="360" y="140" text-anchor="middle" font-size="10" fill="#3d3832">FROM instructor JOIN teaches …</text>
+
+          <circle cx="600" cy="110" r="22" fill="rgba(122, 74, 45, 0.12)" stroke="#7a4a2d"/>
+          <text x="600" y="115" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#7a4a2d">bruker</text>
+          <text x="600" y="160" text-anchor="middle" font-size="10" fill="#6b6257" font-style="italic">SELECT * FROM faculty_load</text>
+
+          <line x1="180" y1="70"  x2="260" y2="100" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrV)"/>
+          <line x1="180" y1="150" x2="260" y2="120" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrV)"/>
+          <line x1="460" y1="110" x2="575" y2="110" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrV)"/>
+
+          <text x="360" y="195" text-anchor="middle" font-style="italic" fill="#6b6257" font-size="11">Virtuelt view: spørringen evalueres på ferske data hver gang brukeren leser fra viewet</text>
+        </svg>
+        <figcaption>Et view er en oppskrift, ikke en kopi. SELECT mot viewet utløser SELECT-en mot basisdataene.</figcaption>
+      </figure>
+
+      <h3>Hvorfor views?</h3>
       <ul>
-        <li>CREATE VIEW v AS SELECT … — virtuell tabell</li>
-        <li>Materialiserte views — fysisk lagret, må vedlikeholdes</li>
-        <li>Oppdaterbare views: bare når SQL klarer å invertere mappingen</li>
-        <li>WITH CHECK OPTION</li>
+        <li><strong>Forenkling</strong> — pakk en kompleks join inn i ett navn.</li>
+        <li><strong>Sikkerhet</strong> — gi en bruker tilgang til viewet, ikke basetabellen, så de bare ser delen som er relevant for dem.</li>
+        <li><strong>Logisk uavhengighet</strong> — endre underliggende skjema, men behold viewets «kontrakt» mot applikasjonen.</li>
       </ul>
     </div>
   </section>
 
-  <section id="tx-syntax">
+  <section id="oppdaterbare">
     <div class="container">
-      <div class="section-badge">02 · Transaksjons-DDL</div>
-      <h2>BEGIN · COMMIT · ROLLBACK</h2>
+      <div class="section-badge">02 · Oppdaterbare views</div>
+      <h2>Når kan du INSERT/UPDATE/DELETE gjennom et view?</h2>
+      <p>Et view er <em>oppdaterbart</em> hvis SQL kan unikt avgjøre hvilken endring i basetabellene som skal foretas. Det er strenge regler:</p>
+
       <ul>
-        <li>Bare syntaksen her — teorien hører til Kap 8</li>
-        <li>SET TRANSACTION ISOLATION LEVEL …</li>
-        <li>SAVEPOINT for delvis rollback</li>
+        <li><strong>Kun én tabell i FROM</strong> (ingen joins).</li>
+        <li><strong>Ingen aggregat / GROUP BY / HAVING / DISTINCT</strong> (de slår sammen rader — kan ikke inverteres).</li>
+        <li><strong>Alle NOT NULL-kolonner uten DEFAULT må være med</strong> i SELECT-listen — ellers kan vi ikke INSERT-e.</li>
+        <li><strong>Ingen aritmetikk eller subqueries</strong> i SELECT-listen.</li>
       </ul>
+
+      <h3>WITH CHECK OPTION</h3>
+      <p>Et viktig sikkerhetsnett: viewet definerer en filtrert visning, men brukeren kan likevel sette inn rader som havner <em>utenfor</em> viewet — og da forsvinner de fra deres syn. <code>WITH CHECK OPTION</code> hindrer dette.</p>
+
+      <pre><code><span class="sql-kw">CREATE VIEW</span> cs_instructor <span class="sql-kw">AS</span>
+  <span class="sql-kw">SELECT</span> *
+  <span class="sql-kw">FROM</span> instructor
+  <span class="sql-kw">WHERE</span> dept_name = <span class="sql-str">'CS'</span>
+  <span class="sql-kw">WITH CHECK OPTION</span>;
+
+<span class="sql-com">-- Forsøk på å sette inn en Physics-ansatt gjennom dette viewet</span>
+<span class="sql-com">-- vil avvises — raden ville ikke vært synlig i viewet etterpå.</span>
+<span class="sql-kw">INSERT INTO</span> cs_instructor <span class="sql-kw">VALUES</span> (<span class="sql-str">'9999'</span>, <span class="sql-str">'X'</span>, <span class="sql-str">'Physics'</span>, <span class="sql-num">50000</span>);
+<span class="sql-com">-- ERROR: violates view check option</span></code></pre>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Hvilket av disse views er <em>oppdaterbart</em> via INSERT?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">CREATE VIEW v AS SELECT dept_name, COUNT(*) FROM instructor GROUP BY dept_name;</button></li>
+          <li><button class="mcq-opt">CREATE VIEW v AS SELECT i.name, t.course_id FROM instructor i JOIN teaches t ON i.ID=t.ID;</button></li>
+          <li><button class="mcq-opt" data-correct="1">CREATE VIEW v AS SELECT ID, name FROM instructor WHERE dept_name='CS';</button></li>
+          <li><button class="mcq-opt">CREATE VIEW v AS SELECT name, salary*1.1 AS hike FROM instructor;</button></li>
+        </ul>
+        <div class="mcq-feedback">Det første har GROUP BY, det andre er en join, det fjerde har et aritmetisk uttrykk. Bare det tredje er en enkel utvalg fra én tabell uten transformasjoner. NB: hvis instructor har flere NOT NULL-kolonner som ikke er med, er selv dette ikke INSERT-bart uten DEFAULTs.</div>
+      </div>
     </div>
   </section>
 
   <section id="integritet">
     <div class="container">
       <div class="section-badge">03 · Integritetskrav</div>
-      <h2>Krav på rad-, tabell- og databasenivå</h2>
-      <ul>
-        <li>NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY</li>
-        <li>ON DELETE/UPDATE: CASCADE / SET NULL / SET DEFAULT / RESTRICT</li>
-      </ul>
+      <h2>Reglene som beskytter dataene</h2>
+      <p>Constraints er kontrakter mellom skjemaet og hver INSERT/UPDATE. DBMS-en avviser endringer som bryter dem — uten dem ville dårlig data sive inn umerket.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Hvor</th><th>Hva det sikrer</th></tr></thead>
+          <tbody>
+            <tr><td><code>NOT NULL</code></td><td>Kolonne</td><td>Verdien er obligatorisk</td></tr>
+            <tr><td><code>UNIQUE (a, b)</code></td><td>Kolonnegruppe</td><td>Kombinasjonen er entydig (NULL-verdier kan unntas)</td></tr>
+            <tr><td><code>PRIMARY KEY (k)</code></td><td>Tabell</td><td>Unik + NOT NULL — én per tabell</td></tr>
+            <tr><td><code>FOREIGN KEY (k) REFERENCES r</code></td><td>Tabell</td><td>Refereransenintegritet — k må finnes i r</td></tr>
+            <tr><td><code>CHECK (uttrykk)</code></td><td>Kolonne / tabell</td><td>Vilkårlig predikat per rad</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> account (
+  acct_no   <span class="sql-fn">VARCHAR</span>(10) <span class="sql-kw">PRIMARY KEY</span>,
+  branch    <span class="sql-fn">VARCHAR</span>(20) <span class="sql-kw">NOT NULL</span>,
+  balance   <span class="sql-fn">NUMERIC</span>(12, 2) <span class="sql-kw">CHECK</span> (balance &gt;= <span class="sql-num">0</span>),
+  customer  <span class="sql-fn">VARCHAR</span>(10) <span class="sql-kw">NOT NULL</span>,
+  <span class="sql-kw">FOREIGN KEY</span> (customer) <span class="sql-kw">REFERENCES</span> customer (id),
+  <span class="sql-kw">UNIQUE</span> (branch, customer)
+);</code></pre>
+    </div>
+  </section>
+
+  <section id="fk-actions">
+    <div class="container">
+      <div class="section-badge">04 · ON DELETE / ON UPDATE</div>
+      <h2>Hva skjer med referanser når den refererte raden forsvinner?</h2>
+      <p>Når en rad i den refererte tabellen slettes eller endres, kan referansen i den refererende tabellen behandles på fire måter:</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">RESTRICT (default)</div>
+          <div class="fc-val">Nekt sletting av forelder hvis det finnes barn. Den «trygge» varianten.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">CASCADE</div>
+          <div class="fc-val">Slett barna sammen med foreldren. Praktisk, men farlig — kan slette mye.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">SET NULL</div>
+          <div class="fc-val">Sett FK-feltet til NULL. Krever at FK-kolonnen kan være NULL.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">SET DEFAULT</div>
+          <div class="fc-val">Sett FK til kolonnens DEFAULT-verdi (sjeldent brukt).</div>
+        </div>
+      </div>
+
+      <pre><code><span class="sql-kw">CREATE TABLE</span> course (
+  course_id  <span class="sql-fn">VARCHAR</span>(7) <span class="sql-kw">PRIMARY KEY</span>,
+  dept_name  <span class="sql-fn">VARCHAR</span>(20),
+  <span class="sql-kw">FOREIGN KEY</span> (dept_name) <span class="sql-kw">REFERENCES</span> department (dept_name)
+    <span class="sql-kw">ON DELETE</span> SET NULL
+    <span class="sql-kw">ON UPDATE</span> CASCADE
+);</code></pre>
+
+      <p>Eksemplet: hvis en avdeling slettes, blir kursenes dept_name satt til NULL. Hvis avdelingsnavnet endres, oppdateres alle referanser automatisk.</p>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Du har bestillinger som peker på kunder med <code>FOREIGN KEY (kunde_id) REFERENCES kunde ON DELETE CASCADE</code>. En kunde slettes. Hva skjer?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Slettingen avvises hvis kunden har bestillinger</button></li>
+          <li><button class="mcq-opt">Bestillingenes kunde_id settes til NULL</button></li>
+          <li><button class="mcq-opt" data-correct="1">Alle bestillinger med den kunde_id slettes også</button></li>
+          <li><button class="mcq-opt">DBMS-et logger en advarsel, men fullfører slettingen</button></li>
+        </ul>
+        <div class="mcq-feedback">CASCADE «kaster» slettingen videre. Bra for opprydding, men sørg for at det er det du faktisk vil — hele bestillingshistorikken kan forsvinne.</div>
+      </div>
     </div>
   </section>
 
   <section id="assertion">
     <div class="container">
-      <div class="section-badge">04 · CHECK og ASSERTION</div>
-      <h2>Egendefinerte krav</h2>
-      <ul>
-        <li>CHECK på kolonne eller tabell — predikatet må holde</li>
-        <li>ASSERTION på databasen — sjeldent støttet i praksis</li>
-      </ul>
+      <div class="section-badge">05 · CHECK · ASSERTION</div>
+      <h2>Egendefinerte regler</h2>
+
+      <h3>CHECK — per rad</h3>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> employee (
+  id      <span class="sql-fn">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  age     <span class="sql-fn">INT</span> <span class="sql-kw">CHECK</span> (age <span class="sql-kw">BETWEEN</span> <span class="sql-num">16</span> <span class="sql-kw">AND</span> <span class="sql-num">100</span>),
+  salary  <span class="sql-fn">NUMERIC</span>(10, 2),
+  bonus   <span class="sql-fn">NUMERIC</span>(10, 2),
+  <span class="sql-kw">CHECK</span> (bonus &lt;= salary <span class="sql-kw">/</span> <span class="sql-num">2</span>)
+);</code></pre>
+
+      <p>CHECK-er evalueres ved hver INSERT/UPDATE. <em>Begrensning</em>: de gjelder per rad — du kan referere til andre kolonner i samme rad, men ikke andre rader eller andre tabeller (i ANSI-standarden; noen DBMS-er løsner på dette).</p>
+
+      <h3>ASSERTION — på databasen</h3>
+      <p>Dette er regler som spenner over flere rader/tabeller. Standard SQL definerer <code>CREATE ASSERTION</code>, men det er <em>nesten ingen</em> DBMS som implementerer det — fordi systemet må sjekke regelen ved hver eneste endring som <em>kunne</em> brutt den.</p>
+
+      <pre><code><span class="sql-com">-- ANSI-standard, sjeldent støttet i praksis</span>
+<span class="sql-kw">CREATE ASSERTION</span> total_credits_check
+<span class="sql-kw">CHECK</span> (
+  <span class="sql-kw">NOT EXISTS</span> (
+    <span class="sql-kw">SELECT</span> ID <span class="sql-kw">FROM</span> student
+    <span class="sql-kw">WHERE</span> tot_cred &gt; <span class="sql-num">200</span>
+  )
+);</code></pre>
+
+      <p>I praksis må regler på tvers av rader/tabeller implementeres med <em>triggere</em> (se 3D).</p>
+    </div>
+  </section>
+
+  <section id="tx-syntax">
+    <div class="container">
+      <div class="section-badge">06 · Transaksjons-syntaks</div>
+      <h2>BEGIN · COMMIT · ROLLBACK</h2>
+      <p>En <em>transaksjon</em> er en sekvens av SQL-setninger som behandles som én atomær enhet — alt eller ingenting. Den klassiske eksempelet er en bankoverføring: trekk fra konto A og legg til på konto B må enten begge skje, eller ingen.</p>
+
+      <pre><code><span class="sql-kw">BEGIN TRANSACTION</span>;
+
+  <span class="sql-kw">UPDATE</span> account <span class="sql-kw">SET</span> balance = balance <span class="sql-kw">-</span> <span class="sql-num">500</span>
+   <span class="sql-kw">WHERE</span> acct_no = <span class="sql-str">'A-101'</span>;
+
+  <span class="sql-kw">UPDATE</span> account <span class="sql-kw">SET</span> balance = balance <span class="sql-kw">+</span> <span class="sql-num">500</span>
+   <span class="sql-kw">WHERE</span> acct_no = <span class="sql-str">'B-202'</span>;
+
+<span class="sql-kw">COMMIT</span>;
+<span class="sql-com">-- eller, ved feil:</span>
+<span class="sql-com">-- ROLLBACK;</span></code></pre>
+
+      <div class="fig-anim" data-anim data-max-step="4">
+        <figure>
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+            <defs>
+              <marker id="arrTx" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+              </marker>
+            </defs>
+            <g data-show-on="1,2,3,4">
+              <rect x="60" y="60" width="120" height="100" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="120" y="50" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">A-101</text>
+              <text x="120" y="120" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="20" data-text-on='{"1":"1000","2":"500","3":"500","4":"1000"}'>1000</text>
+
+              <rect x="540" y="60" width="120" height="100" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <text x="600" y="50" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">B-202</text>
+              <text x="600" y="120" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="20" data-text-on='{"1":"200","2":"200","3":"700","4":"200"}'>200</text>
+            </g>
+
+            <text x="360" y="35" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.12em" fill="#1f4e79"
+              data-text-on='{"1":"BEGIN — start transaksjon","2":"UPDATE A-101: -500","3":"UPDATE B-202: +500","4":"ROLLBACK — alt tilbakestilles"}'>BEGIN — start transaksjon</text>
+
+            <g data-show-on="2,3">
+              <path d="M180 110 Q360 60 540 110" stroke="#1f4e79" stroke-width="2" fill="none" marker-end="url(#arrTx)" stroke-dasharray="6 4"/>
+              <text x="360" y="65" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">500</text>
+            </g>
+
+            <text x="360" y="200" text-anchor="middle" font-style="italic" fill="#6b6257" font-size="11"
+              data-text-on='{"1":"Begge konti uendret — vi er innenfor transaksjonen","2":"A-101 er trukket. Hvis vi krasjer her, må alt rulles tilbake","3":"Begge endringer er gjort. Nå velger vi COMMIT eller ROLLBACK","4":"ROLLBACK fjerner alle endringer — tilbake til startverdier"}'>Begge konti uendret — vi er innenfor transaksjonen</text>
+          </svg>
+          <figcaption>Atomicity i praksis: enten skjer alle endringene (COMMIT) eller ingen av dem (ROLLBACK). Klikk gjennom stegene under.</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">BEGIN</button>
+          <button data-step="2">−500 fra A</button>
+          <button data-step="3">+500 til B</button>
+          <button data-step="4">ROLLBACK</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 4</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">ACID — kort versjon</span>
+        <p><strong>A</strong>tomicity (alt eller ingenting) · <strong>C</strong>onsistency (databasen må alltid følge constraints) · <strong>I</strong>solation (samtidige transaksjoner skal ikke se hverandres halvferdige tilstander) · <strong>D</strong>urability (commit overlever krasj). Den <em>fulle</em> teorien dekkes i kapittel 8.</p>
+      </div>
+
+      <h3>SAVEPOINT — delvis rollback</h3>
+      <pre><code><span class="sql-kw">BEGIN</span>;
+  <span class="sql-kw">INSERT INTO</span> a <span class="sql-kw">VALUES</span> (<span class="sql-num">1</span>);
+  <span class="sql-kw">SAVEPOINT</span> s1;
+  <span class="sql-kw">INSERT INTO</span> a <span class="sql-kw">VALUES</span> (<span class="sql-num">2</span>);
+  <span class="sql-kw">ROLLBACK TO</span> s1;   <span class="sql-com">-- 2 rulles tilbake, 1 består</span>
+<span class="sql-kw">COMMIT</span>;</code></pre>
+
+      <h3>Isolation levels</h3>
+      <p><code>SET TRANSACTION ISOLATION LEVEL …</code> styrer hvor strengt isolert transaksjonen din er fra andre samtidige. Standardenes valg:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nivå</th><th>Forhindrer</th><th>Tillater</th></tr></thead>
+          <tbody>
+            <tr><td>READ UNCOMMITTED</td><td>—</td><td>Dirty reads (les ucommittet)</td></tr>
+            <tr><td>READ COMMITTED</td><td>Dirty reads</td><td>Non-repeatable reads, phantoms</td></tr>
+            <tr><td>REPEATABLE READ</td><td>Dirty + non-repeatable</td><td>Phantoms</td></tr>
+            <tr><td>SERIALIZABLE</td><td>Alle tre</td><td>Strengeste — laveste samtidighet</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 
   <section id="index">
     <div class="container">
-      <div class="section-badge">05 · CREATE INDEX</div>
-      <h2>Indekssyntaks</h2>
-      <ul>
-        <li>CREATE INDEX / CREATE UNIQUE INDEX / DROP INDEX</li>
-        <li>Sammensatt indeks — rekkefølge betyr noe</li>
-        <li>Datastruktur (B+-tre) dekkes i Kap 6</li>
-      </ul>
+      <div class="section-badge">07 · CREATE INDEX</div>
+      <h2>Få fart på spørringer</h2>
+      <p>En indeks er en datastruktur (typisk B+-tre) som lar DBMS-en finne rader uten å lese hele tabellen. Selve datastrukturen dekkes i kapittel 6 — her dreier det seg om hvordan du definerer dem i SQL.</p>
+
+      <pre><code><span class="sql-com">-- Enkel indeks</span>
+<span class="sql-kw">CREATE INDEX</span> idx_inst_name <span class="sql-kw">ON</span> instructor (name);
+
+<span class="sql-com">-- Sammensatt — rekkefølgen er signifikant!</span>
+<span class="sql-kw">CREATE INDEX</span> idx_dept_sal <span class="sql-kw">ON</span> instructor (dept_name, salary);
+
+<span class="sql-com">-- Unik indeks — håndhever entydighet</span>
+<span class="sql-kw">CREATE UNIQUE INDEX</span> idx_email <span class="sql-kw">ON</span> users (email);
+
+<span class="sql-kw">DROP INDEX</span> idx_inst_name;</code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">Pris og fortjeneste</span>
+        <p>En indeks gjør <code>SELECT</code> raskere, men gjør <code>INSERT</code>, <code>UPDATE</code> og <code>DELETE</code> tregere — fordi indeksen også må vedlikeholdes. Indekser «gratis» finnes ikke. Velg dem ut fra hvilke spørringer som faktisk er hot path i applikasjonen din.</p>
+      </div>
+
+      <h3>Sammensatte indekser: hvorfor rekkefølgen betyr noe</h3>
+      <p>En indeks på <code>(dept_name, salary)</code> kan brukes for <code>WHERE dept_name = 'CS'</code>, men <em>ikke</em> alene for <code>WHERE salary &gt; 70000</code>. Tenk på det som et sortert leksikon: du finner kjapt alle CS-ansatte, men ikke alle med en gitt lønn — fordi de er sortert etter avdeling først.</p>
     </div>
   </section>
 
   <section id="auth">
     <div class="container">
-      <div class="section-badge">06 · Autorisasjon</div>
-      <h2>GRANT og REVOKE</h2>
+      <div class="section-badge">08 · GRANT · REVOKE</div>
+      <h2>Hvem får gjøre hva?</h2>
+
+      <pre><code><span class="sql-kw">GRANT SELECT, INSERT</span> <span class="sql-kw">ON</span> instructor <span class="sql-kw">TO</span> alice, bob;
+
+<span class="sql-kw">GRANT</span> <span class="sql-kw">UPDATE</span> (salary) <span class="sql-kw">ON</span> instructor <span class="sql-kw">TO</span> hr_app;
+
+<span class="sql-kw">GRANT SELECT</span> <span class="sql-kw">ON</span> faculty <span class="sql-kw">TO</span> public;
+
+<span class="sql-kw">REVOKE INSERT</span> <span class="sql-kw">ON</span> instructor <span class="sql-kw">FROM</span> bob;</code></pre>
+
+      <h3>Privilegier i SQL-standarden</h3>
       <ul>
-        <li>Privilegier: SELECT, INSERT, UPDATE, DELETE, REFERENCES</li>
-        <li>WITH GRANT OPTION — kjeder av rettigheter</li>
-        <li>Roller (ROLE) — gruppering av privilegier</li>
+        <li><code>SELECT</code> · <code>INSERT</code> · <code>UPDATE</code> · <code>DELETE</code> — på tabell eller view</li>
+        <li><code>REFERENCES</code> — lov til å lage FK-er som peker på tabellen</li>
+        <li><code>ALL PRIVILEGES</code> — alle de over</li>
       </ul>
+
+      <h3>WITH GRANT OPTION</h3>
+      <pre><code><span class="sql-kw">GRANT SELECT</span> <span class="sql-kw">ON</span> instructor <span class="sql-kw">TO</span> alice <span class="sql-kw">WITH GRANT OPTION</span>;
+<span class="sql-com">-- Alice kan nå GRANT SELECT videre til andre.</span>
+<span class="sql-com">-- Når du REVOKE-er fra Alice, faller hele kjeden hun ga videre.</span></code></pre>
+
+      <h3>Roller</h3>
+      <p>I store systemer blir det uhåndterbart å gi privilegier per bruker. <em>Roller</em> er navngitte samlinger av privilegier. Tildel rollen til brukere, så har de alle privilegiene rollen har — og endringen sprer seg automatisk.</p>
+
+      <pre><code><span class="sql-kw">CREATE ROLE</span> teacher;
+<span class="sql-kw">GRANT SELECT, UPDATE</span> <span class="sql-kw">ON</span> grades <span class="sql-kw">TO</span> teacher;
+<span class="sql-kw">GRANT</span> teacher <span class="sql-kw">TO</span> alice, bob, carol;</code></pre>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">Alice får <code>GRANT SELECT ON t TO alice WITH GRANT OPTION</code>. Hun gir <code>GRANT SELECT ON t TO bob</code>. Senere REVOKE-er DBA-en hennes privilegium fra Alice. Hva skjer med Bobs tilgang?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Bobs tilgang står — han fikk den uavhengig</button></li>
+          <li><button class="mcq-opt" data-correct="1">Bob mister også tilgangen — kjeden av delegasjon faller (cascading revoke)</button></li>
+          <li><button class="mcq-opt">Det krever ekstra <code>CASCADE</code> på revoke-kommandoen</button></li>
+          <li><button class="mcq-opt">Alice beholder tilgangen, men kan ikke gi videre lenger</button></li>
+        </ul>
+        <div class="mcq-feedback">Default i ANSI er cascading revoke: hele kjeden av tilganger som <em>kun</em> stammer fra Alice forsvinner. Noen DBMS-er krever eksplisitt <code>CASCADE</code> nøkkelord; andre bruker <code>RESTRICT</code> som default.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">Oppsummering</div>
+      <h2>Det du skal kunne</h2>
+      <ol class="steps">
+        <li>Skrive <code>CREATE VIEW</code> og forklare når et view er oppdaterbart.</li>
+        <li>Bruke <code>WITH CHECK OPTION</code> og forklare hva det forhindrer.</li>
+        <li>Liste de fire ON DELETE-handlingene og når CASCADE er passende.</li>
+        <li>Skille CHECK fra ASSERTION og vite hvorfor sistnevnte sjeldent brukes.</li>
+        <li>Skrive en transaksjon med BEGIN/COMMIT/ROLLBACK og forklare ACID.</li>
+        <li>Designe en sammensatt indeks slik at WHERE-klausulen kan bruke den.</li>
+        <li>Bruke GRANT/REVOKE og forklare cascading revoke.</li>
+      </ol>
+      <p style="margin-top: 1.4rem;">Klar for prosedyrer, triggere og rekursjon? <a href="prosedyrer-triggere-rekursjon.html">Gå til 3D →</a></p>
     </div>
   </section>
 </main>

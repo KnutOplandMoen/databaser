@@ -26,66 +26,435 @@
 <main data-chapter="Kapittel 3: SQL">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 3 · 3D · Forelesning 6</div>
+      <div class="eyebrow">Kapittel 3 · 3D · Forelesning 6 · Lærebok 4.5, 4.7, 5.2–5.4</div>
       <h1>Prosedyrer, triggere, <em>rekursjon</em></h1>
-      <p class="lede">Lærebokas 4.5, 4.7, 5.2–5.4. Når SQL alene ikke holder.</p>
+      <p class="lede">Når deklarativ SQL ikke holder. Vi flytter kontroll-flyten <em>inn</em> i databasen — med funksjoner, prosedyrer, triggere og rekursive spørringer.</p>
       <nav class="toc">
-        <a href="#funksjoner"><span>01</span> Funksjoner</a>
-        <a href="#prosedyrer"><span>02</span> Stored procedures</a>
-        <a href="#triggere"><span>03</span> Triggere</a>
-        <a href="#rekursiv"><span>04</span> WITH RECURSIVE</a>
+        <a href="#hvorfor"><span>01</span> Hvorfor mer enn SQL</a>
+        <a href="#funksjoner"><span>02</span> Funksjoner</a>
+        <a href="#prosedyrer"><span>03</span> Stored procedures</a>
+        <a href="#kontrollflyt"><span>04</span> Kontrollflyt og kursorer</a>
+        <a href="#triggere"><span>05</span> Triggere</a>
+        <a href="#trigger-fellene"><span>06</span> Trigger-fallgruver</a>
+        <a href="#rekursiv"><span>07</span> WITH RECURSIVE</a>
+        <a href="#tc-eksempel"><span>08</span> Transitiv lukning</a>
       </nav>
     </div>
   </header>
 
+  <section id="hvorfor">
+    <div class="container">
+      <div class="section-badge">01 · Hvorfor mer enn SQL</div>
+      <h2>Tre ting deklarativ SQL ikke gjør</h2>
+      <p class="dropcap">Vanlig SQL er sett-orientert og uten side-effekter. Det dekker det aller meste av spørringer, men det finnes tre situasjoner der du må gå utenfor:</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">1. Gjenbrukbar logikk</div>
+          <div class="fc-val">Et komplekst kalkulasjon brukes på 30 steder. Pakk det inn i en <em>funksjon</em> eller <em>prosedyre</em>.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">2. Reaksjoner på endringer</div>
+          <div class="fc-val">«Hver gang en bestilling kommer inn, oppdater lageret og logg endringen.» Det er en <em>trigger</em>.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">3. Iterativ struktur</div>
+          <div class="fc-val">Forfedre i et tre, naborelasjoner i en graf — krever rekursjon. Bruk <em>WITH RECURSIVE</em>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="funksjoner">
     <div class="container">
-      <div class="section-badge">01 · Funksjoner</div>
+      <div class="section-badge">02 · Funksjoner</div>
       <h2>CREATE FUNCTION</h2>
-      <p class="dropcap">[Stubber:]</p>
-      <ul>
-        <li>Skalar-funksjon — returnerer én verdi</li>
-        <li>Tabellfunksjon — returnerer en relasjon</li>
-        <li>SQL/PSM — prosedyrespråket i SQL-standarden</li>
-      </ul>
+      <p>En funksjon tar inn parametre, gjør en beregning, og returnerer et resultat. To smaker:</p>
+
+      <h3>Skalar-funksjon — returnerer én verdi</h3>
+      <pre><code><span class="sql-kw">CREATE FUNCTION</span> dept_count (dept <span class="sql-fn">VARCHAR</span>(20))
+  <span class="sql-kw">RETURNS</span> <span class="sql-fn">INT</span>
+  <span class="sql-kw">BEGIN</span>
+    <span class="sql-kw">DECLARE</span> n <span class="sql-fn">INT</span>;
+    <span class="sql-kw">SELECT</span> <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">INTO</span> n
+      <span class="sql-kw">FROM</span> instructor
+      <span class="sql-kw">WHERE</span> dept_name = dept;
+    <span class="sql-kw">RETURN</span> n;
+  <span class="sql-kw">END</span>;</code></pre>
+
+      <p>Kalles som en hvilken som helst innebygd funksjon:</p>
+
+      <pre><code><span class="sql-kw">SELECT</span> dept_name, dept_count(dept_name) <span class="sql-kw">AS</span> n
+<span class="sql-kw">FROM</span> department;</code></pre>
+
+      <h3>Tabellfunksjon — returnerer en relasjon</h3>
+      <pre><code><span class="sql-kw">CREATE FUNCTION</span> instructors_of (dept <span class="sql-fn">VARCHAR</span>(20))
+  <span class="sql-kw">RETURNS TABLE</span> (
+    ID <span class="sql-fn">VARCHAR</span>(5),
+    name <span class="sql-fn">VARCHAR</span>(20),
+    salary <span class="sql-fn">NUMERIC</span>(8, 2)
+  )
+  <span class="sql-kw">RETURN</span>
+    <span class="sql-kw">SELECT</span> ID, name, salary
+    <span class="sql-kw">FROM</span> instructor
+    <span class="sql-kw">WHERE</span> dept_name = dept;
+
+<span class="sql-com">-- Brukes i FROM:</span>
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-kw">TABLE</span>(instructors_of(<span class="sql-str">'CS'</span>));</code></pre>
+
+      <div class="callout">
+        <span class="label">SQL/PSM</span>
+        <p>Standardens prosedyrespråk heter <em>SQL/PSM</em> (Persistent Stored Modules). I praksis bruker hver DBMS sin egen dialekt: PL/pgSQL i Postgres, T-SQL i SQL Server, PL/SQL i Oracle, MySQL stored programs. Strukturen (BEGIN/END, IF/WHILE, kursor) er svært lik på tvers.</p>
+      </div>
     </div>
   </section>
 
   <section id="prosedyrer">
     <div class="container">
-      <div class="section-badge">02 · Stored procedures</div>
+      <div class="section-badge">03 · Stored procedures</div>
       <h2>CREATE PROCEDURE</h2>
+      <p>Forskjellen fra funksjoner: prosedyrer kan ha side-effekter (INSERT/UPDATE/DELETE), kan ha flere ut-parametre, og kalles med <code>CALL</code> i stedet for å brukes som uttrykk.</p>
+
+      <pre><code><span class="sql-kw">CREATE PROCEDURE</span> dept_count_proc (
+  <span class="sql-kw">IN</span>  dept <span class="sql-fn">VARCHAR</span>(20),
+  <span class="sql-kw">OUT</span> n   <span class="sql-fn">INT</span>
+)
+<span class="sql-kw">BEGIN</span>
+  <span class="sql-kw">SELECT</span> <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">INTO</span> n
+    <span class="sql-kw">FROM</span> instructor
+    <span class="sql-kw">WHERE</span> dept_name = dept;
+<span class="sql-kw">END</span>;
+
+<span class="sql-com">-- Kall:</span>
+<span class="sql-kw">CALL</span> dept_count_proc(<span class="sql-str">'CS'</span>, @res);
+<span class="sql-kw">SELECT</span> @res;</code></pre>
+
+      <h3>Parametertyper</h3>
       <ul>
-        <li>Sekvens av SQL-uttrykk</li>
-        <li>IN, OUT, INOUT-parametre</li>
-        <li>Kontrollflyt: IF, WHILE, FOR-løkker over kursorer</li>
+        <li><code>IN</code> — leses inn (default).</li>
+        <li><code>OUT</code> — settes av prosedyren.</li>
+        <li><code>INOUT</code> — leses inn <em>og</em> settes ut.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="kontrollflyt">
+    <div class="container">
+      <div class="section-badge">04 · Kontrollflyt og kursorer</div>
+      <h2>IF, WHILE, FOR — i SQL</h2>
+
+      <pre><code><span class="sql-kw">CREATE PROCEDURE</span> raise_if_low ()
+<span class="sql-kw">BEGIN</span>
+  <span class="sql-kw">DECLARE</span> done <span class="sql-fn">BOOLEAN</span> <span class="sql-kw">DEFAULT</span> <span class="sql-kw">FALSE</span>;
+  <span class="sql-kw">DECLARE</span> id  <span class="sql-fn">VARCHAR</span>(5);
+  <span class="sql-kw">DECLARE</span> sal <span class="sql-fn">NUMERIC</span>(8, 2);
+
+  <span class="sql-kw">DECLARE</span> c <span class="sql-kw">CURSOR FOR</span>
+    <span class="sql-kw">SELECT</span> ID, salary <span class="sql-kw">FROM</span> instructor;
+
+  <span class="sql-kw">DECLARE CONTINUE HANDLER FOR NOT FOUND</span> <span class="sql-kw">SET</span> done = <span class="sql-kw">TRUE</span>;
+
+  <span class="sql-kw">OPEN</span> c;
+  read_loop: <span class="sql-kw">LOOP</span>
+    <span class="sql-kw">FETCH</span> c <span class="sql-kw">INTO</span> id, sal;
+    <span class="sql-kw">IF</span> done <span class="sql-kw">THEN LEAVE</span> read_loop; <span class="sql-kw">END IF</span>;
+
+    <span class="sql-kw">IF</span> sal &lt; <span class="sql-num">50000</span> <span class="sql-kw">THEN</span>
+      <span class="sql-kw">UPDATE</span> instructor
+        <span class="sql-kw">SET</span> salary = salary * <span class="sql-num">1.10</span>
+        <span class="sql-kw">WHERE</span> ID = id;
+    <span class="sql-kw">END IF</span>;
+  <span class="sql-kw">END LOOP</span>;
+  <span class="sql-kw">CLOSE</span> c;
+<span class="sql-kw">END</span>;</code></pre>
+
+      <div class="callout callout-blue">
+        <span class="label">Pek tilbake til SQL</span>
+        <p>Eksemplet over er et godt eksempel på <em>hvordan ikke å skrive SQL</em>. Den samme effekten kan oppnås med:</p>
+        <pre style="margin-top: 0.6rem;"><code><span class="sql-kw">UPDATE</span> instructor <span class="sql-kw">SET</span> salary = salary * <span class="sql-num">1.10</span> <span class="sql-kw">WHERE</span> salary &lt; <span class="sql-num">50000</span>;</code></pre>
+        <p>En enkelt deklarativ setning — typisk hundrevis av ganger raskere enn en kursor-løkke. Bruk prosedyrespråket bare når du faktisk trenger det.</p>
+      </div>
+
+      <h3>Konstrukter du har</h3>
+      <ul>
+        <li><code>IF … THEN … ELSEIF … ELSE … END IF</code></li>
+        <li><code>WHILE … DO … END WHILE</code></li>
+        <li><code>REPEAT … UNTIL … END REPEAT</code></li>
+        <li><code>LOOP … END LOOP</code> med <code>LEAVE label</code></li>
+        <li><code>CURSOR FOR &lt;query&gt;</code> for radvis traversering</li>
       </ul>
     </div>
   </section>
 
   <section id="triggere">
     <div class="container">
-      <div class="section-badge">03 · Triggere</div>
-      <h2>CREATE TRIGGER</h2>
-      <ul>
-        <li>BEFORE / AFTER på INSERT / UPDATE / DELETE</li>
-        <li>FOR EACH ROW vs FOR EACH STATEMENT</li>
-        <li>NEW og OLD — referanse til rad før/etter</li>
-        <li>Bruk: integritet, audit-logg, materialiserte views</li>
-        <li>Fallgruver: trigger-kaskader, ytelse</li>
-      </ul>
+      <div class="section-badge">05 · Triggere</div>
+      <h2>CREATE TRIGGER — automatiske reaksjoner</h2>
+      <p>En trigger er en prosedyre som <em>automatisk</em> kjøres når en hendelse skjer på en tabell. Triggere lever inni databasen — applikasjonen vet ikke at de finnes.</p>
+
+      <h3>De fire dimensjonene</h3>
+      <div class="fact-grid">
+        <div class="fact-card"><div class="fc-key">Hendelse</div><div class="fc-val">INSERT, UPDATE, DELETE</div></div>
+        <div class="fact-card"><div class="fc-key">Tidspunkt</div><div class="fc-val">BEFORE, AFTER (eller INSTEAD OF — for views)</div></div>
+        <div class="fact-card"><div class="fc-key">Granularitet</div><div class="fc-val">FOR EACH ROW eller FOR EACH STATEMENT</div></div>
+        <div class="fact-card"><div class="fc-key">Betingelse</div><div class="fc-val">WHEN (predikat) — kjør bare hvis sant</div></div>
+      </div>
+
+      <h3>Eksempel: hold totalsum oppdatert</h3>
+      <pre><code><span class="sql-kw">CREATE TRIGGER</span> upd_total
+<span class="sql-kw">AFTER UPDATE OF</span> credits <span class="sql-kw">ON</span> takes
+<span class="sql-kw">REFERENCING</span> <span class="sql-kw">NEW ROW AS</span> nrow,
+            <span class="sql-kw">OLD ROW AS</span> orow
+<span class="sql-kw">FOR EACH ROW</span>
+<span class="sql-kw">WHEN</span> (nrow.grade <span class="sql-kw">IS NOT NULL</span> <span class="sql-kw">AND</span> orow.grade <span class="sql-kw">IS NULL</span>)
+<span class="sql-kw">BEGIN</span>
+  <span class="sql-kw">UPDATE</span> student
+    <span class="sql-kw">SET</span> tot_cred = tot_cred + nrow.credits
+    <span class="sql-kw">WHERE</span> ID = nrow.ID;
+<span class="sql-kw">END</span>;</code></pre>
+
+      <p>Trigger-en kjører automatisk hver gang en student går fra «ingen karakter» til «en karakter» i et fag.</p>
+
+      <figure>
+        <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+          <defs>
+            <marker id="arrTr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+            </marker>
+          </defs>
+
+          <rect x="40" y="40" width="180" height="50" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <text x="130" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">UPDATE takes</text>
+          <text x="130" y="78" text-anchor="middle" font-size="10" fill="#6b6257">applikasjonen</text>
+
+          <line x1="220" y1="65" x2="290" y2="65" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrTr)"/>
+
+          <rect x="290" y="20" width="180" height="90" fill="rgba(31, 78, 121, 0.10)" stroke="#1f4e79" stroke-dasharray="4 3"/>
+          <text x="380" y="40" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1f4e79">BEFORE-trigger</text>
+          <text x="380" y="60" text-anchor="middle" font-size="10" fill="#3d3832">validér / endre NEW</text>
+          <text x="380" y="80" text-anchor="middle" font-size="10" fill="#3d3832">avbryt med RAISE</text>
+
+          <line x1="470" y1="65" x2="540" y2="65" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrTr)"/>
+
+          <rect x="540" y="40" width="140" height="50" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <text x="610" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">tabell endres</text>
+          <text x="610" y="78" text-anchor="middle" font-size="10" fill="#6b6257">faktisk oppdatering</text>
+
+          <line x1="610" y1="90" x2="610" y2="120" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrTr)"/>
+
+          <rect x="290" y="140" width="180" height="80" fill="rgba(122, 74, 45, 0.10)" stroke="#7a4a2d" stroke-dasharray="4 3"/>
+          <text x="380" y="160" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">AFTER-trigger</text>
+          <text x="380" y="180" text-anchor="middle" font-size="10" fill="#3d3832">propagér effekter</text>
+          <text x="380" y="200" text-anchor="middle" font-size="10" fill="#3d3832">audit / logg</text>
+
+          <line x1="540" y1="180" x2="475" y2="180" stroke="#7a4a2d" stroke-width="1.5" marker-end="url(#arrTr)"/>
+        </svg>
+        <figcaption>Tidslinjen for en oppdatering: BEFORE-trigger kjører først (kan stoppe operasjonen), så endringen, deretter AFTER-trigger (kan reagere på det som har skjedd).</figcaption>
+      </figure>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Du vil <em>avvise</em> en INSERT som bryter en kompleks regel. Hvilken trigger-konfig?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">AFTER INSERT — så ROLLBACK</button></li>
+          <li><button class="mcq-opt" data-correct="1">BEFORE INSERT FOR EACH ROW — RAISE_APPLICATION_ERROR / SIGNAL</button></li>
+          <li><button class="mcq-opt">AFTER UPDATE FOR EACH STATEMENT</button></li>
+          <li><button class="mcq-opt">CHECK-constraint kan aldri bruke triggere</button></li>
+        </ul>
+        <div class="mcq-feedback">BEFORE-triggere kjører før raden faktisk skrives — de kan stoppe operasjonen rent. AFTER er for «alt har skjedd, gjør oppfølging».</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="trigger-fellene">
+    <div class="container">
+      <div class="section-badge">06 · Trigger-fallgruver</div>
+      <h2>Hvorfor triggere er omstridt</h2>
+      <p>Triggere er kraftige, men er beryktet for å produsere uventede produksjonsproblemer. De viktigste fellene:</p>
+
+      <ol class="steps">
+        <li><strong>Skjulte effekter</strong>. En INSERT kan utløse en trigger som UPDATE-er en annen tabell, som utløser en ny trigger … Lett å miste oversikt.</li>
+        <li><strong>Trigger-kaskader</strong>. Trigger A oppdaterer tabell B; en trigger på B oppdaterer tabell C; en trigger på C oppdaterer A → endeløs løkke.</li>
+        <li><strong>Ytelse</strong>. <code>FOR EACH ROW</code> kjører én gang per påvirket rad. En batch-INSERT av 100 000 rader gir 100 000 trigger-kall.</li>
+        <li><strong>Replikering / restore</strong>. Hvis en trigger bare finnes på master, blir slaver inkonsistente. Hvis trigger gjør ting basert på dato, kan en restore «replaye» ting i feil rekkefølge.</li>
+        <li><strong>Testbarhet</strong>. Logikken er gjemt i databasen, ikke i appen. Vanskelig å enhetsteste.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="label">Når triggere likevel er rette verktøyet</span>
+        <ul>
+          <li>Audit-logging du absolutt ikke kan stole på applikasjonen til å gjøre.</li>
+          <li>Vedlikehold av materialiserte aggregater (totaler, tellere).</li>
+          <li>Håndheve kompleks integritet på tvers av rader (substituering for <code>ASSERTION</code>).</li>
+        </ul>
+      </div>
     </div>
   </section>
 
   <section id="rekursiv">
     <div class="container">
-      <div class="section-badge">04 · WITH RECURSIVE</div>
-      <h2>Rekursive spørringer</h2>
+      <div class="section-badge">07 · WITH RECURSIVE</div>
+      <h2>Spørringer som refererer til seg selv</h2>
+      <p>Før SQL:1999 kunne ikke standardspråket uttrykke transitive lukninger — ting som «forfedre», «alle naboer i X hopp», «alle delene en sammensetning består av». Nå har vi <code>WITH RECURSIVE</code>.</p>
+
+      <h3>Generell struktur</h3>
+      <pre><code><span class="sql-kw">WITH RECURSIVE</span> r <span class="sql-kw">AS</span> (
+  <span class="sql-com">-- 1. Anker (basistilfelle): ikke-rekursiv SELECT</span>
+  <span class="sql-kw">SELECT</span> …
+  <span class="sql-kw">FROM</span> base_table
+  <span class="sql-kw">WHERE</span> …
+  <span class="sql-kw">UNION ALL</span>
+  <span class="sql-com">-- 2. Rekursivt ledd: refererer til r selv</span>
+  <span class="sql-kw">SELECT</span> …
+  <span class="sql-kw">FROM</span> base_table b <span class="sql-kw">JOIN</span> r <span class="sql-kw">ON</span> …
+)
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> r;</code></pre>
+
+      <h3>Algoritmen (mental modell)</h3>
+      <ol class="steps">
+        <li>Evaluer <em>anker-leddet</em>. Det blir første «runde».</li>
+        <li>Evaluer <em>rekursivt ledd</em> ved å bruke forrige rundes resultat som <code>r</code>. Resultatet blir neste runde.</li>
+        <li>Gjenta steg 2 inntil rekursivt ledd produserer ingen nye rader.</li>
+        <li>Returnér unionen av alle rundene.</li>
+      </ol>
+
+      <div class="callout callout-blue">
+        <span class="label">Termineringskrav</span>
+        <p>Ingen ting i SQL forhindrer en rekursjon i å snurre evig hvis dataene har sykler. Mange DBMS-er har en <code>MAXRECURSION</code>-grense. Hvis du jobber med grafdata: enten garanter at grafen er asyklisk, eller hold styr på besøkte noder eksplisitt.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="tc-eksempel">
+    <div class="container">
+      <div class="section-badge">08 · Transitiv lukning</div>
+      <h2>Eksempel: forutsetninger for et emne</h2>
+      <p>Tabellen <code>prereq(course_id, prereq_id)</code> sier at <code>course_id</code> har <code>prereq_id</code> som direkte forutsetning. Vi vil finne <em>alle</em> forutsetninger, transitivt.</p>
+
+      <pre><code><span class="sql-kw">WITH RECURSIVE</span> rec_prereq(course_id, prereq_id) <span class="sql-kw">AS</span> (
+  <span class="sql-com">-- Anker: direkte forutsetninger</span>
+  <span class="sql-kw">SELECT</span> course_id, prereq_id
+  <span class="sql-kw">FROM</span> prereq
+  <span class="sql-kw">UNION ALL</span>
+  <span class="sql-com">-- Rekursivt: forutsetningenes forutsetninger</span>
+  <span class="sql-kw">SELECT</span> r.course_id, p.prereq_id
+  <span class="sql-kw">FROM</span> rec_prereq r
+  <span class="sql-kw">JOIN</span> prereq p <span class="sql-kw">ON</span> r.prereq_id = p.course_id
+)
+<span class="sql-kw">SELECT</span> <span class="sql-kw">DISTINCT</span> prereq_id
+<span class="sql-kw">FROM</span> rec_prereq
+<span class="sql-kw">WHERE</span> course_id = <span class="sql-str">'CS-347'</span>;</code></pre>
+
+      <div class="fig-anim" data-anim data-max-step="4">
+        <figure>
+          <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Sans, sans-serif" font-size="12">
+            <defs>
+              <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1f4e79"/>
+              </marker>
+            </defs>
+
+            <g font-family="IBM Plex Mono, monospace" font-size="11">
+              <circle cx="120" cy="60" r="28" fill="#f4f1ea" stroke="#1f4e79" stroke-width="1.5"/>
+              <text x="120" y="64" text-anchor="middle">CS-347</text>
+
+              <circle cx="60"  cy="150" r="28" fill="#f4f1ea" stroke="#1f4e79" stroke-width="1.5" data-show-on="2,3,4"/>
+              <text x="60"  y="154" text-anchor="middle" data-show-on="2,3,4">CS-315</text>
+
+              <circle cx="180" cy="150" r="28" fill="#f4f1ea" stroke="#1f4e79" stroke-width="1.5" data-show-on="2,3,4"/>
+              <text x="180" y="154" text-anchor="middle" data-show-on="2,3,4">CS-101</text>
+
+              <circle cx="60"  cy="240" r="28" fill="#f4f1ea" stroke="#1f4e79" stroke-width="1.5" data-show-on="3,4"/>
+              <text x="60"  y="244" text-anchor="middle" data-show-on="3,4">MAT-100</text>
+
+              <circle cx="180" cy="240" r="28" fill="#f4f1ea" stroke="#1f4e79" stroke-width="1.5" data-show-on="3,4"/>
+              <text x="180" y="244" text-anchor="middle" data-show-on="3,4">CS-090</text>
+
+              <line x1="106" y1="86"  x2="74" y2="124" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrR)" data-show-on="2,3,4"/>
+              <line x1="134" y1="86"  x2="166" y2="124" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrR)" data-show-on="2,3,4"/>
+              <line x1="60" y1="178" x2="60" y2="212" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrR)" data-show-on="3,4"/>
+              <line x1="180" y1="178" x2="180" y2="212" stroke="#1f4e79" stroke-width="1.5" marker-end="url(#arrR)" data-show-on="3,4"/>
+            </g>
+
+            <g data-show-on="1,2,3,4">
+              <text x="280" y="30" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.12em" fill="#6b6257">REKURSJONS-TABELL</text>
+              <rect x="280" y="40" width="420" height="220" fill="#f4f1ea" stroke="#c9c0ae"/>
+              <line x1="280" y1="65" x2="700" y2="65" stroke="#c9c0ae"/>
+              <text x="290" y="60" font-weight="700">runde</text>
+              <text x="380" y="60" font-weight="700">course_id</text>
+              <text x="500" y="60" font-weight="700">prereq_id</text>
+              <text x="620" y="60" font-weight="700">kommentar</text>
+
+              <g font-family="IBM Plex Mono, monospace" font-size="11">
+                <text x="290" y="85"  data-show-on="1,2,3,4">0</text><text x="380" y="85"  data-show-on="1,2,3,4">CS-347</text><text x="500" y="85"  data-show-on="1,2,3,4">—</text><text x="620" y="85"  data-show-on="1,2,3,4" font-style="italic" fill="#6b6257">starter</text>
+                <text x="290" y="105" data-show-on="2,3,4">1</text><text x="380" y="105" data-show-on="2,3,4">CS-347</text><text x="500" y="105" data-show-on="2,3,4">CS-315</text><text x="620" y="105" data-show-on="2,3,4" font-style="italic" fill="#6b6257">anker</text>
+                <text x="290" y="120" data-show-on="2,3,4">1</text><text x="380" y="120" data-show-on="2,3,4">CS-347</text><text x="500" y="120" data-show-on="2,3,4">CS-101</text><text x="620" y="120" data-show-on="2,3,4" font-style="italic" fill="#6b6257">anker</text>
+                <text x="290" y="140" data-show-on="3,4">2</text><text x="380" y="140" data-show-on="3,4">CS-347</text><text x="500" y="140" data-show-on="3,4">MAT-100</text><text x="620" y="140" data-show-on="3,4" font-style="italic" fill="#6b6257">via CS-315</text>
+                <text x="290" y="155" data-show-on="3,4">2</text><text x="380" y="155" data-show-on="3,4">CS-347</text><text x="500" y="155" data-show-on="3,4">CS-090</text><text x="620" y="155" data-show-on="3,4" font-style="italic" fill="#6b6257">via CS-101</text>
+                <text x="290" y="180" data-show-on="4">3</text><text x="380" y="180" data-show-on="4">CS-347</text><text x="500" y="180" data-show-on="4">—</text><text x="620" y="180" data-show-on="4" font-style="italic" fill="#3d6b3a">ingen nye</text>
+                <text x="290" y="220" text-anchor="start" font-weight="700" data-show-on="4" fill="#3d6b3a">FIXPOINT — terminer</text>
+              </g>
+            </g>
+          </svg>
+          <figcaption>Iterativ utfoldelse av <code>WITH RECURSIVE</code>: hver runde tillater å «hoppe» ett nivå dypere i forutsetnings-grafen. Når en runde ikke produserer nye rader, er vi ferdige.</figcaption>
+        </figure>
+        <div class="anim-controls">
+          <button data-prev>← Forrige</button>
+          <button data-step="1" class="active">Runde 0</button>
+          <button data-step="2">Runde 1 (anker)</button>
+          <button data-step="3">Runde 2</button>
+          <button data-step="4">Runde 3 — fixpoint</button>
+          <button data-next>Neste →</button>
+          <span class="anim-step">Steg 1 / 4</span>
+        </div>
+      </div>
+
+      <h3>Andre klassiske eksempler</h3>
       <ul>
-        <li>Anker + rekursivt tilfelle, UNION ALL</li>
-        <li>Klassisk eksempel: transitive closure (forfedre, rekkefølge i tre)</li>
-        <li>Stoppkriterier — termineringsproblemer</li>
+        <li><strong>Forfedre</strong>: <code>person(id, parent_id)</code> → finn alle forfedre til person X.</li>
+        <li><strong>Bill of materials</strong>: <code>part(part_id, sub_id, qty)</code> → hvor mye råstoff trengs for å lage X?</li>
+        <li><strong>Korteste vei (BFS-liknende)</strong>: ved å holde styr på «hopp» som en kolonne.</li>
       </ul>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">I en rekursiv CTE: hva er <em>anker</em>-leddet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">SELECT-en som ikke refererer til CTE-navnet selv — startverdiene</button></li>
+          <li><button class="mcq-opt">UNION ALL — det er anker-en</button></li>
+          <li><button class="mcq-opt">Den siste raden i resultatet</button></li>
+          <li><button class="mcq-opt">En bestemt CHECK-constraint</button></li>
+        </ul>
+        <div class="mcq-feedback">Anker er basistilfellet: en SELECT som kan evalueres uten å kjenne CTE-en. Det gir startsettet rekursjonen brukes på.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Vanskelig</div>
+        <div class="q-text">I en graf med sykler — A → B → A — hva skjer hvis du skriver en rekursiv CTE uten å beskytte mot sykler?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">DBMS-en oppdager sykelen og avslutter automatisk</button></li>
+          <li><button class="mcq-opt">UNION (uten ALL) eliminerer dupliktatene og terminerer</button></li>
+          <li><button class="mcq-opt" data-correct="1">Rekursjonen kan løpe i evig tid eller treffe MAXRECURSION-grensen</button></li>
+          <li><button class="mcq-opt">Anker-leddet vil aldri evalueres</button></li>
+        </ul>
+        <div class="mcq-feedback">UNION (uten ALL) <em>kan</em> redde deg fordi like rader bare legges inn én gang og rekursjonen terminerer hvis ingen nye rader produseres. Men relier ikke på det — bygg en eksplisitt sti-kolonne om grafen kan ha sykler.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="oppsummering">
+    <div class="container">
+      <div class="section-badge">Oppsummering</div>
+      <h2>Det du skal kunne</h2>
+      <ol class="steps">
+        <li>Skille funksjon fra prosedyre, og kjenne IN/OUT/INOUT-parametrene.</li>
+        <li>Skrive en BEFORE-trigger som validerer en INSERT.</li>
+        <li>Si når FOR EACH ROW vs. FOR EACH STATEMENT er rett valg.</li>
+        <li>Liste de 5 vanligste feilene man gjør med triggere — og når de likevel er riktig.</li>
+        <li>Skrive en WITH RECURSIVE-spørring med anker + rekursivt ledd.</li>
+        <li>Forklare hva en transitiv lukning er og hvilken klasse av problemer den løser.</li>
+      </ol>
+      <p style="margin-top: 1.4rem;">Du har nå lest alle fire delene av kapittel 3. Tilbake til <a href="./">kapitteloversikten</a> for å ta hovedquizen.</p>
     </div>
   </section>
 </main>

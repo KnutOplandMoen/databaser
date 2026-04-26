@@ -50,8 +50,12 @@
       root.querySelectorAll('[data-show-on]').forEach(function (el) {
         var show = el.dataset.showOn.split(',').map(function (x) { return x.trim(); });
         var visible = show.indexOf(String(n)) !== -1;
-        el.style.opacity = visible ? '1' : '0.15';
         el.style.transition = 'opacity .35s ease';
+        el.style.opacity = visible ? '1' : '0';
+        // SVG elements need display toggled to fully hide for non-overlapping animations
+        if (el.namespaceURI === 'http://www.w3.org/2000/svg') {
+          el.style.pointerEvents = visible ? 'auto' : 'none';
+        }
       });
       root.querySelectorAll('[data-text-on]').forEach(function (el) {
         var data = JSON.parse(el.dataset.textOn);

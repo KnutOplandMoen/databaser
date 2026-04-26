@@ -4,8 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="../favicon.png" type="image/png">
-<title>Recovery — Kap 8</title>
+<title>Recovery — Kap 8C</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="kap8.css">
+<style>
+  /* Force/Steal matrix */
+  .fs-matrix table { width: auto; margin: 0 auto; font-family: var(--mono); font-size: 0.92rem; }
+  .fs-matrix th, .fs-matrix td { text-align: center; padding: 0.7rem 1.4rem; border: 1px solid var(--line-soft); }
+  .fs-matrix .star { background: rgba(31, 78, 121, 0.10); border-color: var(--rust); font-weight: 600; color: var(--rust-dark); }
+
+  /* Crash timeline */
+  svg.crashline { display: block; margin: 0 auto; max-width: 100%; }
+  svg.crashline .winner-bar { fill: #3d6b3a; opacity: 0.85; }
+  svg.crashline .loser-bar  { fill: #7a4a2d; opacity: 0.7; }
+  svg.crashline .crash-line { stroke: #c93a3a; stroke-width: 2.5; stroke-dasharray: 5 4; }
+
+  /* WAL animation */
+  .wal-demo { display: flex; gap: 1rem; align-items: stretch; flex-wrap: wrap; margin: 1.4rem 0; }
+  .wal-block { flex: 1 1 200px; background: var(--paper-dark); border: 1px solid var(--line-soft); border-radius: 5px; padding: 0.9rem; font-family: var(--mono); font-size: 0.88rem; }
+  .wal-block h4 { margin: 0 0 0.5rem; font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faded); }
+  .wal-entry { padding: 0.3rem 0.5rem; margin: 0.2rem 0; background: var(--paper); border-radius: 3px; transition: background .3s, color .3s; }
+  .wal-entry.flushed { background: rgba(61, 107, 58, 0.12); color: var(--green); }
+  .wal-entry.dirty { background: rgba(122, 74, 45, 0.10); color: var(--rust); }
+  .wal-entry.fresh { background: rgba(198, 138, 31, 0.18); color: var(--rust-dark); }
+  .wal-arrow { display: grid; place-items: center; font-size: 1.6rem; color: var(--ink-ghost); padding: 0 0.6rem; }
+  @media (max-width: 720px) { .wal-arrow { transform: rotate(90deg); } }
+</style>
 </head>
 <body>
 
@@ -28,104 +52,553 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8C · Forelesning 16</div>
       <h1>Recovery — <em>livet etter krasj</em></h1>
-      <p class="lede">Bratsbergs notater kap 18. Loggens jobb: garantere atomicity og durability uansett hva.</p>
+      <p class="lede">Notater kap. 18. Loggens jobb: garantere atomicity og durability uansett hva som skjer — strømbrudd, OS-kill, deadlock-abort.</p>
       <nav class="toc">
-        <a href="#mal"><span>01</span> Mål for recovery</a>
-        <a href="#log"><span>02</span> Log records</a>
-        <a href="#wal"><span>03</span> WAL</a>
-        <a href="#undo-redo"><span>04</span> Undo og redo</a>
-        <a href="#aries"><span>05</span> ARIES</a>
-        <a href="#checkpoint"><span>06</span> Sjekkpunkter</a>
-        <a href="#fuzzy"><span>07</span> Fuzzy checkpoint</a>
+        <a href="#mal"><span>01</span> Mål</a>
+        <a href="#vinnere"><span>02</span> Vinnere/tapere</a>
+        <a href="#force-steal"><span>03</span> Force/Steal</a>
+        <a href="#log"><span>04</span> Loggen</a>
+        <a href="#wal"><span>05</span> WAL</a>
+        <a href="#clr"><span>06</span> CLR</a>
+        <a href="#data"><span>07</span> Datastrukturer</a>
+        <a href="#aries"><span>08</span> ARIES tre faser</a>
+        <a href="#eksempel"><span>09</span> Eksempel</a>
+        <a href="#checkpoint"><span>10</span> Sjekkpunkter</a>
+        <a href="#oppsummering"><span>11</span> Oppsummering</a>
       </nav>
     </div>
   </header>
 
+  <!-- ─────────────────────────── 01 Mål ─────────────────────────── -->
   <section id="mal">
     <div class="container">
       <div class="section-badge">01 · Mål</div>
-      <h2>To garantier under krasj</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <h2>Hva skal recovery <em>levere</em>?</h2>
+      <p class="dropcap">Recovery manager har bare ett oppdrag: gjenopprette databasen til en konsistent tilstand etter en feil — og det med to ACID-bokstaver i bagasjen, A og D.</p>
       <ul>
-        <li>Atomicity — committed transaksjoner overlever, aborted ruller tilbake</li>
-        <li>Durability — committed data tapes ikke</li>
-        <li>Krav: idempotent recovery (kan kjøres flere ganger)</li>
+        <li><strong>Atomicity</strong> — alle uavsluttede transaksjoner ved krasj skal rulles tilbake (undo).</li>
+        <li><strong>Durability</strong> — alle committed transaksjoner ved krasj skal være på disken etterpå (redo om nødvendig).</li>
       </ul>
+
+      <p>I tillegg må recovery-prosessen være <strong>idempotent</strong>: hvis maskinen krasjer <em>igjen</em> midt under recovery, skal det å starte recovery på nytt fortsatt gi riktig resultat. Det er CLR-ene (kapittel 06 her) som gjør dette mulig.</p>
+
+      <h3>Tre typer feil</h3>
+      <ol>
+        <li><strong>Transaksjons-abort</strong> under normal drift — manglende data, brukervalg, deadlock.</li>
+        <li><strong>System-krasj</strong> — strømbrudd, OS-kill, software-feil. RAM forsvinner, disk overlever.</li>
+        <li><strong>Mediefeil</strong> — disken selv er ødelagt. Trenger backup + redo. <em>(Utenfor pensum.)</em></li>
+      </ol>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 02 Winners/Losers ─────────────────────────── -->
+  <section id="vinnere">
+    <div class="container">
+      <div class="section-badge">02 · Vinnere og tapere</div>
+      <h2>Hvilke transaksjoner var <em>egentlig</em> ferdige?</h2>
+      <p>Når strømmen gikk, var noen transaksjoner committed (vi vet det fordi commit-loggrecorden var på disk), andre var midt i. De første kalles <strong>winners</strong>, de andre <strong>losers</strong>.</p>
+
+      <figure>
+        <svg class="crashline" viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vinnere og tapere ved krasj">
+          <line x1="40" y1="240" x2="660" y2="240" stroke="#3d3832" stroke-width="1.2"/>
+          <text x="350" y="260" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">Tid →</text>
+
+          <line class="crash-line" x1="540" y1="20" x2="540" y2="240"/>
+          <text x="540" y="14" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#c93a3a">CRASH</text>
+
+          <rect class="winner-bar" x="60"  y="40" width="340" height="22" rx="4"/>
+          <text x="55" y="55" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">T1</text>
+          <circle cx="400" cy="51" r="6" fill="#1a1612"/>
+          <text x="412" y="55" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3d6b3a">commit ✓</text>
+
+          <rect class="winner-bar" x="100" y="80" width="380" height="22" rx="4"/>
+          <text x="55" y="95" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">T2</text>
+          <circle cx="480" cy="91" r="6" fill="#1a1612"/>
+          <text x="492" y="95" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3d6b3a">commit ✓</text>
+
+          <rect class="winner-bar" x="200" y="120" width="320" height="22" rx="4"/>
+          <text x="55" y="135" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">T3</text>
+          <circle cx="520" cy="131" r="6" fill="#1a1612"/>
+          <text x="528" y="135" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3d6b3a">commit ✓</text>
+
+          <rect class="loser-bar" x="280" y="160" width="260" height="22" rx="4"/>
+          <text x="55" y="175" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">T4</text>
+          <text x="552" y="175" font-family="IBM Plex Mono, monospace" font-size="10" fill="#7a4a2d">løs — undo</text>
+
+          <rect class="loser-bar" x="420" y="200" width="120" height="22" rx="4"/>
+          <text x="55" y="215" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">T5</text>
+          <text x="552" y="215" font-family="IBM Plex Mono, monospace" font-size="10" fill="#7a4a2d">løs — undo</text>
+
+          <rect x="60"  y="266" width="14" height="10" class="winner-bar"/>
+          <text x="78"  y="276" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3d6b3a">winner (committed)</text>
+          <rect x="220" y="266" width="14" height="10" class="loser-bar"/>
+          <text x="238" y="276" font-family="IBM Plex Mono, monospace" font-size="10" fill="#7a4a2d">loser (in-flight)</text>
+        </svg>
+        <figcaption>T1, T2, T3 fikk commit-loggrecord på disk før krasj — de er <em>winners</em>. T4 og T5 hadde ikke det — løsere som må rulles tilbake.</figcaption>
+      </figure>
+
+      <p>Etter krasj må recovery-prosessen:</p>
+      <ol>
+        <li>Finne ut hvem som var winner og hvem som var loser (<strong>Analysis</strong>-fasen).</li>
+        <li>Sørge for at <em>alle</em> winners' endringer er på disk (<strong>Redo</strong>-fasen).</li>
+        <li>Rulle tilbake alle losers' delvise endringer (<strong>Undo</strong>-fasen).</li>
+      </ol>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Vinnere</div>
+        <div class="q-text">En transaksjon har skrevet en <code>commit</code> log-record til log-bufferen i RAM, men maskinen krasjer før loggbufferen blir tømt til disk. Er den winner eller loser?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Winner — den prøvde å committe</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Loser — committen var ikke på stabil lagring (disk) ved krasjet</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Den blir spart ved at vi henter loggen fra RAM</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Avhenger av isolation level</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Loser.</strong> RAM forsvinner ved krasj. Vi vet kun om transaksjoner som har commit-record <em>på disk</em>. Det er nettopp derfor «force-log-at-commit» finnes — for å gjøre commit-loggen synkron med disk og sikre durability.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 03 Force / Steal ─────────────────────────── -->
+  <section id="force-steal">
+    <div class="container">
+      <div class="section-badge">03 · Buffer-policy</div>
+      <h2>Force og <em>steal</em></h2>
+      <p>Hvilken algoritme et DBMS trenger avhenger av to designvalg om buffer-poolen:</p>
+
+      <ul>
+        <li><strong>Force</strong>: Tvinger systemet at <em>alle</em> data-sider skrives til disk ved commit?
+          <ul><li>Ja (force) — durability lett, men dyr commit (mange random writes).</li>
+              <li>Nei (no-force) — billig commit, men trenger redo etter krasj.</li></ul>
+        </li>
+        <li><strong>Steal</strong>: Kan en buffer-slot stjeles fra en uavsluttet transaksjon (skrives til disk)?
+          <ul><li>Ja (steal) — fleksibel buffer-bruk, men trenger undo for halvskrevne sider.</li>
+              <li>Nei (no-steal) — uavsluttede sider holdes i buffer til commit. Begrenset.</li></ul>
+        </li>
+      </ul>
+
+      <div class="fs-matrix">
+        <table>
+          <thead>
+            <tr><th></th><th>No-steal</th><th>Steal</th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Force</th><td>Shadowing (ingen logg)</td><td>Bare undo-logg</td></tr>
+            <tr><th>No-force</th><td>Bare redo-logg</td><td class="star">Undo + redo (ARIES)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>ARIES</strong> sitter i steal/no-force-hjørnet: maksimal fleksibilitet for buffer manager, men krever <em>både</em> undo- og redo-logging. Det er prisen for ytelse i moderne SQL-databaser.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 04 Loggen ─────────────────────────── -->
   <section id="log">
     <div class="container">
-      <div class="section-badge">02 · Log records</div>
-      <h2>Append-only kronologi</h2>
+      <div class="section-badge">04 · Loggen</div>
+      <h2>Append-only <em>kronologi</em></h2>
+      <p>Loggen er en sekvensiell, append-only fil på en egen disk. Hvert log-record har en monotont voksende <strong>LSN</strong> (Log Sequence Number).</p>
+
+      <h3>Generisk log-record</h3>
+      <pre><code>(LSN, TransID, PrevLSN, OpType, PageID, Offset, BeforeImage, AfterImage)</code></pre>
       <ul>
-        <li>Update-record: (LSN, TxID, page, before-image, after-image)</li>
-        <li>Begin/Commit/Abort-records</li>
-        <li>Compensation Log Records (CLR) — ikke-undoable undo</li>
+        <li><strong>LSN</strong> — unik, voksende. Også brukt som <code>PageLSN</code> på datasiden.</li>
+        <li><strong>PrevLSN</strong> — peker bakover til forrige log-record fra <em>samme</em> transaksjon. Lager en lenket kjede per Tx.</li>
+        <li><strong>OpType</strong> — update / insert / delete / commit / abort / CLR / checkpoint.</li>
+        <li><strong>BeforeImage / AfterImage</strong> — hva som lå der før og etter (brukes til hhv. undo og redo).</li>
       </ul>
+
+      <h3>PageLSN — koblingen mellom logg og data</h3>
+      <p>Hver dataside har et felt <code>PageLSN</code> som inneholder LSN-en til <em>siste</em> log-record som ble brukt på siden. Det er den sjekken redo-fasen bruker for å avgjøre om en endring allerede er reflektert på siden.</p>
+
+      <figure>
+        <svg viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Loggen og PageLSN">
+          <rect x="20" y="40" width="380" height="60" fill="#e6edf6" stroke="#1f4e79" stroke-width="1.4" rx="4"/>
+          <text x="210" y="32" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1a1612">Log buffer (RAM)</text>
+          <rect x="30"  y="50" width="60" height="40" fill="#fff4e0" stroke="#c68a1f"/>
+          <text x="60"  y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">LSN 100</text>
+          <rect x="100" y="50" width="60" height="40" fill="#fff4e0" stroke="#c68a1f"/>
+          <text x="130" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">LSN 101</text>
+          <rect x="170" y="50" width="60" height="40" fill="#fff4e0" stroke="#c68a1f"/>
+          <text x="200" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">LSN 102</text>
+          <rect x="240" y="50" width="60" height="40" fill="#e8e3d6" stroke="#1a1612"/>
+          <text x="270" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">LSN 103</text>
+          <rect x="310" y="50" width="60" height="40" fill="#e8e3d6" stroke="#1a1612"/>
+          <text x="340" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11">LSN 104</text>
+
+          <line x1="225" y1="100" x2="225" y2="115" stroke="#3d6b3a" stroke-width="1.5"/>
+          <text x="225" y="128" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3d6b3a">FlushedLSN = 102</text>
+
+          <rect x="20" y="150" width="220" height="40" fill="#ddd5c4" stroke="#3d3832" rx="4"/>
+          <text x="130" y="174" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1a1612">Log på disk: LSN 0..102</text>
+
+          <rect x="450" y="40" width="190" height="100" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.4" rx="4"/>
+          <text x="545" y="32" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1a1612">Dataside i buffer</text>
+          <text x="465" y="65" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">PageID: A</text>
+          <text x="465" y="85" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">PageLSN: 102</text>
+          <text x="465" y="105" font-family="IBM Plex Mono, monospace" font-size="11" fill="#1a1612">Innhold: …</text>
+
+          <rect x="450" y="160" width="190" height="30" fill="#ddd5c4" stroke="#3d3832" rx="4"/>
+          <text x="545" y="180" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#1a1612">Database-disk</text>
+        </svg>
+        <figcaption>FlushedLSN = nyeste log-record på disk. PageLSN på dataside = LSN av siste endring på siden. Ved å sammenlikne kan vi vite om en endring trenger redo.</figcaption>
+      </figure>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 05 WAL ─────────────────────────── -->
   <section id="wal">
     <div class="container">
-      <div class="section-badge">03 · Write-Ahead Logging</div>
-      <h2>Loggen først, dataen etterpå</h2>
-      <ul>
-        <li>WAL-regelen: log må være persistert <em>før</em> datasiden</li>
-        <li>Force-at-commit — eller flush log-buffer ved commit</li>
-        <li>Sikrer atomicity (kan rulle tilbake) og durability (kan rulle frem)</li>
-      </ul>
+      <div class="section-badge">05 · WAL</div>
+      <h2>Write-ahead <em>logging</em></h2>
+      <p>Hele recovery-arkitekturen hviler på én regel:</p>
+
+      <blockquote><strong>WAL-regelen:</strong> Før en endret dataside skrives til disk, må alle log-records som beskriver endringen være på disk først.</blockquote>
+
+      <p>Konkret: før vi skriver dirty side P med <code>PageLSN = L</code> til disk, må <code>FlushedLSN ≥ L</code>. Hvis ikke, kunne et krasj rett etter side-skrivingen latt oss stå med en delvis oppdatert side på disk uten noen log-record som forteller hvordan vi skulle rulle den tilbake — atomicity brutt.</p>
+
+      <p>WAL har egentlig <em>to</em> deler:</p>
+      <ol>
+        <li><strong>Undo-WAL</strong> — log først, data etterpå (ovenfor). Sikrer atomicity.</li>
+        <li><strong>Force-log-at-commit</strong> — ved <code>COMMIT</code>, tving log-bufferen til disk før suksess returneres til klient. Sikrer durability.</li>
+      </ol>
+
+      <div class="wal-demo">
+        <div class="wal-block">
+          <h4>Log-buffer</h4>
+          <div class="wal-entry flushed">100: w(A, …) ✓ disk</div>
+          <div class="wal-entry flushed">101: w(B, …) ✓ disk</div>
+          <div class="wal-entry fresh">102: w(C, …) ⚡ ny</div>
+        </div>
+        <div class="wal-arrow">→</div>
+        <div class="wal-block">
+          <h4>Buffer-pool</h4>
+          <div class="wal-entry">side A · PageLSN=100</div>
+          <div class="wal-entry">side B · PageLSN=101</div>
+          <div class="wal-entry dirty">side C · PageLSN=102 (dirty!)</div>
+        </div>
+        <div class="wal-arrow">→</div>
+        <div class="wal-block">
+          <h4>Disk</h4>
+          <div class="wal-entry flushed">log: 0..101</div>
+          <div class="wal-entry">side A · på disk</div>
+          <div class="wal-entry">side B · på disk</div>
+          <div class="wal-entry" style="color: var(--ink-faded);">side C · gammel versjon</div>
+        </div>
+      </div>
+      <p style="font-style: italic; color: var(--ink-soft); text-align: center; font-size: 0.9rem;">Side C kan ikke skrives til disk før log-record 102 er på disk (FlushedLSN ≥ 102).</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · WAL</div>
+        <div class="q-text">Hvorfor er WAL-regelen «logg først, data etterpå» — ikke omvendt?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Loggen er kortere enn dataen</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Hvis vi krasjer, må vi kunne rulle siden tilbake — det krever before-image fra loggen</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Disken bruker mindre energi på sekvensielle skrivinger</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>SQL-standarden krever det</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Atomicity-argumentet.</strong> Hvis siden gikk på disk uten loggen, og vi krasjet, ville vi sittet med halvskrevne sider på disken og <em>ingen</em> måte å rulle dem tilbake. Loggen <em>må</em> ligge på disk først, slik at vi alltid har before-image om vi trenger å undo.
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="undo-redo">
+  <!-- ─────────────────────────── 06 CLR ─────────────────────────── -->
+  <section id="clr">
     <div class="container">
-      <div class="section-badge">04 · Undo og redo</div>
-      <h2>To operasjoner</h2>
+      <div class="section-badge">06 · CLR</div>
+      <h2>Compensating Log <em>Records</em></h2>
+      <p>Tenk: under undo for en aborted transaksjon krasjer maskinen. Når den starter på nytt — hvor langt har vi kommet i å rulle tilbake? Skal vi rulle tilbake samme record igjen?</p>
+
+      <p>ARIES sin eleganse: når vi <em>undoer</em> en log-record, skriver vi en ny log-record som beskriver «jeg har angret den endringen». Den heter en <strong>CLR</strong> (Compensating Log Record). PageLSN på siden oppdateres til CLR-ens LSN.</p>
+
+      <p>Egenskaper:</p>
       <ul>
-        <li>Undo — fra after-image til before-image (rulle tilbake aborterte)</li>
-        <li>Redo — fra before-image til after-image (rulle frem committed)</li>
-        <li>Steal/no-steal · Force/no-force — fire kombinasjoner, ulike krav</li>
+        <li>CLR-er er <strong>redo-only</strong> — de undoes aldri.</li>
+        <li>De har et <code>UndoNextLSN</code>-felt som peker til det <em>neste</em> som skal undoes (forbi den vi nettopp angret).</li>
+        <li>Hvis krasj skjer under undo, kan vi gjenkjenne CLR-er ved restart og hoppe rett til der vi var.</li>
       </ul>
+
+      <p>Resultat: <strong>idempotent recovery</strong>. Du kan krasje, restarte, krasje igjen — slutt-tilstanden er den samme.</p>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 07 Datastrukturer ─────────────────────────── -->
+  <section id="data">
+    <div class="container">
+      <div class="section-badge">07 · Datastrukturer</div>
+      <h2>Det ARIES holder rede på</h2>
+      <p>To tabeller i RAM (kopieres til logg ved sjekkpunkter):</p>
+
+      <h3>Transaction Table (TT)</h3>
+      <p>Én rad per <em>aktiv</em> transaksjon. Inneholder:</p>
+      <ul>
+        <li><code>TransID</code></li>
+        <li><code>Status</code> — active / committed / aborted</li>
+        <li><code>LastLSN</code> — siste log-record skrevet av denne Tx (start på undo-kjeden)</li>
+      </ul>
+
+      <h3>Dirty Page Table (DPT)</h3>
+      <p>Én rad per <em>dirty</em> side i buffer (modifisert, men ikke skrevet til disk). Inneholder:</p>
+      <ul>
+        <li><code>PageID</code></li>
+        <li><code>RecLSN</code> — LSN av <em>første</em> log-record som gjorde siden dirty etter siste flush. Det er det <em>tidligste</em> punktet redo må gå tilbake til for denne siden.</li>
+      </ul>
+
+      <p>Hvorfor skiller vi RecLSN fra PageLSN? Begge gjelder samme side, men ulike formål: <em>RecLSN</em> sier hvor langt tilbake redo må starte; <em>PageLSN</em> sier hvor langt redo allerede er kommet.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Datastrukturer</div>
+        <div class="q-text">Hva skjer med en sides oppføring i DPT når siden flushes til disk?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>RecLSN settes lik PageLSN</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Oppføringen fjernes — siden er ikke lenger dirty</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Oppføringen merkes "clean" men beholdes</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Ingenting endrer seg</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Fjernes.</strong> DPT inneholder <em>kun</em> sider som har endringer i buffer som ikke er på disk. Når flushen er ferdig, er bufferen og disken synkronisert, og siden tas ut. Hvis den senere skrives på igjen, kommer den tilbake i DPT med en ny RecLSN.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 08 ARIES tre faser ─────────────────────────── -->
   <section id="aries">
     <div class="container">
-      <div class="section-badge">05 · ARIES</div>
-      <h2>Industristandarden</h2>
-      <ul>
-        <li>Tre faser: Analysis · Redo · Undo</li>
-        <li>Analysis: gå gjennom log fra siste checkpoint, bygg active-transaction-table + dirty-page-table</li>
-        <li>Redo: spol fram ALL endringer fra redoLSN</li>
-        <li>Undo: rulle tilbake aborterte transaksjoner, skriv CLRs</li>
-        <li>LSN per side — vet hva som er gjort</li>
-      </ul>
+      <div class="section-badge">08 · ARIES</div>
+      <h2>Tre <em>faser</em> ved restart</h2>
+      <p>Etter krasj går recovery-prosessen gjennom <em>nøyaktig</em> tre faser, alltid i denne rekkefølgen. Klikk «Spill av» for å se rekkefølgen:</p>
+
+      <div data-aries-anim>
+        <div class="aries-phases">
+          <div class="aries-phase">
+            <span class="phase-num">FASE 1</span>
+            <h4>Analysis</h4>
+            <p>Skann logg fra siste sjekkpunkt og fremover. Bygg opp <strong>Transaction Table</strong> og <strong>Dirty Page Table</strong> slik de var ved krasjet. Identifiser winners (committed) og losers (in-flight).</p>
+          </div>
+          <div class="aries-phase">
+            <span class="phase-num">FASE 2</span>
+            <h4>Redo</h4>
+            <p>Start ved <em>minste RecLSN</em> i DPT. Skann fremover. For hver log-record: utfør den om <code>PageLSN &lt; LSN</code>. <strong>Repeating history</strong> — alle endringer (også fra losere!) gjenspilles.</p>
+          </div>
+          <div class="aries-phase">
+            <span class="phase-num">FASE 3</span>
+            <h4>Undo</h4>
+            <p>Gå <em>baklengs</em> gjennom log-recordene til losers (via PrevLSN). For hver, skriv en CLR og angre endringen. Når alle losers er rullet helt tilbake — ferdig.</p>
+          </div>
+        </div>
+        <div class="tx-stepper-controls">
+          <button data-aries-play>Spill av</button>
+          <span class="step-counter">Hver fase tar ca. 1.4s i animasjonen.</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Snikende detalj — repeating history</span>
+        <p>Redo gjenspiller <em>alt</em>, også endringer gjort av løsere. Hvorfor? Fordi PageLSN-sjekken bruker LSN-sammenlikning, og fordi det forenkler logikken: når vi når undo-fasen, er databasen i nøyaktig samme tilstand som ved krasjet (inkludert halvgjorte endringer fra losere). Så undo må bare reverse log-recordene, uansett hva som har skjedd.</p>
+      </div>
     </div>
   </section>
 
+  <!-- ─────────────────────────── 09 Eksempel ─────────────────────────── -->
+  <section id="eksempel">
+    <div class="container">
+      <div class="section-badge">09 · Eksempel</div>
+      <h2>Analysis i <em>praksis</em></h2>
+      <p>La A, B, C være data-sider. Etter krasj finner vi følgende logg:</p>
+
+      <div class="numlog">
+        <table>
+          <thead>
+            <tr><th>LSN</th><th>PrevLSN</th><th>Tx</th><th>OpType</th><th>Page</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lsn">101</td><td>0</td><td>T1</td><td class="op-update">Update</td><td>C</td></tr>
+            <tr><td class="lsn">102</td><td>0</td><td>T2</td><td class="op-update">Update</td><td>B</td></tr>
+            <tr><td class="lsn">103</td><td>101</td><td>T1</td><td class="op-commit">Commit</td><td>—</td></tr>
+            <tr><td class="lsn">104</td><td>—</td><td>—</td><td class="op-ckpt">Begin_ckpt</td><td>—</td></tr>
+            <tr><td class="lsn">105</td><td>—</td><td>—</td><td class="op-ckpt">End_ckpt (TT, DPT)</td><td>—</td></tr>
+            <tr><td class="lsn">106</td><td>0</td><td>T3</td><td class="op-update">Update</td><td>A</td></tr>
+            <tr><td class="lsn">107</td><td>102</td><td>T2</td><td class="op-update">Update</td><td>C</td></tr>
+            <tr><td class="lsn">108</td><td>107</td><td>T2</td><td class="op-commit">Commit</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Ved sjekkpunkt (LSN 105) hadde TT og DPT følgende:</p>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1 1 280px;">
+          <h4 style="margin-bottom:0.4rem;">TT @ ckpt</h4>
+          <div class="numlog">
+            <table>
+              <thead><tr><th>Tx</th><th>LastLSN</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>T1</td><td>103</td><td class="op-commit">Commit</td></tr>
+                <tr><td>T2</td><td>102</td><td>Active</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex: 1 1 280px;">
+          <h4 style="margin-bottom:0.4rem;">DPT @ ckpt</h4>
+          <div class="numlog">
+            <table>
+              <thead><tr><th>Page</th><th>RecLSN</th></tr></thead>
+              <tbody>
+                <tr><td>C</td><td>101</td></tr>
+                <tr><td>B</td><td>102</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.6rem;">Etter Analysis</h3>
+      <p>Vi skanner forover fra LSN 106:</p>
+      <ul>
+        <li>LSN 106 (T3, Update A) — T3 er ny i TT, status active, lastLSN=106. A er ny i DPT, RecLSN=106.</li>
+        <li>LSN 107 (T2, Update C) — T2 sin lastLSN oppdateres til 107. C eksisterer allerede i DPT med RecLSN=101 — <em>vi oppdaterer ikke</em> RecLSN (vi vil ha eldste!).</li>
+        <li>LSN 108 (T2, Commit) — T2 sin status blir committed.</li>
+      </ul>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div style="flex: 1 1 280px;">
+          <h4 style="margin-bottom:0.4rem;">TT etter analysis</h4>
+          <div class="numlog">
+            <table>
+              <thead><tr><th>Tx</th><th>LastLSN</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>T1</td><td>103</td><td class="op-commit">Commit</td></tr>
+                <tr><td>T2</td><td>108</td><td class="op-commit">Commit</td></tr>
+                <tr><td>T3</td><td>106</td><td class="op-abort">Active → undo!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="flex: 1 1 280px;">
+          <h4 style="margin-bottom:0.4rem;">DPT etter analysis</h4>
+          <div class="numlog">
+            <table>
+              <thead><tr><th>Page</th><th>RecLSN</th></tr></thead>
+              <tbody>
+                <tr><td>C</td><td>101</td></tr>
+                <tr><td>B</td><td>102</td></tr>
+                <tr><td>A</td><td>106</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <p>T3 er den eneste loseren — den må undoes. Redo starter ved <strong>minste RecLSN i DPT = 101</strong>.</p>
+
+      <h3>Redo-test</h3>
+      <p>For hver log-record (101..108) sjekker vi i denne rekkefølgen:</p>
+      <ol>
+        <li><strong>Hopp over</strong> hvis PageID ikke er i DPT.</li>
+        <li><strong>Hopp over</strong> hvis log-record sin LSN &lt; sidens RecLSN.</li>
+        <li>Les inn siden fra disk. <strong>Hopp over</strong> hvis sidens PageLSN ≥ log-record sin LSN.</li>
+        <li>Ellers: <strong>redo</strong>. Skriv AfterImage til siden. Sett PageLSN = log-record sin LSN.</li>
+      </ol>
+
+      <p>Anta at A, B, C på disk har PageLSN = 106, 102, 101 ved start av redo:</p>
+
+      <div class="numlog">
+        <table>
+          <thead>
+            <tr><th>LSN</th><th>Page</th><th>Test</th><th>Resultat</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>101</td><td>C</td><td>PageLSN(C)=101 ≥ 101</td><td>skip</td></tr>
+            <tr><td>102</td><td>B</td><td>PageLSN(B)=102 ≥ 102</td><td>skip</td></tr>
+            <tr><td>106</td><td>A</td><td>PageLSN(A)=106 ≥ 106</td><td>skip</td></tr>
+            <tr class="highlight"><td>107</td><td>C</td><td>PageLSN(C)=101 &lt; 107</td><td>REDO — skriv AfterImage, PageLSN(C):=107</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Undo</h3>
+      <p>T3 sin LastLSN er 106. Vi går baklengs (PrevLSN=0, så bare denne ene), skriver en CLR for LSN 106 og angrer endringen på A.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Tenk selv · Eksempel</div>
+        <div class="q-text">Hvorfor blir <em>RecLSN for C ikke oppdatert</em> når vi behandler LSN 107 i analysis?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            RecLSN er <strong>eldste</strong> log-record som har gjort siden dirty siden siste flush. Hvis vi oppdaterte RecLSN til 107, ville redo ikke startet tilbake fra 101 — og endringen i LSN 101 kunne mistet sin redo om PageLSN(C) på disk var lavere. Vi må holde på den eldste for å være sikre på korrekt redo.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── 10 Sjekkpunkter ─────────────────────────── -->
   <section id="checkpoint">
     <div class="container">
-      <div class="section-badge">06 · Sjekkpunkter</div>
-      <h2>Begrens hvor langt tilbake recovery må gå</h2>
-      <ul>
-        <li>Stop-the-world checkpoint — alle skitne sider flushes</li>
-        <li>Begrenser Analysis-fasens startpunkt</li>
-        <li>Trade-off: hyppige sjekkpunkter = liten recovery, mer normaldrift-overhead</li>
-      </ul>
+      <div class="section-badge">10 · Sjekkpunkter</div>
+      <h2>Begrens hvor langt <em>tilbake</em> recovery må gå</h2>
+      <p>Uten sjekkpunkter må Analysis lese <em>hele loggen</em> fra start hver gang vi krasjer. Et sjekkpunkt er en periodisk «her var vi» — og recovery kan starte derfra.</p>
+
+      <h3>Stop-the-world checkpoint (gammelt)</h3>
+      <ol>
+        <li>Stopp alle nye operasjoner.</li>
+        <li>Vent til alle aktive transaksjoner er ferdige (eller i hvert fall stille).</li>
+        <li>Flush alle dirty sider til disk.</li>
+        <li>Skriv «checkpoint»-record i loggen.</li>
+        <li>Slipp alle løs igjen.</li>
+      </ol>
+      <p>Korrekt, men lammer systemet i sekunder — uakseptabelt for OLTP.</p>
+
+      <h3>Fuzzy checkpoint (ARIES)</h3>
+      <ol>
+        <li>Skriv <code>begin_checkpoint</code>-record.</li>
+        <li>Skriv en <code>end_checkpoint</code>-record som inneholder snapshot av TT og DPT akkurat nå.</li>
+        <li>Oppdater <strong>log anchor</strong> (et lite, fast sted på disk) til å peke på begin_checkpoint.</li>
+        <li>Bakgrunnsprosess flusher dirty sider <em>uten å blokkere</em> drift.</li>
+      </ol>
+      <p>Recovery starter ved <code>begin_checkpoint</code>; den vet hva TT/DPT så ut da, og leser videre forover for å bygge nåværende tilstand.</p>
+
+      <p>Trade-off: hyppige sjekkpunkter ⇒ kort recovery, mer normaldrift-overhead. I praksis kjører kommersielle systemer fuzzy checkpoint hvert 5–10 minutt eller hver N-te MB logg.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Sjekkpunkter</div>
+        <div class="q-text">Hva er hovedfordelen med fuzzy checkpoint over stop-the-world?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Kortere recovery-tid</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Sjekkpunktet kan tas uten å blokkere pågående transaksjoner</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Mindre logg-volum</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Mindre disk-bruk</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Ingen blokkering.</strong> Begge typer gir kort recovery — det er hovedhensikten med <em>alle</em> sjekkpunkter. Forskjellen er at fuzzy lar databasen fortsette å betjene transaksjoner mens sjekkpunktet skrives, så systemet aldri stopper synlig for brukeren.
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="fuzzy">
+  <!-- ─────────────────────────── 11 Oppsummering ─────────────────────────── -->
+  <section id="oppsummering">
     <div class="container">
-      <div class="section-badge">07 · Fuzzy checkpoint</div>
-      <h2>Sjekkpunkt uten å stoppe</h2>
+      <div class="section-badge">11 · Oppsummering</div>
+      <h2>Kort oppsummert</h2>
       <ul>
-        <li>Skriv begin-checkpoint + active-tx + dirty-page-list, fortsett drift</li>
-        <li>Bakgrunnsprosess flusher skitne sider</li>
-        <li>End-checkpoint når alle de skitne sidene fra start er på disk</li>
-        <li>ARIES bruker dette</li>
+        <li>Recovery garanterer <strong>Atomicity</strong> (undo) og <strong>Durability</strong> (redo).</li>
+        <li><strong>Winners</strong> = committed før krasj. <strong>Losers</strong> = in-flight ved krasj.</li>
+        <li><strong>ARIES</strong> = steal/no-force ⇒ trenger både undo- og redo-logging.</li>
+        <li><strong>WAL-regelen</strong>: log-records på disk før dataside. <strong>Force-log-at-commit</strong>: synkron logg ved commit.</li>
+        <li><strong>CLR</strong> gjør undo idempotent. PageLSN på siden følger med.</li>
+        <li><strong>Datastrukturer</strong>: Transaction Table (aktive Tx) og Dirty Page Table (sider med endringer i buffer).</li>
+        <li>ARIES tre faser: <strong>Analysis → Redo → Undo</strong>. Redo «repeating history» — også fra løsere.</li>
+        <li><strong>Fuzzy checkpoint</strong>: tar snapshot av TT/DPT uten å blokkere drift.</li>
       </ul>
+
+      <p style="margin-top:2rem; font-style: italic; color: var(--ink-soft);">Du har nå gått gjennom hele kapittel 8. Last igjen <a href="./">oversikten</a>, eller hopp tilbake til <a href="../">alle kapitlene</a>.</p>
     </div>
   </section>
 </main>
@@ -140,6 +613,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

@@ -26,9 +26,9 @@
 <main data-chapter="Kapittel 5: Utover relasjonsmodellen">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 5 · Forelesning 10</div>
+      <div class="eyebrow">Kapittel 5 · Forelesning 10 · Del 1</div>
       <h1>Utover <em>relasjonsmodellen</em></h1>
-      <p class="lede">Komplekse datatyper, objekt-relasjonelle utvidelser, og når NoSQL gir mening.</p>
+      <p class="lede">Den siste forelesningen i Del 1: hva gjør vi når den relasjonelle modellen blir for trang? Komplekse typer, JSON, NoSQL, distribuerte databaser og analytics — og når hver av dem gir mening.</p>
     </div>
   </header>
 
@@ -36,8 +36,9 @@
     <div class="container">
       <ol class="chapter-toc-list">
         <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Deler</a></li>
-        <li><span class="toc-num">03</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">02</span><a href="#deler">Læringssti</a></li>
+        <li><span class="toc-num">03</span><a href="#nokkelord">Nøkkelord</a></li>
+        <li><span class="toc-num">04</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
@@ -45,29 +46,91 @@
   <section id="overblikk">
     <div class="container">
       <div class="section-badge">Helhetsbilde</div>
-      <h2>Når relasjoner ikke er nok</h2>
-      <ul>
-        <li>Komplekse typer — arrays, structs, JSON</li>
-        <li>Objekt-relasjonelle utvidelser i SQL</li>
-        <li>NoSQL: dokument, kolonne, graf, key-value</li>
-        <li>CAP-teoremet i kort</li>
-      </ul>
+      <h2>Hvor passer dette inn?</h2>
+      <p>Forelesning 10 er broen mellom Del 1 (relasjonsmodellen, SQL, databasedesign) og verden utenfor — og er pensum til eksamen. Du skal kunne <em>begrunne valg</em> mellom relasjonsdatabaser og alternativene, og forstå de mest sentrale ikke-relasjonelle teknologiene.</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Lærebok</div>
+          <div class="fc-val">Deler av kapittel 8, 10, 11 og 29.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Eksamensvekt</div>
+          <div class="fc-val">Del 1 ≈ 40 %. Beyond-relational dukker oftest opp som drøftings-spørsmål.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Forelesning</div>
+          <div class="fc-val">F10 — etter normalformer, før Bratsbergs lagring-del.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-good">
+        <span class="label">Slik bruker du dette kapittelet</span>
+        <p>Begynn på <a href="innhold.html">læringssiden</a> — der finner du teori, figurer og animerte forklaringer, med små MCQ-quizzer underveis i hver seksjon. Når du er ferdig, sjekk deg selv på den avsluttende quizen lenger ned på denne siden.</p>
+      </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Deler</div>
+      <div class="section-badge">Læringssti</div>
       <h2>Utforsk <em>kapittelet</em></h2>
       <div class="subpage-list">
         <a href="innhold.html" class="subpage-card">
           <span class="sp-icon">5</span>
           <div class="sp-info">
-            <div class="sp-title">Komplekse typer, objekt-relasjonelt og NoSQL</div>
-            <div class="sp-desc">Lærebokens kap 8, 10, 11 og 29 i kort form</div>
+            <div class="sp-title">Komplekse typer, NoSQL, CAP, distribuerte databaser og analytics</div>
+            <div class="sp-desc">11 seksjoner med figurer, en interaktiv CAP-triangel, en MapReduce-animasjon og inline-quizzer underveis.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
+      </div>
+
+      <h3>Hva du møter på siden</h3>
+      <ul>
+        <li><strong>1. Hvorfor bryte ut</strong> — hvorfor relasjonsmodellen ikke alltid holder.</li>
+        <li><strong>2. Komplekse datatyper</strong> — UDT, type-arv, arrays, referanser, tabell-arv.</li>
+        <li><strong>3. Semi-strukturert (JSON / XML)</strong> — JSONB i Postgres, <code>-&gt;</code> vs <code>-&gt;&gt;</code>, XPath.</li>
+        <li><strong>4. Object-relasjonelt og ORM</strong> — friksjonen mellom klasser og tabeller.</li>
+        <li><strong>5. Big Data og 3 V-er</strong> — Volume, Velocity, Variety; HDFS.</li>
+        <li><strong>6. MapReduce</strong> — animert flyt fra input → map → shuffle → reduce.</li>
+        <li><strong>7. NoSQL — fire familier</strong> — KV, dokument, kolonne, graf med konkrete eksempler.</li>
+        <li><strong>8. Sharding og replikering</strong> — range vs hash, kvorum.</li>
+        <li><strong>9. CAP &amp; BASE</strong> — interaktiv triangel, ACID vs BASE.</li>
+        <li><strong>10. OLAP og datalager</strong> — star-schema, OLTP vs OLAP, lake vs warehouse.</li>
+        <li><strong>11. Når brukes hva?</strong> — beslutnings-cheatsheet og oppsummering.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="nokkelord">
+    <div class="container">
+      <div class="section-badge">Nøkkelord</div>
+      <h2>Sentrale begreper</h2>
+      <p class="section-intro">Disse skal sitte. Klikker du i navigeringssøket øverst, finner du dem alle definert på læringssiden.</p>
+      <div class="recap-grid">
+        <div class="recap-pill"><strong>UDT</strong> User-defined / strukturerte typer i SQL.</div>
+        <div class="recap-pill"><strong>Type-arv</strong> Subtyper arver felt og metoder.</div>
+        <div class="recap-pill"><strong>Tabell-arv</strong> Subtabells rader synes også i supertabellen.</div>
+        <div class="recap-pill"><strong>REF / path-uttrykk</strong> Sukker over JOIN.</div>
+        <div class="recap-pill"><strong>JSONB</strong> Binær, indekserbar JSON i Postgres.</div>
+        <div class="recap-pill"><strong>GIN-indeks</strong> For containment-spørringer på JSONB.</div>
+        <div class="recap-pill"><strong>3 V-er</strong> Volume · Velocity · Variety.</div>
+        <div class="recap-pill"><strong>HDFS</strong> NameNode + DataNodes, replikerte blokker.</div>
+        <div class="recap-pill"><strong>MapReduce</strong> map → shuffle → reduce.</div>
+        <div class="recap-pill"><strong>Spark</strong> DAG av operatorer, in-memory.</div>
+        <div class="recap-pill"><strong>Key-value</strong> Redis, DynamoDB.</div>
+        <div class="recap-pill"><strong>Dokument-DB</strong> MongoDB, Couchbase.</div>
+        <div class="recap-pill"><strong>Wide-column</strong> Cassandra, HBase, Bigtable.</div>
+        <div class="recap-pill"><strong>Grafdatabase</strong> Neo4j, Cypher.</div>
+        <div class="recap-pill"><strong>Sharding</strong> Range- vs hash-partisjonering.</div>
+        <div class="recap-pill"><strong>Kvorum</strong> R + W &gt; N gir konsistens.</div>
+        <div class="recap-pill"><strong>CAP</strong> Velg to av tre under partisjon.</div>
+        <div class="recap-pill"><strong>BASE</strong> Bas. Available · Soft state · Eventually consistent.</div>
+        <div class="recap-pill"><strong>OLTP / OLAP</strong> Transaksjoner vs analyse.</div>
+        <div class="recap-pill"><strong>Star-schema</strong> Fakta-tabell + dimensjoner.</div>
+        <div class="recap-pill"><strong>ETL / ELT</strong> Extract · Transform · Load.</div>
+        <div class="recap-pill"><strong>Data lake</strong> Schema-on-read.</div>
       </div>
     </div>
   </section>
@@ -75,232 +138,152 @@
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">Sjekk om du har forstått de viktigste konseptene fra dette kapittelet.</p>
+      <p class="section-intro">Sjekk om du har grepet om kapittelet. Klikk på det svaret du tror er riktig — feil låses ikke, så du kan prøve igjen.</p>
 
-      <div class="quiz" data-quiz>
+      <div class="quiz mcq">
         <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #1 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #1 i kap 5]</div>
-        </div>
+        <div class="q-text">Hva betyr "NoSQL" oftest <em>i dag</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Bokstavelig "Not SQL" — alle relasjonsdatabaser er forbudt.</button></li>
+          <li><button class="mcq-opt" data-correct="1">"Not Only SQL" — en familie av databaser med ikke-relasjonelle datamodeller, brukt sammen med (ikke i stedet for) RDBMS-er.</button></li>
+          <li><button class="mcq-opt" data-correct="0">"No SQL syntax" — alle bruker GraphQL.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Et bestemt produkt fra MongoDB.</button></li>
+        </ul>
+        <div class="mcq-feedback">Akkurat. I praksis er stacker hybride: en RDBMS for kjernen, og spesialdatabaser for spesifikke arbeidsmengder.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 2 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #2 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #2 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 2 · Lett</div>
+        <div class="q-text">Hvilken NoSQL-familie passer best for å lagre og spørre på en sosial graf?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Key-value</button></li>
+          <li><button class="mcq-opt" data-correct="0">Dokument</button></li>
+          <li><button class="mcq-opt" data-correct="0">Wide-column</button></li>
+          <li><button class="mcq-opt" data-correct="1">Graf — sti-spørringer på flere hopp er nettopp det Cypher / Gremlin er bygd for.</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig. Det samme i SQL ville krevd rekursive CTEer eller en kjede selvjoins.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #3 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #3 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 3 · Middels</div>
+        <div class="q-text">CAP-teoremet sier at i et distribuert system må du i en partisjons-situasjon ofre én av tre egenskaper. Hvilken kan du i praksis <em>ikke</em> ofre?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">C — Consistency</button></li>
+          <li><button class="mcq-opt" data-correct="0">A — Availability</button></li>
+          <li><button class="mcq-opt" data-correct="1">P — Partition tolerance, fordi partisjoner faktisk skjer i nettverk.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alle tre kan ofres fritt.</button></li>
+        </ul>
+        <div class="mcq-feedback">Helt rett. Det reelle valget i ekte distribuerte systemer står mellom CP og AP — du må velge hvordan du oppfører deg <em>under</em> en partisjon.</div>
       </div>
 
-      <div class="quiz" data-quiz>
+      <div class="quiz mcq">
         <div class="q-label">Spørsmål 4 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #4 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #4 i kap 5]</div>
-        </div>
+        <div class="q-text">I MapReduce: hva foregår i <em>shuffle</em>-fasen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Tilfeldig stokking av input før map.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Sortering og samling av map-utdata over nettverket slik at alle <code>(key, value)</code>-par med samme key havner på samme reducer.</button></li>
+          <li><button class="mcq-opt" data-correct="0">En komprimering for å redusere disk-I/O.</button></li>
+          <li><button class="mcq-opt" data-correct="0">En valgfri optimalisering som kan skrus av.</button></li>
+        </ul>
+        <div class="mcq-feedback">Stemmer. Shuffle er hjertet av MapReduce — det er der nettverkstrafikken faktisk skjer, og det rammeverket skjuler for deg.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #5 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #5 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 5 · Middels</div>
+        <div class="q-text">Hva står "BASE" for, som NoSQL-alternativet til ACID?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Backup, Atomic, Secure, Encrypted</button></li>
+          <li><button class="mcq-opt" data-correct="1">Basically Available, Soft state, Eventually consistent</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bulk, Async, Sharded, Eventual</button></li>
+          <li><button class="mcq-opt" data-correct="0">Binary, ACID-light, Scalable, Eventual</button></li>
+        </ul>
+        <div class="mcq-feedback">Korrekt. BASE bytter sterke ACID-garantier for tilgjengelighet og skala — riktig der lett stale data er greit, feil for penger og lager.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #6 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #6 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 6 · Middels</div>
+        <div class="q-text">Du designer en e-handels-database. Produktene har <em>noen</em> stabile felt (id, pris, kategori) og <em>mange</em> kategori-spesifikke felt (klesstørrelser, RAM, ROM, …). Hva er beste valg?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Alt i én bred relasjonell tabell, NULL der det ikke gir mening.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alt i en MongoDB-kolleksjon — relasjon kan ikke håndtere variasjon.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Hybrid: relasjon for stabile felt og fremmednøkler, en JSONB-kolonne med GIN-indeks for de varierende attributtene.</button></li>
+          <li><button class="mcq-opt" data-correct="0">En tabell per kategori, ingen felles overtabell.</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig. Det utnytter integritet og indekser der det teller, og JSONB der skjemaet faktisk varierer.</div>
       </div>
 
-      <div class="quiz" data-quiz>
+      <div class="quiz mcq">
         <div class="q-label">Spørsmål 7 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #7 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #7 i kap 5]</div>
-        </div>
+        <div class="q-text">Hva er en <em>star schema</em> i et datalager?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">En graf der hver node er koblet til alle andre.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Én sentral fakta-tabell (målbare hendelser) omkranset av flere dimensjons-tabeller (kontekst som tid, sted, produkt).</button></li>
+          <li><button class="mcq-opt" data-correct="0">Et BCNF-dekomponert skjema med kun én relasjon.</button></li>
+          <li><button class="mcq-opt" data-correct="0">En ER-modell der alle entiteter er like viktige.</button></li>
+        </ul>
+        <div class="mcq-feedback">Akkurat. Snowflake-schema er en variant der dimensjonene <em>selv</em> er videre normaliserte.</div>
       </div>
 
-      <div class="quiz" data-quiz>
+      <div class="quiz mcq">
         <div class="q-label">Spørsmål 8 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #8 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #8 i kap 5]</div>
-        </div>
+        <div class="q-text">Du har <code>data JSONB</code> i Postgres. Hva er forskjellen mellom <code>data-&gt;'tags'</code> og <code>data-&gt;&gt;'tags'</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">De er identiske, bare alternativ syntaks.</button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>-&gt;</code> beholder JSON-typen (kan kjedes med <code>-&gt;0</code> osv.); <code>-&gt;&gt;</code> caster til <code>text</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>-&gt;</code> finnes bare i MySQL, <code>-&gt;&gt;</code> bare i Postgres.</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>-&gt;&gt;</code> sletter feltet etter at det er lest.</button></li>
+        </ul>
+        <div class="mcq-feedback">Helt rett. Bruk <code>-&gt;</code> mens du fortsatt navigerer i strukturen, og <code>-&gt;&gt;</code> kun når du tar ut sluttverdien som tekst eller skalar.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #9 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #9 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 9 · Vanskelig</div>
+        <div class="q-text">Hvorfor bruker OLAP-systemer ofte <em>kolonne-orientert</em> lagring?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Fordi det er lettere å programmere mot.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Fordi det er obligatorisk for ACID.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Aggregeringer leser bare noen få kolonner — kolonne-layout lar oss skippe resten — og kolonner med få distinkte verdier komprimerer ekstremt godt.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Fordi rad-orientert lagring ikke fungerer på SSD.</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig. <code>SELECT SUM(qty) FROM sales WHERE year=2025</code> trenger to kolonner av kanskje tjue. Rad-layout tvinger oss til å lese alt; kolonne + RLE/dictionary-koding gir 10×–100× speedup.</div>
       </div>
 
-      <div class="quiz" data-quiz>
+      <div class="quiz mcq">
         <div class="q-label">Spørsmål 10 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #10 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #10 i kap 5]</div>
-        </div>
+        <div class="q-text">Et betalingssystem velger <em>CP</em> (konsistens + partisjons-toleranse) framfor AP. Hva betyr det konkret når en nettverkspartisjon oppstår?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Begge sider av partisjonen aksepterer skriv og merger automatisk når nettverket leges.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Begge sider svarer, men kan returnere forskjellige verdier til forskjellige klienter.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Den minoriserte siden avviser skrivinger (eventuelt også lesinger) for å forhindre divergens. Tilgjengelighet ofres for å garantere konsistens.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Hele systemet er nede til partisjonen er løst.</button></li>
+        </ul>
+        <div class="mcq-feedback">Helt rett. CP-systemer (HBase, ZooKeeper, klassiske SQL-replikkluster med kvorum) avviser heller skrivinger enn å risikere divergerende data — riktig for penger, ID-er, lager-trekk.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #11 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #11 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 11 · Vanskelig</div>
+        <div class="q-text">Hva er hovedforskjellen mellom et <em>data warehouse</em> og en <em>data lake</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Et lake bruker NoSQL, et warehouse SQL.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Et warehouse er for OLTP, et lake for OLAP.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Warehouse: skjema pålegges ved <em>load</em> (curated, raskt å spørre). Lake: skjema pålegges ved <em>read</em> (rå data, billig å laste, dyrere å spørre).</button></li>
+          <li><button class="mcq-opt" data-correct="0">De er to navn for samme ting.</button></li>
+        </ul>
+        <div class="mcq-feedback">Korrekt. "Schema-on-write" vs "schema-on-read" er det klareste skillet. Hybrider som "lakehouse" (Delta Lake, Iceberg) prøver å gi varehus-ytelse på lake-lagring.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #12 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #12 i kap 5]</div>
-        </div>
+      <div class="quiz mcq">
+        <div class="q-label">Spørsmål 12 · Lett</div>
+        <div class="q-text">HDFS er …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">… en relasjonsdatabase med distribuert spørringsmotor.</button></li>
+          <li><button class="mcq-opt" data-correct="1">… et distribuert filsystem (NameNode + DataNodes, replikerte blokker) — Hive, Spark og HBase kjører <em>oppå</em> det.</button></li>
+          <li><button class="mcq-opt" data-correct="0">… en NoSQL-database i dokument-familien.</button></li>
+          <li><button class="mcq-opt" data-correct="0">… et erstatningsspråk for SQL.</button></li>
+        </ul>
+        <div class="mcq-feedback">Riktig. HDFS vet ingenting om skjemaer eller transaksjoner — det er bare en plass å lagre store filer over mange maskiner.</div>
       </div>
 
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 13 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #13 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #13 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #14 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #14 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 15 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #15 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #15 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 16 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #16 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #16 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #17 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #17 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 18 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #18 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #18 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 19 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #19 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #19 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 20 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #20 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #20 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 21 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #21 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #21 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 22 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #22 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #22 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 23 · Lett</div>
-        <div class="q-text">Hva beskriver best konsept #23 i kapittel 5?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #23 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 24 · Middels</div>
-        <div class="q-text">Hvilken påstand er mest korrekt om konsept #24 i kapittel 5 i praksis?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #24 i kap 5]</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 25 · Vanskelig</div>
-        <div class="q-text">I et større databasesystem, hvilken vurdering om konsept #25 i kapittel 5 er faglig best?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">[Skriv inn svar for konsept #25 i kap 5]</div>
-        </div>
-      </div>
     </div>
   </section>
 </main>

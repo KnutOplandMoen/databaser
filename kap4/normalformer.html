@@ -26,93 +26,554 @@
 <main data-chapter="Kapittel 4: Relasjonsdatabasedesign">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 4 · 4C · Forelesning 9</div>
+      <div class="eyebrow">Kapittel 4 · 4C · Forelesning 9 · Lærebok 7.1–7.3, 7.6</div>
       <h1><em>Normalformer</em></h1>
-      <p class="lede">Lærebokas 7.1–7.3 og 7.6. Funksjonelle avhengigheter, dekomponering, og veien fra 1NF til BCNF.</p>
+      <p class="lede">Funksjonelle avhengigheter, lukning, dekomponering, og veien fra 1NF til BCNF — med en interaktiv kalkulator og et helt gjennomarbeidet eksempel.</p>
       <nav class="toc">
         <a href="#fd"><span>01</span> Funksjonelle avhengigheter</a>
-        <a href="#lukning"><span>02</span> Lukning</a>
-        <a href="#dekomp"><span>03</span> Dekomponering</a>
-        <a href="#1nf-3nf"><span>04</span> 1NF · 2NF · 3NF</a>
-        <a href="#bcnf"><span>05</span> BCNF</a>
-        <a href="#oppgave"><span>06</span> Eksempel-arbeid</a>
+        <a href="#armstrong"><span>02</span> Armstrongs aksiomer</a>
+        <a href="#lukning"><span>03</span> Lukning &amp; kalkulator</a>
+        <a href="#supernokkel"><span>04</span> Nøkler fra FD-er</a>
+        <a href="#dekomp"><span>05</span> Dekomponering</a>
+        <a href="#stigen"><span>06</span> Stigen: 1NF, 2NF, 3NF</a>
+        <a href="#bcnf"><span>07</span> BCNF</a>
+        <a href="#worked"><span>08</span> Gjennomarbeidet eksempel</a>
+        <a href="#tradeoff"><span>09</span> 3NF vs. BCNF</a>
       </nav>
     </div>
   </header>
 
+  <!-- ───────────── 01 ───────────── -->
   <section id="fd">
     <div class="container">
       <div class="section-badge">01 · Funksjonelle avhengigheter</div>
-      <h2>X → Y: hvis du vet X, kan du regne ut Y</h2>
-      <p class="dropcap">[Stubber:]</p>
+      <h2>Hvis du vet <em>X</em>, vet du <em>Y</em></h2>
+
+      <p class="dropcap">En funksjonell avhengighet (<em>FD</em>) er det formelle språket for hvordan attributter «bestemmer» hverandre. Vi skriver <code>X → Y</code>, og leser det «X bestemmer Y» — eller mer presist: <em>hvis to rader er enige om alle attributter i X, så må de også være enige om alle attributter i Y</em>.</p>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Funksjonell avhengighet</div>
+        <p>Gitt et relasjonsskjema <code>R</code>, og delmengder <code>X, Y ⊆ R</code>. FD-en <code>X → Y</code> <strong>holder på R</strong> hvis <em>enhver</em> lovlig instans <code>r(R)</code> tilfredsstiller: for hvert par av tupler <code>t₁, t₂</code> i <code>r</code>, hvis <code>t₁[X] = t₂[X]</code>, så er <code>t₁[Y] = t₂[Y]</code>.</p>
+      </div>
+
+      <h3>Hva FD-er <em>er</em> og <em>ikke er</em></h3>
       <ul>
-        <li>FD = krav på instansene, ikke på enkeltrad</li>
-        <li>Triviell FD (Y ⊆ X) — alltid sann</li>
-        <li>Armstrongs aksiomer: refleksivitet, augmentasjon, transitivitet</li>
+        <li>FD-en er en <strong>regel om alle gyldige instanser</strong>, ikke et empirisk faktum om en konkret tabell.</li>
+        <li>Det at en konkret instans tilfeldigvis tilfredsstiller en FD, betyr ikke at FD-en holder på skjemaet.</li>
+        <li>FD-er kommer fra <em>domenekunnskap</em>: «hver bil har én eier», «hvert rom har én kapasitet i en gitt bygning».</li>
+      </ul>
+
+      <table class="example-table">
+        <caption>En instans av <code>r(A,B,C,D)</code></caption>
+        <thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
+        <tbody>
+          <tr><td>a₁</td><td>b₁</td><td>c₁</td><td>d₁</td></tr>
+          <tr><td>a₁</td><td>b₂</td><td>c₁</td><td>d₂</td></tr>
+          <tr><td>a₂</td><td>b₂</td><td>c₂</td><td>d₂</td></tr>
+          <tr><td>a₂</td><td>b₃</td><td>c₂</td><td>d₃</td></tr>
+          <tr><td>a₃</td><td>b₃</td><td>c₂</td><td>d₄</td></tr>
+        </tbody>
+      </table>
+
+      <p>I instansen ovenfor: <code>A → C</code> er tilfredsstilt (begge a₁-rader har c₁; begge a₂-rader har c₂). Derimot er <code>C → A</code> <em>ikke</em> tilfredsstilt: rad 4 og 5 har samme C (c₂) men ulik A (a₂ vs a₃).</p>
+
+      <h3>Trivielle FD-er</h3>
+      <p>En FD <code>X → Y</code> er triviell hvis <code>Y ⊆ X</code> — den holder for alle instanser uansett. <code>{A, B} → A</code> er triviell. Vi bryr oss bare om <em>ikke-trivielle</em> FD-er.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hvilken FD holder på skjemaet <code>Klasserom(<u>bygning, romnr</u>, kapasitet)</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0"><code>romnr → kapasitet</code> — to rom med samme nummer i ulike bygninger har lik kapasitet</button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>bygning, romnr → kapasitet</code> — sammen identifiserer de et rom entydig</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>kapasitet → bygning</code></button></li>
+          <li><button class="mcq-opt" data-correct="0">Ingen FD-er holder uten eksplisitte primærnøkler</button></li>
+        </ul>
+        <div class="mcq-feedback">Bygning + romnr er primærnøkkel, så det bestemmer alt annet i raden. <code>romnr → kapasitet</code> alene er ikke gyldig — to bygninger kan ha rom med samme nummer, men ulik kapasitet.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 02 ───────────── -->
+  <section id="armstrong">
+    <div class="container">
+      <div class="section-badge">02 · Armstrongs aksiomer</div>
+      <h2>Tre <em>regler</em> som genererer alle</h2>
+
+      <p>Gitt en mengde FD-er <code>F</code>, finnes det andre FD-er som <em>må</em> holde som logisk konsekvens. Mengden av alle slike kalles lukningen <code>F⁺</code>. Tre aksiomer er nok til å utlede alle:</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Refleksivitet</div>
+          <div class="fc-val">Hvis <code>Y ⊆ X</code>, så <code>X → Y</code>. <em>Triviell.</em></div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Augmentasjon</div>
+          <div class="fc-val">Hvis <code>X → Y</code>, så <code>X, Z → Y, Z</code> for ethvert Z.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Transitivitet</div>
+          <div class="fc-val">Hvis <code>X → Y</code> og <code>Y → Z</code>, så <code>X → Z</code>.</div>
+        </div>
+      </div>
+
+      <p>Disse aksiomene er <strong>sunne</strong> (de utleder bare gyldige FD-er) og <strong>komplette</strong> (alt som er logisk gyldig kan utledes). Tre nyttige avledede regler:</p>
+
+      <ul>
+        <li><strong>Union:</strong> hvis <code>X → Y</code> og <code>X → Z</code>, så <code>X → Y, Z</code>.</li>
+        <li><strong>Dekomposisjon:</strong> hvis <code>X → Y, Z</code>, så <code>X → Y</code> og <code>X → Z</code>.</li>
+        <li><strong>Pseudotransitivitet:</strong> hvis <code>X → Y</code> og <code>W, Y → Z</code>, så <code>W, X → Z</code>.</li>
       </ul>
     </div>
   </section>
 
+  <!-- ───────────── 03 ───────────── -->
   <section id="lukning">
     <div class="container">
-      <div class="section-badge">02 · Lukning</div>
-      <h2>Hva kan vi utlede</h2>
+      <div class="section-badge">03 · Lukning &amp; kalkulator</div>
+      <h2>Hva kan vi <em>utlede</em>?</h2>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Attributtlukning <code>X⁺</code></div>
+        <p>Settet av alle attributter som er funksjonelt bestemt av <code>X</code> under en gitt FD-mengde <code>F</code>. Skrives <code>X⁺</code> (eller <code>X⁺<sub>F</sub></code>).</p>
+      </div>
+
+      <h3>Algoritmen</h3>
+      <ol class="steps">
+        <li>Initialiser <code>resultat ← X</code>.</li>
+        <li>For hver FD <code>α → β</code> i <code>F</code>: hvis <code>α ⊆ resultat</code>, oppdater <code>resultat ← resultat ∪ β</code>.</li>
+        <li>Gjenta steg 2 til <code>resultat</code> ikke endrer seg.</li>
+      </ol>
+
+      <h3>Hva bruker vi <code>X⁺</code> til?</h3>
       <ul>
-        <li>X⁺ — settet av alle attributter som funksjonelt avhenger av X</li>
-        <li>Algoritme: start med X, legg til Y for hver FD A→B der A ⊆ resultat</li>
-        <li>Bruk: avgjør om K er supernøkkel, om en FD følger</li>
-        <li>Minimal cover (canonical cover)</li>
+        <li><strong>Supernøkkel-test:</strong> <code>X</code> er supernøkkel hvis og bare hvis <code>X⁺ = R</code>.</li>
+        <li><strong>FD-test:</strong> <code>X → Y</code> følger fra F hvis og bare hvis <code>Y ⊆ X⁺</code>.</li>
+        <li><strong>Lossless join-test:</strong> for binær dekomposisjon <code>R₁, R₂</code>, sjekk om <code>(R₁ ∩ R₂)⁺ ⊇ R₁</code> eller <code>R₂</code>.</li>
       </ul>
+
+      <h3>Interaktiv lukningskalkulator</h3>
+      <p>Et lite leksjonseksempel: <code>R(A, B, C, D, E)</code> med <code>F = { A → B, B → C, CD → E, E → A }</code>. Velg attributter for X, og se lukningen utvikle seg trinn for trinn.</p>
+
+      <div class="fd-tool" id="fdcalc">
+        <div class="fd-set">F = { A → B, &nbsp; B → C, &nbsp; CD → E, &nbsp; E → A }</div>
+        <div>Velg X:</div>
+        <div class="fd-pick" id="fdpick">
+          <button class="pick-btn" data-attr="A">A</button>
+          <button class="pick-btn" data-attr="B">B</button>
+          <button class="pick-btn" data-attr="C">C</button>
+          <button class="pick-btn" data-attr="D">D</button>
+          <button class="pick-btn" data-attr="E">E</button>
+        </div>
+        <button class="fd-go" id="fdgo">Beregn lukning</button>
+        <button class="fd-go" id="fdclear" style="background:var(--ink-faded)">Nullstill</button>
+        <div class="fd-out" id="fdout"></div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Prøv selv</span>
+        <p>Hva er <code>{A}⁺</code>? Hva med <code>{D}⁺</code>? Hva med <code>{A, D}⁺</code>? Når du finner et <code>X</code> der <code>X⁺ = {A,B,C,D,E}</code>, har du funnet en supernøkkel.</p>
+      </div>
+
+      <script>
+      (function () {
+        var FD_LIST = [
+          { lhs: ['A'],      rhs: ['B'] },
+          { lhs: ['B'],      rhs: ['C'] },
+          { lhs: ['C','D'],  rhs: ['E'] },
+          { lhs: ['E'],      rhs: ['A'] }
+        ];
+        var R = ['A','B','C','D','E'];
+        var picked = new Set();
+
+        function updateButtons() {
+          document.querySelectorAll('#fdpick .pick-btn').forEach(function (b) {
+            b.classList.toggle('active', picked.has(b.dataset.attr));
+          });
+        }
+
+        document.querySelectorAll('#fdpick .pick-btn').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var a = b.dataset.attr;
+            if (picked.has(a)) picked.delete(a); else picked.add(a);
+            updateButtons();
+          });
+        });
+
+        function fmt(set) {
+          return '{ ' + Array.from(set).sort().join(', ') + ' }';
+        }
+        function setEq(a, b) {
+          if (a.size !== b.size) return false;
+          for (var x of a) if (!b.has(x)) return false;
+          return true;
+        }
+
+        document.getElementById('fdgo').addEventListener('click', function () {
+          var out = document.getElementById('fdout');
+          out.innerHTML = '';
+          if (picked.size === 0) {
+            out.innerHTML = '<div class="step">Velg minst ett attributt først.</div>';
+            return;
+          }
+          var X = new Set(picked);
+          out.insertAdjacentHTML('beforeend',
+            '<div class="step">Start: X = ' + fmt(X) + '</div>');
+
+          var changed = true, iter = 0;
+          while (changed && iter < 30) {
+            changed = false;
+            iter++;
+            FD_LIST.forEach(function (fd) {
+              var lhsIn = fd.lhs.every(function (a) { return X.has(a); });
+              var newRhs = fd.rhs.filter(function (a) { return !X.has(a); });
+              if (lhsIn && newRhs.length > 0) {
+                newRhs.forEach(function (a) { X.add(a); });
+                out.insertAdjacentHTML('beforeend',
+                  '<div class="step">Anvender ' + fd.lhs.join(',') + ' → ' + fd.rhs.join(',') +
+                  ' &nbsp;⟹&nbsp; legg til { ' + newRhs.join(', ') + ' } &nbsp;⟹&nbsp; X = ' + fmt(X) + '</div>');
+                changed = true;
+              }
+            });
+          }
+          var allR = new Set(R);
+          var isSuper = setEq(X, allR);
+          out.insertAdjacentHTML('beforeend',
+            '<div class="closure-result">Lukning: X⁺ = ' + fmt(X) + '</div>');
+          out.insertAdjacentHTML('beforeend',
+            '<div class="verdict">' +
+              (isSuper
+                ? '✓ Dette er en <strong>supernøkkel</strong> (X⁺ dekker hele R).'
+                : '✗ Ikke supernøkkel — mangler { ' +
+                    R.filter(function (a) { return !X.has(a); }).join(', ') +
+                  ' }.') +
+            '</div>');
+        });
+
+        document.getElementById('fdclear').addEventListener('click', function () {
+          picked.clear();
+          updateButtons();
+          document.getElementById('fdout').innerHTML = '';
+        });
+      })();
+      </script>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Middels</div>
+        <div class="q-text">Bruk kalkulatoren ovenfor til å avgjøre: er <code>{C, D}</code> en supernøkkel?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Ja. {C,D}⁺ via CD→E gir {C,D,E}; så E→A gir {A,C,D,E}; så A→B gir {A,B,C,D,E}. Dekker hele R, altså supernøkkel. Den er også minimal — verken {C} eller {D} alene gir hele R — så {C,D} er en kandidatnøkkel.</div>
+        </div>
+      </div>
     </div>
   </section>
 
+  <!-- ───────────── 04 ───────────── -->
+  <section id="supernokkel">
+    <div class="container">
+      <div class="section-badge">04 · Nøkler fra FD-er</div>
+      <h2>Finn alle <em>kandidatnøkler</em></h2>
+
+      <div class="def-box">
+        <span class="def-label">Tre nøkkelbegreper, formelt</span>
+        <p><strong>Supernøkkel</strong> for R: et sett K der <code>K⁺ = R</code>. <strong>Kandidatnøkkel</strong>: en supernøkkel som er minimal (ingen ekte delmengde er supernøkkel). <strong>Primærnøkkel</strong>: en valgt kandidatnøkkel.</p>
+      </div>
+
+      <h3>Algoritme: alle kandidatnøkler</h3>
+      <ol class="steps">
+        <li>Identifiser hvilke attributter <strong>aldri</strong> er på høyre side i en FD (eller bare i en FD som også har dem på venstre side). De må være <em>med</em> i hver kandidatnøkkel.</li>
+        <li>Identifiser hvilke attributter <strong>aldri</strong> er på venstre side. De er ikke nødvendige.</li>
+        <li>For de mellomliggende attributtene: prøv minimale supersett av (1) og se om lukningen dekker R.</li>
+      </ol>
+
+      <p>I R(A,B,C,D,E) med F fra forrige seksjon: <code>D</code> dukker aldri opp på høyre side, så D må være med i hver kandidatnøkkel. {A,B,C,E} er gjensidig avledbare via FD-syklusen A→B→C→A (gjennom CD→E→A). Så kandidatnøklene er {A,D}, {B,D}, {C,D}, {E,D}.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · Vanskelig</div>
+        <div class="q-text">For <code>R(A,B,C,D)</code> med F = {AB → C, C → D}, hvilken er kandidatnøkkelen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">{A}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{C}</button></li>
+          <li><button class="mcq-opt" data-correct="1">{A, B}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A, B, C}</button></li>
+        </ul>
+        <div class="mcq-feedback">{A,B}⁺ = {A,B,C,D} via AB→C, så C→D. {A,B,C} er supernøkkel men ikke minimal — C kan fjernes. {A} alene gir bare {A}; {C} bare {C, D}.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 05 ───────────── -->
   <section id="dekomp">
     <div class="container">
-      <div class="section-badge">03 · Dekomponering</div>
-      <h2>Splitt en relasjon i to</h2>
+      <div class="section-badge">05 · Dekomponering</div>
+      <h2>Splitt en relasjon — <em>uten å miste informasjon</em></h2>
+
+      <p>Når vi splitter <code>R</code> i to skjemaer <code>R₁</code> og <code>R₂</code>, vil vi at den naturlige join-en av <code>r₁</code> og <code>r₂</code> reproduserer den opprinnelige <code>r</code> nøyaktig. Hvis det er tilfellet, er dekomposisjonen <strong>lossless</strong>.</p>
+
+      <div class="callout callout-warn">
+        <span class="label">Tap er ikke alltid synlig</span>
+        <p>En lossy dekomposisjon kan gi <em>flere</em> rader etter join — men noen av dem er falske. Ekstra «tupler» som ikke svarer til virkeligheten er nettopp tap av informasjon: vi har mistet evnen til å skille hvilke rader som hører sammen.</p>
+      </div>
+
+      <h3>Lossless join-testen</h3>
+      <p>For binær dekomposisjon av <code>R</code> i <code>R₁</code> og <code>R₂</code>, hvor minst én av disse FD-ene gjelder i <code>F⁺</code>:</p>
       <ul>
-        <li>Lossless join — kan vi rekonstruere originalen?</li>
-        <li>Test: skjæringen er supernøkkel for minst én av delene</li>
-        <li>Dependency preservation — kan vi sjekke alle FD lokalt?</li>
-        <li>Trade-off: BCNF gir lossless men kan miste DP; 3NF beholder DP</li>
+        <li><code>R₁ ∩ R₂ → R₁</code>, eller</li>
+        <li><code>R₁ ∩ R₂ → R₂</code>.</li>
       </ul>
+      <p>Med andre ord: skjæringen må være supernøkkel for minst én av delene.</p>
+
+      <h3>Eksempel: lossy</h3>
+      <p>R(ID, navn, gate, by, lønn). Vi splitter på navn:</p>
+      <ul>
+        <li>R₁(ID, navn)</li>
+        <li>R₂(navn, gate, by, lønn)</li>
+      </ul>
+      <p>Skjæringen er {navn}. Men «navn» er ikke unikt — to ulike personer kan hete «Kim Hansen». {navn}⁺ = {navn} (ingen FD med navn på venstre side, alene). Ikke supernøkkel for noen av delene → <strong>lossy</strong>. Etter join får vi krysskobling mellom de to Kim-radene, og kan ikke lenger fortelle hvilken adresse som hører til hvilken Kim.</p>
+
+      <h3>Eksempel: lossless</h3>
+      <p>R(ID, navn, dept, bygning, budsjett). Vi splitter på dept:</p>
+      <ul>
+        <li>R₁(ID, navn, dept)</li>
+        <li>R₂(dept, bygning, budsjett)</li>
+      </ul>
+      <p>Skjæringen er {dept}. Vi vet at <code>dept → bygning, budsjett</code>, så {dept}⁺ ⊇ R₂. Supernøkkel for R₂ → <strong>lossless</strong>.</p>
+
+      <h3>Dependency preservation</h3>
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Avhengighetsbevarende dekomposisjon</div>
+        <p>Dekomposisjonen er dependency preserving hvis foreningen av FD-ene som kan testes <em>lokalt</em> i hver del, fortsatt er logisk ekvivalent med F. Hvis ikke, må noen FD-er sjekkes med en join etter hver oppdatering — kostbart.</p>
+      </div>
+
+      <p>Lossless og dependency preserving er <em>uavhengige</em> egenskaper. Ideelt sett vil vi ha begge. Vi kan alltid få lossless. Vi kan ikke alltid få begge samtidig med BCNF — men 3NF garanterer det.</p>
     </div>
   </section>
 
-  <section id="1nf-3nf">
+  <!-- ───────────── 06 ───────────── -->
+  <section id="stigen">
     <div class="container">
-      <div class="section-badge">04 · 1NF, 2NF, 3NF</div>
-      <h2>Stigen oppover</h2>
+      <div class="section-badge">06 · Normalformer-stigen</div>
+      <h2>Fra <em>1NF</em> til <em>BCNF</em></h2>
+
+      <div class="nf-ladder">
+        <div class="nf-rung">
+          <div class="nf-name">1NF</div>
+          <div class="nf-desc"><strong>Atomære verdier i hver celle.</strong> Ingen lister, ingen sammensatte verdier. Dette er en betingelse på <em>domener</em>, ikke på FD-er. Bryter du 1NF, kan du ikke spørre med vanlig SQL.</div>
+        </div>
+        <div class="nf-rung">
+          <div class="nf-name">2NF</div>
+          <div class="nf-desc"><strong>Ingen partielle avhengigheter til primærnøkkelen.</strong> Et ikke-nøkkel-attributt avhenger av <em>hele</em> nøkkelen, ikke bare en del av den. Bare relevant når PK er sammensatt. <em>Av historisk interesse — moderne kurs hopper rett til 3NF/BCNF.</em></div>
+        </div>
+        <div class="nf-rung">
+          <div class="nf-name">3NF</div>
+          <div class="nf-desc"><strong>Ingen transitive avhengigheter til primærnøkkelen.</strong> For hver ikke-triviell FD <code>α → β</code>: enten er α supernøkkel, eller hvert attributt i β−α er del av en kandidatnøkkel. Garantert lossless + dependency preserving dekomposisjon.</div>
+        </div>
+        <div class="nf-rung bcnf">
+          <div class="nf-name">BCNF</div>
+          <div class="nf-desc"><strong>Hver ikke-triviell FD har supernøkkel som venstreside.</strong> Strengere enn 3NF. Eliminerer all redundans som kan oppdages med FD-er — men kan tape dependency preservation.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Hierarkiet</span>
+        <p>BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF. Et BCNF-skjema er automatisk i 3NF, og videre i 2NF og 1NF.</p>
+      </div>
+
+      <h3>3NF i ord</h3>
+      <p>For hver ikke-triviell FD <code>α → β</code> som holder, må minst én av:</p>
       <ul>
-        <li>1NF — atomære verdier (ingen lister i celler)</li>
-        <li>2NF — ingen partiell avhengighet til primærnøkkelen</li>
-        <li>3NF — ingen transitiv avhengighet til primærnøkkelen</li>
+        <li><code>α</code> er supernøkkel for R, <em>eller</em></li>
+        <li>hvert attributt i <code>β − α</code> er med i en eller annen kandidatnøkkel for R.</li>
       </ul>
+
+      <h3>BCNF i ord</h3>
+      <p>For hver ikke-triviell FD <code>α → β</code> som holder, må:</p>
+      <ul>
+        <li><code>α</code> er supernøkkel for R.</li>
+      </ul>
+      <p>Det er det. BCNF har bare ett alternativ — det andre alternativet i 3NF er det som åpner for dependency preservation, men også for visse redundanser.</p>
     </div>
   </section>
 
+  <!-- ───────────── 07 ───────────── -->
   <section id="bcnf">
     <div class="container">
-      <div class="section-badge">05 · BCNF</div>
-      <h2>Boyce-Codd: alle FD-er har supernøkkel som venstreside</h2>
+      <div class="section-badge">07 · BCNF</div>
+      <h2>Boyce–Codd <em>normalform</em></h2>
+
+      <h3>Algoritme: dekomposer R til BCNF</h3>
+      <ol class="steps">
+        <li>Beregn alle FD-er som holder (lukningen <code>F⁺</code>).</li>
+        <li>Finn en ikke-triviell FD <code>α → β</code> hvor <code>α</code> ikke er supernøkkel. Hvis ingen finnes, er R i BCNF — ferdig.</li>
+        <li>Splitt R i <code>R₁ = α ∪ β</code> og <code>R₂ = R − (β − α)</code>.</li>
+        <li>Gjenta rekursivt på R₁ og R₂.</li>
+      </ol>
+
+      <h3>Eksempel</h3>
+      <p>InDep(<u>id</u>, navn, lønn, dept, bygning, budsjett) med F = {id → navn, lønn, dept; dept → bygning, budsjett}.</p>
+
       <ul>
-        <li>Strengere enn 3NF</li>
-        <li>Algoritme: finn FD som bryter, splitt</li>
-        <li>Når man <em>ikke</em> går til BCNF: dependency preservation tapt</li>
+        <li>FD-en <code>dept → bygning, budsjett</code> bryter BCNF: <code>dept</code> er ikke supernøkkel.</li>
+        <li>Splitt: <code>α = dept</code>, <code>β = {bygning, budsjett}</code>.</li>
+        <li>R₁ = (dept, bygning, budsjett) → kalt <strong>Avdeling</strong>.</li>
+        <li>R₂ = R − (β − α) = (id, navn, lønn, dept) → kalt <strong>Larer</strong>.</li>
       </ul>
+
+      <p>Verifiser: <code>id → navn, lønn, dept</code> har id som supernøkkel. <code>dept → bygning, budsjett</code> har dept som supernøkkel i R₁. Begge tabeller er nå i BCNF.</p>
+
+      <div class="callout callout-good">
+        <span class="label">Sjekk lossless</span>
+        <p>Skjæringen R₁ ∩ R₂ = {dept}. {dept}⁺ inkluderer {bygning, budsjett}, altså hele R₁ — supernøkkel. Lossless. ✓</p>
+      </div>
     </div>
   </section>
 
-  <section id="oppgave">
+  <!-- ───────────── 08 ───────────── -->
+  <section id="worked">
     <div class="container">
-      <div class="section-badge">06 · Eksempel-arbeid</div>
-      <h2>Trinn-for-trinn</h2>
+      <div class="section-badge">08 · Gjennomarbeidet eksempel</div>
+      <h2>Helt fra <em>tabell</em> til <em>BCNF</em></h2>
+
+      <p>Gitt skjemaet <code>R(prosjektkode, prosjektnavn, ansattnr, navn, timer)</code> der vi registrerer hvor mange timer hver ansatt har jobbet på hvert prosjekt. Krav fra domenet:</p>
+
       <ul>
-        <li>Gitt R(A,B,C,D) og FD-mengde — finn nøkler</li>
-        <li>Beregn lukning for kandidater</li>
-        <li>Identifiser brudd på 3NF/BCNF</li>
-        <li>Dekomponer + verifiser lossless join</li>
+        <li>Hvert prosjekt har et unikt navn: <code>prosjektkode → prosjektnavn</code>.</li>
+        <li>Hver ansatt har et navn (ikke unikt mellom personer): <code>ansattnr → navn</code>.</li>
+        <li>For hver (ansatt, prosjekt) registreres timer: <code>ansattnr, prosjektkode → timer</code>.</li>
       </ul>
+
+      <h3>Steg 1 · Finn kandidatnøkkel</h3>
+      <p>Hvilke attributter er aldri på høyre side? <code>ansattnr</code> og <code>prosjektkode</code>. De må være med. <code>{ansattnr, prosjektkode}⁺ = {ansattnr, prosjektkode, navn, prosjektnavn, timer}</code> = R. Minimal supernøkkel → kandidatnøkkel.</p>
+
+      <h3>Steg 2 · Sjekk BCNF</h3>
+      <p>FD-er å sjekke:</p>
+
+      <ol class="steps">
+        <li><code>prosjektkode → prosjektnavn</code> &mdash; er <code>{prosjektkode}</code> supernøkkel? <code>{prosjektkode}⁺ = {prosjektkode, prosjektnavn}</code>. Ikke hele R. <strong>Bryter BCNF.</strong></li>
+        <li><code>ansattnr → navn</code> &mdash; er <code>{ansattnr}</code> supernøkkel? <code>{ansattnr}⁺ = {ansattnr, navn}</code>. Ikke hele R. <strong>Bryter BCNF.</strong></li>
+        <li><code>ansattnr, prosjektkode → timer</code> &mdash; er <code>{ansattnr, prosjektkode}</code> supernøkkel? Ja (det er kandidatnøkkelen). OK.</li>
+      </ol>
+
+      <h3>Steg 3 · Dekomponer</h3>
+      <p>Velg første brudd: <code>prosjektkode → prosjektnavn</code>. Splitt:</p>
+
+      <ul>
+        <li>R₁ = {prosjektkode, prosjektnavn} → <strong>Prosjekt</strong></li>
+        <li>R₂ = R − {prosjektnavn} = {prosjektkode, ansattnr, navn, timer}</li>
+      </ul>
+
+      <p>R₁ er i BCNF (skjema med to attributter er alltid i BCNF — et nyttig faktum). R₂ må sjekkes videre.</p>
+
+      <p>I R₂: <code>ansattnr → navn</code> bryter fortsatt. Splitt:</p>
+      <ul>
+        <li>R₂ₐ = {ansattnr, navn} → <strong>Ansatt</strong></li>
+        <li>R₂ᵦ = R₂ − {navn} = {prosjektkode, ansattnr, timer} → <strong>Jobber</strong></li>
+      </ul>
+
+      <p>Begge er nå i BCNF.</p>
+
+      <h3>Sluttskjema</h3>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> Prosjekt (
+  prosjektkode    <span class="sql-fn">CHAR</span>(<span class="sql-num">6</span>) <span class="sql-kw">PRIMARY KEY</span>,
+  prosjektnavn    <span class="sql-fn">VARCHAR</span>(<span class="sql-num">100</span>) <span class="sql-kw">UNIQUE</span> <span class="sql-kw">NOT NULL</span>
+);
+
+<span class="sql-kw">CREATE TABLE</span> Ansatt (
+  ansattnr  <span class="sql-fn">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  navn      <span class="sql-fn">VARCHAR</span>(<span class="sql-num">80</span>) <span class="sql-kw">NOT NULL</span>
+);
+
+<span class="sql-kw">CREATE TABLE</span> Jobber (
+  ansattnr      <span class="sql-fn">INT</span>,
+  prosjektkode  <span class="sql-fn">CHAR</span>(<span class="sql-num">6</span>),
+  timer         <span class="sql-fn">DECIMAL</span>(<span class="sql-num">5</span>,<span class="sql-num">1</span>) <span class="sql-kw">NOT NULL</span>,
+  <span class="sql-kw">PRIMARY KEY</span> (ansattnr, prosjektkode),
+  <span class="sql-kw">FOREIGN KEY</span> (ansattnr) <span class="sql-kw">REFERENCES</span> Ansatt(ansattnr),
+  <span class="sql-kw">FOREIGN KEY</span> (prosjektkode) <span class="sql-kw">REFERENCES</span> Prosjekt(prosjektkode)
+);</code></pre>
+
+      <div class="callout callout-good">
+        <span class="label">Resultat</span>
+        <p>Tre tabeller, hver i BCNF. Ingen redundans (prosjektnavn lagres én gang per prosjekt; ansattnavn lagres én gang per ansatt). Lossless: skjæringene er supernøkler. Dependency preserving: alle tre FD-er kan sjekkes lokalt.</p>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Sjekk · Vanskelig</div>
+        <div class="q-text">Sjekk lossless: ved den første splittingen var R₁ ∩ R₂ = {prosjektkode}. Hva er <code>{prosjektkode}⁺</code> på det punktet? Holder lossless join-testen?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">{prosjektkode}⁺ = {prosjektkode, prosjektnavn}, som er hele R₁. Skjæringen er supernøkkel for R₁ → lossless join holder. ✓ Det samme prinsippet ved splittingen R₂ → R₂ₐ + R₂ᵦ: skjæringen {ansattnr} dekker R₂ₐ.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 09 ───────────── -->
+  <section id="tradeoff">
+    <div class="container">
+      <div class="section-badge">09 · 3NF vs. BCNF</div>
+      <h2>Når BCNF <em>koster</em> for mye</h2>
+
+      <p>Det klassiske eksempelet: <code>dept_advisor(student, lærer, dept)</code> der:</p>
+      <ul>
+        <li>en lærer er knyttet til nøyaktig ett institutt: <code>lærer → dept</code></li>
+        <li>en student kan ha flere veiledere, men maks én per institutt: <code>student, dept → lærer</code></li>
+      </ul>
+
+      <p>Kandidatnøkler: {student, dept} og {student, lærer}. FD-en <code>lærer → dept</code> bryter BCNF (lærer er ikke supernøkkel). Splitt:</p>
+      <ul>
+        <li>R₁ = (lærer, dept)</li>
+        <li>R₂ = (student, lærer)</li>
+      </ul>
+
+      <p>Begge er i BCNF. <em>Men:</em> FD-en <code>student, dept → lærer</code> kan ikke lenger sjekkes lokalt — student er i R₂, dept er i R₁. Hver gang noen legger til en (student, lærer)-par, må vi joine for å verifisere constrainten.</p>
+
+      <div class="compare-grid">
+        <div class="compare-cell">
+          <h4>Velg BCNF når</h4>
+          <ul>
+            <li>SQL likevel ikke kan håndheve generelle FD-er effektivt (det meste av tiden)</li>
+            <li>Du foretrekker å eliminere all FD-redundans</li>
+            <li>Lærebokas anbefaling — standardvalget</li>
+          </ul>
+        </div>
+        <div class="compare-cell">
+          <h4>Velg 3NF når</h4>
+          <ul>
+            <li>Du har en tapt FD som er forretningskritisk og som <em>må</em> sjekkes per oppdatering</li>
+            <li>Du har infrastruktur for materialiserte views med constraints</li>
+            <li>Eksamensoppgaven eksplisitt ber om dependency preservation</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Lærebokas konklusjon</span>
+        <p>«Selv om vi ikke alltid kan få en dependency-preserving BCNF-dekomposisjon, er det fortsatt foretrukket å gå for BCNF — fordi sjekking av andre FD-er enn primærnøkkelen er vanskelig i SQL likevel.» (Silberschatz §7.3.3)</p>
+      </div>
+
+      <h3>Oppsummering av kapittel 4</h3>
+      <div class="recap-grid">
+        <div class="recap-pill"><strong>FD</strong> X→Y: hvis du vet X, vet du Y</div>
+        <div class="recap-pill"><strong>Lukning X⁺</strong> alle attributter X bestemmer</div>
+        <div class="recap-pill"><strong>Supernøkkel</strong> X⁺ = R</div>
+        <div class="recap-pill"><strong>Kandidatnøkkel</strong> minimal supernøkkel</div>
+        <div class="recap-pill"><strong>Lossless</strong> skjæring er supernøkkel for én del</div>
+        <div class="recap-pill"><strong>Dep. preservation</strong> alle FD-er sjekkbare lokalt</div>
+        <div class="recap-pill"><strong>1NF</strong> atomære verdier</div>
+        <div class="recap-pill"><strong>3NF</strong> α supernøkkel, eller β−α i kandidatnøkkel</div>
+        <div class="recap-pill"><strong>BCNF</strong> α supernøkkel — alltid</div>
+        <div class="recap-pill"><strong>BCNF-algoritme</strong> finn brudd, splitt på α∪β og R−(β−α)</div>
+      </div>
+
+      <div class="callout callout-good">
+        <span class="label">Du er ferdig med kapittel 4</span>
+        <p>Vil du teste hele kapittelet samlet? Gå tilbake til <a href="./">oversikten</a> og ta sluttquizen — tolv spørsmål på tvers av 4A, 4B og 4C.</p>
+      </div>
     </div>
   </section>
 </main>

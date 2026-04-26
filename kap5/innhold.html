@@ -39,8 +39,9 @@
   .cap-reset:hover { color: var(--rust); border-color: var(--rust); }
 
   /* ── Kap 5: animated MapReduce flow ────────────────────────── */
+  .mr-svg text { font-family: var(--mono); fill: var(--ink); }
   .mr-svg .mr-token { transition: transform .8s ease, opacity .4s ease; }
-  .mr-svg .mr-stage-label { font-family: var(--mono); font-size: 11px; fill: var(--ink-faded); letter-spacing: 0.06em; text-transform: uppercase; }
+  .mr-svg .mr-stage-label { font-size: 11px; fill: var(--ink-faded); letter-spacing: 0.06em; text-transform: uppercase; }
   .mr-svg .mr-box { fill: var(--paper); stroke: var(--ink-faded); stroke-width: 1.2; }
   .mr-svg .mr-box.active { fill: rgba(31,78,121,0.10); stroke: var(--rust); stroke-width: 1.8; }
   .mr-svg .mr-arrow { stroke: var(--ink-ghost); stroke-width: 1.2; fill: none; marker-end: url(#mr-arrowhead); transition: opacity .35s; }
@@ -457,23 +458,23 @@
           <!-- input blocks -->
           <g data-show-on="1,2,3,4">
             <rect class="mr-box" x="20" y="40" width="100" height="40" rx="3"/>
-            <text x="70" y="62" text-anchor="middle" font-family="var(--mono)" font-size="10">"han ler ler"</text>
+            <text x="70" y="62" text-anchor="middle" font-size="10">"han ler ler"</text>
             <rect class="mr-box" x="20" y="100" width="100" height="40" rx="3"/>
-            <text x="70" y="122" text-anchor="middle" font-family="var(--mono)" font-size="10">"vi ler"</text>
+            <text x="70" y="122" text-anchor="middle" font-size="10">"vi ler"</text>
             <rect class="mr-box" x="20" y="160" width="100" height="40" rx="3"/>
-            <text x="70" y="182" text-anchor="middle" font-family="var(--mono)" font-size="10">"de ser han"</text>
+            <text x="70" y="182" text-anchor="middle" font-size="10">"de ser han"</text>
           </g>
 
           <!-- map -->
           <g data-show-on="2,3,4">
             <rect class="mr-box active" x="180" y="40" width="100" height="40" rx="3"/>
-            <text x="230" y="56" text-anchor="middle" font-family="var(--mono)" font-size="9">(han,1)(ler,1)</text>
-            <text x="230" y="70" text-anchor="middle" font-family="var(--mono)" font-size="9">(ler,1)</text>
+            <text x="230" y="56" text-anchor="middle" font-size="9">(han,1)(ler,1)</text>
+            <text x="230" y="70" text-anchor="middle" font-size="9">(ler,1)</text>
             <rect class="mr-box active" x="180" y="100" width="100" height="40" rx="3"/>
-            <text x="230" y="116" text-anchor="middle" font-family="var(--mono)" font-size="9">(vi,1)(ler,1)</text>
+            <text x="230" y="116" text-anchor="middle" font-size="9">(vi,1)(ler,1)</text>
             <rect class="mr-box active" x="180" y="160" width="100" height="40" rx="3"/>
-            <text x="230" y="176" text-anchor="middle" font-family="var(--mono)" font-size="9">(de,1)(ser,1)</text>
-            <text x="230" y="190" text-anchor="middle" font-family="var(--mono)" font-size="9">(han,1)</text>
+            <text x="230" y="176" text-anchor="middle" font-size="9">(de,1)(ser,1)</text>
+            <text x="230" y="190" text-anchor="middle" font-size="9">(han,1)</text>
 
             <path class="mr-arrow lit" d="M120 60 L180 60"/>
             <path class="mr-arrow lit" d="M120 120 L180 120"/>
@@ -483,13 +484,13 @@
           <!-- shuffle -->
           <g data-show-on="3,4">
             <rect class="mr-box" x="350" y="40" width="100" height="40" rx="3"/>
-            <text x="400" y="62" text-anchor="middle" font-family="var(--mono)" font-size="10">han: [1,1]</text>
+            <text x="400" y="62" text-anchor="middle" font-size="10">han: [1,1]</text>
             <rect class="mr-box" x="350" y="90" width="100" height="40" rx="3"/>
-            <text x="400" y="112" text-anchor="middle" font-family="var(--mono)" font-size="10">ler: [1,1,1]</text>
+            <text x="400" y="112" text-anchor="middle" font-size="10">ler: [1,1,1]</text>
             <rect class="mr-box" x="350" y="140" width="100" height="40" rx="3"/>
-            <text x="400" y="162" text-anchor="middle" font-family="var(--mono)" font-size="10">vi: [1]</text>
+            <text x="400" y="162" text-anchor="middle" font-size="10">vi: [1]</text>
             <rect class="mr-box" x="350" y="190" width="100" height="40" rx="3"/>
-            <text x="400" y="212" text-anchor="middle" font-family="var(--mono)" font-size="10">de: [1] · ser: [1]</text>
+            <text x="400" y="212" text-anchor="middle" font-size="10">de: [1] · ser: [1]</text>
 
             <path class="mr-arrow lit" d="M280 60 L350 60"/>
             <path class="mr-arrow lit" d="M280 120 L350 110"/>
@@ -499,13 +500,13 @@
           <!-- reduce -->
           <g data-show-on="4">
             <rect class="mr-box active" x="520" y="40" width="100" height="40" rx="3"/>
-            <text x="570" y="62" text-anchor="middle" font-family="var(--mono)" font-size="10">(han, 2)</text>
+            <text x="570" y="62" text-anchor="middle" font-size="10">(han, 2)</text>
             <rect class="mr-box active" x="520" y="90" width="100" height="40" rx="3"/>
-            <text x="570" y="112" text-anchor="middle" font-family="var(--mono)" font-size="10">(ler, 3)</text>
+            <text x="570" y="112" text-anchor="middle" font-size="10">(ler, 3)</text>
             <rect class="mr-box active" x="520" y="140" width="100" height="40" rx="3"/>
-            <text x="570" y="162" text-anchor="middle" font-family="var(--mono)" font-size="10">(vi, 1)</text>
+            <text x="570" y="162" text-anchor="middle" font-size="10">(vi, 1)</text>
             <rect class="mr-box active" x="520" y="190" width="100" height="40" rx="3"/>
-            <text x="570" y="212" text-anchor="middle" font-family="var(--mono)" font-size="10">(de, 1) · (ser, 1)</text>
+            <text x="570" y="212" text-anchor="middle" font-size="10">(de, 1) · (ser, 1)</text>
 
             <path class="mr-arrow lit" d="M450 60 L520 60"/>
             <path class="mr-arrow lit" d="M450 110 L520 110"/>
