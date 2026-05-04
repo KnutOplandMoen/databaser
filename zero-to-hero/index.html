@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../favicon.png" type="image/png">
+<title>Zero to Database Hero — TDT4145</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* ── Hero ─────────────────────────────────────────────── */
+  .zh-hero { padding: 5rem 0 3rem; }
+  .zh-hero h1 { font-size: 4rem; line-height: 1.0; margin: 0; }
+  .zh-hero h1 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .zh-hero .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    padding: 5px 12px;
+    border-radius: 14px;
+    margin-bottom: 1.6rem;
+  }
+  .zh-hero .lead {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--ink-soft);
+    max-width: 32em;
+    margin: 1.5rem 0 0;
+    line-height: 1.45;
+  }
+
+  /* ── Big-picture stat row ────────────────────────────── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 2.4rem 0 0;
+  }
+  .stat {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+  }
+  .stat .stat-num {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    line-height: 1;
+    color: var(--rust);
+  }
+  .stat .stat-num em { font-style: italic; }
+  .stat .stat-label {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-top: 0.5rem;
+  }
+  .stat .stat-desc {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin-top: 0.4rem;
+    line-height: 1.4;
+  }
+
+  /* ── Strategy bullets ────────────────────────────────── */
+  .strategy {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 1.4rem 0;
+  }
+  .strategy .principle {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--rust);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.2rem;
+  }
+  .strategy .pr-num {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    color: var(--rust);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .strategy .pr-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+  .strategy .pr-body {
+    font-size: 0.94rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  /* ── Path / sequence ─────────────────────────────────── */
+  .path {
+    counter-reset: step;
+    margin: 1.6rem 0;
+    padding: 0;
+    list-style: none;
+  }
+  .path li {
+    counter-increment: step;
+    position: relative;
+    padding: 1rem 1rem 1rem 3.4rem;
+    margin: 0 0 0.6rem;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+  }
+  .path li::before {
+    content: counter(step);
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rust);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    border-radius: 50%;
+  }
+  .path li .step-title {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+  .path li .step-body {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin-top: 0.2rem;
+    line-height: 1.5;
+  }
+  .path li a { color: var(--rust); }
+
+  /* ── Chapter rundown ─────────────────────────────────── */
+  .rundown { margin: 1.4rem 0; }
+  .rd-card {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1.2rem;
+    padding: 1.2rem 1.3rem;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    margin-bottom: 0.7rem;
+    transition: border-color .15s, background .15s;
+  }
+  .rd-card:hover { border-color: var(--rust); background: var(--paper); }
+  .rd-card .rd-id {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    border-radius: 4px;
+    padding: 6px 8px;
+    text-align: center;
+    align-self: start;
+  }
+  .rd-card .rd-id .rd-time {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--ink-faded);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+  .rd-card .rd-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+  }
+  .rd-card .rd-title a { border-bottom: none; }
+  .rd-card .rd-title a:hover { color: var(--rust); }
+  .rd-card .rd-body {
+    font-size: 0.94rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .rd-card .rd-mcq {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--ink-faded);
+    font-style: italic;
+  }
+  .rd-card .rd-mcq strong { color: var(--rust); font-style: normal; }
+
+  .part-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 2rem 0 1rem;
+    color: var(--ink-faded);
+  }
+  .part-divider .pd-line { flex: 1; height: 1px; background: var(--line-soft); }
+  .part-divider .pd-label {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+
+  /* ── Plan / timeline ─────────────────────────────────── */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 1.4rem 0;
+  }
+  .tl-card {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+  }
+  .tl-card.featured {
+    background: linear-gradient(135deg, rgba(31,78,121,0.06), rgba(122,74,45,0.04));
+    border-color: var(--rust);
+  }
+  .tl-card .tl-when {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.6rem;
+  }
+  .tl-card .tl-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+  .tl-card ul { margin: 0; padding-left: 1.1rem; }
+  .tl-card li { font-size: 0.92rem; color: var(--ink-soft); margin-bottom: 0.3rem; line-height: 1.45; }
+
+  /* ── Resource grid ──────────────────────────────────── */
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 1.4rem 0;
+  }
+  .resource {
+    display: block;
+    padding: 1.1rem 1.3rem;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    color: var(--ink);
+    transition: border-color .15s, transform .15s, background .15s;
+  }
+  .resource:hover { border-color: var(--rust); transform: translateY(-2px); background: var(--paper); }
+  .resource .res-icon {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    color: var(--rust);
+    text-transform: uppercase;
+  }
+  .resource .res-title {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin: 0.3rem 0 0.3rem;
+  }
+  .resource .res-desc {
+    font-size: 0.9rem;
+    color: var(--ink-faded);
+    line-height: 1.45;
+  }
+
+  /* ── Pitfalls ──────────────────────────────────────── */
+  .pitfalls { margin: 1.4rem 0; padding: 0; list-style: none; }
+  .pitfalls li {
+    padding: 0.7rem 1rem 0.7rem 2.2rem;
+    margin-bottom: 0.5rem;
+    background: rgba(181, 78, 58, 0.06);
+    border-left: 3px solid #b54e3a;
+    border-radius: 0 4px 4px 0;
+    position: relative;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .pitfalls li::before {
+    content: '!';
+    position: absolute;
+    left: 0.7rem;
+    top: 0.65rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    background: #b54e3a;
+    color: var(--paper);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 1.1rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .pitfalls li strong { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .zh-hero h1 { font-size: 2.8rem; }
+    .rd-card { grid-template-columns: 1fr; gap: 0.4rem; }
+    .rd-card .rd-id { display: inline-block; justify-self: start; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back">&larr; Forsiden</a>
+    <div class="nav-search-wrapper">
+      <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="nav-search" placeholder="Laster…" autocomplete="off" disabled>
+      <div id="nav-search-results"></div>
+    </div>
+  </div>
+</nav>
+
+<main data-chapter="Zero to Database Hero">
+
+  <section class="zh-hero" style="border:none">
+    <div class="container">
+      <span class="tag">Eksamensguide · Vår 2026</span>
+      <h1>Zero to <em>Database Hero</em></h1>
+      <p class="lead">Det store bildet av hvordan du bruker denne siden — og pensum forøvrig — for å være klar til eksamen.</p>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">16</div>
+          <div class="stat-label">Forelesninger</div>
+          <div class="stat-desc">Fordelt på 8 kapitler i to deler.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">60<em>/</em>40</div>
+          <div class="stat-label">Vekting</div>
+          <div class="stat-desc">Del 2 (Svein Erik) veier mer enn Del 1 (Theodoros).</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">100<em>%</em></div>
+          <div class="stat-label">Flervalg</div>
+          <div class="stat-desc">I år er det kun MCQ — ingen tegning eller langsvar.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="strategi">
+    <div class="container">
+      <div class="section-badge">Strategi</div>
+      <h2>Tre prinsipper å lese etter</h2>
+      <p>Før du dykker ned i et enkelt kapittel — fest disse tre i hodet. Resten av guiden er en utfoldelse av dem.</p>
+
+      <div class="strategy">
+        <div class="principle">
+          <div class="pr-num">Prinsipp 1</div>
+          <div class="pr-title">Start med Del 2</div>
+          <div class="pr-body">Den veier mest (60 %) og er mest forutsigbar — Bratsberg gjenbruker mønstre fra år til år. Lagring, queries og transaksjoner er der du henter de sikre poengene.</div>
+        </div>
+        <div class="principle">
+          <div class="pr-num">Prinsipp 2</div>
+          <div class="pr-title">Gamle eksamener er gull</div>
+          <div class="pr-body">Spesielt for Del 2. I år er formatet endret til kun MCQ, men temaene og typespørsmålene er de samme. Bruk gamle oppgaver som diagnose: skjønner du <em>hvorfor</em>, ikke bare <em>hva</em>?</div>
+        </div>
+        <div class="principle">
+          <div class="pr-num">Prinsipp 3</div>
+          <div class="pr-title">MCQ ≠ overflate</div>
+          <div class="pr-body">Flervalg krever at du skiller riktig fra <em>nesten riktig</em>. Det betyr du må kjenne presise definisjoner og kantsaker — ikke bare ha en vag forståelse. Quiz aktivt mens du leser.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Format-endring i år</span>
+        <p>Tidligere år har eksamen hatt tegning (B+-trær, ER-diagram) og langsvar (relasjonsalgebra, normalisering). I år er det kun flervalg. Det gjør det <strong>lettere å bli ferdig i tide</strong>, men <strong>vanskeligere å gjette seg riktig</strong> — distraktorene er ofte plausible.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="sekvens">
+    <div class="container">
+      <div class="section-badge">Anbefalt sekvens</div>
+      <h2>Veien fra null til klar</h2>
+      <p>En studieplan som er testet på maksimal effekt for minst tid. Hopp gjerne over steg du allerede er trygg på — men ikke hopp over steg 1.</p>
+
+      <ol class="path">
+        <li>
+          <div class="step-title">Bli kjent med kartet</div>
+          <div class="step-body">Les <a href="../pensum.html">pensum-oversikten</a>. Hvilke forelesninger som tilhører hva, og hvor i lærebok/notater hvert tema bor. Dette er kompasset ditt.</div>
+        </li>
+        <li>
+          <div class="step-title">Del 2 først — F11 til F16</div>
+          <div class="step-body">Lagring (<a href="../kap6/lagring.html">kap 6 del 1</a> &rarr; <a href="../kap6/btrees.html">B+-trær</a>) &rarr; <a href="../kap7/innhold.html">queries</a> &rarr; transaksjoner (<a href="../kap8/intro-og-teori.html">teori</a> &rarr; <a href="../kap8/samtidighet-og-laser.html">låser</a> &rarr; <a href="../kap8/recovery.html">recovery</a>). Dette er 60 % av eksamen — ta dem mens hodet er ferskt.</div>
+        </li>
+        <li>
+          <div class="step-title">Del 1 — F1 til F10</div>
+          <div class="step-body">Mye av dette har du sett på midtveiseksamen. Repeter <a href="../kap2/">relasjonsalgebra</a>, <a href="../kap3/">SQL</a>, <a href="../kap4/">ER og normalformer</a>. <a href="../kap5/innhold.html">Kap 5</a> er lett å skumme.</div>
+        </li>
+        <li>
+          <div class="step-title">Knytt det sammen — Reisen til query</div>
+          <div class="step-body"><a href="../reisen/">Reisen-siden</a> binder Del 1 og Del 2 sammen ved å vise hvordan en SQL-spørring faktisk blir til disk-aksesser. Bruk den når du føler at temaene henger i løse tråder.</div>
+        </li>
+        <li>
+          <div class="step-title">Quiz aktivt på hver side</div>
+          <div class="step-body">Hver kapittelside har quiz-bokser. Svar <strong>før</strong> du leser fasit — gjettetreff teller ikke. Det du svarer feil på, er det du faktisk må lese om.</div>
+        </li>
+        <li>
+          <div class="step-title">Gamle eksamener under tidspress</div>
+          <div class="step-body">De siste dagene: gjør gamle eksamener på tid. Selv om årets format er MCQ, er innholdsrekkefølgen og dybden den samme. Sjekk hva du roter med — det er sannsynligvis det samme du roter med på den ekte.</div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="kapitlene">
+    <div class="container">
+      <div class="section-badge">Kapittel for kapittel</div>
+      <h2>Hva sidene <em>faktisk</em> inneholder</h2>
+      <p>For hvert kapittel: hva temaet er, hva som er viktig på MCQ, og hvor mye tid du bør sette av. Tidsestimatene er for én gjennomlesning med quiz — ikke for å mestre stoffet.</p>
+
+      <div class="part-divider">
+        <span class="pd-line"></span>
+        <span class="pd-label">Del 1 · Theodoros · ~40 %</span>
+        <span class="pd-line"></span>
+      </div>
+
+      <div class="rundown">
+        <div class="rd-card">
+          <div class="rd-id">Kap 1<span class="rd-time">~30 min</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap1/">Introduksjon til databaser</a></div>
+            <div class="rd-body">DBMS-arkitektur, hvorfor filsystemer ikke er nok, ACID som overordnet idé. Lett å skumme — men du skal kunne forklare ACID med egne ord.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> «Hvilken egenskap brytes hvis…» — kjenn forskjellen på <em>atomicity</em> og <em>durability</em>.</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 2<span class="rd-time">~1 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap2/">Relasjonsmodellen og relasjonsalgebra</a></div>
+            <div class="rd-body">To delsider: <a href="../kap2/relasjonsmodellen.html">modellen</a> (skjema, nøkler) og <a href="../kap2/relasjonsalgebra.html">algebraen</a> (σ π ⋈ ∪ −). Algebraen er språket bak SQL — ikke hopp over den.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Hvilket algebra-uttrykk svarer til hvilken SQL-spørring? Og: hva er forskjellen på primær- og kandidatnøkkel?</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 3<span class="rd-time">~3 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap3/">SQL — fire delsider</a></div>
+            <div class="rd-body">
+              <a href="../kap3/ddl-og-spoerringer.html">DDL og spørringsstruktur</a> &rarr;
+              <a href="../kap3/joins-og-subqueries.html">joins og subqueries</a> &rarr;
+              <a href="../kap3/views-transaksjoner-integritet.html">views, integritet, autorisasjon</a> &rarr;
+              <a href="../kap3/prosedyrer-triggere-rekursjon.html">prosedyrer, triggere, rekursjon</a>.
+              På MCQ trenger du ikke skrive SQL — du må <em>lese</em> den og finne hva den returnerer eller hvor den feiler.
+            </div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> NULL-håndtering i aggregat. <code>LEFT JOIN</code> vs <code>INNER JOIN</code>. Korrelert vs ukorrelert subquery. Trigger-rekkefølge.</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 4<span class="rd-time">~2 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap4/">Relasjonsdatabasedesign</a></div>
+            <div class="rd-body">Tre delsider: <a href="../kap4/er-modellen.html">ER-modellen</a>, <a href="../kap4/er-til-relasjon.html">ER til skjema</a>, <a href="../kap4/normalformer.html">normalformer</a>. FD-er og BCNF er der MCQ-bygda er tett.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Er denne relasjonen i BCNF? 3NF? Hvilken FD bryter den? Lossless decomposition vs dependency-preservation.</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 5<span class="rd-time">~30 min</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap5/innhold.html">Utover relasjonsmodellen</a></div>
+            <div class="rd-body">Komplekse datatyper, romlige data, tekstdata, NoSQL-smakebiter. Mindre vekt enn de andre, men kan dukke opp.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Når egner ikke en relasjonsdatabase seg? Hva er forskjellen på dokumentdatabase og kolonnelager?</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="part-divider">
+        <span class="pd-line"></span>
+        <span class="pd-label">Del 2 · Svein Erik · ~60 %</span>
+        <span class="pd-line"></span>
+      </div>
+
+      <div class="rundown">
+        <div class="rd-card">
+          <div class="rd-id">Kap 6<span class="rd-time">~3 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap6/">Lagring og indekser</a></div>
+            <div class="rd-body">To delsider: <a href="../kap6/lagring.html">lagring</a> (poster, blokker, heapfiler, hashing) og <a href="../kap6/btrees.html">B+-trær</a>. Lær å regne ut antall blokk-aksesser og høyde i et B+-tre med gitt fanout.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Hvor mange blokker leses ved et søk i et B+-tre med fanout F og N nøkler? Hva skjer ved innsetting og splitting?</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 7<span class="rd-time">~2 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap7/innhold.html">Spørringsutføring</a></div>
+            <div class="rd-body">Aksessmetoder, ekstern sortering, join-algoritmer (nested loop, sort-merge, hash). Mengdetrening på kostnadsestimering — det er disse oppgavene som teller.</div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Hvilken algoritme er billigst for join når relasjon R og S har disse størrelsene? Hva er kostnaden i blokk-I/O for sort-merge join?</span>
+          </div>
+        </div>
+
+        <div class="rd-card">
+          <div class="rd-id">Kap 8<span class="rd-time">~4 t</span></div>
+          <div>
+            <div class="rd-title"><a href="../kap8/">Transaksjoner</a></div>
+            <div class="rd-body">Tre delsider og sannsynligvis høyt vektet:
+              <a href="../kap8/intro-og-teori.html">intro og teori</a> (ACID, schedules, serializability) &rarr;
+              <a href="../kap8/samtidighet-og-laser.html">samtidighet</a> (2PL, deadlocks, MVCC) &rarr;
+              <a href="../kap8/recovery.html">recovery</a> (ARIES, log, checkpoints).
+              Bruk reisen-siden hvis ARIES kjennes abstrakt.
+            </div>
+            <span class="rd-mcq"><strong>MCQ-favoritt:</strong> Er denne schedulen serialiserbar? Konflikt- vs view-serialiserbar? Hva gjør ARIES under undo-fasen? Hva er en CLR?</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ressurser">
+    <div class="container">
+      <div class="section-badge">Verktøykassa</div>
+      <h2>Hva siden tilbyr utenom kapitlene</h2>
+      <p>Sidene henger sammen — bruk dem aktivt, ikke som passive PDF-erstatninger.</p>
+
+      <div class="resource-grid">
+        <a href="../reisen/" class="resource">
+          <div class="res-icon">⟶ Interaktiv</div>
+          <div class="res-title">Spørringens reise</div>
+          <div class="res-desc">Følg en SQL-query fra parsing, gjennom optimizer, til buffer manager og disk. Limet mellom Del 1 og Del 2.</div>
+        </a>
+        <a href="../pensum.html" class="resource">
+          <div class="res-icon">▦ Oversikt</div>
+          <div class="res-title">Pensum-kart</div>
+          <div class="res-desc">Hvilken forelesning ↔ hvilket kapittel ↔ hvilken side. Sjekk her når du er usikker på om du har vært innom alt.</div>
+        </a>
+        <a href="../" class="resource">
+          <div class="res-icon">⌕ Søk</div>
+          <div class="res-title">Søkebar i toppen</div>
+          <div class="res-desc">Søk på tvers av alle kapitler. Nyttig når du husker et begrep men ikke hvor det bor (f.eks. «steal/no-force»).</div>
+        </a>
+        <a href="#" class="resource" id="open-chat">
+          <div class="res-icon">✎ AI-assistent</div>
+          <div class="res-title">Chat-widget</div>
+          <div class="res-desc">Lille knappen nede i hjørnet. Spør på norsk om noe du ikke skjønner — den kan pensum og siden.</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="plan">
+    <div class="container">
+      <div class="section-badge">Tidsplan</div>
+      <h2>Tre planer etter hvor mye tid du har</h2>
+      <p>Alt er bedre enn ingenting — men start med Del 2 uansett.</p>
+
+      <div class="timeline">
+        <div class="tl-card">
+          <div class="tl-when">3 dager igjen</div>
+          <div class="tl-title">Krise-modus</div>
+          <ul>
+            <li><strong>Dag 1:</strong> F11–F12 (lagring, B+-trær)</li>
+            <li><strong>Dag 2:</strong> F13–F16 (queries + transaksjoner)</li>
+            <li><strong>Dag 3:</strong> Én gammel eksamen + raskt overblikk Del 1</li>
+          </ul>
+        </div>
+        <div class="tl-card featured">
+          <div class="tl-when">7 dager igjen</div>
+          <div class="tl-title">Anbefalt minimum</div>
+          <ul>
+            <li><strong>Dag 1–2:</strong> F11–F13 (lagring + queries)</li>
+            <li><strong>Dag 3–4:</strong> F14–F16 (transaksjoner)</li>
+            <li><strong>Dag 5:</strong> Del 1 (rask repetisjon — F1–F6)</li>
+            <li><strong>Dag 6:</strong> Del 1 (F7–F10) + reisen-siden</li>
+            <li><strong>Dag 7:</strong> 1–2 gamle eksamener på tid</li>
+          </ul>
+        </div>
+        <div class="tl-card">
+          <div class="tl-when">14+ dager igjen</div>
+          <div class="tl-title">Komfortabel</div>
+          <ul>
+            <li><strong>Uke 1:</strong> Del 2 i dybde, ett tema om dagen</li>
+            <li><strong>Uke 2 (start):</strong> Del 1 + alle quizene</li>
+            <li><strong>Siste dager:</strong> 3+ gamle eksamener, ARIES på papir</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fallgruver">
+    <div class="container">
+      <div class="section-badge">Fallgruver</div>
+      <h2>Vanlige feil på <em>nesten riktig</em>-distraktorer</h2>
+      <p>Disse er de klassiske MCQ-fellene. Hvis du blander dem, mister du sikre poeng.</p>
+
+      <ul class="pitfalls">
+        <li><strong>2PL ≠ 2PC.</strong> Two-Phase Locking er samtidighetskontroll på én database. Two-Phase Commit er distribuert transaksjon-koordinering. Helt forskjellige ting.</li>
+        <li><strong>Strict 2PL ≠ Rigorous 2PL.</strong> Strict slipper share-låser tidlig, rigorous holder alle til commit. Serializable + cascadeless er fellestrekk.</li>
+        <li><strong>BCNF ≠ 3NF.</strong> Hver BCNF er 3NF, men ikke omvendt. 3NF tillater én FD-type BCNF ikke gjør (key &rarr; non-prime attribute via transitiv-unntaket).</li>
+        <li><strong>Konflikt-serialiserbar ≠ view-serialiserbar.</strong> Alle konflikt-serialiserbare er view-serialiserbare, men ikke omvendt. Blind writes er forskjellen.</li>
+        <li><strong>WAL: log før data, ikke etter.</strong> Loggrecord må på disk <em>før</em> tilhørende dataside. ARIES holder fast på dette.</li>
+        <li><strong>B+-tre ≠ B-tre.</strong> B+-tre har data kun i blader, og bladene er lenket. B-tre har data i alle noder. Pensum bruker B+.</li>
+        <li><strong>Kandidatnøkkel ≠ supernøkkel.</strong> Kandidat er <em>minimal</em> super. Glem ikke minimaliteten.</li>
+        <li><strong>NULL i aggregat.</strong> <code>COUNT(*)</code> teller alle rader, <code>COUNT(kolonne)</code> hopper over NULL. <code>SUM</code>/<code>AVG</code> ignorerer NULL stille.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="til-slutt" style="padding-bottom: 4rem">
+    <div class="container">
+      <div class="section-badge">Til slutt</div>
+      <h2>Lykke til</h2>
+      <p>Husk at flervalg belønner presisjon, ikke flid alene. Det er bedre å forstå tre kapitler dypt enn åtte kapitler overflatisk. Hvis du sitter fast: prøv å forklare temaet høyt eller skrive det ned med egne ord — du oppdager fort hvor hullene er.</p>
+      <p>Når du føler deg klar: gå på <a href="../reisen/">reisen til en query</a> en siste gang, og se om du kan kommentere hvert steg. Hvis ja — du er hero.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+<script src="../nav-search.js"></script>
+<script>
+(function () {
+  var openChat = document.getElementById('open-chat');
+  if (!openChat) return;
+  openChat.addEventListener('click', function (e) {
+    e.preventDefault();
+    var btn = document.querySelector('.chat-toggle, .cw-toggle, [data-chat-toggle]');
+    if (btn) btn.click();
+  });
+})();
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</body>
+</html>

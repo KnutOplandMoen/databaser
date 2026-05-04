@@ -20,10 +20,11 @@
     'kap8/samtidighet-og-laser.html',
     'kap8/recovery.html',
     'reisen/index.html',
+    'zero-to-hero/index.html',
   ];
 
-  // Detect depth: chapter pages (/kapN/foo.html, /reisen/) need '../', root pages need ''
-  var PREFIX = /\/(kap\d+|reisen|en)\//i.test(window.location.pathname) ? '../' : '';
+  // Detect depth: chapter pages (/kapN/foo.html, /reisen/, /zero-to-hero/) need '../', root pages need ''
+  var PREFIX = /\/(kap\d+|reisen|zero-to-hero|en)\//i.test(window.location.pathname) ? '../' : '';
   var FUSE_SRC = 'https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js';
 
   var input = document.getElementById('nav-search');

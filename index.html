@@ -28,13 +28,15 @@
   .sr-body mark { background: rgba(31,78,121,0.2); color: var(--ink); padding: 0 2px; border-radius: 2px; }
   .sr-empty { padding: 18px; color: var(--ink-faded); font-style: italic; text-align: center; }
 
-  .journey-banner { display: flex; align-items: center; gap: 16px; margin: 3rem 0 0; padding: 1.4rem 1.8rem; background: linear-gradient(135deg, rgba(31,78,121,0.08), rgba(122,74,45,0.06)); border: 1px solid var(--line-soft); border-radius: 8px; color: var(--ink); transition: transform .15s, border-color .15s; }
+  .banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 3rem 0 0; }
+  .journey-banner { display: flex; align-items: center; gap: 16px; padding: 1.4rem 1.8rem; background: linear-gradient(135deg, rgba(31,78,121,0.08), rgba(122,74,45,0.06)); border: 1px solid var(--line-soft); border-radius: 8px; color: var(--ink); transition: transform .15s, border-color .15s; }
   .journey-banner:hover { border-color: var(--rust); transform: translateX(2px); }
   .journey-banner .jb-icon { font-size: 1.6rem; }
   .journey-banner .jb-text { flex: 1; }
   .journey-banner .jb-title { font-family: var(--serif); font-size: 1.2rem; }
   .journey-banner .jb-desc { font-size: 0.92rem; color: var(--ink-faded); margin-top: 2px; }
   .journey-banner .jb-arrow { color: var(--rust); font-family: var(--mono); }
+  @media (max-width: 720px) { .banner-row { grid-template-columns: 1fr; } }
 
   .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 2.5rem 0; }
   .chapter-card { display: flex; align-items: center; gap: 14px; padding: 1.1rem 1.3rem; background: var(--paper-dark); border: 1px solid var(--line-soft); border-radius: 8px; color: var(--ink); transition: background .15s, border-color .15s, transform .15s; }
@@ -80,14 +82,25 @@
         <div id="search-results"></div>
       </div>
 
-      <a href="reisen/" class="journey-banner">
-        <span class="jb-icon">⟶</span>
-        <div class="jb-text">
-          <div class="jb-title">Spørringens reise gjennom DBMS-en</div>
-          <div class="jb-desc">Følg en SQL-query fra klient til disk — interaktivt</div>
-        </div>
-        <span class="jb-arrow">→</span>
-      </a>
+      <div class="banner-row">
+        <a href="reisen/" class="journey-banner">
+          <span class="jb-icon">⟶</span>
+          <div class="jb-text">
+            <div class="jb-title">Spørringens reise gjennom DBMS-en</div>
+            <div class="jb-desc">Følg en SQL-query fra klient til disk — interaktivt</div>
+          </div>
+          <span class="jb-arrow">→</span>
+        </a>
+
+        <a href="zero-to-hero/" class="journey-banner">
+          <span class="jb-icon">★</span>
+          <div class="jb-text">
+            <div class="jb-title">Zero to Database Hero</div>
+            <div class="jb-desc">Hvordan bli klar til eksamen — det store bildet</div>
+          </div>
+          <span class="jb-arrow">→</span>
+        </a>
+      </div>
 
       <div class="chapter-grid">
         <a href="kap1/" class="chapter-card">
@@ -219,6 +232,7 @@
     'kap8/samtidighet-og-laser.html',
     'kap8/recovery.html',
     'reisen/index.html',
+    'zero-to-hero/index.html',
   ];
 
   var input = document.getElementById('site-search');
