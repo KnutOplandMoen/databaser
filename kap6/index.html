@@ -355,7 +355,100 @@
     <div class="container">
       <div class="section-badge">03 · Deler</div>
       <h2>Utforsk <em>kapittelet</em></h2>
-      <p>Kapittelet er delt i to halvdeler. Begynn med 6A — du må forstå hvordan en rad ligger i en blokk før indekser gir mening.</p>
+      <p>Kapittelet er delt i to halvdeler. 6A bygger fundamentet (hvordan én rad lever på disk og i RAM), 6B bygger søkestrukturen oppå (hvordan databasen finner én rad blant millioner). Begynn med 6A — du må forstå hvordan en rad ligger i en blokk før indekser gir mening.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kap6-deler-title">
+          <title id="kap6-deler-title">Reisen gjennom kapittel 6 — fra bytes på disk til oppslag på 3 blokker</title>
+          <defs>
+            <marker id="k6darr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+
+          <!-- Big arrow flowing through the chapter -->
+          <line x1="40" y1="50" x2="680" y2="50" stroke="#1a1612" stroke-width="1.5" marker-end="url(#k6darr)"/>
+          <text x="40" y="38" font-family="IBM Plex Mono" font-size="10" fill="#1a1612" font-weight="700">leserekkefølge →</text>
+
+          <!-- 6A part -->
+          <g transform="translate(20, 70)">
+            <rect width="320" height="180" rx="8" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="14" y="22" font-family="IBM Plex Mono" font-size="12" fill="#1f4e79" font-weight="700">6A · LAGRING</text>
+            <text x="14" y="38" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">«Hvordan ser én rad ut på disk?»</text>
+
+            <!-- Mini visual: bytes inside a block -->
+            <g transform="translate(14, 50)">
+              <rect width="290" height="34" fill="#f4f1ea" stroke="#1a1612"/>
+              <rect x="2" y="2" width="24" height="30" fill="#1f4e79"/>
+              <text x="14" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#f4f1ea">hdr</text>
+              <rect x="28" y="2" width="50" height="30" fill="#e8e3d6" stroke="#7a4a2d"/>
+              <text x="53" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">rec</text>
+              <rect x="80" y="2" width="50" height="30" fill="#e8e3d6" stroke="#7a4a2d"/>
+              <text x="105" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">rec</text>
+              <rect x="132" y="2" width="50" height="30" fill="#e8e3d6" stroke="#7a4a2d"/>
+              <text x="157" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">rec</text>
+              <rect x="184" y="2" width="40" height="30" fill="#ddd5c4" stroke="#a39886" stroke-dasharray="3,2"/>
+              <text x="204" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">…</text>
+              <rect x="226" y="2" width="62" height="30" fill="#e6edf6" stroke="#1f4e79"/>
+              <text x="257" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79">slot dir</text>
+            </g>
+
+            <text x="14" y="104" font-family="Newsreader" font-size="12" fill="#1a1612">• record-format · slot directory</text>
+            <text x="14" y="122" font-family="Newsreader" font-size="12" fill="#1a1612">• block-format · RID = (BlockId, slot)</text>
+            <text x="14" y="140" font-family="Newsreader" font-size="12" fill="#1a1612">• buffer pool · LRU/MRU/clock</text>
+            <text x="14" y="158" font-family="Newsreader" font-size="12" fill="#1a1612">• heapfil · statisk + extendible hashing</text>
+
+            <text x="14" y="174" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79" font-style="italic">Du tar med deg: hvordan en rad blir bytes — og hvordan blokker flyter mellom disk og RAM.</text>
+          </g>
+
+          <!-- Arrow between 6A and 6B -->
+          <line x1="345" y1="160" x2="380" y2="160" stroke="#7a4a2d" stroke-width="2" marker-end="url(#k6darr)"/>
+          <text x="362" y="153" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#7a4a2d" font-style="italic">bygger på</text>
+
+          <!-- 6B part -->
+          <g transform="translate(385, 70)">
+            <rect width="315" height="180" rx="8" fill="#fff4e0" stroke="#c68a1f" stroke-width="2"/>
+            <text x="14" y="22" font-family="IBM Plex Mono" font-size="12" fill="#c68a1f" font-weight="700">6B · B+-TRÆR &amp; INDEKSER</text>
+            <text x="14" y="38" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">«Hvordan finne én rad av millioner?»</text>
+
+            <!-- Mini B+ tree -->
+            <g transform="translate(120, 50)">
+              <rect x="30" width="44" height="14" fill="#e6edf6" stroke="#1f4e79"/>
+              <text x="52" y="11" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#1f4e79">14|33</text>
+
+              <line x1="34" y1="14" x2="6" y2="22" stroke="#1f4e79"/>
+              <line x1="52" y1="14" x2="52" y2="22" stroke="#1f4e79"/>
+              <line x1="70" y1="14" x2="98" y2="22" stroke="#1f4e79"/>
+
+              <rect x="-8" y="22" width="28" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect x="36" y="22" width="32" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect x="86" y="22" width="28" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <line x1="20" y1="29" x2="36" y2="29" stroke="#3d6b3a" stroke-width="1.5"/>
+              <line x1="68" y1="29" x2="86" y2="29" stroke="#3d6b3a" stroke-width="1.5"/>
+            </g>
+
+            <text x="14" y="104" font-family="Newsreader" font-size="12" fill="#1a1612">• B+-tre · høyde, fanout, fyllingsgrad</text>
+            <text x="14" y="122" font-family="Newsreader" font-size="12" fill="#1a1612">• clustered vs unclustered</text>
+            <text x="14" y="140" font-family="Newsreader" font-size="12" fill="#1a1612">• range-scan via bladlenker</text>
+            <text x="14" y="158" font-family="Newsreader" font-size="12" fill="#1a1612">• kostnadsregning · LSM-trær</text>
+
+            <text x="14" y="174" font-family="IBM Plex Mono" font-size="9" fill="#c68a1f" font-style="italic">Du tar med deg: hvorfor 3 blokker er nok for å finne én rad blant 1 000 000.</text>
+          </g>
+
+          <!-- Bottom result -->
+          <g transform="translate(20, 270)">
+            <rect width="680" height="40" rx="6" fill="#ddd5c4"/>
+            <text x="360" y="18" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">
+              Sammen lar de deg svare på kjernespørsmålet: «hvor mange blokk-aksesser koster denne spørringen?»
+            </text>
+            <text x="360" y="33" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">
+              — verktøyet du bruker resten av del 2 i kap 7–8.
+            </text>
+          </g>
+        </svg>
+        <figcaption>6A bygger fundamentet (record · blokk · buffer); 6B bygger oppslag oppå (B+-tre · indekser). Begge handler om samme spørsmål: minimer antall blokker som må flyttes.</figcaption>
+      </figure>
+
       <div class="subpage-list">
         <a href="lagring.html" class="subpage-card">
           <span class="sp-icon">6A</span>
