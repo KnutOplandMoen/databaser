@@ -298,11 +298,20 @@
       <p>Total kostnad: 3 + ⌈(antall treff)/(records per blad)⌉ blokker. Helt minimal — vi leser bare blader som inneholder treff.</p>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 3 · Middels</div>
-        <div class="q-text">Hvorfor er bladlenker bidireksjonale (peker både fram og tilbake)?</div>
+        <div class="q-label">Spørsmål 3a · Middels</div>
+        <div class="q-text">Søk i et B+-tre «går alltid til bladet» — selv når du kunne sett samme nøkkel inne i en intern node underveis. Hvorfor stopper vi ikke der?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Slik at <strong>begge retninger av range-scan</strong> blir like billige. Med <code>WHERE empno &lt; 14</code> traverserer vi ned til 14 og går så bakover via prev-pekerne. Også <code>ORDER BY ... DESC</code> blir nesten gratis — bare gå til høyre ende av treet og følg prev-lenkene.</div>
+          <div class="answer">Fordi det <strong>bare er bladene som har dataene</strong> (eller pekerne til radene). Interne noder inneholder bare separator-nøkler som veiviser — finne en separator-treff betyr ikke at recorden ligger der. Det er nettopp denne arbeidsdelingen som lar interne noder pakke flere nøkler per blokk og dermed gi treet høy fanout og lav høyde.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 3b · Middels</div>
+        <div class="q-text">For <code>WHERE empno BETWEEN 14 AND 35</code> som krever 3 blokker for tre-traversering ned til 14: hva skjer videre, og hvorfor blir totalkostnaden minimal?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Når vi treffer bladet med 14, lever vi ut alle records ≥ 14 i bladet og <strong>følger leaf-link-en til neste blad</strong>, og det neste — helt til vi ser en nøkkel &gt; 35. Vi trenger <em>ikke</em> gå opp i treet igjen. Total kostnad: 3 (traversering) + ⌈antall treff / records per blad⌉ blokker. Vi rører kun blader som faktisk inneholder treff — det er hvorfor B+-treet er så bra på range.</div>
         </div>
       </div>
     </div>

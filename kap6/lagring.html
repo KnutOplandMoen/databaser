@@ -187,10 +187,10 @@
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett</div>
-        <div class="q-text">Hvorfor må optimizeren ha tilgang til SQL-katalogen?</div>
+        <div class="q-text">Pipelinen har fire lag: SQL-kompilator → optimizer → executor → buffer pool. Hvorfor er det smart at <em>kun</em> buffer pool snakker direkte med disken, i stedet for at hver komponent leser blokker selv?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">For å vite hvilke <strong>indekser</strong> som finnes på hver tabell, hvor mange rader og distinct-verdier hver tabell har (<strong>statistikk</strong>), og for å estimere kostnaden av forskjellige planer. Uten katalogen kan ikke optimizeren ranke planer.</div>
+          <div class="answer">Fordi disk-I/O er den dominerende kostnaden. Når <em>én</em> komponent eier blokk-cachen, kan flere transaksjoner og spørringer dele samme blokk i RAM, og DBMS-en har ett sentralt sted å håndtere pinning, dirty-flag og WAL-koordinering. Hadde hver komponent lest blokker selv, ville samme blokk blitt lest fra disk flere ganger og ingen ville visst om noen andre var i ferd med å endre den. Separasjonen — at SQL-laget bare snakker rader og bare buffer pool kjenner blokker — er det som gjør at optimizeren bruker katalogen til å velge plan, mens executoren slipper å bekymre seg om hvordan en blokk faktisk hentes.</div>
         </div>
       </div>
     </div>
@@ -248,6 +248,15 @@
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
           <div class="answer">Disker er optimalisert for <strong>store sekvensielle overføringer</strong>. Selve seek-tiden (på HDD) eller flash-controllerens fixed cost (på SSD) er den dominerende kostnaden. Når du først er der, er det nesten gratis å lese mer. Å hente 16 KiB tar nesten samme tid som å hente 1 byte. Større blokker → bedre amortisering av seek-kostnaden.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 2b · Lett</div>
+        <div class="q-text">En BlockId er bygd som <code>(deviceId, offset)</code>. Hvorfor er det smart å adressere blokker logisk slik — i stedet for å bruke en absolutt byte-posisjon i en stor fil?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi det <strong>skjuler hvor data faktisk ligger fysisk</strong>. DeviceId-en lar DBMS-en spre lagringen over flere disker uten at resten av systemet trenger å vite om det. Offset-en gir direkte adresse til en blokk, og operativsystemet/filsystemet oversetter til faktisk fysisk plassering. SQL-laget over snakker rader; lagringslaget snakker BlockIds; og hva som ligger hvor på den fysiske disken kan endres uten at noe annet brytes.</div>
         </div>
       </div>
     </div>
@@ -704,10 +713,10 @@
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 9 · Lett</div>
-        <div class="q-text">Hvorfor brukes en heapfil ofte sammen med en B+-tree-indeks i stedet for å lagre dataen direkte i indeksen?</div>
+        <div class="q-text">Hvorfor klarer en heapfil å sette inn nye records i konstant tid (O(1)) — uavhengig av om tabellen har 100 eller 100 millioner rader? Og hvorfor blir søk uten indeks O(N)?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi en tabell kan ha <strong>flere indekser</strong>. Hver kan peke til samme heapfil via RID. Hadde dataen ligget i indeksen ville vi måttet duplisere den for hver indeks vi laget. Heap+B+ er løsningen MyISAM, PostgreSQL og Microsoft SQL Server bruker ved sekundære indekser.</div>
+          <div class="answer"><strong>O(1) insert:</strong> Free-list inneholder alle blokker med ledig plass. Insert tar første blokk i listen, putter recorden der, og flytter blokken til full-list hvis den ble full. Vi trenger aldri å lete etter en plass — blokken som har plass ligger alltid på toppen av free-list. Denne operasjonen er like billig på en stor som en liten tabell. <strong>O(N) søk:</strong> Recordene er ikke sortert eller hashet etter noe. For å finne en gitt verdi må vi i verste fall skanne alle blokker i både full-list og free-list. Det er derfor heap nesten alltid kombineres med en indeks ved siden av.</div>
         </div>
       </div>
     </div>
@@ -783,10 +792,19 @@
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 10 · Middels</div>
-        <div class="q-text">Hvorfor egner statisk hashing seg dårlig for range-spørringer som <code>WHERE empno BETWEEN 100 AND 200</code>?</div>
+        <div class="q-text">Statisk hashing lover O(1) likhetsoppslag, men kan i praksis degenerere til O(N) over tid. Hva er det som skjer, og hvorfor?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi hash-funksjonen <strong>fjerner naboskapet</strong> mellom nøkkelverdiene. Empno 100, 101, 102 ender på helt forskjellige bøtter etter <code>mod N</code>. For å finne alle i intervallet må vi enten hashe hver mulig verdi (101 oppslag) eller skanne hele filen. B+-trær bevarer sortering og er mye bedre her.</div>
+          <div class="answer">Antall bøtter <em>N</em> er fastsatt på forhånd. Når datamengden vokser forbi det vi planla for, fylles bøttene opp og nye records havner i <strong>overflow-blokker</strong> som lenkes etter hovedbøtten (eller spres via en av de andre overflow-strategiene). Et oppslag som «skulle» vært én blokk-aksess må nå følge en lang kjede av overflow-blokker — og kjeden vokser lineært med datamengden. Det er nettopp denne akilleshælen extendible hashing er designet for å unngå.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 10b · Lett</div>
+        <div class="q-text">Hvorfor egner statisk hashing seg dårlig for <code>WHERE empno BETWEEN 100 AND 200</code>, selv før overflow-problemet kommer inn i bildet?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Hash-funksjonen <strong>fjerner naboskapet</strong> mellom nøkkelverdier. Empno 100, 101, 102 ender på helt forskjellige bøtter etter <code>mod N</code>. For å finne alle i intervallet må vi enten hashe hver mulig verdi (101 oppslag) eller skanne hele filen. Hashing er kun for likhetssøk — range krever en sortert struktur som B+-tre.</div>
         </div>
       </div>
     </div>

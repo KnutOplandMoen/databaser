@@ -6,6 +6,24 @@
 <link rel="icon" href="../favicon.png" type="image/png">
 <title>Kapittel 7 — Spørringsutføring</title>
 <link rel="stylesheet" href="../style.css">
+<style>
+  /* Chapter 7 specific extras (modelled after kap6/index) */
+  .stack-fig { background: var(--paper-dark); border-radius: 8px; padding: 1.4rem; margin: 1.6rem 0; }
+  .stack-fig svg { display: block; width: 100%; height: auto; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 1.6rem; }
+  .pill { font-family: var(--mono); font-size: 0.78rem; padding: 4px 10px; border-radius: 12px; background: rgba(31,78,121,0.08); color: var(--rust); letter-spacing: 0.05em; }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.4rem 0; }
+  @media (max-width: 720px) { .stat-row { grid-template-columns: 1fr; } }
+  .stat-box { background: var(--paper-dark); border: 1px solid var(--line-soft); border-radius: 8px; padding: 1rem; text-align: center; }
+  .stat-num { font-family: var(--serif); font-size: 1.8rem; color: var(--rust); display: block; line-height: 1; margin-bottom: 0.3rem; }
+  .stat-lbl { font-family: var(--mono); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faded); }
+  .roadmap-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.4rem 0; }
+  @media (max-width: 720px) { .roadmap-row { grid-template-columns: 1fr; } }
+  .roadmap-card { background: var(--paper); border: 1px solid var(--line-soft); border-left: 3px solid var(--rust); border-radius: 6px; padding: 0.9rem 1rem; }
+  .roadmap-card h4 { margin: 0 0 0.3rem; font-family: var(--mono); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--rust); }
+  .roadmap-card p { margin: 0; font-size: 0.92rem; }
+  .roadmap-card .seq { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faded); }
+</style>
 </head>
 <body>
 
@@ -29,42 +47,392 @@
       <div class="eyebrow">Kapittel 7 · Forelesning 13 · Del 2</div>
       <h1>Spørrings<em>utføring</em></h1>
       <p class="lede">Hvordan databasen velger måter å hente rader på (aksessmetoder), sorterer store datamengder, og kombinerer tabeller (join-algoritmer) — hvordan en SELECT faktisk blir kjørt mot disk.</p>
+      <div class="pill-row">
+        <span class="pill">Bratsbergs notater 12–14</span>
+        <span class="pill">Forelesning 13</span>
+        <span class="pill">queries.pdf</span>
+      </div>
     </div>
   </header>
 
   <nav class="chapter-toc">
     <div class="container">
       <ol class="chapter-toc-list">
-        <li><span class="toc-num">01</span><a href="#overblikk">Helhetsbilde</a></li>
-        <li><span class="toc-num">02</span><a href="#deler">Læringsmodul</a></li>
-        <li><span class="toc-num">03</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
-        <li><span class="toc-num">04</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">01</span><a href="#hvorfor">Hvorfor spørringsutføring?</a></li>
+        <li><span class="toc-num">02</span><a href="#pipeline">Pipelinen</a></li>
+        <li><span class="toc-num">03</span><a href="#kart">Reisen gjennom kapittelet</a></li>
+        <li><span class="toc-num">04</span><a href="#deler">Læringsmodul</a></li>
+        <li><span class="toc-num">05</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
+        <li><span class="toc-num">06</span><a href="#quiz">Test deg selv</a></li>
       </ol>
     </div>
   </nav>
 
-  <section id="overblikk">
+  <section id="hvorfor">
     <div class="container">
-      <div class="section-badge">Helhetsbilde</div>
-      <h2>Fra plan til <em>resultat</em></h2>
-      <p>I forrige kapittel så vi <em>hvor</em> data ligger — heap, B+-tre, hash. Nå ser vi hvordan databasen faktisk plukker dem opp og setter dem sammen.</p>
-      <ul>
-        <li><strong>Optimizer</strong> (planleggeren) velger en utføringsplan, <strong>executor</strong> (utføreren) kjører den</li>
-        <li>Aksessveier (måter å hente rader): filscan, indeksscan, range-scan, indeks-lookup</li>
-        <li>External merge sort — sortering på disk når dataene er større enn RAM</li>
-        <li>Fire join-algoritmer (J1–J4 som de er nummerert i kompendiet): nested loop, index nested loop, sort-merge og partition-hash. Detaljer på innholdssiden.</li>
-        <li><code>EXPLAIN</code> (en MySQL-kommando som viser den valgte planen) hjelper med feilsøking</li>
-      </ul>
+      <div class="section-badge">01 · Helhetsbilde</div>
+      <h2>Samme SQL — <em>tre planer</em>, tre kostnader</h2>
+      <p class="dropcap">En spørring som <code>SELECT name FROM Employee WHERE depno = 5</code> ser uskyldig ut. Men databasen kan kjøre den på 3–4 helt forskjellige måter, og kostnadsforskjellen kan være 1000×. Kapittel 6 svarte på <em>hvor</em> dataen ligger; kapittel 7 svarer på <em>hvordan</em> vi henter og kombinerer den — og hvilken plan som vinner avhenger av hva som finnes av indekser, hvor mange rader som matcher, og hvor mye RAM som er tilgjengelig.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kap7-hero-title">
+          <title id="kap7-hero-title">Samme spørring kjørt på tre måter — radikalt forskjellig kostnad</title>
+          <defs>
+            <marker id="k7arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+
+          <!-- The query at the top -->
+          <rect x="20" y="14" width="680" height="30" fill="#1a1612" rx="4"/>
+          <text x="360" y="34" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#f4f1ea">SELECT name FROM Employee WHERE depno = 5</text>
+
+          <!-- Three branches downward -->
+          <line x1="360" y1="44" x2="125" y2="78" stroke="#7a4a2d" stroke-width="1.5" marker-end="url(#k7arr)"/>
+          <line x1="360" y1="44" x2="360" y2="78" stroke="#7a4a2d" stroke-width="1.5" marker-end="url(#k7arr)"/>
+          <line x1="360" y1="44" x2="595" y2="78" stroke="#7a4a2d" stroke-width="1.5" marker-end="url(#k7arr)"/>
+
+          <!-- Plan A: Full scan -->
+          <g transform="translate(20, 80)">
+            <rect width="220" height="180" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="1.5"/>
+            <text x="110" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">PLAN A · FULL SCAN</text>
+            <text x="110" y="40" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">les hele heapfilen</text>
+
+            <!-- block strip showing all blocks read -->
+            <g transform="translate(20, 56)">
+              <rect width="180" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect y="16" width="180" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect y="32" width="180" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect y="48" width="180" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect y="64" width="180" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <text x="90" y="88" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#7a4a2d">… 1961 blokker leses …</text>
+            </g>
+
+            <text x="110" y="166" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612" font-weight="700">~1961 I/O</text>
+          </g>
+
+          <!-- Plan B: Index nested loop / lookup -->
+          <g transform="translate(250, 80)">
+            <rect width="220" height="180" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="1.5"/>
+            <text x="110" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">PLAN B · INDEKS-LOOKUP</text>
+            <text x="110" y="40" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">unclustered B+ på depno</text>
+
+            <!-- B+ tree icon -->
+            <g transform="translate(70, 56)">
+              <rect width="80" height="16" fill="#e6edf6" stroke="#1f4e79"/>
+              <text x="40" y="68" font-family="IBM Plex Mono" font-size="8" fill="#1f4e79" text-anchor="middle">indeks</text>
+              <line x1="20" y1="16" x2="0" y2="34" stroke="#1f4e79"/>
+              <line x1="40" y1="16" x2="40" y2="34" stroke="#1f4e79"/>
+              <line x1="60" y1="16" x2="80" y2="34" stroke="#1f4e79"/>
+              <rect y="34" width="20" height="14" fill="#e6edf6" stroke="#1f4e79"/>
+              <rect x="30" y="34" width="20" height="14" fill="#e6edf6" stroke="#1f4e79"/>
+              <rect x="60" y="34" width="20" height="14" fill="#e6edf6" stroke="#1f4e79"/>
+            </g>
+            <!-- arrow into heap with random hits -->
+            <g transform="translate(20, 124)">
+              <text x="90" y="0" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#7a4a2d">↓ RID → tilfeldig blokk</text>
+              <rect width="180" height="14" fill="#e8e3d6" stroke="#c9c0ae"/>
+              <rect x="20" y="0" width="14" height="14" fill="#c68a1f"/>
+              <rect x="60" y="0" width="14" height="14" fill="#c68a1f"/>
+              <rect x="120" y="0" width="14" height="14" fill="#c68a1f"/>
+              <rect x="155" y="0" width="14" height="14" fill="#c68a1f"/>
+            </g>
+
+            <text x="110" y="166" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612" font-weight="700">~3 + treff·1 I/O</text>
+          </g>
+
+          <!-- Plan C: Clustered B+ scan -->
+          <g transform="translate(480, 80)">
+            <rect width="220" height="180" rx="6" fill="#f4f1ea" stroke="#1a1612" stroke-width="1.5"/>
+            <text x="110" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">PLAN C · CLUSTERED B+</text>
+            <text x="110" y="40" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">range-scan på sorterte blader</text>
+
+            <!-- B+ with sequential leaves -->
+            <g transform="translate(70, 56)">
+              <rect width="80" height="16" fill="#e6edf6" stroke="#1f4e79"/>
+              <line x1="20" y1="16" x2="0" y2="34" stroke="#1f4e79"/>
+              <line x1="40" y1="16" x2="40" y2="34" stroke="#1f4e79"/>
+              <line x1="60" y1="16" x2="80" y2="34" stroke="#1f4e79"/>
+              <rect y="34" width="20" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect x="30" y="34" width="20" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <rect x="60" y="34" width="20" height="14" fill="#c68a1f" stroke="#7a4a2d"/>
+              <line x1="20" y1="41" x2="30" y2="41" stroke="#3d6b3a" stroke-width="2"/>
+              <line x1="50" y1="41" x2="60" y2="41" stroke="#3d6b3a" stroke-width="2"/>
+              <text x="40" y="64" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#3d6b3a">← bladlenker →</text>
+            </g>
+            <text x="110" y="148" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#6b6257">3 nivå tre + få sammenhengende blokker</text>
+
+            <text x="110" y="166" text-anchor="middle" font-family="Newsreader" font-size="14" fill="#1a1612" font-weight="700">~3 + få I/O</text>
+          </g>
+
+          <!-- Bottom verdict -->
+          <text x="360" y="290" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">
+            Optimizeren regner kostnaden for alle gyldige planer — og velger den billigste.
+          </text>
+          <text x="360" y="308" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">
+            Plan B vinner ved få treff. Plan A vinner ved mange treff. Plan C vinner ved range-spørringer.
+          </text>
+        </svg>
+        <figcaption>Tre lovlige planer for samme SQL. Hovedlæringen i kap 7 er å regne ut hvilken plan som vinner — og hvorfor.</figcaption>
+      </figure>
+
+      <div class="stat-row">
+        <div class="stat-box">
+          <span class="stat-num">4</span>
+          <span class="stat-lbl">aksessveier</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">4</span>
+          <span class="stat-lbl">join-algoritmer (J1–J4)</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">I/O</span>
+          <span class="stat-lbl">alt måles i blokker</span>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Mental modell</span>
+        <p>I kap 6 ble vi kjent med <em>lageret</em> (heap, B+-tre, hash). I kap 7 er vi <em>logistikkavdelingen</em>: gitt at vi skal levere et bestemt sett rader, hva er den billigste rutevalget? Optimizeren er sjefen som velger ruten; executoren er sjåføren som kjører den.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="container">
+      <div class="section-badge">02 · Pipelinen</div>
+      <h2>Hva skjer mellom <em>SQL og resultat</em>?</h2>
+      <p>En SQL-tekst går gjennom fire ledd før den blir til byter på pulten din. Kapittel 7 fokuserer på de to midterste — <em>optimizer</em> og <em>executor</em> — og hvordan de bruker statistikk og aksessmetoder for å finne raskest mulig vei til svaret.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kap7-pipeline-title">
+          <title id="kap7-pipeline-title">SQL-pipeline: parser, optimizer, executor, lagring</title>
+          <defs>
+            <marker id="k7parr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#6b6257"/>
+            </marker>
+          </defs>
+
+          <!-- Top row: 4 stages -->
+          <g transform="translate(20, 30)">
+            <rect width="150" height="80" rx="6" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.5"/>
+            <text x="75" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">1 · PARSER</text>
+            <text x="75" y="42" text-anchor="middle" font-family="Newsreader" font-size="13">syntaks → tre</text>
+            <text x="75" y="60" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">slår opp tabeller</text>
+            <text x="75" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">i SQL-dictionary</text>
+          </g>
+
+          <g transform="translate(195, 30)">
+            <rect width="150" height="80" rx="6" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="75" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">2 · OPTIMIZER ★</text>
+            <text x="75" y="42" text-anchor="middle" font-family="Newsreader" font-size="13">velger billigste plan</text>
+            <text x="75" y="60" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">leser statistikk</text>
+            <text x="75" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">aksess + join + sort</text>
+          </g>
+
+          <g transform="translate(370, 30)">
+            <rect width="150" height="80" rx="6" fill="#fff4e0" stroke="#c68a1f" stroke-width="2"/>
+            <text x="75" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#c68a1f" font-weight="700">3 · EXECUTOR ★</text>
+            <text x="75" y="42" text-anchor="middle" font-family="Newsreader" font-size="13">kjører plantreet</text>
+            <text x="75" y="60" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">aksessmetoder, sort,</text>
+            <text x="75" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">join, filter, project</text>
+          </g>
+
+          <g transform="translate(545, 30)">
+            <rect width="150" height="80" rx="6" fill="#e8e3d6" stroke="#1a1612" stroke-width="1.5"/>
+            <text x="75" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1a1612" font-weight="700">4 · STORAGE</text>
+            <text x="75" y="42" text-anchor="middle" font-family="Newsreader" font-size="13">heap · B+ · hash</text>
+            <text x="75" y="60" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">leverer blokker via</text>
+            <text x="75" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#6b6257">buffer pool (kap 6)</text>
+          </g>
+
+          <!-- Arrows -->
+          <line x1="170" y1="70" x2="195" y2="70" stroke="#6b6257" stroke-width="1.5" marker-end="url(#k7parr)"/>
+          <line x1="345" y1="70" x2="370" y2="70" stroke="#6b6257" stroke-width="1.5" marker-end="url(#k7parr)"/>
+          <line x1="520" y1="70" x2="545" y2="70" stroke="#6b6257" stroke-width="1.5" marker-end="url(#k7parr)"/>
+
+          <!-- Star labels -->
+          <text x="270" y="20" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79" font-weight="700">★ KAP 7</text>
+          <text x="445" y="20" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#c68a1f" font-weight="700">★ KAP 7</text>
+
+          <!-- Down: input/output details -->
+          <g transform="translate(20, 140)">
+            <rect width="150" height="40" rx="4" fill="#1a1612"/>
+            <text x="75" y="20" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f4f1ea">SELECT name</text>
+            <text x="75" y="34" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f4f1ea">FROM Employee …</text>
+          </g>
+
+          <g transform="translate(195, 140)">
+            <rect width="150" height="40" rx="4" fill="#f4f1ea" stroke="#1f4e79" stroke-dasharray="3,2"/>
+            <text x="75" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79">σ depno=5</text>
+            <text x="75" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79">π name (Employee)</text>
+          </g>
+
+          <g transform="translate(370, 140)">
+            <rect width="150" height="40" rx="4" fill="#f4f1ea" stroke="#c68a1f" stroke-dasharray="3,2"/>
+            <text x="75" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#c68a1f">IndexLookup(depno=5)</text>
+            <text x="75" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#c68a1f">→ Project(name)</text>
+          </g>
+
+          <g transform="translate(545, 140)">
+            <rect width="150" height="40" rx="4" fill="#f4f1ea" stroke="#1a1612" stroke-dasharray="3,2"/>
+            <text x="75" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">[blokk B17]</text>
+            <text x="75" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">[blokk B42]</text>
+          </g>
+
+          <!-- Vertical labels (input/output) -->
+          <text x="95" y="125" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#6b6257" font-style="italic">input</text>
+          <text x="270" y="125" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#6b6257" font-style="italic">algebra-tre</text>
+          <text x="445" y="125" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#6b6257" font-style="italic">fysisk plan</text>
+          <text x="620" y="125" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#6b6257" font-style="italic">blokker</text>
+
+          <!-- Bottom note -->
+          <g transform="translate(20, 210)">
+            <rect width="675" height="56" rx="6" fill="#ddd5c4"/>
+            <text x="337" y="22" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">Optimizerens jobb: blant alle lovlige planer, finn den med lavest forventet I/O.</text>
+            <text x="337" y="42" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">Den må ha kostnadsmodell + statistikk fra dictionaryet for å gjette riktig.</text>
+          </g>
+
+          <!-- Optimizer fan-out: many candidate plans -->
+          <g transform="translate(20, 285)">
+            <text x="0" y="12" font-family="IBM Plex Mono" font-size="10" fill="#1f4e79" font-weight="700">Optimizeren genererer mange planer …</text>
+            <rect x="240" y="0" width="40" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="260" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">P1</text>
+            <rect x="290" y="0" width="40" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="310" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">P2</text>
+            <rect x="340" y="0" width="40" height="18" fill="#fff4e0" stroke="#c68a1f" stroke-width="2"/>
+            <text x="360" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#c68a1f" font-weight="700">P3 ★</text>
+            <rect x="390" y="0" width="40" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="410" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">P4</text>
+            <rect x="440" y="0" width="40" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="460" y="13" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">P5</text>
+            <text x="495" y="13" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">…</text>
+            <text x="540" y="13" font-family="IBM Plex Sans" font-size="10" fill="#c68a1f" font-style="italic">★ velger den billigste</text>
+          </g>
+        </svg>
+        <figcaption>SQL-pipelinen. Parser og storage er kjent fra før (kap 3 og 6). Kapittel 7 lever i de to stjernemerkede leddene.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="kart">
+    <div class="container">
+      <div class="section-badge">03 · Reisen gjennom kapittelet</div>
+      <h2>Hva du <em>tar med deg</em> fra hver del</h2>
+      <p>Innholdssiden er åtte korte seksjoner. Tenk på dem som verktøy som legges til verktøykassen — du trenger alle fire når du skal regne på en spørring på eksamen.</p>
+
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="kap7-kart-title">
+          <title id="kap7-kart-title">Reisen gjennom kapittel 7 — fire steg til kostnadsregning</title>
+          <defs>
+            <marker id="k7karr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+
+          <!-- Stage circles connected -->
+          <line x1="100" y1="80" x2="260" y2="80" stroke="#7a4a2d" stroke-width="2" marker-end="url(#k7karr)"/>
+          <line x1="340" y1="80" x2="500" y2="80" stroke="#7a4a2d" stroke-width="2" marker-end="url(#k7karr)"/>
+          <line x1="580" y1="80" x2="700" y2="80" stroke="#7a4a2d" stroke-width="2" marker-end="url(#k7karr)"/>
+
+          <!-- 1: Aksessmetoder -->
+          <g transform="translate(20, 40)">
+            <circle cx="40" cy="40" r="38" fill="#e6edf6" stroke="#1f4e79" stroke-width="2"/>
+            <text x="40" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#1f4e79" font-weight="700">§02–03</text>
+            <text x="40" y="50" text-anchor="middle" font-family="Newsreader" font-size="11" font-weight="700">Aksess</text>
+            <text x="40" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">filscan</text>
+            <text x="40" y="113" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">indeksscan</text>
+            <text x="40" y="126" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">range-scan</text>
+            <text x="40" y="139" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">indeks-lookup</text>
+          </g>
+
+          <!-- 2: Sort -->
+          <g transform="translate(220, 40)">
+            <circle cx="60" cy="40" r="38" fill="#fff4e0" stroke="#c68a1f" stroke-width="2"/>
+            <text x="60" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#c68a1f" font-weight="700">§04</text>
+            <text x="60" y="50" text-anchor="middle" font-family="Newsreader" font-size="11" font-weight="700">Sortering</text>
+            <text x="60" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">external</text>
+            <text x="60" y="113" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">merge sort</text>
+            <text x="60" y="126" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">når RAM &lt; data</text>
+            <text x="60" y="139" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">2b·(1+passes)</text>
+          </g>
+
+          <!-- 3: Joins -->
+          <g transform="translate(440, 40)">
+            <circle cx="60" cy="40" r="38" fill="#f0e7da" stroke="#7a4a2d" stroke-width="2"/>
+            <text x="60" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#7a4a2d" font-weight="700">§05–06</text>
+            <text x="60" y="50" text-anchor="middle" font-family="Newsreader" font-size="11" font-weight="700">Joins</text>
+            <text x="60" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">J1 nested loop</text>
+            <text x="60" y="113" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">J2 index nl</text>
+            <text x="60" y="126" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">J3 sort-merge</text>
+            <text x="60" y="139" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">J4 hash</text>
+          </g>
+
+          <!-- 4: Statistikk + EXPLAIN -->
+          <g transform="translate(640, 40)">
+            <circle cx="40" cy="40" r="38" fill="#e8e3d6" stroke="#3d6b3a" stroke-width="2"/>
+            <text x="40" y="36" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3d6b3a" font-weight="700">§07</text>
+            <text x="40" y="50" text-anchor="middle" font-family="Newsreader" font-size="11" font-weight="700">EXPLAIN</text>
+            <text x="40" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">statistikk</text>
+            <text x="40" y="113" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">kostnadsmodell</text>
+            <text x="40" y="126" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">EXPLAIN-output</text>
+            <text x="40" y="139" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1a1612">type · key · rows</text>
+          </g>
+
+          <!-- Beskrivelse pr stadium -->
+          <g transform="translate(20, 180)" font-family="IBM Plex Sans" font-size="10" fill="#1a1612">
+            <text x="40" y="0" text-anchor="middle" font-style="italic" fill="#6b6257">«Hvordan finne radene?»</text>
+            <text x="280" y="0" text-anchor="middle" font-style="italic" fill="#6b6257">«Hva om de må sorteres?»</text>
+            <text x="500" y="0" text-anchor="middle" font-style="italic" fill="#6b6257">«Hvordan kombinere to tabeller?»</text>
+            <text x="680" y="0" text-anchor="middle" font-style="italic" fill="#6b6257">«Hva valgte den?»</text>
+          </g>
+
+          <!-- Big bottom box: putting it together -->
+          <g transform="translate(20, 220)">
+            <rect width="680" height="120" rx="8" fill="#ddd5c4"/>
+            <text x="340" y="26" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">SLUTTPRODUKT — PLANEN</text>
+            <text x="340" y="50" text-anchor="middle" font-family="Newsreader" font-size="13" fill="#1a1612" font-style="italic">
+              Når du regner på en SQL-spørring på eksamen, går du gjennom hele verktøykassen i tur:
+            </text>
+            <text x="340" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#1a1612">
+              1) hvilken aksessvei henter rett delmengde billigst?  →  2) trenger jeg å sortere?
+            </text>
+            <text x="340" y="92" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" fill="#1a1612">
+              3) hvilken join-algoritme passer for tabellstørrelsene?  →  4) hva ville EXPLAIN sagt?
+            </text>
+            <text x="340" y="110" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#7a4a2d">
+              Summen av blokk-aksesser i hvert ledd = totalkostnaden for planen.
+            </text>
+          </g>
+        </svg>
+        <figcaption>Kapittelet bygger opp én verktøykasse, ett konsept om gangen. På eksamen brukes alle fire — i nettopp denne rekkefølgen.</figcaption>
+      </figure>
+
+      <div class="roadmap-row">
+        <div class="roadmap-card">
+          <h4>§02–03 · Aksess</h4>
+          <p><span class="seq">Hvor henter vi rader?</span><br>Fire aksessveier × fire lagringsalternativer = en tabell over kostnader for samme spørring.</p>
+        </div>
+        <div class="roadmap-card">
+          <h4>§04 · Sortering</h4>
+          <p><span class="seq">Når RAM ikke holder.</span><br>External merge sort med initial-pass + merge-passes. Formelen <code>2b·(1+passes)</code> regner total I/O.</p>
+        </div>
+        <div class="roadmap-card">
+          <h4>§05–06 · Joins</h4>
+          <p><span class="seq">Hvordan kombineres to tabeller?</span><br>J1 (nested loop) i detalj med blokk-buffer, J2–J4 konseptuelt.</p>
+        </div>
+      </div>
+
       <div class="callout callout-blue">
-        <span class="label">Slides</span>
-        <p>Se også <a href="../powerpoints/queries.pdf">queries.pdf</a> for figurer og eksempelplaner.</p>
+        <span class="label">Slides og kompendium</span>
+        <p>Hovedkilde: <a href="../powerpoints/queries.pdf">queries.pdf</a> + Bratsbergs kompendium kap. 12–14. Innholdssiden under er bygd som en gjennomgang — figurer og quizzer underveis, ikke bare på slutten.</p>
       </div>
     </div>
   </section>
 
   <section id="deler">
     <div class="container">
-      <div class="section-badge">Læringsmodul</div>
+      <div class="section-badge">04 · Læringsmodul</div>
       <h2>Utforsk <em>kapittelet</em></h2>
       <p>Innholdssiden er bygget som en gjennomgang med interaktive figurer og innebygde sjekkspørsmål mellom hver del. Bruk «Neste steg»-knappene i animasjonene for å følge merge sort og nested loop trinn for trinn.</p>
       <div class="subpage-list">
@@ -82,7 +450,7 @@
 
   <section id="nokkelbegreper">
     <div class="container">
-      <div class="section-badge">Nøkkelbegreper</div>
+      <div class="section-badge">05 · Nøkkelbegreper</div>
       <h2>Vokabular du <em>må</em> kunne</h2>
       <div class="table-wrap">
         <table>
@@ -104,7 +472,8 @@
 
   <section id="quiz">
     <div class="container">
-      <h2>Test deg selv</h2>
+      <div class="section-badge">06 · Test deg selv</div>
+      <h2>Helhetsspørsmål</h2>
       <p class="section-intro">Hurtig sjekk på de viktigste konseptene. Den fyldige sluttquizen ligger på <a href="innhold.html#sluttquiz">innholdssiden</a>.</p>
 
       <div class="quiz" data-quiz>
