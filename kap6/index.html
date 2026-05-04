@@ -74,9 +74,9 @@
     <div class="container">
       <div class="section-badge">01 · Helhetsbilde</div>
       <h2>Hvorfor bryr vi oss om <em>hvor</em> dataen ligger?</h2>
-      <p class="dropcap">Et SQL-spørsmål som <code>SELECT * FROM Employee WHERE empno = 4711</code> ser uskyldig ut. Bak kulissene må DBMS-en finne én rad blant millioner. Det kan ta 1 millisekund eller 10 sekunder — forskjellen ligger i <strong>hvordan dataene er lagret på disken</strong> og <strong>hvilke indekser</strong> som finnes.</p>
+      <p class="dropcap">Et SQL-spørsmål som <code>SELECT * FROM Employee WHERE empno = 4711</code> ser uskyldig ut. Bak kulissene må databasesystemet (forkortet <strong>DBMS</strong> — DataBase Management System) finne én rad blant millioner. Det kan ta 1 millisekund eller 10 sekunder — forskjellen ligger i <strong>hvordan dataene er lagret på disken</strong> og <strong>hvilke indekser</strong> (smarte oppslagsstrukturer) som finnes.</p>
 
-      <p>RAM-aksess tar ~100 nanosekunder. Et tilfeldig HDD-oppslag tar ~10 millisekunder — fem størrelsesordener tregere. Så regelen er enkel: <strong>tell antall blokker du må lese fra disken</strong>. Det er nesten alltid den dominerende kostnaden.</p>
+      <p>Et oppslag i RAM (arbeidsminnet) tar ~100 nanosekunder. Et tilfeldig oppslag på en HDD (mekanisk harddisk) tar ~10 millisekunder — fem størrelsesordener tregere. Så regelen er enkel: <strong>tell antall blokker du må lese fra disken</strong>. Det er nesten alltid den dominerende kostnaden. (En SSD — solid state drive — ligger et sted imellom.)</p>
 
       <div class="stat-row">
         <div class="stat-box">
@@ -195,13 +195,15 @@
         <figcaption>Lagringshierarkiet — fra fysisk device opp til logiske rader. Buffer pool og SQL-laget henger på siden: den ene cacher blokker, den andre ser bare rader.</figcaption>
       </figure>
 
+      <p class="callout-mini" style="background: var(--paper-dark); padding: 0.8rem 1rem; border-radius: 6px; border-left: 3px solid var(--rust); margin-top: 1rem;"><strong>Litt vokabular før vi går videre:</strong> En <em>RID</em> (Record IDentifier) er en stabil peker til én rad. Den er bygd opp som <em>(BlockId, slot)</em> — først hvilken blokk på disken, så hvor i den blokken raden ligger. Slot-nummeret slås opp i en liten <em>slot directory</em> bak i blokken som peker til faktisk byte-posisjon. Vi går grundig inn i begge i 6A nedenfor.</p>
+
       <div class="quiz" data-quiz>
         <div class="q-label">Sjekk forståelsen · Lett</div>
-        <div class="q-text">En RID er definert som <em>(BlockId, slot)</em>. Hvorfor brukes ikke bare en absolutt offset i filen?</div>
+        <div class="q-text">En RID er definert som <em>(BlockId, slot)</em>. Hvorfor brukes ikke bare en absolutt offset (byte-posisjon) i filen?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
           <div class="answer">
-            <strong>Fordi vi vil kunne flytte recorden inne i blokken.</strong> RID-en er semilogisk: BlockId-delen er fysisk (peker direkte til en blokk), men slot-delen er logisk — slot directory-en oversetter slot-nummeret til faktisk offset i blokken. Da kan vi kompaktere blokken (fjerne hull etter slettinger) uten at RID-er ute i indeksene blir ugyldige.
+            <strong>Fordi vi vil kunne flytte recorden inne i blokken.</strong> RID-en er semilogisk: BlockId-delen er fysisk (peker direkte til en blokk), men slot-delen er logisk — slot directory-en oversetter slot-nummeret til faktisk byte-posisjon i blokken. Da kan vi kompaktere blokken (fjerne hull etter slettinger) uten at RID-er ute i indeksene blir ugyldige.
           </div>
         </div>
       </div>
@@ -229,39 +231,39 @@
         </div>
         <div class="key-card">
           <h4>Buffer pool</h4>
-          <p>RAM-arealet hvor blokker holdes mens de er i bruk. Hash-indeksert på BlockId. Erstatningsstrategi: LRU, MRU eller clock.</p>
+          <p>RAM-arealet hvor blokker holdes mens de er i bruk (blokk-cache). Når bufferet er fullt må DBMS-en kaste ut noe — strategien kan være LRU (Least Recently Used: kast den eldste), MRU (Most Recently Used: kast den nyeste) eller clock (en billig tilnærming til LRU).</p>
         </div>
         <div class="key-card">
           <h4>Heapfil</h4>
-          <p>Tabell uten orden. Insert er O(1), søk er O(N). Brukes typisk når det finnes en separat indeks ved siden av.</p>
+          <p>Tabell uten orden — radene ligger der det er plass. Insert er konstant tid (O(1) — like raskt uansett hvor stor tabellen er); søk er lineær tid (O(N) — vokser med antall rader). Brukes typisk når det finnes en separat indeks ved siden av.</p>
         </div>
         <div class="key-card">
           <h4>Hashfil</h4>
-          <p>Konstant-tid likhetsoppslag. Statisk hashing får overflow-problemer; extendible hashing løser det med en directory.</p>
+          <p>Konstant-tid likhetsoppslag (lik = «empno = 4711»). <em>Statisk hashing</em> har fast antall blokker og blir treg når den fylles; <em>extendible hashing</em> løser det med et oppslagstabell-lag (directory) som kan vokse — detaljer i 6A.</p>
         </div>
         <div class="key-card">
           <h4>B+-tre</h4>
-          <p>Balansert flerveistre med høy fanout. Alle data ligger i bladene; interne noder er bare guide. Bladene er lenket sammen for raske range-scans.</p>
+          <p>Balansert flerveistre. <em>Bladene</em> (de nederste nodene) inneholder selve dataene; <em>interne noder</em> over dem fungerer bare som veivisere. Hver node har høy fanout (mange barn) → kort tre. Bladene er lenket sammen i en sortert rekke for raske «verdier mellom 50 og 70»-spørringer (range-scan).</p>
         </div>
         <div class="key-card">
           <h4>Clustered indeks</h4>
-          <p>Radene i tabellen er fysisk sortert etter indeksnøkkelen. Maks én per tabell. Drastisk raskere for range-spørringer.</p>
+          <p>Radene i tabellen er fysisk sortert etter indeksnøkkelen. Maks én per tabell (det finnes bare én fysisk rekkefølge). Drastisk raskere for range-spørringer.</p>
         </div>
         <div class="key-card">
           <h4>Unclustered indeks</h4>
-          <p>Indeksen peker inn i en separat heapfil. Kan ha mange per tabell, men hver match krever ekstra blokkaksess.</p>
+          <p>Indeksen peker (via RID) inn i en separat heapfil. Kan ha mange per tabell, men hver match krever ett ekstra disk-oppslag for å hente selve raden.</p>
         </div>
         <div class="key-card">
           <h4>LSM-tre</h4>
-          <p>Memtable + SST-filer + WAL. Optimisert for skriveytelse — flushes til disk i store sortable bolker. Brukt i RocksDB, MyRocks, BigTable.</p>
+          <p>Skriv-optimalisert alternativ til B+-treet. Bygd av en <em>memtable</em> (sortert tabell i RAM), <em>SST-filer</em> (Sorted String Tables på disk) og en <em>WAL</em> (Write-Ahead Log — endringer logges først for sikkerhet). Detaljer i 6B. Brukt i RocksDB, MyRocks, BigTable.</p>
         </div>
         <div class="key-card">
           <h4>Fanout</h4>
-          <p>Hvor mange barn en intern node har. Høyere fanout → færre nivåer → færre disk-I/O per oppslag.</p>
+          <p>Hvor mange barn (pekere til underliggende blokker) en node i treet kan ha. Høyere fanout → kortere tre → færre blokker å lese fra disk per oppslag.</p>
         </div>
         <div class="key-card">
-          <h4>Fill degree</h4>
-          <p>Statistisk 2/3 i et B+-tre. Når du regner kapasitet i en oppgave: <code>floor(blokk · 2/3 / recsize)</code>.</p>
+          <h4>Fyllingsgrad (fill degree)</h4>
+          <p>Hvor full hver blokk er i snitt. I et B+-tre med tilfeldig innsetting blir det statistisk ~2/3. Når du regner kapasitet i en oppgave: <code>floor(blokk · 2/3 / recsize)</code> records per blokk.</p>
         </div>
       </div>
 
@@ -271,7 +273,7 @@
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
           <div class="answer">
-            <strong>3–4 blokker.</strong> Høyden er <code>log<sub>200</sub>(1 000 000) ≈ 2.6</code>, dvs. 3 nivåer i selve treet. Hvis indeksen er <em>unclustered</em> trenger vi i tillegg én aksess i heapfilen for selve raden — totalt 4. Hvis den er <em>clustered</em> ligger raden allerede i bladet — 3.
+            <strong>3–4 blokker.</strong> Høyden er <code>log<sub>200</sub>(1 000 000) ≈ 2.6</code>, så vi runder opp til 3 nivåer i selve treet (treet må ha hele nivåer). Hvis indeksen er <em>unclustered</em> trenger vi i tillegg ett oppslag i heapfilen for å hente selve raden — totalt 4. Hvis den er <em>clustered</em>, ligger raden allerede i bladet — 3.
           </div>
         </div>
       </div>
@@ -304,7 +306,7 @@
 
       <div class="callout callout-blue">
         <span class="label">Slides og notater</span>
-        <p>Hovedkilde: <a href="../powerpoints/lagring.pdf">lagring.pdf</a> + Bratsbergs notater kap. 1–11. Læreboka dekker ikke lagringsdelen — disse to filene <em>er</em> pensum.</p>
+        <p>Hovedkilde: <a href="../powerpoints/lagring.pdf">lagring.pdf</a> + Bratsbergs notater kap. 1–11. («Bratsberg» er kursets håndskrevne lagrings-kompendium — du finner det i pensumlisten på forsiden.) Læreboka dekker ikke lagringsdelen — disse to filene <em>er</em> pensum.</p>
       </div>
     </div>
   </section>
@@ -427,7 +429,7 @@
 
       <div class="callout">
         <span class="label">Eksamen-trick</span>
-        <p>Når du regner kostnaden av en spørring, gjør det alltid for <em>hver</em> av de fire alternativene over og sammenlikn — det er nettopp det Bratsberg gjør i kapittel 12.</p>
+        <p>Når du regner kostnaden av en spørring, gjør det alltid for <em>hver</em> av de fire alternativene over og sammenlikn — det er nettopp det Bratsberg gjør i kompendium-kapittel 12 (kostnadsregning).</p>
       </div>
     </div>
   </section>
@@ -488,7 +490,7 @@
         <div class="q-text">Hvorfor er en hash-indeks ubrukelig for spørringer som <code>WHERE age &gt; 50</code>, mens en B+-tree-indeks håndterer det effektivt?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">En hash-funksjon spreder nøkler tilfeldig over blokkene — <strong>nærliggende verdier ender på helt forskjellige steder</strong>. For å finne alle med age &gt; 50 må du hashe alle mulige verdier eller skanne hele filen. B+-treet derimot holder nøklene <strong>sortert</strong>; én traversering ned til 51, så følge bladlenkene sidelengs til slutten. Range-spørringer er en av de viktigste grunnene til at B+-trær dominerer.</div>
+          <div class="answer">En hash-funksjon spreder nøkler tilfeldig over blokkene — <strong>nærliggende verdier ender på helt forskjellige steder</strong>. For å finne alle med age &gt; 50 må du hashe alle mulige verdier eller skanne hele filen. B+-treet derimot holder nøklene <strong>sortert</strong>; én traversering ned til 51, så følge <em>bladlenkene</em> (pekere mellom nabobladene) sidelengs til slutten. Range-spørringer er en av de viktigste grunnene til at B+-trær dominerer.</div>
         </div>
       </div>
 
@@ -506,7 +508,7 @@
         <div class="q-text">En unclustered B+-tree-indeks for spørringen <code>WHERE empno > 90000</code> hvor 20 % av radene matcher — hvorfor kan en full table scan faktisk være raskere?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Hver indekstreff på <em>unclustered</em> peker til en <strong>tilfeldig</strong> blokk i heapen. 20 000 treff = potensielt 20 000 random I/O-er. En full scan leser bare ~20 000 blokker <em>sekvensielt</em>, og sekvensiell I/O er størrelsesordener raskere enn random på både HDD og SSD. Når mange rader matcher, vinner derfor full scan.</div>
+          <div class="answer">Hver indekstreff på <em>unclustered</em> peker til en <strong>tilfeldig</strong> blokk i heapen. 20 000 treff = potensielt 20 000 oppslag spredt rundt om på disken (kalt random I/O — Input/Output, altså lese/skrive-operasjoner). En full scan leser bare ~20 000 blokker <em>sekvensielt</em> (rett etter hverandre på disken), og sekvensiell I/O er størrelsesordener raskere enn random på både HDD og SSD. Når mange rader matcher, vinner derfor full scan.</div>
         </div>
       </div>
 
@@ -524,7 +526,7 @@
         <div class="q-text">Hva er problemet med statisk hashing, og hvordan løser extendible hashing det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer"><strong>Statisk hashing</strong> har et fast antall blokker N — hvis du undervurderer datamengden, fylles bøttene opp og du får lange overflow-kjeder som dreper ytelsen. <strong>Extendible hashing</strong> bruker en directory mellom hash-verdien og blokkene. Når en blokk blir full, dobler man directory-en (eller bare splitter blokken hvis local depth &lt; global depth) og rehasher kun den ene blokken. Vekstratet er smertefritt, og oppslag tar fortsatt 1 ekstra aksess (directory + datablokk).</div>
+          <div class="answer"><strong>Statisk hashing</strong> har et fast antall blokker N — hvis du undervurderer datamengden, fylles bøttene opp og du får lange overflow-kjeder (bøtter som peker til ekstra-bøtter) som dreper ytelsen. <strong>Extendible hashing</strong> bruker en oppslagstabell (directory) mellom hash-verdien og blokkene. Når en blokk blir full, dobler man directory-en (eller bare splitter blokken hvis local depth &lt; global depth — to begreper som kommer i 6A) og rehasher kun den ene blokken. Vekstratet er smertefritt, og oppslag tar fortsatt 1 ekstra aksess (directory + datablokk).</div>
         </div>
       </div>
 
@@ -542,7 +544,7 @@
         <div class="q-text">Du designer skjemaet for en tabell <code>Order(orderId, customerId, date, total)</code>. Spørringene er hovedsakelig <code>WHERE customerId = ? AND date BETWEEN ? AND ?</code>. Hvilken indeks anbefaler du, og hvorfor er rekkefølgen viktig?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">En sammensatt indeks <strong>(customerId, date)</strong>. Komposittnøkler sorteres leksikografisk, så vi ønsker det <em>mest selektive</em> attributtet først (customerId — fast verdi i WHERE), deretter range-attributtet (date). Da finner B+-treet først alle rader for kunden, og innenfor den gruppen er datoene sortert — så vi kan skanne sidelengs i bladet til vi går utenfor range-en. Hvis vi snur til (date, customerId), må vi skanne alle datoer i intervallet og deretter filtrere på kunde, langt mindre effektivt.</div>
+          <div class="answer">En sammensatt indeks <strong>(customerId, date)</strong>. Komposittnøkler sorteres leksikografisk (som ord i en ordbok: først på første kolonne, så innenfor like verdier på andre kolonne), så vi ønsker det <em>mest selektive</em> attributtet først (customerId — fast verdi i WHERE), deretter range-attributtet (date). Da finner B+-treet først alle rader for kunden, og innenfor den gruppen er datoene sortert — så vi kan skanne sidelengs i bladet til vi går utenfor range-en. Hvis vi snur til (date, customerId), må vi skanne alle datoer i intervallet og deretter filtrere på kunde, langt mindre effektivt.</div>
         </div>
       </div>
     </div>
