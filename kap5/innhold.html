@@ -109,7 +109,9 @@
         <a href="#shard"><span>08</span> Sharding og replikering</a>
         <a href="#cap"><span>09</span> CAP &amp; BASE</a>
         <a href="#olap"><span>10</span> OLAP og datalager</a>
-        <a href="#sammen"><span>11</span> Når brukes hva?</a>
+        <a href="#spatial"><span>11</span> Romlige data</a>
+        <a href="#textual"><span>12</span> Tekstdata og IR</a>
+        <a href="#sammen"><span>13</span> Når brukes hva?</a>
       </nav>
     </div>
   </header>
@@ -909,10 +911,130 @@ RETURN s.name;</code></pre>
     </div>
   </section>
 
-  <!-- ────────────────────────────────────────── 11 Sammenligning ───── -->
+  <!-- ────────────────────────────────────────── 11 Romlige data ───── -->
+  <section id="spatial">
+    <div class="container">
+      <div class="section-badge">11 · Romlige data</div>
+      <h2>Punkt, linje, polygon — som <em>førsteklasses</em> typer</h2>
+      <p>Romlige databaser håndterer 2D- eller 3D-objekter med en romlig utstrekning (et punkt, en polylinje, et polygon). En vanlig SQL-tabell kan godt lagre koordinater som tall, men da må applikasjonen selv tolke dem og indekser fungerer ikke. Romlige DBMS-er — eller utvidelser som <strong>PostGIS</strong> — gir typer, operatorer og indekser som forstår geometri.</p>
+
+      <h3>Geografisk vs. geometrisk</h3>
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Geografiske data</div>
+          <div class="fc-val">Kart over veier, eiendommer, høydekoter, fylkesgrenser. Bruker typisk et <em>kuleformet</em> koordinat­system (lengde/bredde) og må kompensere for at jorda ikke er flat.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Geometriske data</div>
+          <div class="fc-val">CAD-tegninger, kretskort, bygnings­skjema. 2D eller 3D euklidsk rom med (x, y, z) — ingen krumning.</div>
+        </div>
+      </div>
+
+      <h3>Vektor- vs. raster-representasjon</h3>
+      <p>Geometriske objekter kan lagres på to grunnleggende måter:</p>
+      <ul>
+        <li><strong>Vektor</strong> — en eksakt approksimasjon med punkter, linjer og polygoner. Et veisegment er en polylinje med koordinater.</li>
+        <li><strong>Raster</strong> — del rommet inn i et fint rutenett og marker hvilke piksler objektet dekker. Naturlig for satellittbilder og terrengkart.</li>
+      </ul>
+
+      <h3>Romlige spørringer</h3>
+      <ul>
+        <li><strong>Region-spørringer</strong> — hvilke objekter ligger helt eller delvis i et gitt område? (PostGIS: <code>ST_Contains</code>, <code>ST_Overlaps</code>.)</li>
+        <li><strong>Nærhets-spørringer</strong> — hva ligger innen 5 km?</li>
+        <li><strong>Nærmeste nabo (NN)</strong> — finn det nærmeste objektet som tilfredsstiller et krav.</li>
+        <li><strong>Romlige join-er</strong> — kombiner to relasjoner basert på posisjon: «hvilke broer ligger i hvilke kommuner?».</li>
+        <li><strong>Romlige graf-spørringer</strong> — korteste vei i veinettet.</li>
+      </ul>
+
+      <h3>Romlige relasjoner</h3>
+      <p>Tre familier av relasjoner mellom geometriske objekter:</p>
+      <ul>
+        <li><strong>Topologiske</strong> — <em>intersects</em>, <em>contains</em>, <em>inside</em>, <em>adjacent</em>, <em>disjoint</em>, <em>equals</em>.</li>
+        <li><strong>Avstands-baserte</strong> — euklidsk eller geografisk avstand.</li>
+        <li><strong>Retnings-baserte</strong> — nord/sør/øst/vest, eller relativt (over, til høyre for).</li>
+      </ul>
+
+      <h3>PostGIS — eksempel</h3>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> geometries (
+  name <span class="sql-fn">VARCHAR</span>,
+  geom <span class="sql-kw">geometry</span>
+);
+
+<span class="sql-kw">INSERT INTO</span> geometries(name, geom) <span class="sql-kw">VALUES</span>
+  (<span class="sql-str">'Point'</span>,      <span class="sql-str">'POINT(0 0)'</span>),
+  (<span class="sql-str">'Linestring'</span>, <span class="sql-str">'LINESTRING(0 0, 1 1, 2 1, 2 2)'</span>),
+  (<span class="sql-str">'Polygon'</span>,    <span class="sql-str">'POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))'</span>);
+
+<span class="sql-com">-- Total lengde av alle veier i kilometer</span>
+<span class="sql-kw">SELECT</span> <span class="sql-fn">SUM</span>(<span class="sql-fn">ST_Length</span>(geom)) / <span class="sql-num">1000</span>
+<span class="sql-kw">FROM</span> geometries
+<span class="sql-kw">WHERE</span> <span class="sql-fn">ST_GeometryType</span>(geom) = <span class="sql-str">'ST_LineString'</span>;</code></pre>
+
+      <p>PostGIS er en utvidelse til PostgreSQL som legger til romlige datatyper, et stort sett med funksjoner (<code>ST_*</code>) og romlige indekser (R-trær). Den integreres tett med GIS-verktøy som ArcGIS og QGIS.</p>
+    </div>
+  </section>
+
+  <!-- ────────────────────────────────────────── 12 Tekstdata ───── -->
+  <section id="textual">
+    <div class="container">
+      <div class="section-badge">12 · Tekstdata og IR</div>
+      <h2>Når «innholdet» er fritekst</h2>
+      <p><strong>Information retrieval</strong> (IR) handler om å hente fram dokumenter — ikke poster — basert på innhold. Den enkleste modellen er <em>nøkkelord-spørringer</em>: gitt en mengde søkeord, returner alle dokumenter som inneholder dem.</p>
+
+      <h3>Boolske keyword-spørringer i SQL</h3>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">«big» OG «fish»</div>
+          <pre><code><span class="sql-kw">SELECT</span> document_id
+<span class="sql-kw">FROM</span> documents
+<span class="sql-kw">WHERE</span> document_content <span class="sql-kw">LIKE</span> <span class="sql-str">'%big%'</span>
+  <span class="sql-kw">AND</span> document_content <span class="sql-kw">LIKE</span> <span class="sql-str">'%fish%'</span>;</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">«big» ELLER «fish»</div>
+          <pre><code><span class="sql-kw">SELECT</span> document_id
+<span class="sql-kw">FROM</span> documents
+<span class="sql-kw">WHERE</span> document_content <span class="sql-kw">LIKE</span> <span class="sql-str">'%big%'</span>
+   <span class="sql-kw">OR</span> document_content <span class="sql-kw">LIKE</span> <span class="sql-str">'%fish%'</span>;</code></pre>
+        </div>
+      </div>
+
+      <p>Boolske treff er enkle å definere, men de svarer ikke på <em>hvor relevant</em> et dokument er. Et webinarsøk gir typisk tusenvis av treff — vi trenger <strong>relevans-rangering</strong>.</p>
+
+      <h3>tf-idf — sjeldne ord teller mer</h3>
+      <p>Idéen er enkel: ord som forekommer i nesten alle dokumenter («the», «and», «er», «og») er ikke informative. Ord som forekommer i få dokumenter er gull verdt for søk.</p>
+
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">df<sub>t</sub> (document frequency)</div>
+          <div class="fc-val">Antall dokumenter som inneholder term <code>t</code>. Høy <code>df</code> = lite informativt ord.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">idf<sub>t</sub> (inverse document frequency)</div>
+          <div class="fc-val"><code>idf<sub>t</sub> = log(N / df<sub>t</sub>)</code> der <code>N</code> er totalt antall dokumenter. Stor for sjeldne ord, liten for vanlige.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">tf<sub>t,d</sub> (term frequency)</div>
+          <div class="fc-val">Hvor mange ganger term <code>t</code> opptrer i dokument <code>d</code>. Et ord som dukker opp ofte i ett dokument er sannsynligvis relevant for det.</div>
+        </div>
+      </div>
+
+      <p>Relevans-skåren for et dokument <code>d</code> mot en spørring <code>Q</code> er typisk en sum:</p>
+      <pre><code>score(d, Q) = Σ<sub>t ∈ Q</sub>  tf<sub>t,d</sub> · idf<sub>t</sub></code></pre>
+
+      <p>Dokumenter med høy skår står øverst i resultatet. Dette er fundamentet for moderne søkemotorer — de legger på ranking-signaler (PageRank, klikk-data, friskhet) over tf-idf-baserte indekser.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Stoppord</span>
+        <p>Ord som «the», «and», «is» har så lav <code>idf</code> at bidrag fra dem er nesten null. Mange IR-systemer fjerner dem helt fra indeksen — både for hastighet og relevans.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────────────────────────────── 13 Sammenligning ───── -->
   <section id="sammen">
     <div class="container">
-      <div class="section-badge">11 · Når brukes hva?</div>
+      <div class="section-badge">13 · Når brukes hva?</div>
       <h2>Et beslutnings-cheatsheet</h2>
       <p>Det vanlige svaret er kjedelig, men sant: <strong>start med en relasjonsdatabase</strong>. Bytt eller utvid kun når et konkret krav <em>tydelig</em> ikke passer modellen.</p>
 
