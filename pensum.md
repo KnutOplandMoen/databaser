@@ -4,6 +4,7 @@
 
 - Del 1 (Theodoros): ~40 % — lik stil som midtveiseksamen
 - Del 2 (Svein Erik): ~60 % — lik stil som tidligere år
+Kun multiple choiche dette året - i motsetning til tidligere år der det også var tegning og langsvarsoppgaver. 
 
 ## Del 1 — lærebok-kapitler
 
