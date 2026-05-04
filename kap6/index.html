@@ -252,8 +252,8 @@
           <p>Indeksen peker inn i en separat heapfil. Kan ha mange per tabell, men hver match krever ekstra blokkaksess.</p>
         </div>
         <div class="key-card">
-          <h4>Sparse vs dense</h4>
-          <p>Dense = én indekspost per record. Sparse = én per blokk (kun mulig på clustered data). Sekundærindekser er alltid dense.</p>
+          <h4>LSM-tre</h4>
+          <p>Memtable + SST-filer + WAL. Optimisert for skriveytelse — flushes til disk i store sortable bolker. Brukt i RocksDB, MyRocks, BigTable.</p>
         </div>
         <div class="key-card">
           <h4>Fanout</h4>
@@ -506,7 +506,7 @@
         <div class="q-text">En unclustered B+-tree-indeks for spørringen <code>WHERE empno > 90000</code> hvor 20 % av radene matcher — hvorfor kan en full table scan faktisk være raskere?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Hver indekstreff på <em>unclustered</em> peker til en <strong>tilfeldig</strong> blokk i heapen. 20 000 treff = potensielt 20 000 random I/O-er. En full scan leser bare ~20 000 blokker <em>sekvensielt</em>, og sekvensiell I/O er størrelsesordener raskere enn random på både HDD og SSD. Optimalisatoren bruker selektivitet for å bytte til full scan over en terskel (typisk ~5–15 % treff).</div>
+          <div class="answer">Hver indekstreff på <em>unclustered</em> peker til en <strong>tilfeldig</strong> blokk i heapen. 20 000 treff = potensielt 20 000 random I/O-er. En full scan leser bare ~20 000 blokker <em>sekvensielt</em>, og sekvensiell I/O er størrelsesordener raskere enn random på både HDD og SSD. Når mange rader matcher, vinner derfor full scan.</div>
         </div>
       </div>
 

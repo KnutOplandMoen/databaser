@@ -66,13 +66,13 @@
     <div class="container">
       <div class="section-badge">Læringsmodul</div>
       <h2>Utforsk <em>kapittelet</em></h2>
-      <p>Innholdssiden er bygget som en gjennomgang med interaktive figurer og innebygde sjekkspørsmål mellom hver del. Bruk «Neste steg»-knappene i animasjonene for å følge merge sort, nested loop, sort-merge og hash join trinn for trinn.</p>
+      <p>Innholdssiden er bygget som en gjennomgang med interaktive figurer og innebygde sjekkspørsmål mellom hver del. Bruk «Neste steg»-knappene i animasjonene for å følge merge sort og nested loop trinn for trinn.</p>
       <div class="subpage-list">
         <a href="innhold.html" class="subpage-card">
           <span class="sp-icon">7</span>
           <div class="sp-info">
             <div class="sp-title">Aksessmetoder, sortering, join-algoritmer</div>
-            <div class="sp-desc">Bratsberg kap. 12–14 · 9 seksjoner · 4 animasjoner · innebygde quizer</div>
+            <div class="sp-desc">Bratsberg kap. 12–14 · 8 seksjoner · animasjoner · innebygde quizer</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -88,15 +88,14 @@
         <table>
           <thead><tr><th>Begrep</th><th>Forklaring</th></tr></thead>
           <tbody>
-            <tr><td>Aksessmetode</td><td>Hvordan executoren henter rader: full scan, index scan, index-only, bitmap.</td></tr>
-            <tr><td>Selektivitet</td><td>Andel rader som tilfredsstiller et predikat. Brukes til å estimere kost.</td></tr>
+            <tr><td>Aksessvei</td><td>Hvordan executoren henter rader: filscan, indeksscan, range-scan, indeks-lookup.</td></tr>
+            <tr><td>Statistikk</td><td>Antall rader, antall blokker per tabell/indeks, B+-tre-høyde, low-/highkey, histogrammer. Optimizeren bruker dette til kostnadsestimat.</td></tr>
             <tr><td>External merge sort</td><td>Sortering på disk i to faser: initialfase + merge. n_R, d_M, antall passer.</td></tr>
-            <tr><td>Block nested loop join</td><td>Ytre tabell i biter inn i bufferet; indre scannes per bit.</td></tr>
-            <tr><td>Sort-merge join</td><td>Sorter begge sider, gå gjennom med to pekere.</td></tr>
-            <tr><td>Hash join</td><td>Bygg hash på liten side, probe stor side.</td></tr>
-            <tr><td>Grace hash join</td><td>Partisjoner begge tabeller når hash-tabellen ikke får plass i RAM.</td></tr>
-            <tr><td>EXPLAIN</td><td>Viser plantreet uten å kjøre. EXPLAIN ANALYZE kjører og rapporterer faktisk tid.</td></tr>
-            <tr><td>Histogram</td><td>Statistikk-struktur som lagrer fordelingen av verdier — bedre selektivitetsestimater enn min/max.</td></tr>
+            <tr><td>Nested loop join (J1)</td><td>For hver rad i ytre tabell: scan indre. Block nested loop bruker bufferblokker.</td></tr>
+            <tr><td>Index nested loop (J2)</td><td>Ytre scannes; indre slås opp via indeks per rad.</td></tr>
+            <tr><td>Sort-merge join (J3)</td><td>Sorter begge sider på join-attributtet, gå gjennom med to pekere.</td></tr>
+            <tr><td>Partition-hash join (J4)</td><td>Hash begge tabeller på join-attributtet; join hver partisjon i RAM.</td></tr>
+            <tr><td>EXPLAIN</td><td>MySQL viser planen optimizeren har valgt — type, key, rows, Extra.</td></tr>
           </tbody>
         </table>
       </div>
@@ -119,10 +118,10 @@
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 2 · Lett</div>
-        <div class="q-text">Nevn de fire grunnleggende aksessmetodene.</div>
+        <div class="q-text">Nevn aksessveiene som pensum behandler.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Full table scan, index scan, index-only scan, bitmap scan.</div>
+          <div class="answer">Filscan (tabellscan), indeksscan, range-scan, indeks-lookup.</div>
         </div>
       </div>
 
@@ -172,47 +171,29 @@
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 8 · Middels</div>
-        <div class="q-text">Når er sort-merge join klart bedre enn hash join?</div>
+        <div class="q-label">Spørsmål 8 · Lett</div>
+        <div class="q-text">Hvilke fire join-algoritmer (J1–J4) nevner pensum?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">(a) Når begge tabeller allerede er sortert på join-attributtet — sortfasen er gratis. (b) Når output uansett skal sorteres. (c) For ulikhets-join (R.x &lt; S.y) der hash er ubrukelig.</div>
+          <div class="answer">J1 nested loop, J2 single-loop / index nested loop, J3 sort-merge, J4 partition-hash. Pensum behandler J1 i detalj og nevner de tre andre konseptuelt.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Vanskelig</div>
-        <div class="q-text">Hvorfor bygger hash join hash-tabellen på den minste tabellen, og ikke den største?</div>
+        <div class="q-label">Spørsmål 9 · Middels</div>
+        <div class="q-text">Hvilken statistikk lagrer SQL-dictionaryet for et B+-tre, og hva brukes den til?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Hash-tabellen må holdes i minnet. Mindre build-side ⇒ får plass i mindre buffer ⇒ unngår grace-fasen. I/O-kosten er strukturelt symmetrisk (én scan av hver), men minneforbruket avgjør om vi klarer å unngå disk-partisjonering.</div>
+          <div class="answer">Trehøyde, LowKey, HighKey og antall blokker. Optimizeren bruker dette til å estimere antall blokk-aksesser for indeks-lookup, range-scan og indeksscan, og til å velge billigste plan.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 10 · Middels</div>
-        <div class="q-text">Hva er selektivitet, og hvilken statistikk bruker optimizeren for å estimere den?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Selektivitet = andel rader som passer et predikat. Optimizeren bruker n(R), V(A,R), min/max og — for skjeve fordelinger — histogrammer. Standardformler: WHERE A=c ⇒ 1/V(A,R); WHERE A&gt;c ⇒ (max−c)/(max−min).</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 11 · Vanskelig</div>
-        <div class="q-text">EXPLAIN ANALYZE viser estimat 12 rader, faktisk 180 000. Hva er problemet og hvilket tiltak fungerer ofte?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Statistikken er utdatert eller for grov. Optimizeren har sannsynligvis valgt nested loop forventet å prosessere 12 rader, men kjører den nå på 180 000 ⇒ kvadratisk eksplosjon. Tiltak: kjør <code>ANALYZE table</code>, vurder histogram med flere bins, sjekk at predikatet ikke skjuler indeksbruk via funksjon eller cast.</div>
-        </div>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig</div>
+        <div class="q-label">Spørsmål 10 · Vanskelig</div>
         <div class="q-text">En unclustered B+-indeks finnes på <code>salary</code>. Spørringen er <code>WHERE salary &gt; 0</code>. Optimizeren velger full table scan. Forklar.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Predikatet matcher alle radene. Med unclustered indeks blir kostnaden <em>antall treff × en blokk pr. RID</em> = opp mot 100 000 blokker for 100 000 rader. Full scan = ~1961 blokker. Optimizerens kostnadsmodell ser raskt at indeksen er <em>verre</em> selv om den teknisk er anvendelig.</div>
+          <div class="answer">Predikatet matcher alle radene. Med unclustered indeks blir kostnaden <em>antall treff × en blokk pr. RID</em> = opp mot 100 000 blokker for 100 000 rader. Full scan = ~1961 blokker. Optimizerens kostnadsmodell ser at indeksen er <em>verre</em> selv om den teknisk er anvendelig.</div>
         </div>
       </div>
     </div>

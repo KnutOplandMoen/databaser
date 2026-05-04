@@ -287,15 +287,14 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
       <h2>Ekvivalent med en <em>seriell</em></h2>
       <p>En schedule er <strong>serializable</strong> hvis det finnes en seriell schedule med <em>samme effekt på databasen</em>. Vi vil ha serializable, ikke seriell — fordi vi vil ha samtidighet uten å gi opp korrekthet.</p>
 
-      <p>To viktige underklasser:</p>
+      <p>Pensum bruker en presis underklasse — <strong>conflict-serializable</strong>:</p>
       <ul>
-        <li><strong>Conflict-serializable</strong> — kan omformes til en seriell ved å bytte om <em>nabo-operasjoner som ikke er i konflikt</em>. Strengere, men <em>billig å sjekke</em> (precedence-graf).</li>
-        <li><strong>View-serializable</strong> — schedulen leser og produserer samme final-state som en seriell. Mer permissiv, men NP-hardt å avgjøre i alminnelighet.</li>
+        <li>To historier er <em>konfliktekvivalente</em> hvis de har samme rekkefølge for konfliktoperasjoner.</li>
+        <li>En historie er <strong>conflict-serializable</strong> hvis den er konfliktekvivalent med en eller annen seriell historie.</li>
+        <li>Dette er det vi sjekker mekanisk — typisk via en <em>presedensgraf</em> (neste seksjon).</li>
       </ul>
 
-      <p>I praksis brukes <em>conflict-serializability</em> overalt fordi 2PL (kapittel 8B) implementerer akkurat den.</p>
-
-      <p style="font-style:italic; color: var(--ink-soft);">Conflict-serializable ⇒ View-serializable ⇒ Serializable. Motsatt vei holder ikke.</p>
+      <p>Conflict-serializability impliserer serializability, men ikke omvendt. 2PL (kapittel 8B) implementerer nettopp conflict-serializability.</p>
     </div>
   </section>
 
@@ -392,7 +391,7 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         <div class="mcq-options">
           <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Schedulen er conflict-serializable; ordningen er T1, T2, T3, T4</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Det er en sykel — schedulen er ikke conflict-serializable</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Schedulen er view-serializable men ikke conflict-serializable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Schedulen er serializable men ikke conflict-serializable</span></div>
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det betyr at minst to transaksjoner må aborteres</span></div>
         </div>
         <div class="mcq-feedback">
@@ -452,7 +451,7 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
 
       <p style="text-align:center; font-family: var(--mono); font-size: 0.92rem; color: var(--ink-soft);">Strict ⊂ ACA ⊂ Recoverable ⊂ Alle schedules</p>
 
-      <p>Tilsvarende har vi for samtidighet: <em>Seriell ⊂ Conflict-serializable ⊂ View-serializable ⊂ Alle schedules</em>. De to hierarkiene er ortogonale — recoverability handler om aborter, serializability om samtidighet.</p>
+      <p>Tilsvarende for samtidighet: <em>Seriell ⊂ Conflict-serializable ⊂ Serializable ⊂ Alle schedules</em>. De to hierarkiene er ortogonale — recoverability handler om aborter, serializability om samtidighet.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Hierarki</div>
@@ -460,11 +459,11 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
         <div class="mcq-options">
           <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Seriell + recoverable</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Conflict-serializable + strict (eller cascadeless)</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>View-serializable + recoverable</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Serializable + recoverable</span></div>
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Alle schedules + strict</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Conflict-serializable + strict.</strong> Strict 2PL (kapittel 8B) gir akkurat denne kombinasjonen automatisk: 2PL ⇒ conflict-serializable, og «hold X-låser til commit/abort» ⇒ strict. View-serializable er teoretisk større, men i praksis ikke verdt kompleksiteten å detektere.
+          <strong>Conflict-serializable + strict.</strong> Strict 2PL (kapittel 8B) gir akkurat denne kombinasjonen automatisk: 2PL ⇒ conflict-serializable, og «hold X-låser til commit/abort» ⇒ strict.
         </div>
       </div>
     </div>

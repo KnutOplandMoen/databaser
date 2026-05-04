@@ -83,6 +83,7 @@
         <a href="#cluster"><span>07</span> Clustered vs unclustered</a>
         <a href="#kompositt"><span>08</span> Komposittnøkler</a>
         <a href="#kostnad"><span>09</span> Kostnadsregning</a>
+        <a href="#lsm"><span>10</span> LSM-trær</a>
       </nav>
     </div>
   </header>
@@ -743,7 +744,7 @@
 
       <div class="callout callout-blue">
         <span class="label">Læring fra tabellen</span>
-        <p>Legg merke til <strong>20 121 blokker</strong> for unclustered range-spørringen. Dette er hvorfor optimizere ofte velger full table scan i stedet for å bruke en sekundærindeks når selektiviteten er lav. Clustered-tre er <em>34× raskere</em> for samme range-spørring.</p>
+        <p>Legg merke til <strong>20 121 blokker</strong> for unclustered range-spørringen. Dette er hvorfor optimizere ofte velger full table scan i stedet for sekundærindeks når mange rader matcher. Clustered-tre er <em>34× raskere</em> for samme range-spørring.</p>
       </div>
 
       <div class="quiz" data-quiz>
@@ -776,6 +777,49 @@
     </div>
   </section>
 
+  <!-- ============= 10 ============= -->
+  <section id="lsm">
+    <div class="container">
+      <div class="section-badge">10 · LSM-trær</div>
+      <h2>Når <em>skriveytelse</em> betyr alt</h2>
+
+      <p>B+-trær er kongen for blandet read/write. Men når data strømmer inn raskere enn B+-treet klarer å absorbere — typisk i Big Data og NoSQL — bruker man <strong>LSM-trær</strong> (Log-Structured Merge tree).</p>
+
+      <h3>Hovedidé: skriv stort, sjeldent</h3>
+      <ul>
+        <li><strong>Memtable</strong> i RAM — alle nye inserts/updates havner først her, sortert (skiplist).</li>
+        <li><strong>WAL</strong> (Write-Ahead Log) — hver endring skrives også til en sekvensiell logg på disk for durability.</li>
+        <li>Når memtable blir full: <strong>flush</strong> til disk som en <strong>SST-fil</strong> (Sorted String Table). SST-filer er immutable.</li>
+        <li><strong>Compaction</strong> i bakgrunnen: SST-filer flettes nedover i nivåer (L0, L1, L2 …) og dupliserte/slettede entries fjernes.</li>
+      </ul>
+
+      <p>Resultatet er at de fleste skrivinger først treffer RAM, og disk-skrivinger skjer i store, sekvensielle bolker. <strong>Lav write amplification</strong> + <strong>høyere komprimering</strong> sammenlignet med B+-trær.</p>
+
+      <h3>B+-tre vs LSM-tre</h3>
+      <div class="pros-cons">
+        <div class="key-card">
+          <h4 style="margin-top:0">B+-tre</h4>
+          <p style="margin-bottom:0">Best på <strong>read</strong> — ett oppslag = treets høyde i I/O. Range-scans er superraske via bladlenker. Skriving er litt dyrere fordi blokken kan splittes og oppdateres in-place.</p>
+        </div>
+        <div class="key-card">
+          <h4 style="margin-top:0">LSM-tre</h4>
+          <p style="margin-bottom:0">Best på <strong>write</strong> — store sekvensielle skrivinger. Reads kan være tregere fordi nøkkelen kan ligge i memtable, L0, L1 … og må sjekkes flere steder (Bloom filter hjelper).</p>
+        </div>
+      </div>
+
+      <p>Brukt i Google BigTable / LevelDB, Apache HBase, RocksDB, MyRocks (MySQL-storage engine hos Facebook), Apache Cassandra, MongoDB WiredTiger, og SQLite (utvidelse).</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 13 · Lett</div>
+        <div class="q-text">Hva er hovedfordelen til LSM-trær fremfor B+-trær?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Skriveytelse. Inserts/updates havner først i RAM (memtable), og disk-skrivinger skjer i store, sekvensielle bolker (SST-filer på 2 MB+ kontra 4–32 KiB B+-blokker). Det gir lav write amplification og bedre komprimering. Prisen er at lookups kan kreve oppslag i flere SST-filer.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Final summary -->
   <section>
     <div class="container">
@@ -785,12 +829,12 @@
         <li>Tegne et B+-tre etter en gitt innsettingssekvens, med splittinger.</li>
         <li>Regne høyde, antall blokker og forventet I/O for likhets- og range-spørringer.</li>
         <li>Velge mellom clustered og unclustered indeks ut fra spørringsmønstre.</li>
-        <li>Forklare når sparse indeks er mulig og når den ikke er det.</li>
         <li>Designe en komposittnøkkel ut fra hvilke spørringer som skal være raske.</li>
+        <li>Forklare når LSM-trær slår B+-trær — og hvorfor.</li>
       </ul>
       <div class="callout">
         <span class="label">Neste kapittel</span>
-        <p><a href="../kap7/">Kapittel 7</a> bruker disse strukturene til å bygge en query-kjøremotor: hvordan optimalisatoren velger mellom B+-tre-traversering, hash join, og full scan basert på selektivitet og statistikk.</p>
+        <p><a href="../kap7/">Kapittel 7</a> bruker disse strukturene til å bygge en query-kjøremotor: hvordan optimalisatoren velger mellom B+-tre-traversering, nested loop join og full scan basert på statistikk.</p>
       </div>
     </div>
   </section>

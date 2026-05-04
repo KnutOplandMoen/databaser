@@ -100,7 +100,7 @@
           "T2 skriver buyer = Bob (overskriver Alice uten å lese).",
           "T2 skriver invoice = Bob.",
           "T1 skriver invoice = Alice (overskriver Bob).",
-          "Resultat: buyer=Bob, invoice=Alice. Inkonsistent — Bob får varen, Alice får regningen."
+          "Begge transaksjoner committer. Resultat: buyer=Bob, invoice=Alice. Inkonsistent — Bob får varen, Alice får regningen."
         ]'
         data-states='[
           {"buyer":"—","invoice":"—"},
@@ -131,8 +131,8 @@
           <div class="tx-cell empty">·</div>
 
           <div class="tx-step">5</div>
-          <div class="tx-cell commit">c1</div>
-          <div class="tx-cell commit">c2</div>
+          <div class="tx-cell commit">c1, c2</div>
+          <div class="tx-cell empty">·</div>
         </div>
 
         <div class="state-display">
