@@ -191,6 +191,11 @@
       </div>
 
       <p><strong>ARIES</strong> sitter i steal/no-force-hjørnet: maksimal fleksibilitet for buffer manager, men krever <em>både</em> undo- og redo-logging. Det er prisen for ytelse i moderne SQL-databaser.</p>
+
+      <div class="callout">
+        <span class="label">Update-in-place vs shadowing</span>
+        <p>De tre andre cellene gir alternative recoveryteknikker pensum nevner kort: <em>Undo/no-redo</em> (force + steal), <em>No-undo/redo</em> (no-force + no-steal), og <em>Shadowing</em> (force + no-steal — uten logg, lager kopier av data og bytter pekere ved commit, f.eks. Copy-On-Write B+-trær). Hovedskillet er <strong>update-in-place</strong> (ARIES — endrer datablokken direkte) versus <strong>shadowing</strong> (lager nye kopier).</p>
+      </div>
     </div>
   </section>
 
@@ -317,9 +322,9 @@
 
       <p>Egenskaper:</p>
       <ul>
-        <li>CLR-er er <strong>redo-only</strong> — de undoes aldri.</li>
-        <li>De har et <code>UndoNextLSN</code>-felt som peker til det <em>neste</em> som skal undoes (forbi den vi nettopp angret).</li>
-        <li>Hvis krasj skjer under undo, kan vi gjenkjenne CLR-er ved restart og hoppe rett til der vi var.</li>
+        <li>CLR-er kan <strong>redoes</strong> hvis krasj skjer under undo, men <strong>undoes aldri</strong>.</li>
+        <li>Undo-prosessen følger <code>PrevLSN</code> i den opprinnelige (non-CLR) loggposten for å finne neste loggpost å angre.</li>
+        <li>CLR-en lar undo bli en <em>roll-forward</em>-operasjon — andre operasjoner kan fortsette på samme blokk.</li>
       </ul>
 
       <p>Resultat: <strong>idempotent recovery</strong>. Du kan krasje, restarte, krasje igjen — slutt-tilstanden er den samme.</p>
@@ -563,6 +568,9 @@
         <li>Bakgrunnsprosess flusher dirty sider <em>uten å blokkere</em> drift.</li>
       </ol>
       <p>Recovery starter ved <code>begin_checkpoint</code>; den vet hva TT/DPT så ut da, og leser videre forover for å bygge nåværende tilstand.</p>
+
+      <h3>Penultimate checkpointing</h3>
+      <p>En annen variant pensum nevner: skriv data ved sjekkpunkting, men bruk <em>nest siste</em> sjekkpunkt som startpunkt for recovery. Garanterer at all data referert i loggen før det punktet er på disk, så Analysis/REDO trenger ikke gå lenger tilbake. Ikke ARIES — ARIES bruker fuzzy checkpoint og DPT i stedet.</p>
 
       <p>Trade-off: hyppige sjekkpunkter ⇒ kort recovery, mer normaldrift-overhead. I praksis kjører kommersielle systemer fuzzy checkpoint hvert 5–10 minutt eller hver N-te MB logg.</p>
 

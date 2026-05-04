@@ -420,13 +420,16 @@
         <figcaption>Hierarki: hele DB → tabell → side → record. Lav granularitet = mindre overhead, høy granularitet = mindre kontensjon.</figcaption>
       </figure>
 
-      <p>Trade-off:</p>
+      <p>Pensum lister fem typer låser:</p>
       <ul>
-        <li><strong>Coarse (tabell-lås)</strong> — lite metadata å holde, men én skribent stenger ute alle.</li>
-        <li><strong>Fine (record-lås)</strong> — høy samtidighet, men låsetabellen blir stor og dyr.</li>
+        <li><strong>Postlåser</strong> — fineste granularitet, høy samtidighet, men stor låsetabell.</li>
+        <li><strong>Blokklåser</strong> — én lås dekker alle records i blokken.</li>
+        <li><strong>Tabellåser</strong> — coarse: én skribent stenger ute alle.</li>
+        <li><strong>Range-/verdiområdelåser</strong> — låser et nøkkelintervall, brukes for å unngå fantomer.</li>
+        <li><strong>Predikatlåser</strong> — låser alle rader som matcher et predikat. Også for fantomer, mer presis enn range-låser.</li>
       </ul>
 
-      <p><strong>Intent locks</strong> (IS, IX, SIX) brukes for å varsle at en transaksjon vil ha finer-granular låser i underliggende noder, slik at konflikter kan oppdages tidlig på høyere nivå uten å sjekke alle barn.</p>
+      <p>Moderne databaser bruker typisk post- og range-låser. Trade-off er klart: lavere granularitet ⇒ mindre metadata, men mer kontensjon. Høyere granularitet ⇒ mer samtidighet, men dyrere lock manager.</p>
     </div>
   </section>
 

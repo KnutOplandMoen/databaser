@@ -440,21 +440,14 @@
   <section id="sletting">
     <div class="container">
       <div class="section-badge">06 · Sletting</div>
-      <h2>Underflow → låne eller slå sammen</h2>
+      <h2>Praktisk håndtering av sletting</h2>
 
-      <p>Sletting er teorien speilbildet av innsetting. I praksis tar de fleste DBMS-er en enklere vei.</p>
+      <p>Pensum behandler ikke detaljert sletting — Bratsberg skriver eksplisitt at «we do not show deletions in B+-trees». Du skal kjenne hovedideen om hvordan slettinger håndteres i praksis.</p>
 
-      <h3>Den teoretiske algoritmen</h3>
-      <ol class="num-bullet">
-        <li>Søk til bladet, fjern nøkkelen.</li>
-        <li>Hvis bladet fortsatt har ≥ ⌈d/2⌉−1 nøkler — ferdig.</li>
-        <li>Ellers: <strong>underflow</strong>. To valg: <em>låne</em> en nøkkel fra et søsken (redistribusjon), eller <em>slå sammen</em> med søsken (merge).</li>
-        <li>Merge fjerner en separator i foreldrenoden — som kan forårsake underflow der. Propagér oppover.</li>
-        <li>Hvis roten ender med kun ett barn — den nye roten er det barnet. Treet krymper.</li>
-      </ol>
-
-      <h3>Det praktiske kompromisset</h3>
-      <p>Mange DBMS-er hopper over hele underflow-logikken og bare lar slettede slots være tomme. En egen <em>compaction-tråd</em> kjører i bakgrunnen og slår sammen blokker når de blir altfor tomme. Andre DBMS-er bruker <em>delete-at-empty-block</em>: blokken slettes kun når den er helt tom. Forenkler ekstremt mye men gir litt dårligere fyllingsgrad.</p>
+      <ul>
+        <li><strong>Compaction-tråd:</strong> Vanligst i praksis. En bakgrunnsprosess kompaktérer nivåer i treet og fjerner tomme blokker. Bruker-spørringer fortsetter mens dette skjer.</li>
+        <li><strong>Delete-at-empty-block:</strong> Forskning har vist at det er nok å slette blokken først når den er helt tom — du trenger ikke en egen management-tråd. Forenkler implementasjon, gir litt dårligere fyllingsgrad.</li>
+      </ul>
 
       <div class="callout callout-blue">
         <span class="label">Pensum</span>
@@ -463,10 +456,10 @@
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 7 · Lett</div>
-        <div class="q-text">Hva betyr underflow i et B+-tre?</div>
+        <div class="q-text">Hvordan håndterer DBMS-er typisk sletting i B+-trær i praksis?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">At en node etter sletting har <strong>færre enn minimum antall nøkler</strong> — typisk under ⌈d/2⌉−1. Da må den enten låne en nøkkel fra søsken (redistribuering) eller slås sammen med søsken (merge) for å holde balanse-invarianten. Underflow er motstykket til overflow ved insert (som krever splitt).</div>
+          <div class="answer">Enten ved en <strong>compaction-tråd</strong> som kjører i bakgrunnen og slår sammen halvtomme blokker, eller ved <strong>delete-at-empty-block</strong> der blokken først slettes når den er helt tom. Ingen av dem rebalanserer treet aggressivt — fyllingsgraden får synke litt, og det er en grei avveiing.</div>
         </div>
       </div>
     </div>

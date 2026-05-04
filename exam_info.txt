@@ -5,6 +5,7 @@ Eksamen er delt i to hoveddeler med følgende vekting:
 Del 2 (Svein Erik): ~60 % – sannsynligvis svært likt tidligere års eksamener
 Del 1 (Theodoros): ~40 % – sannsynligvis liknende stil som midtveiseksamen i vinter
 
+**Viktig:** eksamen i år vil kun være flervalgsspørsmål, ingen tekstsvarsoppgaver eller tegning slik det har vært før.
 
 Del 1 – Theodoros (~40 %)
 Dette er den "klassiske" databasdelen som dekker relasjonsmodellen, SQL og databasedesign. Pensum følger lærebok-kapitlene:
