@@ -324,30 +324,25 @@
 
       <div class="callout">
         <span class="label">ACID — kort versjon</span>
-        <p><strong>A</strong>tomicity (alt eller ingenting) · <strong>C</strong>onsistency (databasen må alltid følge constraints) · <strong>I</strong>solation (samtidige transaksjoner skal ikke se hverandres halvferdige tilstander) · <strong>D</strong>urability (commit overlever krasj). Den <em>fulle</em> teorien dekkes i kapittel 8.</p>
+        <p><strong>A</strong>tomicity (alt eller ingenting) · <strong>C</strong>onsistency (databasen må alltid følge constraints) · <strong>I</strong>solation (samtidige transaksjoner skal ikke se hverandres halvferdige tilstander) · <strong>D</strong>urability (commit overlever krasj). Den <em>fulle</em> teorien — låser, isolasjonsnivåer og recovery — dekkes i Del 2.</p>
       </div>
 
-      <h3>SAVEPOINT — delvis rollback</h3>
-      <pre><code><span class="sql-kw">BEGIN</span>;
-  <span class="sql-kw">INSERT INTO</span> a <span class="sql-kw">VALUES</span> (<span class="sql-num">1</span>);
-  <span class="sql-kw">SAVEPOINT</span> s1;
-  <span class="sql-kw">INSERT INTO</span> a <span class="sql-kw">VALUES</span> (<span class="sql-num">2</span>);
-  <span class="sql-kw">ROLLBACK TO</span> s1;   <span class="sql-com">-- 2 rulles tilbake, 1 består</span>
-<span class="sql-kw">COMMIT</span>;</code></pre>
+      <h3>Utsatt sjekk: <code>DEFERRABLE INITIALLY DEFERRED</code></h3>
+      <p>Noen FK-situasjoner skaper en hønen-og-egget-knipe. Tenk deg <code>person(id, navn, ektefelle)</code> der <code>ektefelle</code> er en FK til samme tabell, og <em>ikke kan være NULL</em>. Tommy og Gina er gift — hvilken rad setter du inn først?</p>
+      <pre><code><span class="sql-kw">CREATE TABLE</span> ektefelle_par (
+  id <span class="sql-kw">CHAR</span>(<span class="sql-num">5</span>),
+  navn <span class="sql-kw">VARCHAR</span>(<span class="sql-num">40</span>),
+  ektefelle <span class="sql-kw">CHAR</span>(<span class="sql-num">5</span>) <span class="sql-kw">NOT NULL</span>,
+  <span class="sql-kw">PRIMARY KEY</span>(id),
+  <span class="sql-kw">FOREIGN KEY</span>(ektefelle) <span class="sql-kw">REFERENCES</span> ektefelle_par
+    <span class="sql-kw">DEFERRABLE INITIALLY DEFERRED</span>
+);
 
-      <h3>Isolation levels</h3>
-      <p><code>SET TRANSACTION ISOLATION LEVEL …</code> styrer hvor strengt isolert transaksjonen din er fra andre samtidige. Standardenes valg:</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Nivå</th><th>Forhindrer</th><th>Tillater</th></tr></thead>
-          <tbody>
-            <tr><td>READ UNCOMMITTED</td><td>—</td><td>Dirty reads (les ucommittet)</td></tr>
-            <tr><td>READ COMMITTED</td><td>Dirty reads</td><td>Non-repeatable reads, phantoms</td></tr>
-            <tr><td>REPEATABLE READ</td><td>Dirty + non-repeatable</td><td>Phantoms</td></tr>
-            <tr><td>SERIALIZABLE</td><td>Alle tre</td><td>Strengeste — laveste samtidighet</td></tr>
-          </tbody>
-        </table>
-      </div>
+<span class="sql-kw">BEGIN</span>;
+  <span class="sql-kw">INSERT INTO</span> ektefelle_par <span class="sql-kw">VALUES</span> (<span class="sql-str">'A'</span>, <span class="sql-str">'Tommy'</span>, <span class="sql-str">'B'</span>);
+  <span class="sql-kw">INSERT INTO</span> ektefelle_par <span class="sql-kw">VALUES</span> (<span class="sql-str">'B'</span>, <span class="sql-str">'Gina'</span>,  <span class="sql-str">'A'</span>);
+<span class="sql-kw">COMMIT</span>;   <span class="sql-com">-- FK-sjekken kjøres her, og begge eksisterer nå</span></code></pre>
+      <p>Med <code>DEFERRABLE INITIALLY DEFERRED</code> utsetter DBMS-en sjekken til <em>commit-tidspunktet</em>. Inne i transaksjonen kan en FK-rad midlertidig peke på noe som ikke finnes ennå. Default er <code>NOT DEFERRABLE</code> — sjekken skjer ved hver setning.</p>
     </div>
   </section>
 

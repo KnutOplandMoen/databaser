@@ -74,9 +74,17 @@
             <tr><td class="mono-cell">INT / SMALLINT</td><td>Heltall, maskinavhengig størrelse.</td><td><code>INT</code> for antall</td></tr>
             <tr><td class="mono-cell">NUMERIC(p, d)</td><td>Eksakt desimaltall: p totale sifre, d etter desimaltegnet.</td><td><code>NUMERIC(12,2)</code> for valuta</td></tr>
             <tr><td class="mono-cell">REAL / DOUBLE PRECISION</td><td>Flyttall — bruk når presisjon er mindre kritisk.</td><td>Sensordata</td></tr>
-            <tr><td class="mono-cell">DATE / TIMESTAMP</td><td>Dato eller dato + klokkeslett (med eller uten tidssone).</td><td><code>DATE '2026-04-26'</code></td></tr>
+            <tr><td class="mono-cell">DATE / TIME / TIMESTAMP</td><td>Dato, klokkeslett, eller dato + klokkeslett (evt. med tidssone).</td><td><code>TIMESTAMP '2026-04-26 09:00:30'</code></td></tr>
+            <tr><td class="mono-cell">INTERVAL</td><td>Tidsperiode. Differanse mellom to dato/tid-verdier gir et interval, og intervall kan legges til dato/tid.</td><td><code>INTERVAL '1' DAY</code></td></tr>
+            <tr><td class="mono-cell">BLOB</td><td><em>Binary large object</em>: store binærdata (bilder, video, CAD). DBMS-en lagrer som rådata, applikasjonen tolker.</td><td>Profilbilde, PDF-vedlegg</td></tr>
+            <tr><td class="mono-cell">CLOB</td><td><em>Character large object</em>: store tekst­dokumenter. Fungerer som VARCHAR for veldig lange verdier.</td><td>Bok-kapitler, lange notater</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Store objekter</span>
+        <p>Når en spørring returnerer et BLOB eller CLOB, gir DBMS-en typisk en <em>peker</em> til verdien — ikke selve dataen. Dette unngår at en SELECT av flere rader trekker megabyte ut hver gang.</p>
       </div>
 
       <div class="callout callout-blue">
@@ -92,6 +100,35 @@
         <li><code>UNIQUE (a, b)</code> — kombinasjonen må være entydig (men kan være NULL i noen DBMS)</li>
         <li><code>CHECK (uttrykk)</code> — predikat på kolonne eller rad</li>
       </ul>
+
+      <h3>Egendefinerte domener og typer</h3>
+      <p>SQL gir to mekanismer for å gjenbruke datatype-definisjoner i hele skjemaet.</p>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">CREATE DOMAIN — type + constraints</div>
+          <pre><code><span class="sql-kw">CREATE DOMAIN</span> degree_level <span class="sql-fn">VARCHAR</span>(<span class="sql-num">10</span>)
+  <span class="sql-kw">CONSTRAINT</span> dl_check
+  <span class="sql-kw">CHECK</span> (<span class="sql-kw">VALUE</span> <span class="sql-kw">IN</span>
+    (<span class="sql-str">'Bachelors'</span>, <span class="sql-str">'Masters'</span>, <span class="sql-str">'Doctorate'</span>));
+
+<span class="sql-kw">CREATE TABLE</span> grad (
+  id <span class="sql-fn">CHAR</span>(<span class="sql-num">5</span>),
+  level degree_level
+);</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">CREATE TYPE — egendefinert datatype</div>
+          <pre><code><span class="sql-kw">CREATE TYPE</span> Dollars <span class="sql-kw">AS</span>
+  <span class="sql-fn">NUMERIC</span>(<span class="sql-num">12</span>,<span class="sql-num">2</span>) <span class="sql-kw">FINAL</span>;
+
+<span class="sql-kw">CREATE TABLE</span> department (
+  dept_name <span class="sql-fn">VARCHAR</span>(<span class="sql-num">20</span>),
+  building <span class="sql-fn">VARCHAR</span>(<span class="sql-num">15</span>),
+  budget Dollars
+);</code></pre>
+        </div>
+      </div>
+      <p><strong>Forskjell:</strong> Begge gjenbruker en navngitt definisjon. <code>DOMAIN</code> kan ha constraints (f.eks. <code>NOT NULL</code> eller <code>CHECK</code>) — <code>TYPE</code> definerer en strengt typisert «egen datatype» som ikke kan blandes med andre uten eksplisitt konvertering. I praksis bruker mange DBMS-er disse litt forskjellig; PostgreSQL har f.eks. både <code>CREATE DOMAIN</code> og <code>CREATE TYPE</code>.</p>
 
       <h3>Endre og slette skjema</h3>
       <div class="code-result two-col">

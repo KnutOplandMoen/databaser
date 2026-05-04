@@ -343,12 +343,41 @@
           <tbody>
             <tr><td><code>x IN (subq)</code></td><td>Finnes x i resultatet?</td><td>Nei — NULL i subq lager problemer for NOT IN</td></tr>
             <tr><td><code>EXISTS (subq)</code></td><td>Returnerer subq minst én rad?</td><td>Ja — opererer på antall, ikke verdier</td></tr>
+            <tr><td><code>UNIQUE (subq)</code></td><td>Har subq <em>ingen</em> dupliserte rader?</td><td>Ja — opererer på rader, ikke verdier</td></tr>
             <tr><td><code>x = ANY (subq)</code></td><td>Lik minst én verdi</td><td>Som IN</td></tr>
             <tr><td><code>x &gt; ALL (subq)</code></td><td>Større enn samtlige</td><td>Trygg, returnerer false hvis NULL</td></tr>
             <tr><td><code>x &gt; ANY (subq)</code></td><td>Større enn minst én</td><td>OK</td></tr>
           </tbody>
         </table>
       </div>
+
+      <h3>UNIQUE — test for fravær av duplikater</h3>
+      <p><code>UNIQUE (subq)</code> evaluerer til TRUE hvis subqueryen ikke har noen dupliserte tupler i resultatet, og FALSE ellers. <code>NOT UNIQUE</code> snur det.</p>
+      <div class="code-result two-col">
+        <div class="pane">
+          <div class="pane-label">Emner kjørt høyst én gang i 2017</div>
+          <pre><code><span class="sql-kw">SELECT</span> c.course_id
+<span class="sql-kw">FROM</span> course c
+<span class="sql-kw">WHERE</span> <span class="sql-kw">UNIQUE</span> (
+  <span class="sql-kw">SELECT</span> r.course_id
+  <span class="sql-kw">FROM</span> section r
+  <span class="sql-kw">WHERE</span> r.course_id = c.course_id
+    <span class="sql-kw">AND</span> r.year = <span class="sql-num">2017</span>
+);</code></pre>
+        </div>
+        <div class="pane">
+          <div class="pane-label">Emner kjørt minst to ganger i 2017</div>
+          <pre><code><span class="sql-kw">SELECT</span> c.course_id
+<span class="sql-kw">FROM</span> course c
+<span class="sql-kw">WHERE</span> <span class="sql-kw">NOT UNIQUE</span> (
+  <span class="sql-kw">SELECT</span> r.course_id
+  <span class="sql-kw">FROM</span> section r
+  <span class="sql-kw">WHERE</span> r.course_id = c.course_id
+    <span class="sql-kw">AND</span> r.year = <span class="sql-num">2017</span>
+);</code></pre>
+        </div>
+      </div>
+      <p><strong>Merk:</strong> <code>UNIQUE</code> er definert i SQL-standarden, men er ikke implementert i alle DBMS-er. PostgreSQL og MySQL støtter den ikke direkte — der må du erstatte med <code>HAVING COUNT(*) ≤ 1</code> i en subquery.</p>
 
       <h3>Tre formuleringer av samme spørsmål</h3>
       <p>«Finn navn på ansatte som underviser i minst ett emne»:</p>
