@@ -78,6 +78,136 @@
 
       <p>Et oppslag i RAM (arbeidsminnet) tar ~100 nanosekunder. Et tilfeldig oppslag på en HDD (mekanisk harddisk) tar ~10 millisekunder — fem størrelsesordener tregere. DBMS-en jobber derfor ikke med én rad om gangen mot disk; den henter <strong>blokker</strong> — sammenhengende bolker av bytes (typisk 4–32 KiB) som inneholder mange rader sammen. En slik henting kalles en <strong>diskaksess</strong>. Så regelen er enkel: <strong>tell antall blokker som må leses fra disken</strong> — det er nesten alltid den dominerende kostnaden. (En SSD — solid state drive — ligger et sted imellom RAM og HDD i fart.)</p>
 
+      <figure class="stack-fig">
+        <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" aria-labelledby="zoom-title">
+          <title id="zoom-title">Samme rad på tre nivåer: SQL → blokk på disk → bytes i blokk</title>
+          <defs>
+            <marker id="zoom-arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L9,3 z" fill="#7a4a2d"/>
+            </marker>
+          </defs>
+
+          <!-- ===== NIVÅ 1: SQL-laget ===== -->
+          <text x="20" y="18" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">1 · SQL-LAGET ser tabellen Employee</text>
+
+          <rect x="20" y="26" width="340" height="24" fill="#1a1612" rx="3"/>
+          <text x="30" y="43" font-family="IBM Plex Mono" font-size="11" fill="#f4f1ea">SELECT name FROM Employee WHERE empno = 4711</text>
+
+          <g transform="translate(20, 60)" font-family="IBM Plex Mono" font-size="10">
+            <rect width="340" height="18" fill="#ddd5c4" stroke="#6b6257"/>
+            <text x="10" y="13">empno     name        age</text>
+
+            <rect y="18" width="340" height="16" fill="#f4f1ea" stroke="#c9c0ae"/>
+            <text x="10" y="30">4710      Kari        28</text>
+
+            <rect y="34" width="340" height="16" fill="#c68a1f" stroke="#7a4a2d" stroke-width="1.5"/>
+            <text x="10" y="46" fill="#f4f1ea">4711      Per         35    ← treff!</text>
+
+            <rect y="50" width="340" height="16" fill="#f4f1ea" stroke="#c9c0ae"/>
+            <text x="10" y="62">4712      Anne        42</text>
+
+            <rect y="66" width="340" height="16" fill="#f4f1ea" stroke="#c9c0ae"/>
+            <text x="10" y="78">4713      Ola         51</text>
+
+            <text x="170" y="100" text-anchor="middle" fill="#6b6257">... 1 000 000 rader totalt</text>
+          </g>
+
+          <!-- Right-side note for level 1 -->
+          <text x="390" y="44" font-family="IBM Plex Sans" font-size="11" fill="#1a1612">Logisk verden:</text>
+          <text x="390" y="62" font-family="IBM Plex Sans" font-size="11" fill="#1a1612">tabeller, rader, kolonner.</text>
+          <text x="390" y="80" font-family="IBM Plex Sans" font-size="11" fill="#6b6257" font-style="italic">SQL-en vet ikke at</text>
+          <text x="390" y="96" font-family="IBM Plex Sans" font-size="11" fill="#6b6257" font-style="italic">disk eller blokker finnes.</text>
+
+          <!-- Down arrow 1→2 -->
+          <line x1="190" y1="170" x2="190" y2="195" stroke="#7a4a2d" stroke-width="2" marker-end="url(#zoom-arr)"/>
+          <text x="200" y="187" font-family="IBM Plex Sans" font-size="10" fill="#7a4a2d" font-style="italic">DBMS oversetter til diskaksesser</text>
+
+          <!-- ===== NIVÅ 2: Disken ===== -->
+          <text x="20" y="220" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">2 · DISKEN ser blokker</text>
+
+          <rect x="20" y="228" width="680" height="42" fill="#1f4e79" rx="2"/>
+          <text x="30" y="245" font-family="IBM Plex Mono" font-size="10" fill="#cad3e6">DEVICE — én lang vektor av blokker</text>
+
+          <g transform="translate(30, 250)" font-family="IBM Plex Mono" font-size="9">
+            <rect width="50" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="25" y="13" text-anchor="middle">B01</text>
+
+            <rect x="55" width="50" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="80" y="13" text-anchor="middle">B02</text>
+
+            <rect x="110" width="50" height="18" fill="#c68a1f" stroke="#7a4a2d" stroke-width="2"/>
+            <text x="135" y="13" text-anchor="middle" fill="#f4f1ea" font-weight="700">B03 ★</text>
+
+            <rect x="165" width="50" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="190" y="13" text-anchor="middle">B04</text>
+
+            <rect x="220" width="50" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="245" y="13" text-anchor="middle">B05</text>
+
+            <rect x="275" width="50" height="18" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="300" y="13" text-anchor="middle">B06</text>
+
+            <text x="345" y="13" fill="#cad3e6">… ~19 600 blokker totalt på denne tabellen …</text>
+          </g>
+
+          <text x="135" y="288" text-anchor="middle" font-family="IBM Plex Sans" font-size="10" fill="#7a4a2d" font-style="italic">↑ Pers rad ligger i blokk B03</text>
+
+          <!-- Down arrow 2→3 -->
+          <line x1="190" y1="296" x2="190" y2="316" stroke="#7a4a2d" stroke-width="2" marker-end="url(#zoom-arr)"/>
+          <text x="200" y="310" font-family="IBM Plex Sans" font-size="10" fill="#7a4a2d" font-style="italic">zoom inn i én blokk</text>
+
+          <!-- ===== NIVÅ 3: Inni blokken ===== -->
+          <text x="20" y="335" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">3 · INNI BLOKK B03 — én diskaksess gir oss alle ~50 records på én gang</text>
+
+          <rect x="20" y="343" width="500" height="42" fill="#f4f1ea" stroke="#1a1612" stroke-width="2" rx="3"/>
+
+          <rect x="22" y="345" width="40" height="38" fill="#1f4e79"/>
+          <text x="42" y="368" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f4f1ea">hdr</text>
+
+          <rect x="64" y="345" width="80" height="38" fill="#e8e3d6" stroke="#7a4a2d"/>
+          <text x="104" y="361" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">4710</text>
+          <text x="104" y="375" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#6b6257">Kari · 28</text>
+
+          <rect x="146" y="345" width="80" height="38" fill="#c68a1f" stroke="#7a4a2d" stroke-width="2"/>
+          <text x="186" y="361" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#f4f1ea" font-weight="700">4711 ★</text>
+          <text x="186" y="375" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#f4f1ea">Per · 35</text>
+
+          <rect x="228" y="345" width="80" height="38" fill="#e8e3d6" stroke="#7a4a2d"/>
+          <text x="268" y="361" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">4712</text>
+          <text x="268" y="375" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#6b6257">Anne · 42</text>
+
+          <rect x="310" y="345" width="100" height="38" fill="#ddd5c4" stroke="#a39886" stroke-dasharray="3,2"/>
+          <text x="360" y="368" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">… ~47 til</text>
+
+          <rect x="412" y="345" width="106" height="38" fill="#e6edf6" stroke="#1f4e79"/>
+          <text x="465" y="361" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79">slot</text>
+          <text x="465" y="375" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#1f4e79">directory</text>
+
+          <!-- Per's record bytes -->
+          <text x="540" y="335" font-family="IBM Plex Mono" font-size="10" fill="#7a4a2d" font-weight="700">Pers record = bytes:</text>
+
+          <g transform="translate(540, 343)">
+            <rect width="40" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="20" y="15" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">4711</text>
+
+            <rect x="40" width="80" height="22" fill="#e8e3d6" stroke="#7a4a2d"/>
+            <text x="80" y="15" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">"Per…"</text>
+
+            <rect x="120" width="40" height="22" fill="#e6edf6" stroke="#1f4e79"/>
+            <text x="140" y="15" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">35</text>
+
+            <text x="0" y="36" font-family="IBM Plex Sans" font-size="8" fill="#6b6257">empno</text>
+            <text x="55" y="36" font-family="IBM Plex Sans" font-size="8" fill="#6b6257">name (felt)</text>
+            <text x="125" y="36" font-family="IBM Plex Sans" font-size="8" fill="#6b6257">age</text>
+
+            <text x="0" y="48" font-family="IBM Plex Mono" font-size="8" fill="#6b6257">4 B</text>
+            <text x="60" y="48" font-family="IBM Plex Mono" font-size="8" fill="#6b6257">20 B</text>
+            <text x="130" y="48" font-family="IBM Plex Mono" font-size="8" fill="#6b6257">4 B</text>
+          </g>
+        </svg>
+        <figcaption>Samme rad på tre nivåer. SQL-laget jobber med rader; disken kjenner bare blokker; inni hver blokk ligger mange records pakket som bytes. DBMS-jobben er å oversette mellom disse verdenene med så få diskaksesser som mulig.</figcaption>
+      </figure>
+
       <div class="stat-row">
         <div class="stat-box">
           <span class="stat-num">~100 ns</span>
