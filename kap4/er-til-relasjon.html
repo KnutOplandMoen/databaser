@@ -35,10 +35,9 @@
         <a href="#attributter"><span>03</span> Sammensatte og fler-verdige</a>
         <a href="#relasjoner"><span>04</span> Relasjoner: 1:1, 1:N, N:M</a>
         <a href="#svake"><span>05</span> Svake entiteter</a>
-        <a href="#isa"><span>06</span> ISA-strategier</a>
-        <a href="#worked"><span>07</span> Gjennomarbeidet eksempel</a>
-        <a href="#anomali"><span>08</span> Designproblemer</a>
-        <a href="#motivasjon"><span>09</span> Motivasjon for normalformer</a>
+        <a href="#worked"><span>06</span> Gjennomarbeidet eksempel</a>
+        <a href="#anomali"><span>07</span> Designproblemer</a>
+        <a href="#motivasjon"><span>08</span> Motivasjon for normalformer</a>
       </nav>
     </div>
   </header>
@@ -62,7 +61,6 @@
         <li>Hver svak entitet → tabell med sammensatt nøkkel som arves fra eieren.</li>
         <li>Hver fler-verdig attributt → egen tabell.</li>
         <li>Hver relasjon → fremmednøkkel-kolonne (1:1, 1:N) eller egen tabell (N:M).</li>
-        <li>ISA-hierarkier → en av tre strategier (vi kommer til det).</li>
       </ol>
     </div>
   </section>
@@ -283,77 +281,9 @@
   </section>
 
   <!-- ───────────── 06 ───────────── -->
-  <section id="isa">
-    <div class="container">
-      <div class="section-badge">06 · ISA-strategier</div>
-      <h2>Tre alternativer for <em>spesialisering</em></h2>
-
-      <p>Det finnes ikke ett riktig svar — strategi velges ut fra hvor mange unike attributter subklassene har, og hvilke spørringer som er vanlige.</p>
-
-      <div class="nf-ladder">
-        <div class="nf-rung">
-          <div class="nf-name">A</div>
-          <div class="nf-desc"><strong>Én tabell for alt</strong> + diskriminatorkolonne. Felles og spesialiserte attributter ligger i samme rad. Spesialiserte attributter blir <code>NULL</code> for rader av annen type.<br><em>Bra når:</em> få spesialiserte attributter, mye polymorfe spørringer. <em>Dårlig når:</em> mange unike kolonner per subtype → mange null-celler.</div>
-        </div>
-        <div class="nf-rung">
-          <div class="nf-name">B</div>
-          <div class="nf-desc"><strong>Tabell per konkret subtype</strong>. Ingen felles supertabell — hver subtype har sin egen tabell med både felles og spesialiserte attributter. Felles attributter dupliseres på kolonnenivå.<br><em>Bra når:</em> total + disjoint, og du sjelden spør på tvers. <em>Dårlig når:</em> mye polymorfe spørringer (UNION ALL kreves).</div>
-        </div>
-        <div class="nf-rung">
-          <div class="nf-name">C</div>
-          <div class="nf-desc"><strong>Tabell per nivå</strong> (super- + subtabeller). Supertabellen har felles attributter; hver subtabell har bare egne attributter pluss FK til supertabellen.<br><em>Bra når:</em> mange spesialiserte attributter, klar disjoint-struktur. <em>Dårlig når:</em> du leser på tvers ofte (krever join).</div>
-        </div>
-      </div>
-
-      <figure>
-        <svg class="svg-fig" viewBox="0 0 720 240" role="img" aria-label="ISA-strategi C illustrert">
-          <text x="360" y="22" text-anchor="middle" font-weight="600">Strategi C — supertabell + subtabeller</text>
-          <!-- Person -->
-          <rect x="280" y="40" width="160" height="50" class="ent-rect"/>
-          <text x="360" y="62" text-anchor="middle" font-weight="600">Person</text>
-          <text x="360" y="80" text-anchor="middle" class="label-mono">pnr (PK), navn</text>
-
-          <!-- subs -->
-          <rect x="80" y="160" width="170" height="60" class="ent-rect"/>
-          <text x="165" y="180" text-anchor="middle" font-weight="600">Student</text>
-          <text x="165" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
-          <text x="165" y="214" text-anchor="middle" class="label-mono">studieprogram</text>
-
-          <rect x="280" y="160" width="170" height="60" class="ent-rect"/>
-          <text x="365" y="180" text-anchor="middle" font-weight="600">Lærer</text>
-          <text x="365" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
-          <text x="365" y="214" text-anchor="middle" class="label-mono">avdeling</text>
-
-          <rect x="480" y="160" width="170" height="60" class="ent-rect"/>
-          <text x="565" y="180" text-anchor="middle" font-weight="600">Administrator</text>
-          <text x="565" y="198" text-anchor="middle" class="label-mono">pnr (PK,FK→Person)</text>
-          <text x="565" y="214" text-anchor="middle" class="label-mono">kontor</text>
-
-          <line x1="200" y1="160" x2="320" y2="90" class="edge"/>
-          <line x1="365" y1="160" x2="365" y2="90" class="edge"/>
-          <line x1="540" y1="160" x2="400" y2="90" class="edge"/>
-        </svg>
-        <figcaption>Strategi C: hver subtabell deler primærnøkkel med supertabellen. <code>pnr</code> er både PK i subtabellen og FK til supertabellen.</figcaption>
-      </figure>
-
-      <div class="quiz mcq" data-quiz>
-        <div class="q-label">Sjekk · MCQ</div>
-        <div class="q-text">Et bibliotek skiller mellom <code>Bok</code>, <code>Tidsskrift</code> og <code>DVD</code>. Felles: <code>katalognr, tittel, hyllenr</code>. Bok har 50 attributter unike for bok; DVD har 3. Hvilken strategi er typisk best?</div>
-        <ul class="mcq-options">
-          <li><button class="mcq-opt" data-correct="0">A — én tabell for alt</button></li>
-          <li><button class="mcq-opt" data-correct="1">C — supertabell + subtabeller</button></li>
-          <li><button class="mcq-opt" data-correct="0">B — tabell per konkret subtype</button></li>
-          <li><button class="mcq-opt" data-correct="0">Alle er like gode</button></li>
-        </ul>
-        <div class="mcq-feedback">Strategi A ville gitt 50+ NULL-kolonner på hver DVD-rad. C unngår dette ved å plassere bok-attributter bare i Bok-tabellen, og holder felles attributter i Materiale.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───────────── 07 ───────────── -->
   <section id="worked">
     <div class="container">
-      <div class="section-badge">07 · Gjennomarbeidet eksempel</div>
+      <div class="section-badge">06 · Gjennomarbeidet eksempel</div>
       <h2>Universitet → <em>tabeller</em>, helt</h2>
 
       <p>La oss kjøre gjennom et lite, men realistisk eksempel. Krav:</p>
@@ -418,7 +348,7 @@
   <!-- ───────────── 08 ───────────── -->
   <section id="anomali">
     <div class="container">
-      <div class="section-badge">08 · Designproblemer</div>
+      <div class="section-badge">07 · Designproblemer</div>
       <h2>Tre ansikter til <em>anomali</em></h2>
 
       <p>Selv etter mekanisk reduksjon kan skjemaet ha problemer — typisk fordi ER-diagrammet har slått sammen entiteter som burde vært skilt. Tenk deg dette dårlige skjemaet:</p>
@@ -502,7 +432,7 @@
   <!-- ───────────── 09 ───────────── -->
   <section id="motivasjon">
     <div class="container">
-      <div class="section-badge">09 · Motivasjon for normalformer</div>
+      <div class="section-badge">08 · Motivasjon for normalformer</div>
       <h2>Mekanisk <em>diagnose</em></h2>
 
       <p>Anomalier er ikke tilfeldigheter. De er symptomer på spesifikke mønstre i avhengighetene mellom attributtene. Hvis vi kan beskrive avhengighetene formelt, kan vi bygge en algoritme som <em>oppdager</em> problemene før dataen kommer inn — og som forteller oss hvilken dekomponering som løser dem.</p>

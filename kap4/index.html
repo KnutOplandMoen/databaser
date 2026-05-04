@@ -147,7 +147,7 @@
           <span class="sp-icon">4A</span>
           <div class="sp-info">
             <div class="sp-title">ER-modellen</div>
-            <div class="sp-desc">Entiteter, attributter, relasjoner, kardinalitet, svake entiteter, ISA-hierarkier — med diagram-eksempler og innebygde quizzer.</div>
+            <div class="sp-desc">Entiteter, attributter, relasjoner, kardinalitet og svake entiteter — med diagram-eksempler og innebygde quizzer.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -155,7 +155,7 @@
           <span class="sp-icon">4B</span>
           <div class="sp-info">
             <div class="sp-title">ER → relasjonsskjema</div>
-            <div class="sp-desc">Reduksjonsregler steg for steg, ISA-strategier, og en interaktiv oversettelse fra diagram til tabeller. Anomali introduseres mot slutten.</div>
+            <div class="sp-desc">Reduksjonsregler steg for steg og en interaktiv oversettelse fra diagram til tabeller. Anomali introduseres mot slutten.</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -176,7 +176,7 @@
       <div class="section-badge">04 · Sjekkliste</div>
       <h2>Du <em>mestrer</em> kapittel 4 når du kan…</h2>
       <ul>
-        <li>tegne et ER-diagram for et naturlig språk-krav, inkludert svake entiteter og ISA-hierarkier</li>
+        <li>tegne et ER-diagram for et naturlig språk-krav, inkludert svake entiteter</li>
         <li>oversette diagrammet til et relasjonsskjema med riktige primær- og fremmednøkler</li>
         <li>identifisere oppdaterings-, innsettings- og sletteanomalier i et gitt skjema</li>
         <li>liste opp de funksjonelle avhengighetene og beregne lukningen <code>X⁺</code></li>
@@ -189,7 +189,7 @@
   <section id="quiz">
     <div class="container">
       <h2>Sluttquiz · Test <em>helheten</em></h2>
-      <p class="section-intro">Tolv spørsmål på tvers av 4A, 4B og 4C. Klikk på svaralternativene — riktig svar låser oppgaven; feil kan du prøve igjen.</p>
+      <p class="section-intro">Elleve spørsmål på tvers av 4A, 4B og 4C. Klikk på svaralternativene — riktig svar låser oppgaven; feil kan du prøve igjen.</p>
 
       <div class="quiz mcq" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett · ER-modellen</div>
@@ -288,19 +288,7 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 9 · Lett · ISA</div>
-        <div class="q-text">Hva betyr <strong>disjoint</strong> i en ISA-spesialisering?</div>
-        <ul class="mcq-options">
-          <li><button class="mcq-opt" data-correct="0">Hver superklasse-instans må være i en subklasse.</button></li>
-          <li><button class="mcq-opt" data-correct="1">En superklasse-instans kan være medlem i <em>høyst én</em> subklasse.</button></li>
-          <li><button class="mcq-opt" data-correct="0">Subklassene har ingen felles attributter.</button></li>
-          <li><button class="mcq-opt" data-correct="0">Subklassene må ligge i separate tabeller.</button></li>
-        </ul>
-        <div class="mcq-feedback">«Disjoint» er ortogonalt med «total». Disjoint = ingen overlapp mellom subklasser. Total = alle superklasse-instanser hører til en subklasse.</div>
-      </div>
-
-      <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 10 · Middels · Anomali</div>
+        <div class="q-label">Spørsmål 9 · Middels · Anomali</div>
         <div class="q-text">Hvilken anomali oppstår når man <strong>ikke får lagt inn</strong> en ny avdeling fordi det ennå ikke finnes ansatte i den?</div>
         <ul class="mcq-options">
           <li><button class="mcq-opt" data-correct="0">Sletteanomali</button></li>
@@ -312,7 +300,7 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 11 · Vanskelig · Kandidatnøkler</div>
+        <div class="q-label">Spørsmål 10 · Vanskelig · Kandidatnøkler</div>
         <div class="q-text">Gitt R(A,B,C,D,E) med FD-er {AB→C, C→D, D→E}. Hvilket sett er kandidatnøkkel?</div>
         <ul class="mcq-options">
           <li><button class="mcq-opt" data-correct="0">{A}</button></li>
@@ -324,7 +312,7 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 12 · Vanskelig · Designvalg</div>
+        <div class="q-label">Spørsmål 11 · Vanskelig · Designvalg</div>
         <div class="q-text">Du har et 3NF-skjema som taper dependency preservation hvis du dekomponerer videre til BCNF. Hva er den faglig <em>beste</em> avveiningen?</div>
         <ul class="mcq-options">
           <li><button class="mcq-opt" data-correct="0">Alltid velg BCNF — redundans er aldri akseptabelt.</button></li>
