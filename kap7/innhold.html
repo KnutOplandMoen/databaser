@@ -356,11 +356,9 @@
         <a href="#scan-kost"><span>03</span> Scan-kost</a>
         <a href="#sortering"><span>04</span> External merge sort</a>
         <a href="#nested-loop"><span>05</span> Nested loop join</a>
-        <a href="#sort-merge"><span>06</span> Sort-merge join</a>
-        <a href="#hash-join"><span>07</span> Hash join</a>
-        <a href="#kost"><span>08</span> Kostnadsestimering</a>
-        <a href="#explain"><span>09</span> EXPLAIN</a>
-        <a href="#sluttquiz"><span>10</span> Sluttquiz</a>
+        <a href="#andre-join"><span>06</span> Andre join-metoder</a>
+        <a href="#kost"><span>07</span> Statistikk &amp; EXPLAIN</a>
+        <a href="#sluttquiz"><span>08</span> Sluttquiz</a>
       </nav>
     </div>
   </header>
@@ -459,20 +457,20 @@
         <p style="font-size:0.88rem; color:var(--ink-faded); margin-top:0.6rem;">⅔-faktoren for B+-tre kommer av at noder typisk er to-tredjedeler fulle. Hash bruker 80&nbsp;% fyllgrad.</p>
       </div>
 
-      <h3>De fire aksessmetodene</h3>
+      <h3>Aksessveiene</h3>
       <ul>
-        <li><strong>Full table scan</strong> — les <em>alle</em> blokker. Brukes når det ikke finnes nyttig indeks, eller når vi henter «mye» av tabellen uansett.</li>
-        <li><strong>Index scan</strong> — gå ned i B+-treet til riktig blad, bruk pekere til å lese radene fra heap.</li>
-        <li><strong>Index-only scan</strong> — alle kolonnene som trengs ligger i indeksen selv. Vi slipper å besøke heap-filen.</li>
-        <li><strong>Bitmap scan</strong> — bygg en bitmap over RID-er fra én eller flere indekser, sorter, slå opp i datafilen i blokk-rekkefølge. Viktig for «AND»-betingelser med flere indekser.</li>
+        <li><strong>Filscan / tabellscan</strong> — les <em>alle</em> blokker i filen. Brukes når det ikke finnes nyttig indeks, eller når vi henter «mye» av tabellen uansett.</li>
+        <li><strong>Indeksscan</strong> — gå sekvensielt gjennom bladnivået i en indeks. Nyttig f.eks. for <code>SELECT *</code> med sortert resultat.</li>
+        <li><strong>Range-scan</strong> — gå ned i B+-treet til startnøkkelen, og scan bladene sidelengs til endenøkkelen. Bruk pekere til å hente rader om indeksen er unclustered.</li>
+        <li><strong>Indeks-lookup</strong> — direkte oppslag på én nøkkel: ned i treet (eller ett hashoppslag), hent rad.</li>
       </ul>
 
       <div class="quiz inline" data-quiz>
         <div class="q-label">Sjekk forståelsen</div>
-        <div class="q-text">Hvorfor er en <em>index-only scan</em> ofte vesentlig billigere enn en vanlig index scan, selv når begge bruker samme indeks?</div>
+        <div class="q-text">Hvorfor er <em>range-scan</em> rask på en clustered B+-tre, men kan være tregere enn full table scan på en unclustered indeks med mange treff?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi index-only slipper det dyre steget: å følge pekere ut til heap-filen for hver match. Hvis vi finner 20 000 treff, må en vanlig index scan i verste fall lese 20 000 ekstra blokker (én per RID). Index-only gir hele svaret fra indeksen og bruker bare bladnodene.</div>
+          <div class="answer">På et clustered B+-tre ligger radene fysisk sortert — vi scanner bladene sidelengs sekvensielt. På et unclustered B+-tre har vi RID-pekere til en heap, og hver match kan kreve én ny tilfeldig blokk-aksess. Med 20 % treff på 100 000 rader kan det bli 20 000 random I/O — full scan av heap-filen er da ofte raskere.</div>
         </div>
       </div>
     </div>
@@ -672,196 +670,74 @@
     </div>
   </section>
 
-  <!-- ──────────────────────── 06 SORT-MERGE JOIN ──────────────────────── -->
-  <section id="sort-merge">
+  <!-- ──────────────────────── 06 ANDRE JOIN-METODER ──────────────────────── -->
+  <section id="andre-join">
     <div class="container">
-      <div class="section-badge">06 · Sort-merge join</div>
-      <h2>Sorter <em>begge</em>, gå parallelt</h2>
-      <p>Når begge tabellene er store, eller allerede sortert på join-attributtet, blir to-pekere-strategien attraktiv. Vi sorterer R og S én gang (ofte med external merge sort), og går så gjennom dem samtidig.</p>
+      <div class="section-badge">06 · Andre join-metoder</div>
+      <h2>Tre alternativer pensum <em>nevner</em></h2>
+      <p>Pensum behandler nested loop i detalj, men nevner tre andre join-algoritmer som finnes i SQL-databaser. Du bør kjenne navnene og hovedideen.</p>
 
-      <h3>Algoritmen</h3>
-      <ol>
-        <li>Sorter R på <code>r.k</code>, sorter S på <code>s.k</code>.</li>
-        <li>To pekere <em>i</em> på R, <em>j</em> på S, begge starter på 0.</li>
-        <li>Hvis <code>R[i].k &lt; S[j].k</code> → <em>i++</em>. Hvis &gt; → <em>j++</em>. Hvis = → emit, og avanser likt.</li>
-        <li>Stopp når en av listene er tom.</li>
-      </ol>
-
-      <div class="viz" id="sm-viz">
-        <div class="viz-title">To-pekere på sorterte lister</div>
-        <div class="viz-stage">
-          <div class="sm-scene">
-            <div class="sm-list">
-              <h4>R sortert på k</h4>
-              <div id="sm-R"></div>
-            </div>
-            <div class="sm-list">
-              <h4>S sortert på k</h4>
-              <div id="sm-S"></div>
-            </div>
-          </div>
-          <div class="nl-counter" id="sm-counter">Match-par funnet: <strong>0</strong></div>
-        </div>
-        <div class="viz-controls">
-          <button class="viz-btn" id="sm-step">Neste steg</button>
-          <button class="viz-btn ghost" id="sm-reset">Nullstill</button>
-          <span class="viz-status" id="sm-status">i=0, j=0</span>
-        </div>
-      </div>
-
-      <h3>Når lønner det seg?</h3>
       <ul>
-        <li>Når begge tabellene allerede er sortert (f.eks. fra clustered indeks) — da er kostnaden bare scan.</li>
-        <li>Når begge er store og join-resultatet skal sorteres uansett.</li>
-        <li>Mindre bra hvis kun én tabell er liten — da er nested loop med indeks oftest billigere.</li>
+        <li><strong>Single-loop / index nested loop (J2)</strong> — som over: når indre tabell har indeks på join-attributtet, slipper vi indre scan og slår opp direkte. Ofte raskest når ytre er liten.</li>
+        <li><strong>Sort-merge join (J3)</strong> — sorter begge tabellene på join-attributtet (eller bruk eksisterende sortering), og gå parallelt gjennom dem med to pekere. Lønner seg når begge allerede er sortert, eller når resultatet uansett skal sorteres.</li>
+        <li><strong>Partition-hash join (J4)</strong> — partisjoner begge tabeller ved å hashe join-attributtet. Da kan hver liten partisjon joines parvis i RAM. NTNUs Kjell Bratbergsengen var pioneren her (VLDB 1984).</li>
       </ul>
-    </div>
-  </section>
-
-  <!-- ──────────────────────── 07 HASH JOIN ──────────────────────── -->
-  <section id="hash-join">
-    <div class="container">
-      <div class="section-badge">07 · Hash join</div>
-      <h2>Bygg en hash-tabell, <em>probe</em> mot den</h2>
-      <p>Hvis ingen er sortert og vi ikke har en god indeks på indre, kan hash join være billigste valg.</p>
-
-      <h3>Build + probe</h3>
-      <ol>
-        <li><strong>Build phase</strong>: Velg den minste tabellen (<em>build side</em>). Les den én gang og bygg en hash-tabell på join-attributtet i RAM.</li>
-        <li><strong>Probe phase</strong>: Les den større tabellen (<em>probe side</em>) én blokk om gangen. For hver rad: hash join-verdien, slå opp i bucket, emit alle treff.</li>
-      </ol>
-
-      <div class="viz" id="hash-viz">
-        <div class="viz-title">Build hash på R (liten), probe S (stor)</div>
-        <div class="viz-stage">
-          <div class="hash-scene">
-            <div class="hash-col">
-              <h4>R (liten — build)</h4>
-              <div id="hash-R"></div>
-            </div>
-            <div class="hash-col">
-              <h4>Hash-tabell</h4>
-              <div id="hash-table"></div>
-            </div>
-            <div class="hash-col">
-              <h4>S (stor — probe)</h4>
-              <div id="hash-S"></div>
-            </div>
-          </div>
-          <div class="nl-counter" id="hash-counter">Build: <strong>0</strong> rader · Probe-treff: <strong>0</strong></div>
-        </div>
-        <div class="viz-controls">
-          <button class="viz-btn" id="hash-step">Neste steg</button>
-          <button class="viz-btn ghost" id="hash-reset">Nullstill</button>
-          <span class="viz-status" id="hash-status">Fase: build</span>
-        </div>
-      </div>
-
-      <h3>Grace hash join</h3>
-      <p>Når den lille tabellen ikke får plass i RAM, partisjonerer vi <em>begge</em> tabeller med samme hash-funksjon i en forfase. Da er det nok å ha én partisjon i minnet om gangen — vanlig hash join på hver partisjon. I/O-kost: 3·(|R|+|S|).</p>
 
       <div class="callout">
-        <span class="label">Hash vs sort-merge</span>
-        <p>Hash er ofte raskere når én tabell er klart mindre, mens sort-merge skinner når begge er sortert eller når vi trenger sortert output uansett. Optimizeren regner kost for begge og velger.</p>
-      </div>
-
-      <div class="quiz inline" data-quiz>
-        <div class="q-label">Sjekk forståelsen</div>
-        <div class="q-text">Hash join er ikke nyttig for <em>ulikhets-join</em> som <code>R.x &lt; S.y</code>. Hvorfor?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi hash-strukturen gir oss <em>like</em> verdier i samme bucket. Den sier ingenting om hvilke verdier som er mindre eller større. Sort-merge fungerer for ulikhet (med litt modifikasjon), og nested loop fungerer alltid — men koster mer.</div>
-        </div>
+        <span class="label">Praktisk</span>
+        <p>Optimizeren velger algoritme basert på statistikk (tabellstørrelser, eksisterende indekser, sortering) og estimert I/O-kost. Nested loop dominerer fortsatt når en av tabellene er liten.</p>
       </div>
     </div>
   </section>
 
-  <!-- ──────────────────────── 08 KOSTNADSESTIMERING ──────────────────────── -->
+  <!-- ──────────────────────── 07 STATISTIKK & EXPLAIN ──────────────────────── -->
   <section id="kost">
     <div class="container">
-      <div class="section-badge">08 · Kostnadsestimering</div>
+      <div class="section-badge">07 · Statistikk &amp; EXPLAIN</div>
       <h2>Hvordan optimizeren <em>gjetter</em></h2>
-      <p>Optimizeren sammenligner planer, men har ikke kjørt dem ennå. Den må <em>estimere</em> kost basert på statistikk. Hva har den å jobbe med?</p>
+      <p>Optimizeren sammenligner planer uten å kjøre dem. Den må <em>estimere</em> kost basert på statistikk lagret i SQL-dictionaryet.</p>
 
       <h3>Statistikk i SQL-dictionaryet</h3>
       <ul>
-        <li><strong>n(R)</strong> — antall rader i R</li>
-        <li><strong>b(R)</strong> — antall blokker som inneholder R</li>
-        <li><strong>V(A, R)</strong> — antall distinkte verdier av attributt A i R</li>
-        <li><strong>min/max</strong> — for B+-indeksert attributt</li>
-        <li><strong>histogrammer</strong> — fordeling av verdier (bin-baserte estimater)</li>
-        <li><strong>Indeksinfo</strong>: høyde av B+-treet, om det er clustered, fyllgrad</li>
+        <li><strong>For hver tabell</strong>: antall rader, antall blokker.</li>
+        <li><strong>For hver indeks</strong>: antall nøkkelverdier, antall blokker, histogrammer.</li>
+        <li><strong>For hvert B+-tre</strong>: trehøyde, LowKey, HighKey, antall blokker.</li>
       </ul>
 
-      <h3>Selektivitet</h3>
-      <p>Selektivitet er andelen rader som passer et predikat. Optimizeren bruker enkle modeller:</p>
-      <ul>
-        <li><code>WHERE A = c</code> &nbsp;⇒&nbsp; sel ≈ 1 / V(A, R)</li>
-        <li><code>WHERE A &gt; c</code> &nbsp;⇒&nbsp; sel ≈ (max − c) / (max − min)</li>
-        <li><code>WHERE p₁ AND p₂</code> &nbsp;⇒&nbsp; sel ≈ sel(p₁) · sel(p₂) (antar uavhengighet)</li>
-      </ul>
+      <p>Med disse tallene kan optimizeren estimere antall blokk-aksesser for hver kandidatplan og velge den billigste.</p>
 
-      <div class="callout callout-blue">
-        <span class="label">Histogrammer</span>
-        <p>Den enkle min/max-formelen feiler når data er skjev. Histogrammer deler verdiområdet i bins og lagrer telling pr. bin — selektiviteten regnes pr. bin og summeres. Det er hovedgrunnen til at <code>ANALYZE</code> i moderne databaser samler histogrammer.</p>
-      </div>
+      <h3>EXPLAIN i MySQL</h3>
+      <p>Når noe går tregt, er <code>EXPLAIN</code> verktøyet for å se hva optimizeren faktisk har valgt — uten å kjøre spørringen.</p>
+
+      <pre class="plan-tree">mysql&gt; explain select * from reg natural join loper;
++----+-------------+-------+------+---------+------+----------+---------+
+| id | select_type | table | type | key     | rows | filtered | Extra   |
++----+-------------+-------+------+---------+------+----------+---------+
+|  1 | SIMPLE      | loper | ALL  | PRIMARY |    3 |   100.00 | NULL    |
+|  1 | SIMPLE      | reg   | ALL  | NULL    |   10 |    10.00 | Using   |
+|    |             |       |      |         |      |          | join    |
+|    |             |       |      |         |      |          | buffer  |
++----+-------------+-------+------+---------+------+----------+---------+</pre>
+
+      <p><code>type = ALL</code> betyr full table scan. MySQL leser tabellene i den oppgitte rekkefølgen og bruker join-buffer (hash join) når ingen indeks er tilgjengelig.</p>
 
       <div class="quiz inline" data-quiz>
         <div class="q-label">Sjekk forståelsen</div>
         <div class="q-text">Optimizeren estimerer 100 rader — i virkeligheten kommer det 1 million. Hva er den vanligste konsekvensen?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Den valgte planen er ofte feil — typisk en nested loop som var billig for 100 rader, men forferdelig for 1M (kvadratisk eksplosjon). Symptom: spørringen som vanligvis tar 50&nbsp;ms tar plutselig minutter. Fix: <code>ANALYZE</code> for å oppdatere statistikk, eller sjekke om histogrammer er utdaterte.</div>
+          <div class="answer">Den valgte planen er ofte feil — typisk en nested loop som var billig for 100 rader, men forferdelig for 1M (kvadratisk eksplosjon). Statistikk må holdes oppdatert for at optimizeren skal velge riktig.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ──────────────────────── 09 EXPLAIN ──────────────────────── -->
-  <section id="explain">
-    <div class="container">
-      <div class="section-badge">09 · EXPLAIN</div>
-      <h2>Be databasen <em>vise planen</em></h2>
-      <p>Når noe går tregt, er <code>EXPLAIN</code> det viktigste verktøyet. Den lar deg se eksakt hva optimizeren har valgt — uten å kjøre spørringen — og <code>EXPLAIN ANALYZE</code> kjører den i tillegg og rapporterer faktisk tid.</p>
-
-      <h3>Eksempel-plan</h3>
-      <pre class="plan-tree"><span class="op">HashJoin</span>  <span class="cost">(cost=1245.00..1899.32 rows=4500)</span>
-  Hash Cond: (e.depno = d.dno)
-  <span class="arrow">→</span> <span class="op">SeqScan</span> on <span class="tbl">employee e</span>  <span class="cost">(cost=0..961 rows=100000)</span>
-  <span class="arrow">→</span> <span class="op">Hash</span>  <span class="cost">(cost=10.50..10.50 rows=1)</span>
-        <span class="arrow">→</span> <span class="op">IndexScan</span> using <span class="tbl">dept_name_idx</span> on <span class="tbl">department d</span>
-              Index Cond: (dname = 'Sales')</pre>
-
-      <h3>Hvordan lese treet</h3>
-      <ul>
-        <li><strong>Rotnode</strong> er øverst og produserer det endelige resultatet.</li>
-        <li><strong>Innrykk</strong> = barn. Barna leverer rader til foreldrene.</li>
-        <li><code>cost</code> har to tall: oppstart..total, i pseudo-units.</li>
-        <li><code>rows</code> er optimizerens estimat — sammenlign med faktisk fra <code>ANALYZE</code>.</li>
-      </ul>
-
-      <div class="callout">
-        <span class="label">Praktisk tips</span>
-        <p>Det viktigste å sjekke i en EXPLAIN ANALYZE: <em>store avvik</em> mellom estimerte og faktiske rader. Et estimat på 10 rader som faktisk gir 100 000 betyr at planen er valgt på sviktende grunnlag — kjør <code>ANALYZE</code> på tabellen.</p>
-      </div>
-
-      <div class="quiz inline" data-quiz>
-        <div class="q-label">Sjekk forståelsen</div>
-        <div class="q-text">Du ser en plan med <code>SeqScan</code> på en tabell med 5 millioner rader, men du har en indeks på filterkolonnen. Hva kan være årsaken?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Mange muligheter: (1) selektiviteten er for lav — predikatet matcher så mange rader at full scan er billigere, (2) indeksen er unclustered og predikatet treffer mange rader, (3) statistikken er utdatert og optimizeren tror tabellen er liten, (4) datatypen i predikatet matcher ikke indeksen (impliciit cast), (5) funksjonsbruk på kolonnen (<code>WHERE upper(name)=…</code>) hindrer indeksbruk.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ──────────────────────── 10 SLUTTQUIZ ──────────────────────── -->
+  <!-- ──────────────────────── 08 SLUTTQUIZ ──────────────────────── -->
   <section id="sluttquiz">
     <div class="container">
-      <div class="section-badge">10 · Sluttquiz</div>
+      <div class="section-badge">08 · Sluttquiz</div>
       <h2>Test deg selv på <em>hele</em> kapittelet</h2>
-      <p class="section-intro">Tolv blandet vanskelighetsspørsmål. Klikk «Se svar» når du har tenkt.</p>
+      <p class="section-intro">Blandet vanskelighet. Klikk «Se svar» når du har tenkt.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">1 · Lett · Helhetsbilde</div>
@@ -872,10 +748,10 @@
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">2 · Middels · Aksessmetoder</div>
-        <div class="q-text">Hvilke fire grunnleggende aksessmetoder finnes, og hva er forskjellen mellom <em>index scan</em> og <em>index-only scan</em>?</div>
+        <div class="q-label">2 · Lett · Aksessmetoder</div>
+        <div class="q-text">Hvilke aksessveier nevner pensum?</div>
         <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
-          <div class="answer">Full table scan, index scan, index-only scan, bitmap scan. Vanlig index scan finner RID-er i indeksen og besøker heap-fila for hver match. Index-only slipper heap-besøket fordi <em>alle</em> nødvendige kolonner ligger i indeksen — vesentlig billigere ved mange treff.</div>
+          <div class="answer">Filscan (tabellscan), indeksscan, range-scan, og indeks-lookup. Optimizeren velger den billigste basert på statistikk.</div>
         </div>
       </div>
 
@@ -928,34 +804,34 @@
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">9 · Middels · Sort-merge</div>
-        <div class="q-text">Når er sort-merge join klart raskere enn hash join?</div>
+        <div class="q-label">9 · Lett · Join-algoritmer</div>
+        <div class="q-text">Hvilke fire join-algoritmer nevner pensum? (J1–J4)</div>
         <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
-          <div class="answer">(a) Når begge tabeller allerede er sortert på join-attributtet — da unngår vi sort-fasen helt. (b) Når resultatet uansett skal sorteres (ORDER BY på join-attributtet). Hash mister disse fordelene fordi den må regenerere sortert orden.</div>
+          <div class="answer">J1: Nested-loop join. J2: Single-loop / index nested loop. J3: Sort-merge join. J4: Partition-hash join. Pensum behandler J1 i detalj; resten kun konseptuelt.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">10 · Vanskelig · Hash join</div>
-        <div class="q-text">Hvorfor velger man å bygge hash-tabellen på den <em>minste</em> tabellen?</div>
+        <div class="q-label">10 · Middels · Index nested loop</div>
+        <div class="q-text">I hvilken situasjon er index nested loop typisk raskere enn vanlig block nested loop?</div>
         <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
-          <div class="answer">Hash-tabellen må holdes i minnet (i klassisk hash join). Mindre build-side ⇒ får plass i mindre buffer ⇒ unngår grace-fasen og I/O-kost ved partisjonering. Build-fasen er én scan av build-side; probe-fasen er én scan av probe-side. Strukturelt symmetrisk i I/O, men hash-tabellens minneforbruk avgjør hvilken side som passer.</div>
+          <div class="answer">Når indre tabell har en indeks på join-attributtet og ytre tabell er liten. Da slipper vi å scanne indre — vi gjør ett indeks-lookup per rad i ytre, hver til kostnad ~3–4 blokker (B+-tre-høyde + radblokk).</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">11 · Middels · Selektivitet</div>
-        <div class="q-text">Tabellen har V(<code>city</code>) = 50 distinkte byer. Estimer selektiviteten av <code>WHERE city = 'Trondheim'</code> uten histogram.</div>
+        <div class="q-label">11 · Middels · Statistikk</div>
+        <div class="q-text">Hvilken type statistikk lagres for et B+-tre i SQL-dictionaryet?</div>
         <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
-          <div class="answer">sel ≈ 1/50 = 0.02 (2 %). Antakelsen er <em>uniform fordeling</em> — den feiler om Oslo har halvparten av radene. Det er nettopp slik skjevhet histogrammer fanger opp.</div>
+          <div class="answer">Trehøyde, LowKey og HighKey (laveste/høyeste nøkkel), antall blokker. Optimizeren bruker dette til å estimere kostnaden for indeks-lookup, range-scan og indeksscan.</div>
         </div>
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">12 · Vanskelig · EXPLAIN</div>
-        <div class="q-text">EXPLAIN ANALYZE viser <code>rows=12</code> men <code>actual rows=180000</code> for et SeqScan-trinn. Hva er konsekvensen lenger oppe i planen, og hva gjør du?</div>
+        <div class="q-label">12 · Lett · EXPLAIN</div>
+        <div class="q-text">I MySQL EXPLAIN står det <code>type = ALL</code>. Hva betyr det?</div>
         <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
-          <div class="answer">Optimizeren har valgt videre planoperatorer (typisk en nested loop) basert på troen om at output er &lt; 20 rader. Med 180 000 rader får man kvadratisk eksplosjon i øvre nivå. Tiltak: kjør <code>ANALYZE table</code> for å oppdatere statistikk, vurder histogram med flere bins, og se om predikatet bruker funksjon/cast som hindrer indeksbruk.</div>
+          <div class="answer">Full table scan — MySQL leser hele tabellen blokk for blokk fordi ingen brukbar indeks finnes for spørringen.</div>
         </div>
       </div>
 
@@ -1125,166 +1001,6 @@
   render();
 })();
 
-// ─────────── SORT-MERGE JOIN ANIMATION ───────────
-(function () {
-  var rEl = document.getElementById('sm-R');
-  var sEl = document.getElementById('sm-S');
-  var counterEl = document.getElementById('sm-counter');
-  var statusEl = document.getElementById('sm-status');
-  if (!rEl) return;
-
-  var R = [{k:2,v:'a'},{k:5,v:'b'},{k:5,v:'c'},{k:8,v:'d'},{k:11,v:'e'}];
-  var S = [{k:3,v:'X'},{k:5,v:'Y'},{k:7,v:'Z'},{k:8,v:'W'},{k:8,v:'V'}];
-
-  var i = 0, j = 0, matches = 0, done = false;
-  // Mark match-rows after full algorithm so highlight persists
-  var matchedR = new Set(), matchedS = new Set();
-
-  function render() {
-    var rh = '';
-    R.forEach(function(r, idx){
-      var cls = 'sm-row';
-      if (idx === i && !done) cls += ' cursor-r';
-      if (matchedR.has(idx)) cls += ' match';
-      rh += '<div class="'+cls+'"><div class="sm-pointer"></div><div class="sm-key">'+r.k+'</div><div>'+r.v+'</div></div>';
-    });
-    rEl.innerHTML = rh;
-
-    var sh = '';
-    S.forEach(function(s, idx){
-      var cls = 'sm-row';
-      if (idx === j && !done) cls += ' cursor-s';
-      if (matchedS.has(idx)) cls += ' match';
-      sh += '<div class="'+cls+'"><div class="sm-pointer"></div><div class="sm-key">'+s.k+'</div><div>'+s.v+'</div></div>';
-    });
-    sEl.innerHTML = sh;
-    counterEl.innerHTML = 'Match-par funnet: <strong>'+matches+'</strong>';
-  }
-
-  function step() {
-    if (done) return;
-    if (i >= R.length || j >= S.length) {
-      done = true; statusEl.textContent = 'Ferdig'; render(); return;
-    }
-    if (R[i].k < S[j].k) {
-      i++; statusEl.textContent = 'R[i] < S[j] → i++';
-    } else if (R[i].k > S[j].k) {
-      j++; statusEl.textContent = 'R[i] > S[j] → j++';
-    } else {
-      // Match. Emit alle (R[i], S[j']) hvor S[j'].k == R[i].k. For enkelhets skyld emit én og avanser j.
-      matchedR.add(i); matchedS.add(j); matches++;
-      // Look ahead i S for flere med samme k
-      var k = R[i].k;
-      var j2 = j + 1;
-      while (j2 < S.length && S[j2].k === k) {
-        matchedS.add(j2); matches++; j2++;
-      }
-      statusEl.textContent = 'Match k='+k+' — emit, avanser i';
-      i++;
-    }
-    if (i >= R.length || j >= S.length) done = true;
-    render();
-  }
-
-  function reset() {
-    i = 0; j = 0; matches = 0; done = false;
-    matchedR = new Set(); matchedS = new Set();
-    statusEl.textContent = 'i=0, j=0';
-    render();
-  }
-
-  document.getElementById('sm-step').addEventListener('click', step);
-  document.getElementById('sm-reset').addEventListener('click', reset);
-  render();
-})();
-
-// ─────────── HASH JOIN ANIMATION ───────────
-(function () {
-  var rEl = document.getElementById('hash-R');
-  var sEl = document.getElementById('hash-S');
-  var hEl = document.getElementById('hash-table');
-  var counterEl = document.getElementById('hash-counter');
-  var statusEl = document.getElementById('hash-status');
-  if (!rEl) return;
-
-  var R = [{k:3,v:'Ada'},{k:7,v:'Bob'},{k:11,v:'Cleo'},{k:14,v:'Dan'}];
-  var S = [{k:7,v:'X'},{k:5,v:'Y'},{k:11,v:'Z'},{k:3,v:'W'},{k:9,v:'V'}];
-  var BUCKETS = 4;
-  function h(k){ return k % BUCKETS; }
-
-  var phase = 'build', buildIdx = 0, probeIdx = 0;
-  var table = {}; for (var b = 0; b < BUCKETS; b++) table[b] = [];
-  var hits = 0;
-  var lastProbeBucket = -1;
-
-  function render() {
-    // R column
-    var rh = '';
-    R.forEach(function(r, idx){
-      var cls = 'hash-bucket';
-      if (phase === 'build' && idx === buildIdx - 1) cls += ' hit';
-      rh += '<div class="'+cls+'">'+r.k+': '+r.v+'  <span style="color:var(--ink-faded)">→ b'+h(r.k)+'</span></div>';
-    });
-    rEl.innerHTML = rh;
-
-    // Hash table
-    var hh = '';
-    for (var b = 0; b < BUCKETS; b++) {
-      var cls = 'hash-bucket';
-      if (b === lastProbeBucket) cls += ' hit';
-      hh += '<div class="'+cls+'"><strong>b'+b+'</strong>: ';
-      hh += table[b].map(function(e){ return e.k+':'+e.v; }).join(', ') || '<em style="color:var(--ink-faded)">—</em>';
-      hh += '</div>';
-    }
-    hEl.innerHTML = hh;
-
-    // S column
-    var sh = '';
-    S.forEach(function(s, idx){
-      var cls = 'hash-bucket';
-      if (phase === 'probe' && idx === probeIdx - 1) cls += ' hit';
-      sh += '<div class="'+cls+'">'+s.k+': '+s.v+'  <span style="color:var(--ink-faded)">→ b'+h(s.k)+'</span></div>';
-    });
-    sEl.innerHTML = sh;
-
-    counterEl.innerHTML = 'Build: <strong>'+buildIdx+'</strong> rader · Probe-treff: <strong>'+hits+'</strong>';
-    statusEl.textContent = 'Fase: '+phase;
-  }
-
-  function step() {
-    if (phase === 'build') {
-      if (buildIdx < R.length) {
-        var r = R[buildIdx];
-        table[h(r.k)].push(r);
-        buildIdx++;
-        lastProbeBucket = -1;
-        if (buildIdx === R.length) phase = 'probe';
-      }
-    } else if (phase === 'probe') {
-      if (probeIdx < S.length) {
-        var s = S[probeIdx];
-        var b = h(s.k);
-        lastProbeBucket = b;
-        // Count hits
-        table[b].forEach(function(e){ if (e.k === s.k) hits++; });
-        probeIdx++;
-        if (probeIdx === S.length) phase = 'ferdig';
-      }
-    }
-    render();
-  }
-
-  function reset() {
-    phase = 'build'; buildIdx = 0; probeIdx = 0; hits = 0;
-    table = {}; for (var b = 0; b < BUCKETS; b++) table[b] = [];
-    lastProbeBucket = -1;
-    render();
-  }
-
-  document.getElementById('hash-step').addEventListener('click', step);
-  document.getElementById('hash-reset').addEventListener('click', reset);
-  render();
-})();
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>

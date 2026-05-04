@@ -225,7 +225,7 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
           <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Inkonsistent / feil resultat — schedulen er ikke serializable</span></div>
           <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Phantom read</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Lost update</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Dirty write</span></div>
         </div>
         <div class="mcq-feedback">
           <strong>Ikke-serializable.</strong> «Dirty read» ville krevd at T2 leste en <em>uncommitted</em> verdi fra T1 — her leste T2 bare gamle (committed) verdier. Likevel er resultatet ikke ekvivalent med noen seriell ordning. Vi skal lære navnet på de spesifikke anomaliene i 8B; her holder det å se at <em>noe</em> er galt.

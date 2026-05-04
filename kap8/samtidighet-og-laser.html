@@ -73,72 +73,71 @@
           <p>T2 leser en verdi T1 har skrevet, men ikke committed. Hvis T1 aborter, har T2 jobbet på en fantasi-verdi.</p>
         </div>
         <div class="anomaly-card">
-          <h4>Lost update</h4>
-          <p>T1 og T2 leser samme verdi, modifiserer hver sin kopi, og skriver tilbake. Den som skriver sist «vinner» — den andres oppdatering forsvinner.</p>
+          <h4>Dirty write</h4>
+          <p>T2 skriver over en verdi T1 har skrevet uten å ha lest den. Når begge transaksjoner skriver flere objekter, kan resultatet bli inkonsistent — som om delene kommer fra forskjellige transaksjoner.</p>
         </div>
         <div class="anomaly-card">
-          <h4>Non-repeatable read</h4>
+          <h4>Unrepeatable read (read skew)</h4>
           <p>T1 leser X to ganger. Mellom de to leseoperasjonene har T2 oppdatert X og committed. T1 ser to ulike verdier i samme transaksjon.</p>
         </div>
         <div class="anomaly-card">
+          <h4>Incorrect summary</h4>
+          <p>T1 beregner en aggregat (sum, count, avg) over et datasett mens T2 oppdaterer noen av elementene. Resultatet er hverken før- eller etter-bildet — det er en blanding.</p>
+        </div>
+        <div class="anomaly-card">
           <h4>Phantom read</h4>
-          <p>T1 utfører en spørring to ganger. Mellom dem har T2 satt inn en ny rad som matcher predikatet. Den «dukker opp» i andre kjøring.</p>
+          <p>T1 utfører en spørring to ganger. Mellom dem har T2 satt inn en ny rad som matcher predikatet. Den «dukker opp» i andre kjøring. Krever range-/predikatlåser for å unngå.</p>
         </div>
       </div>
 
-      <h3 style="margin-top:1.6rem;">Eksempel — Lost update</h3>
-      <p>Begge transaksjonene leser samme initial verdi <code>X = 100</code> og legger til 10:</p>
+      <h3 style="margin-top:1.6rem;">Eksempel — Dirty write</h3>
+      <p>To transaksjoner registrerer samme salg, men fletter operasjonene slik at <em>buyer</em> og <em>invoice</em> ender opp ulike — Bob får varen, Alice får regningen:</p>
 
       <div class="tx-stepper" data-stepper
         data-narrations='[
-          "Start: X = 100. Begge transaksjoner skal legge til 10.",
-          "T1 leser X = 100.",
-          "T2 leser X = 100. (Begge har samme lokale kopi nå.)",
-          "T1 skriver X = 100 + 10 = 110.",
-          "T1 commit.",
-          "T2 skriver X = 100 + 10 = 110. (Basert på den gamle leste verdien.)",
-          "T2 commit. Sluttverdi X = 110, men forventet X = 120. T1 sin oppdatering ble overskrevet — lost update."
+          "Start: tom database. T1 vil registrere salg til Alice; T2 registrerer salg til Bob.",
+          "T1 skriver buyer = Alice.",
+          "T2 skriver buyer = Bob (overskriver Alice uten å lese).",
+          "T2 skriver invoice = Bob.",
+          "T1 skriver invoice = Alice (overskriver Bob).",
+          "Resultat: buyer=Bob, invoice=Alice. Inkonsistent — Bob får varen, Alice får regningen."
         ]'
         data-states='[
-          {"X":"100"},
-          {"X":"100"},
-          {"X":"100"},
-          {"X":"110"},
-          {"X":"110"},
-          {"X":"110"},
-          {"X":"110"}
+          {"buyer":"—","invoice":"—"},
+          {"buyer":"Alice","invoice":"—"},
+          {"buyer":"Bob","invoice":"—"},
+          {"buyer":"Bob","invoice":"Bob"},
+          {"buyer":"Bob","invoice":"Alice"},
+          {"buyer":"Bob","invoice":"Alice"}
         ]'>
 
         <div class="tx-timeline">
           <div class="tx-head">Steg</div><div class="tx-head">T1</div><div class="tx-head">T2</div>
 
           <div class="tx-step">1</div>
-          <div class="tx-cell has-op">r1(X) → 100</div>
+          <div class="tx-cell write">w1(buyer = Alice)</div>
           <div class="tx-cell empty">·</div>
 
           <div class="tx-step">2</div>
           <div class="tx-cell empty">·</div>
-          <div class="tx-cell has-op">r2(X) → 100</div>
+          <div class="tx-cell write">w2(buyer = Bob)</div>
 
           <div class="tx-step">3</div>
-          <div class="tx-cell write">w1(X = 110)</div>
           <div class="tx-cell empty">·</div>
+          <div class="tx-cell write">w2(invoice = Bob)</div>
 
           <div class="tx-step">4</div>
-          <div class="tx-cell commit">c1</div>
+          <div class="tx-cell write">w1(invoice = Alice)</div>
           <div class="tx-cell empty">·</div>
 
           <div class="tx-step">5</div>
-          <div class="tx-cell empty">·</div>
-          <div class="tx-cell write">w2(X = 110)</div>
-
-          <div class="tx-step">6</div>
-          <div class="tx-cell empty">·</div>
+          <div class="tx-cell commit">c1</div>
           <div class="tx-cell commit">c2</div>
         </div>
 
         <div class="state-display">
-          <div class="state-box" data-state="X"><span class="state-label">X</span><span class="state-value">100</span></div>
+          <div class="state-box" data-state="buyer"><span class="state-label">buyer</span><span class="state-value">—</span></div>
+          <div class="state-box" data-state="invoice"><span class="state-label">invoice</span><span class="state-value">—</span></div>
         </div>
 
         <div class="tx-stepper-narration">Trykk «Neste» for å starte.</div>
@@ -147,7 +146,7 @@
           <button data-step-prev>‹ Forrige</button>
           <button data-step-next>Neste ›</button>
           <button data-step-reset style="background:var(--ink-faded)">Nullstill</button>
-          <span class="step-counter">Steg 0 / 6</span>
+          <span class="step-counter">Steg 0 / 5</span>
         </div>
       </div>
 
@@ -156,12 +155,12 @@
         <div class="q-text">En transaksjon T1 utfører <code>SELECT COUNT(*) FROM ordrer WHERE status='ny'</code> to ganger. Mellom de to kjøringene har T2 satt inn en ny ordre med <code>status='ny'</code>. Hvilken anomali er dette?</div>
         <div class="mcq-options">
           <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Lost update</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Non-repeatable read</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Dirty write</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Unrepeatable read</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">D</span><span>Phantom read</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Non-repeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em>, ikke bare radlåser.
+          <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Unrepeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em>, ikke bare radlåser.
         </div>
       </div>
     </div>
@@ -473,8 +472,8 @@
       <p>PostgreSQL, Oracle, SQL Server (RCSI), MySQL/InnoDB — alle bruker MVCC. Det er <em>de-facto</em> i moderne SQL.</p>
 
       <div class="callout">
-        <span class="label">Snapshot ≠ serializable</span>
-        <p>Snapshot isolation hindrer dirty/non-repeatable/phantom reads, men har sin egen anomali — <strong>write skew</strong>: to transaksjoner leser overlappende sett, hver skriver inn i sitt eget delsett basert på det den leste, og resultatet er inkonsistent. PostgreSQL «Serializable Snapshot Isolation» (SSI) løser det med ekstra konflikt-deteksjon.</p>
+        <span class="label">Snapshot isolation i praksis</span>
+        <p>Snapshot isolation brukes av PostgreSQL, MySQL/InnoDB, Oracle, SQL Server m.fl. Tradisjonell MVCC ble basert på <em>tidsstempelordning</em>; moderne databaser kaller løsningen sin SNAPSHOT ISOLATION og bruker write-låser kombinert med versjonering av skrevne rader.</p>
       </div>
     </div>
   </section>
@@ -490,14 +489,14 @@
         <table>
           <thead>
             <tr>
-              <th>Level</th><th>Dirty read</th><th>Non-repeatable</th><th>Phantom</th><th>Typisk implementasjon</th>
+              <th>Level</th><th>Dirty read</th><th>Unrepeatable read</th><th>Phantom</th><th>Typisk implementasjon</th>
             </tr>
           </thead>
           <tbody>
             <tr><td><strong>READ UNCOMMITTED</strong></td><td class="yes">Ja</td><td class="yes">Ja</td><td class="yes">Ja</td><td>Ingen leselåser</td></tr>
             <tr><td><strong>READ COMMITTED</strong></td><td class="none">Nei</td><td class="yes">Ja</td><td class="yes">Ja</td><td>X-låser, korte S-låser, <em>eller</em> snapshot</td></tr>
             <tr><td><strong>REPEATABLE READ</strong></td><td class="none">Nei</td><td class="none">Nei</td><td class="maybe">Avhenger</td><td>Strict 2PL på leste rader, <em>eller</em> snapshot</td></tr>
-            <tr><td><strong>SERIALIZABLE</strong></td><td class="none">Nei</td><td class="none">Nei</td><td class="none">Nei</td><td>Strict 2PL m. range-låser, eller SSI</td></tr>
+            <tr><td><strong>SERIALIZABLE</strong></td><td class="none">Nei</td><td class="none">Nei</td><td class="none">Nei</td><td>Strict / rigorous 2PL m. range-låser</td></tr>
           </tbody>
         </table>
       </div>
@@ -508,7 +507,7 @@
       <p>Standarden er stort sett ikke fulgt i detaljer av leverandørene:</p>
       <ul>
         <li><strong>Oracle</strong> har ingen «REPEATABLE READ» — SERIALIZABLE er egentlig snapshot isolation.</li>
-        <li><strong>PostgreSQL</strong> sin REPEATABLE READ er snapshot isolation; SERIALIZABLE er SSI.</li>
+        <li><strong>PostgreSQL</strong> sin REPEATABLE READ er snapshot isolation.</li>
         <li><strong>MySQL InnoDB</strong> sin REPEATABLE READ tillater phantoms i noen tilfeller.</li>
       </ul>
       <p>Tommelfingerregel: les dokumentasjonen til <em>din</em> database før du stoler på navnet.</p>
@@ -523,7 +522,7 @@
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>SERIALIZABLE</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>REPEATABLE READ.</strong> Spørsmålet beskriver presist <em>non-repeatable read</em>. REPEATABLE READ er det laveste nivået som hindrer det. Phantoms ble eksplisitt sagt at vi tolererer, så SERIALIZABLE ville vært overkill.
+          <strong>REPEATABLE READ.</strong> Spørsmålet beskriver presist <em>unrepeatable read</em>. REPEATABLE READ er det laveste nivået som hindrer det. Phantoms ble eksplisitt sagt at vi tolererer, så SERIALIZABLE ville vært overkill.
         </div>
       </div>
     </div>
@@ -535,7 +534,7 @@
       <div class="section-badge">09 · Oppsummering</div>
       <h2>Kort oppsummert</h2>
       <ul>
-        <li>Fire klassiske <strong>anomalier</strong>: dirty read, lost update, non-repeatable read, phantom.</li>
+        <li>Klassiske <strong>anomalier</strong>: dirty read, dirty write, unrepeatable read, incorrect summary, phantom.</li>
         <li><strong>S/X-låser</strong> + kompatibilitetsmatrise styrer tilgang.</li>
         <li><strong>2PL</strong> (vokse-fase, krympe-fase) garanterer conflict-serializability.</li>
         <li><strong>Strict 2PL</strong> = standard i praksis: X-låser holdes til commit, gir cascadeless.</li>

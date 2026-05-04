@@ -81,9 +81,8 @@
         <a href="#innsetting"><span>05</span> Innsetting og splitt</a>
         <a href="#sletting"><span>06</span> Sletting</a>
         <a href="#cluster"><span>07</span> Clustered vs unclustered</a>
-        <a href="#sparse-dense"><span>08</span> Sparse vs dense</a>
-        <a href="#kompositt"><span>09</span> Komposittnøkler</a>
-        <a href="#kostnad"><span>10</span> Kostnadsregning</a>
+        <a href="#kompositt"><span>08</span> Komposittnøkler</a>
+        <a href="#kostnad"><span>09</span> Kostnadsregning</a>
       </nav>
     </div>
   </header>
@@ -603,109 +602,9 @@
   </section>
 
   <!-- ============= 08 ============= -->
-  <section id="sparse-dense">
-    <div class="container">
-      <div class="section-badge">08 · Sparse vs dense</div>
-      <h2>Én oppføring per record, eller per blokk</h2>
-
-      <p>To begreper som ofte forveksles, men dekker forskjellige ting:</p>
-
-      <div class="pros-cons">
-        <div class="key-card">
-          <h4 style="margin-top:0">Dense indeks</h4>
-          <p>Én indekspost per record i tabellen. Den er ofte stor, men nødvendig hvis indeksen ikke er på den fysiske sorteringsnøkkelen — vi kan ikke spare på posten siden vi ikke kan «hoppe inn i blokken» på en gjettet plass.</p>
-        </div>
-        <div class="key-card">
-          <h4 style="margin-top:0">Sparse indeks</h4>
-          <p>Én indekspost per <em>blokk</em>. Indeksposten har minste nøkkelen i blokken. Bare mulig hvis dataen er fysisk sortert — vi finner riktig blokk, leser den, og søker innenfor.</p>
-        </div>
-      </div>
-
-      <figure class="fig-frame">
-        <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
-          <!-- Sparse -->
-          <text x="20" y="20" font-family="IBM Plex Mono" font-size="11" fill="#1f4e79" font-weight="700">SPARSE — krever clustered data</text>
-          <g transform="translate(20,30)">
-            <rect width="60" height="24" fill="#e6edf6" stroke="#1f4e79"/>
-            <text x="30" y="16" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">2 →</text>
-            <rect x="64" width="60" height="24" fill="#e6edf6" stroke="#1f4e79"/>
-            <text x="94" y="16" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">14 →</text>
-            <rect x="128" width="60" height="24" fill="#e6edf6" stroke="#1f4e79"/>
-            <text x="158" y="16" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">27 →</text>
-          </g>
-          <g transform="translate(20,80)">
-            <rect width="60" height="40" fill="#e8e3d6" stroke="#6b6257"/>
-            <text x="30" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">2,5,7</text>
-            <text x="30" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">B12</text>
-            <rect x="64" width="60" height="40" fill="#e8e3d6" stroke="#6b6257"/>
-            <text x="94" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">14,16,22</text>
-            <text x="94" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">B07</text>
-            <rect x="128" width="60" height="40" fill="#e8e3d6" stroke="#6b6257"/>
-            <text x="158" y="18" text-anchor="middle" font-family="IBM Plex Mono" font-size="9">27,33,41</text>
-            <text x="158" y="32" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#6b6257">B33</text>
-          </g>
-          <line x1="50" y1="54" x2="50" y2="80" stroke="#1f4e79"/>
-          <line x1="94" y1="54" x2="94" y2="80" stroke="#1f4e79"/>
-          <line x1="158" y1="54" x2="158" y2="80" stroke="#1f4e79"/>
-
-          <text x="20" y="160" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">3 indeksposter for 9 records. Søk etter 16: finn høyeste oppføring ≤ 16 (=14), gå til den blokken, søk innenfor.</text>
-
-          <!-- Separator -->
-          <line x1="380" y1="20" x2="380" y2="180" stroke="#a39886" stroke-dasharray="4,4"/>
-
-          <!-- Dense -->
-          <text x="400" y="20" font-family="IBM Plex Mono" font-size="11" fill="#7a4a2d" font-weight="700">DENSE — funker både clustered og unclustered</text>
-          <g transform="translate(400,30)">
-            <g font-family="IBM Plex Mono" font-size="10">
-              <rect width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="17.5" y="16" text-anchor="middle">2</text>
-              <rect x="36" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="53.5" y="16" text-anchor="middle">5</text>
-              <rect x="72" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="89.5" y="16" text-anchor="middle">7</text>
-              <rect x="108" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="125.5" y="16" text-anchor="middle">14</text>
-              <rect x="144" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="161.5" y="16" text-anchor="middle">16</text>
-              <rect x="180" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="197.5" y="16" text-anchor="middle">22</text>
-              <rect x="216" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="233.5" y="16" text-anchor="middle">27</text>
-              <rect x="252" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="269.5" y="16" text-anchor="middle">33</text>
-              <rect x="288" width="35" height="24" fill="#e6edf6" stroke="#7a4a2d"/>
-              <text x="305.5" y="16" text-anchor="middle">41</text>
-            </g>
-          </g>
-          <text x="400" y="80" font-family="IBM Plex Mono" font-size="9" fill="#7a4a2d">↓ pekere til hver enkelt rad ↓</text>
-          <g transform="translate(400,90)">
-            <rect width="324" height="34" fill="#ddd5c4" stroke="#6b6257"/>
-            <text x="162" y="22" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#6b6257">heap (kan ligge i hvilken som helst rekkefølge)</text>
-          </g>
-          <text x="400" y="160" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">9 indeksposter for 9 records. Indeksen er større, men virker uavhengig av om dataen er sortert.</text>
-        </svg>
-      </figure>
-
-      <div class="callout">
-        <span class="label">Husk</span>
-        <p>Sekundærindekser er <strong>alltid dense</strong>. Hvorfor? Fordi de ikke styrer den fysiske sorteringen — det gjør clustered indeksen. En sparse sekundærindeks ville vært ubrukelig: hvilken blokk skulle den peke til, når dataen er sortert etter en annen nøkkel?</p>
-      </div>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 9 · Middels</div>
-        <div class="q-text">Hvorfor er en sparse indeks alltid mindre enn en dense indeks for samme tabell?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi sparse har <strong>én oppføring per blokk</strong> i stedet for én per record. Hvis hver blokk holder f.eks. 50 records, har en sparse indeks bare 1/50 så mange oppføringer. Dette gjør indeksen kompakt nok til å holdes i minnet, og treet blir lavere. Men den krever clustered fysisk lagring, så den er begrenset til primærnøkkelen i en clustered tabell.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============= 09 ============= -->
   <section id="kompositt">
     <div class="container">
-      <div class="section-badge">09 · Komposittnøkler</div>
+      <div class="section-badge">08 · Komposittnøkler</div>
       <h2>Når nøkkelen består av flere attributter</h2>
 
       <p>En sammensatt nøkkel som <code>(dno, age)</code> sorterer leksikografisk: først på dno, deretter på age innenfor samme dno. Dette har enorm konsekvens for hvilke spørringer som er raske.</p>
@@ -762,10 +661,10 @@
     </div>
   </section>
 
-  <!-- ============= 10 ============= -->
+  <!-- ============= 09 ============= -->
   <section id="kostnad">
     <div class="container">
-      <div class="section-badge">10 · Kostnadsregning</div>
+      <div class="section-badge">09 · Kostnadsregning</div>
       <h2>Eksempelet du må kunne på eksamen</h2>
 
       <p>Dette er Bratsbergs kanoniske eksempel. Lær å regne det — alle eksamensoppgaver om B+-trær følger samme mønster.</p>

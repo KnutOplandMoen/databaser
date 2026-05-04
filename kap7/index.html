@@ -50,9 +50,9 @@
       <p>I forrige kapittel så vi <em>hvor</em> data ligger — heap, B+-tre, hash. Nå ser vi hvordan databasen faktisk plukker dem opp og setter dem sammen.</p>
       <ul>
         <li>Optimizer velger plan, executor kjører den</li>
-        <li>Aksessmetoder: full scan, index scan, index-only scan, bitmap scan</li>
+        <li>Aksessveier: filscan, indeksscan, range-scan, indeks-lookup</li>
         <li>External merge sort — sortering når data er større enn RAM</li>
-        <li>Tre join-algoritmer: nested loop, sort-merge, hash join — hver med sine kostnadsprofiler</li>
+        <li>Fire join-algoritmer: nested loop (J1), index nested loop (J2), sort-merge (J3), partition-hash (J4)</li>
         <li>EXPLAIN viser den valgte planen og hjelper med feilsøking</li>
       </ul>
       <div class="callout callout-blue">
