@@ -72,7 +72,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 6 · 6B · Forelesning 12</div>
       <h1>B+-<em>trær</em> og indekser</h1>
-      <p class="lede">Bratsbergs notater kap 9–11. Hvorfor B+-treet er det udiskutable valget for sekundærlagring — og hvordan å regne kostnader på det.</p>
+      <p class="lede">Bratsbergs notater kap 9–11. Hvorfor B+-treet er det udiskutable valget for sekundærlagring (alt som ligger på disk, ikke i RAM) — og hvordan å regne kostnader på det.</p>
       <nav class="toc">
         <a href="#hvorfor-bplus"><span>01</span> Hvorfor B+ over B</a>
         <a href="#struktur"><span>02</span> Struktur</a>
@@ -93,10 +93,11 @@
     <div class="container">
       <div class="section-badge">01 · Hvorfor B+ over B</div>
       <h2>Bredde-først, ikke dybde-først</h2>
-      <p class="dropcap">Et binærtre i RAM har O(log₂ N) dybde — flott. Men på disk er hver tre-traversering en ny diskaksess, og log₂(1 000 000) = 20 disk-aksesser per oppslag er uakseptabelt. Løsningen: lag en node som er stor nok til å fylle en hel blokk, slik at den kan ha mange barn.</p>
+      <p class="dropcap">Et binærtre (hver node har 2 barn) i RAM har log₂ N nivåer — flott. Men på disk er hver tre-traversering en ny diskaksess, og log₂(1 000 000) = 20 disk-aksesser per oppslag er uakseptabelt. Løsningen: lag en node som er stor nok til å fylle en hel blokk, slik at den kan ha mange barn.</p>
 
       <div class="formula">
-        Med fanout f og N records:  høyden = ⌈log<sub>f</sub> N⌉
+        Med fanout <em>f</em> (antall barn per node) og <em>N</em> records:  høyden = ⌈log<sub>f</sub> N⌉
+        <br><span style="font-size:0.85em;color:var(--ink-faded)">(⌈x⌉ betyr «rund opp til nærmeste hele tall»)</span>
         <br><br>
         f = 200, N = 1 000 000   →  høyde ≈ 2.6  →  <strong>3 disk-aksesser</strong>
       </div>
@@ -109,8 +110,8 @@
 
       <p>Hvorfor er det bedre? To grunner:</p>
       <ol class="num-bullet">
-        <li><strong>Mindre interne noder</strong> — siden de bare holder nøkler + pekere, får de plass til mer per blokk → høyere fanout → kortere tre.</li>
-        <li><strong>Bladene kan lenkes sammen</strong> — sortert sekvens av alle records. Etter ett tre-oppslag kan vi følge bladlenkene sidelengs for å hente et range billig. Det kan ikke et B-tre gjøre.</li>
+        <li><strong>Mindre interne noder</strong> — siden de bare holder nøkler + pekere (ingen rad-data), får de plass til mer per blokk → høyere fanout → kortere tre.</li>
+        <li><strong>Bladene</strong> (de nederste nodene, der dataene faktisk ligger) <strong>kan lenkes sammen</strong> i en sortert sekvens av alle records. Etter ett tre-oppslag kan vi følge bladlenkene sidelengs for å hente et range billig. Det kan ikke et B-tre gjøre.</li>
       </ol>
 
       <div class="callout">
@@ -195,7 +196,7 @@
       <h3>Reglene som holder treet balansert</h3>
       <ul>
         <li>Hver node er <strong>én blokk</strong> (én disk-aksess å lese).</li>
-        <li>Orden d (= max antall pekere): <code>⌈d/2⌉ ≤ antall pekere ≤ d</code>.</li>
+        <li>Orden <em>d</em> = maks antall pekere (barn) hver node kan ha. Hver node må holde minst halve kapasiteten: <code>⌈d/2⌉ ≤ antall pekere ≤ d</code>.</li>
         <li>Dermed har hver intern node <code>⌈d/2⌉ − 1</code> til <code>d − 1</code> nøkler.</li>
         <li>Roten er unntak: kan ha så lite som 2 pekere (ellers ville ikke et tomt tre vært lov).</li>
         <li>Alle blader er på <strong>samme nivå</strong> — det gjør treet selvbalanserende.</li>
@@ -205,11 +206,11 @@
       <div class="pros-cons">
         <div class="key-card">
           <h4 style="margin-top:0">Clustered B+-tre</h4>
-          <p style="margin-bottom:0">Bladene <em>er</em> tabellen — de inneholder hele radene sortert etter nøkkelen. Brukes i MySQL InnoDB og Microsoft SQL Server (når en primary key er definert).</p>
+          <p style="margin-bottom:0">Bladene <em>er</em> tabellen — de inneholder hele radene sortert etter nøkkelen. Brukes i MySQL (når storage-motoren InnoDB brukes — standard) og Microsoft SQL Server (når en primærnøkkel er definert).</p>
         </div>
         <div class="key-card">
           <h4 style="margin-top:0">Unclustered B+-tre</h4>
-          <p style="margin-bottom:0">Bladene inneholder (nøkkel, RID) — pekere inn i en separat heapfil. Brukes i MyISAM, Postgres, og som «sekundærindeks» i alle DBMS-er.</p>
+          <p style="margin-bottom:0">Bladene inneholder (nøkkel, RID) — pekere inn i en separat heapfil. Brukes i MyISAM (eldre MySQL-engine), PostgreSQL, og som <em>sekundærindeks</em> (en ekstra indeks i tillegg til primærnøkkelen) i alle DBMS-er.</p>
         </div>
       </div>
 
@@ -230,7 +231,7 @@
       <div class="section-badge">03 · Søk</div>
       <h2>Topp ned, alltid til bladet</h2>
 
-      <p>Søkalgoritmen er ren rekursjon: i hver node, sammenlign nøkkelen med separator-nøklene og gå til riktig barn. Når du når bladet, gjør binærsøk innenfor blokken.</p>
+      <p>Søkalgoritmen er ren rekursjon: i hver node, sammenlign nøkkelen med separator-nøklene og gå til riktig barn. Når du når bladet, gjør binærsøk (halverende søk i sortert array — log<sub>2</sub>-tid) innenfor blokken.</p>
 
       <pre><code>function search(node, key):
   if node er blad:
@@ -321,13 +322,13 @@
           <input type="number" id="bpt-key" class="ctrl-input" placeholder="Nøkkel" min="1" max="999">
           <button class="ctrl-btn" id="bpt-insert">Sett inn</button>
           <button class="ctrl-btn" id="bpt-search">Søk</button>
-          <button class="ctrl-btn" id="bpt-demo">Kjør Bratsbergs eksempel</button>
+          <button class="ctrl-btn" id="bpt-demo">Kjør standard-eksempelet</button>
           <button class="ctrl-btn" id="bpt-reset">Tilbakestill</button>
         </div>
-        <div class="status-line" id="bpt-status">Tomt tre. Sett inn en nøkkel for å starte. Bratsbergs sekvens: 2, 5, 14, 22, 27, 33, 3, 7, 16, 24.</div>
+        <div class="status-line" id="bpt-status">Tomt tre. Sett inn en nøkkel for å starte. Eksempel-sekvensen fra notatene: 2, 5, 14, 22, 27, 33, 3, 7, 16, 24.</div>
       </div>
 
-      <p style="font-size:0.94rem;color:var(--ink-faded);margin-top:1rem"><em>Tips:</em> Kjør Bratsbergs eksempel-sekvens trinnvis (start med tilbakestilling, deretter sett inn 2, 5, 14, 22, 27, 33, 3, 7, 16, 24 i denne rekkefølgen) — du vil se nøyaktig de samme trinnene som notatene viser.</p>
+      <p style="font-size:0.94rem;color:var(--ink-faded);margin-top:1rem"><em>Tips:</em> Kjør eksempel-sekvensen fra notatene trinnvis (start med tilbakestilling, deretter sett inn 2, 5, 14, 22, 27, 33, 3, 7, 16, 24 i denne rekkefølgen) — du vil se nøyaktig de samme trinnene som kompendiet viser.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 4 · Vanskelig</div>
@@ -408,12 +409,12 @@
       </figure>
 
       <h3>Hvorfor splittes blokken før innsettingen, ikke etter?</h3>
-      <p>Bratsberg påpeker en nyanse: ved en split flyttes halvparten av nøklene til den nye blokken, deretter settes den nye nøkkelen inn i den blokken som har plass. Dette virker rart — hvorfor ikke bare splitte de 4 nøklene jevnt etterpå?</p>
+      <p>Notatene påpeker en nyanse (se kompendium-kap. 10): ved en split flyttes halvparten av nøklene til den nye blokken, deretter settes den nye nøkkelen inn i den blokken som har plass. Dette virker rart — hvorfor ikke bare splitte de 4 nøklene jevnt etterpå?</p>
       <p>Grunnen er <strong>recovery og update-håndtering</strong>:</p>
       <ul>
         <li>Splittet er en strukturell endring, uavhengig av selve innsettingen.</li>
-        <li>Hvis ein VARCHAR-update gjør en eksisterende record større slik at blokken blir for liten, må vi splitte uten at det er en ny nøkkel involvert.</li>
-        <li>Recovery-loggen kan da ha ett record for splitten og ett for innsettingen — separat redo og atomicitet.</li>
+        <li>Hvis en VARCHAR-update gjør en eksisterende record større slik at blokken blir for liten, må vi splitte uten at det er en ny nøkkel involvert.</li>
+        <li>Recovery-loggen (loggen brukt til å gjenopprette etter krasj — kap 8) kan da ha én post for splitten og én for innsettingen — separat redo og atomicitet.</li>
       </ul>
 
       <div class="quiz" data-quiz>
@@ -430,7 +431,7 @@
         <div class="q-text">Hvorfor er fyllingsgraden i et B+-tre statistisk 2/3 i stedet for 100 % når data settes inn i tilfeldig rekkefølge?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Hver gang en blokk splittes, halveres den. De to halvdelene fylles etter hvert opp av nye inserts, men i snitt vil fordelingen mellom «nettopp splittet (50 % full)» og «på vei til full (95 % full)» konvergere til ca. <strong>69 % = ln(2)</strong>. Bratsberg bruker 2/3 ≈ 67 % som praktisk approksimasjon. Hvis du derimot setter inn i strengt sortert rekkefølge (auto-increment ID), vil siste blokk alltid være den som splittes, og venstresiden blir 100 % full.</div>
+          <div class="answer">Hver gang en blokk splittes, halveres den. De to halvdelene fylles etter hvert opp av nye inserts, men i snitt vil fordelingen mellom «nettopp splittet (50 % full)» og «på vei til full (95 % full)» konvergere til ca. <strong>69 %</strong> (= ln(2) ≈ 0.693, et kjent matteresultat). Notatene bruker 2/3 ≈ 67 % som praktisk approksimasjon. Hvis du derimot setter inn i strengt sortert rekkefølge (auto-increment ID), vil siste blokk alltid være den som splittes, og venstresiden blir 100 % full.</div>
         </div>
       </div>
     </div>
@@ -442,7 +443,7 @@
       <div class="section-badge">06 · Sletting</div>
       <h2>Praktisk håndtering av sletting</h2>
 
-      <p>Pensum behandler ikke detaljert sletting — Bratsberg skriver eksplisitt at «we do not show deletions in B+-trees». Du skal kjenne hovedideen om hvordan slettinger håndteres i praksis.</p>
+      <p>Pensum behandler ikke detaljert sletting — notatene skriver eksplisitt at sletting ikke vises i detalj («we do not show deletions in B+-trees»). Du skal kjenne hovedideen om hvordan slettinger håndteres i praksis.</p>
 
       <ul>
         <li><strong>Compaction-tråd:</strong> Vanligst i praksis. En bakgrunnsprosess kompaktérer nivåer i treet og fjerner tomme blokker. Bruker-spørringer fortsetter mens dette skjer.</li>
@@ -451,7 +452,7 @@
 
       <div class="callout callout-blue">
         <span class="label">Pensum</span>
-        <p>Bratsberg dekker ikke detaljert sletting i kapittel 10 — kun det konseptuelle. På eksamen er fokuset på innsetting og søk.</p>
+        <p>Notatene dekker ikke detaljert sletting i kompendium-kap. 10 — kun det konseptuelle. På eksamen er fokuset på innsetting og søk.</p>
       </div>
 
       <div class="quiz" data-quiz>
@@ -578,7 +579,7 @@
             <tr><td>Maks per tabell</td><td>1</td><td>Mange</td></tr>
             <tr><td>Likhetssøk</td><td>Høyde av tre</td><td>Høyde + 1 (heap-aksess)</td></tr>
             <tr><td>Range-scan</td><td>Sekvensiell, super-rask</td><td>Random I/O i heap, kan være tregere enn full scan</td></tr>
-            <tr><td>Insert-kostnad</td><td>Splitt forplanter seg gjennom hele tabellen</td><td>Heap-insert er O(1), bare indeksen må oppdateres</td></tr>
+            <tr><td>Insert-kostnad</td><td>Splitt forplanter seg oppover i treet (kan gjøre treet høyere)</td><td>Heap-insert er O(1), bare indeksen må oppdateres</td></tr>
             <tr><td>Brukes i</td><td>InnoDB primary key, MS SQL Server clustered index</td><td>MyISAM, alle sekundærindekser</td></tr>
           </tbody>
         </table>
@@ -601,7 +602,7 @@
       <div class="section-badge">08 · Komposittnøkler</div>
       <h2>Når nøkkelen består av flere attributter</h2>
 
-      <p>En sammensatt nøkkel som <code>(dno, age)</code> sorterer leksikografisk: først på dno, deretter på age innenfor samme dno. Dette har enorm konsekvens for hvilke spørringer som er raske.</p>
+      <p>En sammensatt nøkkel som <code>(dno, age)</code> sorterer leksikografisk (som ord i en ordbok — først på dno, deretter på age innenfor samme dno). Dette har enorm konsekvens for hvilke spørringer som er raske.</p>
 
       <figure class="fig-frame">
         <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg">
@@ -776,14 +777,14 @@
       <div class="section-badge">10 · LSM-trær</div>
       <h2>Når <em>skriveytelse</em> betyr alt</h2>
 
-      <p>B+-trær er kongen for blandet read/write. Men når data strømmer inn raskere enn B+-treet klarer å absorbere — typisk i Big Data og NoSQL — bruker man <strong>LSM-trær</strong> (Log-Structured Merge tree).</p>
+      <p>B+-trær er kongen for blandet read/write. Men når data strømmer inn raskere enn B+-treet klarer å absorbere — typisk i Big Data-systemer og NoSQL-databaser (ikke-relasjonelle datalagre, som Cassandra og MongoDB) — bruker man <strong>LSM-trær</strong> (Log-Structured Merge tree).</p>
 
       <h3>Hovedidé: skriv stort, sjeldent</h3>
       <ul>
-        <li><strong>Memtable</strong> i RAM — alle nye inserts/updates havner først her, sortert (skiplist).</li>
-        <li><strong>WAL</strong> (Write-Ahead Log) — hver endring skrives også til en sekvensiell logg på disk for durability.</li>
-        <li>Når memtable blir full: <strong>flush</strong> til disk som en <strong>SST-fil</strong> (Sorted String Table). SST-filer er immutable.</li>
-        <li><strong>Compaction</strong> i bakgrunnen: SST-filer flettes nedover i nivåer (L0, L1, L2 …) og dupliserte/slettede entries fjernes.</li>
+        <li><strong>Memtable</strong> i RAM — alle nye inserts/updates havner først her, sortert (typisk implementert som en <em>skiplist</em>, en sortert datastruktur).</li>
+        <li><strong>WAL</strong> (Write-Ahead Log) — hver endring skrives også til en sekvensiell logg på disk for <em>durability</em> (varig lagring — endringer overlever krasj).</li>
+        <li>Når memtable blir full: <strong>flush</strong> til disk som en <strong>SST-fil</strong> (Sorted String Table). SST-filer er <em>immutable</em> (uforanderlige — skrives én gang, slettes hele).</li>
+        <li><strong>Compaction</strong> (samling) i bakgrunnen: SST-filer flettes nedover i nivåer (L0 = nyeste/minste filer rett under memtable, L1 = nivået under, osv.) og dupliserte/slettede entries fjernes.</li>
       </ul>
 
       <p>Resultatet er at de fleste skrivinger først treffer RAM, og disk-skrivinger skjer i store, sekvensielle bolker. <strong>Lav write amplification</strong> + <strong>høyere komprimering</strong> sammenlignet med B+-trær.</p>

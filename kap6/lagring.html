@@ -201,7 +201,7 @@
     <div class="container">
       <div class="section-badge">02 · Device og blokker</div>
       <h2>Hvor disken slutter og blokkene begynner</h2>
-      <p>Et <strong>device</strong> er enten en hel disk (raw partition) eller en stor fil i filsystemet. DBMS-en ser den som en lang vektor av blokker, indeksert med en <code>BlockId</code>.</p>
+      <p>Et <strong>device</strong> er enten en hel disk («raw partition» — disk uten filsystem oppå) eller en stor fil i filsystemet. DBMS-en ser den som en lang vektor av blokker, indeksert med en <code>BlockId</code> (et nummer som identifiserer én blokk).</p>
 
       <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;">
         <div class="key-card" style="background:var(--paper);border:1px solid var(--line-soft);border-radius:8px;padding:1rem 1.2rem;">
@@ -210,12 +210,12 @@
         </div>
         <div class="key-card" style="background:var(--paper);border:1px solid var(--line-soft);border-radius:8px;padding:1rem 1.2rem;">
           <h4 style="margin-top:0">SSD — flash</h4>
-          <p>Ingen mekaniske deler. Random read: <strong>~100 µs</strong>. Skriving krever blokk-erasure (write amplification). Begrenset levetid pr. celle.</p>
+          <p>Ingen mekaniske deler. Random read: <strong>~100 µs</strong>. Skriving krever at flash-cellen først nullstilles, og en liten endring kan tvinge ny-skrivning av en større enhet (kalt <em>write amplification</em>). Begrenset levetid pr. celle.</p>
         </div>
       </div>
 
       <h3>Hvordan en BlockId er bygget opp</h3>
-      <p>BlockId-en kombinerer hvilken disk og hvor i disken. Med 4 byte: 1 byte for deviceId + 3 byte for offset → <code>2<sup>24</sup></code> blokker per device. Med 16 KiB blokker blir det 256 GiB per device. 8-byte BlockIds spenner over alt vi trenger.</p>
+      <p>BlockId-en kombinerer hvilken disk og hvor i disken. Med 4 byte: 1 byte for deviceId + 3 byte for <em>offset</em> (posisjonen — hvor i disken, talt i blokker fra start) → <code>2<sup>24</sup></code> blokker per device. Med 16 KiB blokker blir det 256 GiB per device. 8-byte BlockIds spenner over alt vi trenger.</p>
 
       <figure class="fig-frame">
         <svg viewBox="0 0 720 140" xmlns="http://www.w3.org/2000/svg">
@@ -258,7 +258,7 @@
     <div class="container">
       <div class="section-badge">03 · Record-format</div>
       <h2>Tre måter å pakke en rad</h2>
-      <p>Når en tabell har <em>kun</em> fixed-length attributter (INT, CHAR(N), DATE), er hvert felt på fast offset. Da er decoding triviell. Men så kommer VARCHAR…</p>
+      <p>Når en tabell har <em>kun</em> fixed-length attributter (INT, CHAR(N), DATE — alle med kjent og fast lengde), ligger hvert felt på fast offset (samme byte-posisjon i hver record). Da er det enkelt å plukke ut feltet — bare hopp til riktig posisjon. Men så kommer VARCHAR (variabel-lengde tekst)…</p>
 
       <h3>Format 1 — Fixed length</h3>
       <figure class="fig-frame">
@@ -324,7 +324,7 @@
           <line x1="160" y1="50" x2="420" y2="50" stroke="#1f4e79" stroke-dasharray="2,2"/>
 
           <text x="20" y="85" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">Headeren har antall felt; deretter pekere til hvert felt. Feltene kan ha varierende lengde og komme i hvilken som helst rekkefølge i record-bytes.</text>
-          <text x="20" y="105" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">Almost self-describing — men type-info ligger fortsatt i SQL-katalogen.</text>
+          <text x="20" y="105" font-family="IBM Plex Sans" font-size="11" fill="#6b6257">Nesten selvbeskrivende — recorden bærer sin egen lengde, men typen til hvert felt slås fortsatt opp i SQL-katalogen.</text>
         </svg>
       </figure>
 
@@ -352,7 +352,7 @@
       </figure>
 
       <h3>Row store vs column store</h3>
-      <p>Tradisjonell DBMS bruker <strong>row store</strong>: hele raden som én record. Bra for OLTP der man jobber på enkelt-rader. <strong>Column store</strong> lagrer hver kolonne for seg — bra for analytiske queries (<code>SUM(salary)</code>, <code>AVG(age)</code>) der man kun trenger få kolonner men mange rader. Komprimerer også bedre fordi like verdier ligger sammen.</p>
+      <p>Tradisjonell DBMS bruker <strong>row store</strong>: hele raden som én record. Bra for OLTP-arbeidslast (Online Transaction Processing — typiske webapper med mange små inserts/updates på enkeltrader). <strong>Column store</strong> lagrer hver kolonne for seg — bra for analytiske queries (<code>SUM(salary)</code>, <code>AVG(age)</code>) der man kun trenger få kolonner men mange rader. Komprimerer også bedre fordi like verdier ligger sammen.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 3 · Middels</div>
@@ -389,6 +389,7 @@
           <!-- Header -->
           <rect x="40" y="20" width="640" height="36" fill="#1f4e79"/>
           <text x="50" y="42" font-family="IBM Plex Mono" font-size="11" fill="#f4f1ea">HEADER · BlockId · LSN · checksum · flip-stamp</text>
+          <text x="50" y="55" font-family="IBM Plex Sans" font-size="9" fill="#cad3e6">(LSN = Log Sequence Number, peker til loggposten · checksum mot bit-feil · flip-stamp mot torn writes)</text>
 
           <!-- Records (left, growing right) -->
           <g transform="translate(50,70)">
@@ -447,10 +448,11 @@
       </figure>
 
       <h3>Hvorfor er denne layouten genial?</h3>
+      <p style="margin-top:0.4rem"><em>Liten ordliste først:</em> Hver slot er et lite par <code>(pointer, lengde)</code> som peker til startposisjonen til en record inne i blokken.</p>
       <ul>
         <li><strong>RID forblir stabil ved kompaktering.</strong> Hvis vi sletter Record B og senere flytter C nedover for å fjerne hullet, oppdaterer vi bare slot[2].pointer. Indekser ute som peker til (BlockId, slot=2) virker fortsatt.</li>
         <li><strong>Slot directory kan sorteres etter nøkkel.</strong> Da kan vi binærsøke i directoriet — selv om de fysiske recordene ligger i innsettingsorden.</li>
-        <li><strong>Flip/flop-stempel</strong> ved start og slutt: ved en torn write hvor halve blokken har gammel data og halve har ny, vil de to stemplene være ulike. Da kan vi forkaste blokken som korrupt og hente fra log.</li>
+        <li><strong>Flip/flop-stempel</strong> ved start og slutt: ved en <em>torn write</em> («revet skriving» — for eksempel hvis strømmen forsvinner midt i blokk-skrivingen, slik at halve blokken har gammel data og halve ny), vil de to stemplene være ulike. Da kan vi forkaste blokken som korrupt og hente fra log.</li>
       </ul>
 
       <h3>Interaktivt — sett inn og slett records</h3>
@@ -472,7 +474,7 @@
         <div class="q-text">Hva er fordelen med flip/flop-stempel ved start og slutt av blokken — hva forhindrer det?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Det forhindrer at vi leser en <strong>halvskreven blokk</strong> (torn write). Hvis strømmen forsvinner midt under en blokk-skriving, kan halve blokken være ny og halve gammel. Stemplene oppdateres rett før hver skriving til samme verdi. Hvis vi etter en crash leser en blokk hvor stemplet i header ikke matcher stemplet i trailer, vet vi at den er korrupt og må gjenopprettes fra loggen (WAL).</div>
+          <div class="answer">Det forhindrer at vi leser en <strong>halvskreven blokk</strong> (torn write). Hvis strømmen forsvinner midt under en blokk-skriving, kan halve blokken være ny og halve gammel. Stemplene oppdateres rett før hver skriving til samme verdi. Hvis vi etter en crash leser en blokk hvor stemplet i header ikke matcher stemplet i trailer, vet vi at den er korrupt og må gjenopprettes fra loggen — sikkerhetslagrede endringer i en eget loggfil; reglene heter WAL og kommer i kap 8.</div>
         </div>
       </div>
 
@@ -492,7 +494,9 @@
     <div class="container">
       <div class="section-badge">05 · Buffer pool</div>
       <h2>Den eneste broen mellom RAM og disk</h2>
-      <p>Buffer pool-en er typisk svært stor — flere GB i serverdatabaser. Den fungerer som en cache: én gang en blokk er lest inn, kan flere transaksjoner og spørringer dele den. Hash-indeksert på BlockId for O(1) lookup.</p>
+      <p>Buffer pool-en er typisk svært stor — flere GB i serverdatabaser. Den fungerer som en cache (mellomlager) i RAM: én gang en blokk er lest inn fra disk, kan flere transaksjoner og spørringer dele den. For å finne en gitt blokk i bufferet brukes en hashtabell på BlockId — så lookup er konstant tid (O(1) — like raskt uansett hvor stort bufferet er).</p>
+
+      <p style="font-size:0.94rem; color: var(--ink-faded); margin-top:-0.3rem;"><strong>Liten ordliste:</strong> Et <em>frame</em> er én plass i bufferet, akkurat stor nok til én blokk. <em>pin-count</em> = hvor mange aktive brukere holder blokken låst i bufferet (kan ikke kastes ut når > 0). <em>Dirty</em> = endret siden den ble lest fra disk; må skrives tilbake før den kastes. <em>Eviction</em> = å kaste en blokk ut for å gjøre plass til en ny.</p>
 
       <figure class="fig-frame">
         <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg">
@@ -558,8 +562,8 @@
       <h3>Hva skjer når en blokk forespørres?</h3>
       <ol class="num-bullet">
         <li>Slå opp BlockId i hash-indeksen. <strong>Hit</strong> → returner pekeren til frame, øk pin-count, ferdig.</li>
-        <li><strong>Miss</strong> → må finne et ledig frame. Hvis ingen er tomme, velg et offer via erstatningsstrategi (LRU/MRU/clock). Offerets pin-count må være 0.</li>
-        <li>Hvis offeret er <em>dirty</em>, skriv først ut til disk (gjerne via WAL).</li>
+        <li><strong>Miss</strong> → må finne et ledig frame. Hvis ingen er tomme, velg en blokk å kaste ut («offer» eller eviction-kandidat) via erstatningsstrategien (LRU = kast eldste, MRU = kast nyeste, clock = billig tilnærming til LRU). Offerets pin-count må være 0.</li>
+        <li>Hvis offeret er <em>dirty</em>, må de endrede dataene først skrives ut til disk. Regelen som styrer dette heter WAL (Write-Ahead Logging) og forklares i kap. 8.</li>
         <li>Les den ønskede blokken inn i frame. Oppdater hash-indeksen. Returner.</li>
       </ol>
 
@@ -593,7 +597,7 @@
 
       <div class="callout">
         <span class="label">Hvorfor egen buffer?</span>
-        <p>OS-en har sin egen page cache, men den vet ikke at en sekvensiell scan forurenser cachen, eller at en hot indeks-rotnode bør pinnes. DBMS-en kjenner semantikken og kan prefetche, pinne, og force-skrive ved behov.</p>
+        <p>Operativsystemet har sin egen blokk-cache (page cache), men den vet ikke at en stor table scan «forurenser» cachen ved å fylle den med blokker som aldri leses igjen, eller at en mye-brukt rot-blokk i en indeks bør låses fast (pinnes) i bufferet. DBMS-en kjenner semantikken og kan prefetche (lese fram blokker den vet kommer), pinne, og tvinge skrivinger ved behov.</p>
       </div>
 
       <div class="quiz" data-quiz>
@@ -610,7 +614,7 @@
         <div class="q-text">En transaksjon endrer en blokk. Buffer pool-en velger denne blokken som offer i en eviction. Hva må DBMS-en gjøre <em>før</em> blokken skrives til disk, og hvorfor?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer"><strong>WAL — Write-Ahead Logging</strong>: DBMS-en må først tvinge ut alle log-records som beskriver endringene (opp til høyeste LSN på blokken). Hvis ikke: kræsj rett etter blokk-skrivingen ville etterlate datablokken med endringer som <em>ikke</em> ligger i loggen — recovery klarer da ikke å reprodusere transaksjonen. Loggen er sannhet, datablokken er bare en optimalisering.</div>
+          <div class="answer"><strong>WAL — Write-Ahead Logging</strong>: DBMS-en må først tvinge ut alle loggposter som beskriver endringene (opp til høyeste LSN — Log Sequence Number — på blokken). Hvis ikke: en kræsj rett etter blokk-skrivingen ville etterlate datablokken med endringer som <em>ikke</em> ligger i loggen — recovery (gjenoppretting etter krasj) klarer da ikke å reprodusere transaksjonen. Loggen er sannhet, datablokken er bare en optimalisering. (Disse begrepene utdypes i kap. 8 — Recovery. Her holder det å forstå sekvensen: logg først, datablokk siden.)</div>
         </div>
       </div>
     </div>
@@ -766,7 +770,7 @@
 
       <h3>Tre overflow-strategier</h3>
       <ol class="num-bullet">
-        <li><strong>Open addressing</strong>: prøv neste blokk (eller fast hopp). Enkelt, men gjør sletting komplisert.</li>
+        <li><strong>Open addressing</strong> (åpen adressering): prøv neste blokk (eller fast hopp). Enkelt, men gjør sletting komplisert.</li>
         <li><strong>Separat overflow</strong>: dedikerte overflow-blokker som bøtte-blokker peker til. Kan deles eller være per-bøtte.</li>
         <li><strong>Multiple hashing</strong>: bruk en alternativ hash-funksjon ved kollisjon. Distribuert overflow.</li>
       </ol>
@@ -792,12 +796,13 @@
     <div class="container">
       <div class="section-badge">08 · Extendible hashing</div>
       <h2>Hashing som vokser elegant</h2>
-      <p>Extendible hashing introduserer et lag mellom hash-verdien og blokken — en <strong>directory</strong>. Når en blokk fylles, dobles directory-en (eller bare blokken splittes), uten å rehasher hele filen.</p>
+      <p>Extendible hashing introduserer et lag mellom hash-verdien og blokken — en <strong>directory</strong> (oppslagstabell). Når en blokk fylles, dobles directory-en (eller bare blokken splittes), uten å rehasher hele filen.</p>
 
       <h3>Hovedideen — global vs. local depth</h3>
+      <p style="margin-top:0.4rem">Tenk på directoriet som et oppslagsbord der adressen er <em>d</em> siste bits av hashen.</p>
       <ul>
-        <li><strong>Global depth (d)</strong>: hvor mange bits av hashen som directory-en bruker for å indeksere.</li>
-        <li><strong>Local depth (d')</strong>: hvor mange bits hver enkelt blokk faktisk skiller på.</li>
+        <li><strong>Global depth (d)</strong>: hvor mange bits av hashen som directory-en bruker for å indeksere — altså hvor mange rader oppslagsbordet har (2<sup>d</sup>).</li>
+        <li><strong>Local depth (d')</strong>: hvor mange bits den enkelte blokken faktisk skiller på (siden flere directory-slots kan dele samme blokk).</li>
         <li>Når <em>d' &lt; d</em> for en blokk: flere directory-slots peker til samme blokk. Splitting skjer uten directory-doubling.</li>
         <li>Når <em>d' = d</em> og blokken splittes: directory må først dobles.</li>
       </ul>
