@@ -201,7 +201,7 @@
     <div class="container">
       <div class="section-badge">02 · Device og blokker</div>
       <h2>Hvor disken slutter og blokkene begynner</h2>
-      <p>Et <strong>device</strong> er enten en hel disk («raw partition» — disk uten filsystem oppå) eller en stor fil i filsystemet. DBMS-en ser den som en lang vektor av blokker, indeksert med en <code>BlockId</code> (et nummer som identifiserer én blokk).</p>
+      <p>Et <strong>device</strong> er enten en hel disk («raw partition» — disk uten filsystem oppå) eller en stor fil i filsystemet. DBMS-en deler denne lange byte-strømmen inn i <strong>blokker</strong> (også kalt <em>sider</em>/pages) — sammenhengende biter, typisk 4–32 KiB store. Blokken er DBMS-ens grunnleggende lese- og skrive-enhet mot disk: når DBMS-en trenger én rad, henter den hele blokken raden ligger i (en <em>diskaksess</em>). Hver blokk får et nummer kalt en <code>BlockId</code>.</p>
 
       <div class="two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;">
         <div class="key-card" style="background:var(--paper);border:1px solid var(--line-soft);border-radius:8px;padding:1rem 1.2rem;">
@@ -258,6 +258,7 @@
     <div class="container">
       <div class="section-badge">03 · Record-format</div>
       <h2>Tre måter å pakke en rad</h2>
+      <p>En <strong>record</strong> (rad) er én rad i tabellen, lagret som en sekvens bytes inne i en blokk. Hver record består av flere <strong>felt</strong> (kolonneverdier som <code>empno</code>, <code>name</code>, <code>age</code>). Hvordan disse bytene legges ved siden av hverandre avhenger av datatypene.</p>
       <p>Når en tabell har <em>kun</em> fixed-length attributter (INT, CHAR(N), DATE — alle med kjent og fast lengde), ligger hvert felt på fast offset (samme byte-posisjon i hver record). Da er det enkelt å plukke ut feltet — bare hopp til riktig posisjon. Men så kommer VARCHAR (variabel-lengde tekst)…</p>
 
       <h3>Format 1 — Fixed length</h3>

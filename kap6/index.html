@@ -76,7 +76,7 @@
       <h2>Hvorfor bryr vi oss om <em>hvor</em> dataen ligger?</h2>
       <p class="dropcap">Et SQL-spørsmål som <code>SELECT * FROM Employee WHERE empno = 4711</code> ser uskyldig ut. Bak kulissene må databasesystemet (forkortet <strong>DBMS</strong> — DataBase Management System) finne én rad blant millioner. Det kan ta 1 millisekund eller 10 sekunder — forskjellen ligger i <strong>hvordan dataene er lagret på disken</strong> og <strong>hvilke indekser</strong> (smarte oppslagsstrukturer) som finnes.</p>
 
-      <p>Et oppslag i RAM (arbeidsminnet) tar ~100 nanosekunder. Et tilfeldig oppslag på en HDD (mekanisk harddisk) tar ~10 millisekunder — fem størrelsesordener tregere. Så regelen er enkel: <strong>tell antall blokker du må lese fra disken</strong>. Det er nesten alltid den dominerende kostnaden. (En SSD — solid state drive — ligger et sted imellom.)</p>
+      <p>Et oppslag i RAM (arbeidsminnet) tar ~100 nanosekunder. Et tilfeldig oppslag på en HDD (mekanisk harddisk) tar ~10 millisekunder — fem størrelsesordener tregere. DBMS-en jobber derfor ikke med én rad om gangen mot disk; den henter <strong>blokker</strong> — sammenhengende bolker av bytes (typisk 4–32 KiB) som inneholder mange rader sammen. En slik henting kalles en <strong>diskaksess</strong>. Så regelen er enkel: <strong>tell antall blokker som må leses fra disken</strong> — det er nesten alltid den dominerende kostnaden. (En SSD — solid state drive — ligger et sted imellom RAM og HDD i fart.)</p>
 
       <div class="stat-row">
         <div class="stat-box">
@@ -105,6 +105,17 @@
       <div class="section-badge">02 · Hierarkiet</div>
       <h2>Fra <em>device</em> til <em>felt</em></h2>
       <p>Hele kapittelet henger på dette ene bildet. Hver «boks» kjenner bare boksene umiddelbart over og under seg. SQL-laget snakker om rader; lagringslaget snakker om blokker. Resten av kapittelet handler om hvordan disse to verdenene møtes.</p>
+
+      <div style="background: var(--paper-dark); padding: 1rem 1.2rem; border-radius: 6px; border-left: 3px solid var(--rust); margin: 1.2rem 0 1.4rem;">
+        <p style="margin-top:0; margin-bottom:0.6rem;"><strong>De fire byggesteinene, fra grovest til finest:</strong></p>
+        <ul style="margin:0; padding-left: 1.2rem;">
+          <li><strong>Device</strong> — en hel disk (SSD eller HDD), eller en stor fil på filsystemet som DBMS-en bruker som lagring.</li>
+          <li><strong>Blokk</strong> (også kalt <em>side</em>/page) — den minste enheten DBMS-en leser eller skriver. Typisk 4–32 KiB. Adresseres med en <em>BlockId</em> (deviceId + offset).</li>
+          <li><strong>Record</strong> (rad) — én rad i tabellen, lagret som en sekvens bytes <em>inne i en blokk</em>. Adresseres med en <em>RID</em> (Record IDentifier — en stabil peker, definert nedenfor).</li>
+          <li><strong>Felt</strong> (attributt/kolonne) — én verdi i en rad, for eksempel <code>empno</code> eller <code>name</code>. Kan ha fast lengde (<code>INT</code>, <code>CHAR(20)</code>) eller variabel (<code>VARCHAR</code>).</li>
+        </ul>
+        <p style="margin-top:0.7rem; margin-bottom:0;">I tillegg viser figuren <strong>buffer pool</strong> (RAM-cache av blokker — gjennomgås grundig i 6A § 05) og <strong>SQL-laget</strong> som ser bare rader og ikke vet noe om blokker.</p>
+      </div>
 
       <figure class="stack-fig">
         <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg" aria-labelledby="hierarki-title">
