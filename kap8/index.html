@@ -52,12 +52,12 @@
       <p class="dropcap">Tenk deg en bankoverføring: «trekk 100 kr fra konto A, sett 100 kr inn på konto B». To skriveoperasjoner. Hvis maskinen krasjer mellom dem, har banken nettopp slettet 100 kr av kundens penger — og 100 kr fra balansen. To samtidige overføringer kan også havne i klinsj og ende i tull selv uten krasj.</p>
       <p>En <strong>transaksjon</strong> er en logisk arbeidsenhet som binder slike steg sammen. Databasen lover fire ting:</p>
       <ul>
-        <li><strong>Alt eller ingenting</strong> — enten gjøres alle stegene, eller ingen.</li>
-        <li><strong>Konsistens bevares</strong> — integritetskrav (PK, FK, CHECK) holder etter commit.</li>
-        <li><strong>Som om alene</strong> — to samtidige transaksjoner skal ikke se hverandre halvferdige.</li>
-        <li><strong>Varig</strong> — etter commit overlever resultatet enhver krasj.</li>
+        <li><strong>Atomicity (alt eller ingenting)</strong> — enten gjøres alle stegene, eller ingen.</li>
+        <li><strong>Consistency (konsistens bevares)</strong> — integritetskrav (PK = primærnøkkel, FK = fremmednøkkel, CHECK-constraints) holder etter commit (= bekreftet ferdig).</li>
+        <li><strong>Isolation (som om alene)</strong> — to samtidige transaksjoner skal ikke se hverandre halvferdige.</li>
+        <li><strong>Durability (varig)</strong> — etter commit overlever resultatet enhver krasj.</li>
       </ul>
-      <p>Disse fire er kjent som <strong>ACID</strong>. Hele kapittel 8 forklarer hvordan databasen faktisk leverer dem.</p>
+      <p>Disse fire er kjent som <strong>ACID</strong> (forbokstavene). Hele kapittel 8 forklarer hvordan databasen faktisk leverer dem.</p>
     </div>
   </section>
 
@@ -87,13 +87,13 @@
           <!-- Scheduler / Concurrency -->
           <rect x="40" y="140" width="220" height="80" rx="6" fill="#fff4e0" stroke="#c68a1f" stroke-width="1.5"/>
           <text x="150" y="166" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Scheduler · Lock Manager</text>
-          <text x="150" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">2PL · MVCC · isolation</text>
+          <text x="150" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">låser og samtidighet (8B)</text>
           <text x="150" y="204" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="12" fill="#3d6b3a">Garanterer Isolation</text>
 
           <!-- Recovery -->
           <rect x="290" y="140" width="220" height="80" rx="6" fill="#f0e7da" stroke="#7a4a2d" stroke-width="1.5"/>
           <text x="400" y="166" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="#1a1612">Recovery Manager</text>
-          <text x="400" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">WAL · undo · redo · ARIES</text>
+          <text x="400" y="186" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6b6257">logg + krasjsikring (8C)</text>
           <text x="400" y="204" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="12" fill="#3d6b3a">Garanterer Atomicity + Durability</text>
 
           <!-- Buffer pool -->
@@ -117,7 +117,7 @@
           <line x1="540" y1="220" x2="215" y2="260" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
           <line x1="400" y1="220" x2="400" y2="260" stroke="#3d3832" stroke-width="1.2" marker-end="url(#arrow8)"/>
         </svg>
-        <figcaption>De tre delene av kapittelet henger på samme arkitektur: <em>scheduler/lock manager</em> håndterer Isolation, mens <em>recovery manager</em> sammen med loggen sikrer Atomicity og Durability.</figcaption>
+        <figcaption>De tre delene av kapittelet henger på samme arkitektur: <em>scheduler/lock manager</em> (begreper som <em>2PL</em> og <em>MVCC</em> forklares i 8B) håndterer Isolation, mens <em>recovery manager</em> (med <em>WAL</em> og <em>ARIES</em>, forklart i 8C) sammen med loggen sikrer Atomicity og Durability.</figcaption>
       </figure>
 
       <div class="callout callout-blue">
@@ -137,7 +137,7 @@
           <span class="sp-icon">8A</span>
           <div class="sp-info">
             <div class="sp-title">Intro og teori</div>
-            <div class="sp-desc">F14 · Notater kap. 15–16 · ACID, schedules, conflict serializability, recoverability/ACA/strict, presedensgraf</div>
+            <div class="sp-desc">F14 · Notater kap. 15–16 · ACID, schedules (operasjonsrekkefølger), conflict serializability, recoverability og strenge schedule-klasser, presedensgraf</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -230,7 +230,7 @@
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>SQL-kompilatoren — den vet hva som skal kjøres</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Riktig — recovery + logg.</strong> Lock manager har ansvar for Isolation, ikke kraschsikkerhet. Buffer-pool er bare RAM som forsvinner ved strømbrudd. Recovery manager bruker logg-records på disk (WAL-regelen) til å rulle frem committed transaksjoner og rulle tilbake løsere etter krasj.
+          <strong>Riktig — recovery + logg.</strong> Lock manager har ansvar for Isolation, ikke kraschsikkerhet. Buffer-pool (sider midlertidig holdt i RAM) forsvinner ved strømbrudd. Recovery manager bruker loggposter på disk (etter <em>WAL-regelen</em>: logg på disk før dataen — forklares i 8C) til å rulle frem committed transaksjoner og rulle tilbake løse etter krasj.
         </div>
       </div>
 

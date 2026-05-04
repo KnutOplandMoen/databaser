@@ -347,9 +347,9 @@
 <main data-chapter="Kapittel 7: Spørringsutføring">
   <header class="hero">
     <div class="container">
-      <div class="eyebrow">Kapittel 7 · Forelesning 13 · Bratsberg kap. 12–14</div>
+      <div class="eyebrow">Kapittel 7 · Forelesning 13 · Bratsbergs kompendium kap. 12–14</div>
       <h1>Aksessmetoder, sortering, <em>join-algoritmer</em></h1>
-      <p class="lede">Hva skjer egentlig mellom <code>SELECT …</code> og resultatet? Vi følger en spørring fra parser til disk — og regner I/O-kost for hvert valg underveis.</p>
+      <p class="lede">Hva skjer egentlig mellom <code>SELECT …</code> og resultatet? Vi følger en spørring fra <em>parser</em> (komponenten som leser SQL-teksten) til disk — og regner I/O-kost (antall blokker som må leses/skrives) for hvert valg underveis.</p>
       <nav class="toc">
         <a href="#overblikk"><span>01</span> Helhetsbilde</a>
         <a href="#aksess"><span>02</span> Aksessmetoder</a>
@@ -373,21 +373,21 @@
       <div class="viz">
         <div class="viz-title">Spørringspipeline</div>
         <div class="pipeline">
-          <div class="pipe-stage"><h4>1 · Parser</h4><p>SQL-tekst → algebraisk tre. Sjekker syntaks og slår opp tabeller i SQL-dictionary.</p></div>
+          <div class="pipe-stage"><h4>1 · Parser</h4><p>SQL-tekst → algebraisk tre (et internt tre der hver node er en relasjonsalgebra-operasjon som σ, π, ⋈). Sjekker syntaks og slår opp tabeller i SQL-dictionary (databasens metadata-katalog).</p></div>
           <div class="pipe-arrow">→</div>
-          <div class="pipe-stage"><h4>2 · Optimizer</h4><p>Genererer flere planer, leser statistikk, velger den med lavest forventet I/O-kost.</p></div>
+          <div class="pipe-stage"><h4>2 · Optimizer</h4><p>Genererer flere planer, leser statistikk, velger den med lavest forventet I/O-kost (antall blokk-aksesser).</p></div>
           <div class="pipe-arrow">→</div>
-          <div class="pipe-stage"><h4>3 · Executor</h4><p>Kjører plan-treet rotnoden ned. Bruker aksessmetoder mot lagring.</p></div>
+          <div class="pipe-stage"><h4>3 · Executor</h4><p>Kjører plan-treet ovenfra. Bruker aksessmetoder mot lagring.</p></div>
           <div class="pipe-arrow">→</div>
-          <div class="pipe-stage"><h4>4 · Storage</h4><p>Heap-fil, B+-tre, hash-fil. Leverer blokker via buffer-poolen.</p></div>
+          <div class="pipe-stage"><h4>4 · Storage</h4><p>Heap-fil, B+-tre, hash-fil. Leverer blokker via buffer-poolen (RAM-cachen fra kap. 6).</p></div>
         </div>
       </div>
 
-      <p>Optimizeren regnes som «black art» — den vurderer alle joinrekkefølger, alle aksessmetoder, alle sorterings­strategier og velger billigst plan. Vi skal forstå <em>hvilke valg</em> den har, og <em>hvorfor</em> de koster det de koster.</p>
+      <p>Optimizeren regnes som «black art» (mørk kunst — den er notorisk vanskelig å lage god) fordi den vurderer alle joinrekkefølger, alle aksessmetoder, alle sorterings­strategier og velger billigst plan. Vi skal forstå <em>hvilke valg</em> den har, og <em>hvorfor</em> de koster det de koster.</p>
 
       <div class="callout">
         <span class="label">Hovedinnsikt</span>
-        <p><strong>Alt måles i blokk-I/O.</strong> RAM-operasjoner regnes som «gratis» sammenlignet med å lese en blokk fra disk. Derfor handler så mye av kapittelet om å minimere antall blokker som leses og skrives.</p>
+        <p><strong>Alt måles i blokk-I/O</strong> (Input/Output — hver blokk som leses fra eller skrives til disk). RAM-operasjoner regnes som «gratis» sammenlignet med disk-aksess. Derfor handler så mye av kapittelet om å minimere antall blokker som leses og skrives.</p>
       </div>
 
       <div class="quiz inline" data-quiz>
@@ -395,7 +395,7 @@
         <div class="q-text">Hvorfor lager optimizeren <em>flere</em> planer for samme spørring i stedet for å bruke en fast oppskrift?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi billigste plan avhenger av tabellstørrelser, indekser, fordeling av verdier og bufferstørrelse — ting som varierer mellom spørringer og over tid. En fast oppskrift ville vært god for noen tilfeller og katastrofal for andre. Optimizeren bruker statistikk fra dictionaryet til å estimere kost og velge.</div>
+          <div class="answer">Fordi billigste plan avhenger av tabellstørrelser, indekser, fordeling av verdier og bufferstørrelse — ting som varierer mellom spørringer og over tid. En fast oppskrift ville vært god for noen tilfeller og katastrofal for andre. Optimizeren bruker statistikk fra dictionaryet (databasens metadata-katalog) til å estimere kost og velge.</div>
         </div>
       </div>
     </div>
@@ -407,6 +407,8 @@
       <div class="section-badge">02 · Aksessmetoder</div>
       <h2>Fire måter å lagre <em>én</em> tabell</h2>
       <p>Hvor billig en spørring kan kjøres henger på <em>hvordan</em> tabellen er lagret. Pensum bruker fire varianter, og vi skal gjenta det samme eksemplet på alle for å se kostnadsforskjellen.</p>
+
+      <p style="background:var(--paper-dark);padding:0.7rem 1rem;border-radius:6px;border-left:3px solid var(--rust);margin:1rem 0"><strong>Liten ordliste:</strong> <em>Clustered</em> betyr at radene er fysisk lagret i indeksens nøkkelorden — bladene <em>er</em> tabellen. <em>Unclustered</em> betyr at indeksen peker til rader som ligger spredt i en separat heap-fil. Detaljene er forklart i kap. 6, men disse to ordene dukker opp overalt under.</p>
 
       <h3>Eksempel: tabellen <code>Employee</code></h3>
       <ul>
@@ -454,7 +456,7 @@
             </tbody>
           </table>
         </div>
-        <p style="font-size:0.88rem; color:var(--ink-faded); margin-top:0.6rem;">⅔-faktoren for B+-tre kommer av at noder typisk er to-tredjedeler fulle. Hash bruker 80&nbsp;% fyllgrad.</p>
+        <p style="font-size:0.88rem; color:var(--ink-faded); margin-top:0.6rem;">⅔-faktoren for B+-tre kommer av at noder typisk er to-tredjedeler fulle (gjennomsnittlig fyllingsgrad ved tilfeldig innsetting — se kap 6). Hash bruker 80&nbsp;% fyllgrad.</p>
       </div>
 
       <h3>Aksessveiene</h3>
@@ -470,7 +472,7 @@
         <div class="q-text">Hvorfor er <em>range-scan</em> rask på en clustered B+-tre, men kan være tregere enn full table scan på en unclustered indeks med mange treff?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">På et clustered B+-tre ligger radene fysisk sortert — vi scanner bladene sidelengs sekvensielt. På et unclustered B+-tre har vi RID-pekere til en heap, og hver match kan kreve én ny tilfeldig blokk-aksess. Med 20 % treff på 100 000 rader kan det bli 20 000 random I/O — full scan av heap-filen er da ofte raskere.</div>
+          <div class="answer">På et clustered B+-tre ligger radene fysisk sortert — vi scanner bladene sidelengs sekvensielt. På et unclustered B+-tre har vi <em>RID-pekere</em> (Record IDentifier — peker til en bestemt rad i en heap-fil) til radene, og hver match kan kreve én ny tilfeldig blokk-aksess. Med 20 % treff på 100 000 rader kan det bli 20 000 random I/O — full scan av heap-filen er da ofte raskere.</div>
         </div>
       </div>
     </div>
@@ -549,17 +551,25 @@
     <div class="container">
       <div class="section-badge">04 · External merge sort</div>
       <h2>Sortering når <em>RAM ikke holder</em></h2>
-      <p>Mange spørringer trenger sortert resultat: <code>ORDER BY</code>, <code>GROUP BY</code>, <code>DISTINCT</code>, sort-merge join. Når tabellen er større enn RAM, bruker vi <em>external merge sort</em>. Idéen er to faser:</p>
+      <p>Mange spørringer trenger sortert resultat: <code>ORDER BY</code>, <code>GROUP BY</code>, <code>DISTINCT</code>, og senere sort-merge join (se §6 nedenfor). Når tabellen er større enn RAM, bruker vi <em>external merge sort</em> («ekstern» fordi den må gå utenfor RAM, til disk). Idéen er to faser:</p>
 
       <ol>
         <li><strong>Initialfase:</strong> Les inn så mye som får plass i bufferet, sorter internt, skriv ut som en sortert «run».</li>
         <li><strong>Mergefase:</strong> Merge flere runs om gangen til vi har én sortert fil.</li>
       </ol>
 
+      <h3>Notasjon (les denne først)</h3>
+      <ul>
+        <li><code>b</code> = antall datablokker i tabellen</li>
+        <li><code>n_B</code> = antall blokker tilgjengelig i bufferet</li>
+        <li><code>n_R</code> = antall sorterte «runs» etter initialfasen</li>
+        <li><code>d_M</code> = mergegrad — hvor mange runs vi kan flette sammen i ett pass</li>
+      </ul>
+
       <h3>Formler</h3>
       <ul>
-        <li>Antall initialruns: <code>n_R = ⌈b / n_B⌉</code> &nbsp; (b = antall datablokker, n_B = antall bufferblokker)</li>
-        <li>Mergegrad: <code>d_M = n_B − 1</code> (én buffer reserveres til output)</li>
+        <li>Antall initialruns: <code>n_R = ⌈b / n_B⌉</code></li>
+        <li>Mergegrad: <code>d_M = n_B − 1</code> (én buffer reserveres til output-strømmen)</li>
         <li>Antall mergepasser: <code>⌈log_(d_M)(n_R)⌉</code></li>
         <li>Total I/O: <code>2b · (1 + antall mergepasser)</code></li>
       </ul>
@@ -608,7 +618,7 @@
         <li><code>Department</code> = 5 blokker (500 rader, 100 pr. blokk)</li>
         <li><code>Employee</code> = 1000 blokker</li>
         <li>Buffer = 5 blokker (3 til ytre, 1 til indre, 1 til output)</li>
-        <li>Spørring: <code>Employee ⋈ Department WHERE dname='Sales'</code></li>
+        <li>Spørring: <code>Employee ⋈ Department WHERE dname='Sales'</code> (⋈ = naturlig join — slå sammen rader der join-attributtet, kolonnen vi joiner på, er likt)</li>
       </ul>
 
       <div class="viz">
@@ -680,7 +690,7 @@
       <ul>
         <li><strong>Single-loop / index nested loop (J2)</strong> — som over: når indre tabell har indeks på join-attributtet, slipper vi indre scan og slår opp direkte. Ofte raskest når ytre er liten.</li>
         <li><strong>Sort-merge join (J3)</strong> — sorter begge tabellene på join-attributtet (eller bruk eksisterende sortering), og gå parallelt gjennom dem med to pekere. Lønner seg når begge allerede er sortert, eller når resultatet uansett skal sorteres.</li>
-        <li><strong>Partition-hash join (J4)</strong> — partisjoner begge tabeller ved å hashe join-attributtet. Da kan hver liten partisjon joines parvis i RAM. NTNUs Kjell Bratbergsengen var pioneren her (VLDB 1984).</li>
+        <li><strong>Partition-hash join (J4)</strong> — partisjoner begge tabeller ved å hashe join-attributtet (alle rader med samme hash-verdi havner i samme partisjon). To faser: <em>build</em>-fasen lager en hash-tabell på den ene siden, <em>probe</em>-fasen slår opp den andre siden mot tabellen. Når partisjonene er små nok kan hver join gjøres i RAM. NTNUs Kjell Bratbergsengen var pioneren her (publisert på VLDB-konferansen — Very Large Data Bases — i 1984).</li>
       </ul>
 
       <div class="callout">
@@ -693,7 +703,7 @@
         <div class="q-text">Begge tabeller er allerede sortert på join-attributtet. Hvilken algoritme er typisk billigst?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer"><strong>Sort-merge join (J3).</strong> Sortfasen er hoppet over fordi inputen alt er sortert — vi går bare parallelt gjennom dem med to pekere. Hash join må gjøre ekstra arbeid (build + probe), og nested loop skanner indre tabell flere ganger.</div>
+          <div class="answer"><strong>Sort-merge join (J3).</strong> Sortfasen er hoppet over fordi inputen alt er sortert — vi går bare parallelt gjennom dem med to pekere. Hash join må gjøre ekstra arbeid (build = bygg hash-tabell på den ene siden + probe = slå opp den andre siden mot tabellen), og nested loop skanner indre tabell flere ganger.</div>
         </div>
       </div>
     </div>
@@ -704,13 +714,13 @@
     <div class="container">
       <div class="section-badge">07 · Statistikk &amp; EXPLAIN</div>
       <h2>Hvordan optimizeren <em>gjetter</em></h2>
-      <p>Optimizeren sammenligner planer uten å kjøre dem. Den må <em>estimere</em> kost basert på statistikk lagret i SQL-dictionaryet.</p>
+      <p>Optimizeren sammenligner planer uten å kjøre dem. Den må <em>estimere</em> kost basert på statistikk lagret i SQL-dictionaryet (databasens metadata-katalog — der skjema, indekser og slik statistikk holdes).</p>
 
       <h3>Statistikk i SQL-dictionaryet</h3>
       <ul>
         <li><strong>For hver tabell</strong>: antall rader, antall blokker.</li>
-        <li><strong>For hver indeks</strong>: antall nøkkelverdier, antall blokker, histogrammer.</li>
-        <li><strong>For hvert B+-tre</strong>: trehøyde, LowKey, HighKey, antall blokker.</li>
+        <li><strong>For hver indeks</strong>: antall distinkte nøkkelverdier, antall blokker, histogrammer (verdifordelinger).</li>
+        <li><strong>For hvert B+-tre</strong>: trehøyde, LowKey (laveste forekommende nøkkel), HighKey (høyeste), antall blokker.</li>
       </ul>
 
       <p>Med disse tallene kan optimizeren estimere antall blokk-aksesser for hver kandidatplan og velge den billigste.</p>
@@ -728,14 +738,14 @@
 |    |             |       |      |         |      |          | buffer  |
 +----+-------------+-------+------+---------+------+----------+---------+</pre>
 
-      <p><code>type = ALL</code> betyr full table scan. MySQL leser tabellene i den oppgitte rekkefølgen og bruker join-buffer (hash join) når ingen indeks er tilgjengelig.</p>
+      <p><code>type = ALL</code> betyr full table scan. MySQL leser tabellene i den oppgitte rekkefølgen og bruker en intern join-buffer (en enkel form for hash join) når ingen indeks er tilgjengelig.</p>
 
       <div class="quiz inline" data-quiz>
         <div class="q-label">Sjekk forståelsen</div>
         <div class="q-text">Optimizeren estimerer 100 rader — i virkeligheten kommer det 1 million. Hva er den vanligste konsekvensen?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Den valgte planen er ofte feil — typisk en nested loop som var billig for 100 rader, men forferdelig for 1M (kvadratisk eksplosjon). Statistikk må holdes oppdatert for at optimizeren skal velge riktig.</div>
+          <div class="answer">Den valgte planen er ofte feil — typisk en nested loop som var billig for 100 rader, men forferdelig for 1M rader (antall sammenligninger vokser med kvadratet — 100·100 = 10 000, men 1M·1M = 10¹²). Statistikk må holdes oppdatert for at optimizeren skal velge riktig.</div>
         </div>
       </div>
     </div>

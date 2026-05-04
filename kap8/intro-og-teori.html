@@ -39,7 +39,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8A · Forelesning 14</div>
       <h1>Intro og <em>teori</em></h1>
-      <p class="lede">Notater kap. 15–16. Vokabularet for resten av kapittelet — ACID, schedules, conflict-serializability og recoverability. Klikk deg gjennom eksemplene.</p>
+      <p class="lede">Notater kap. 15–16. Vokabularet for resten av kapittelet — vi introduserer ACID-egenskapene, hva en <em>schedule</em> (rekkefølge av operasjoner) er, og når en sammenfletting er trygg. Klikk deg gjennom eksemplene.</p>
       <nav class="toc">
         <a href="#acid"><span>01</span> ACID</a>
         <a href="#schedule"><span>02</span> Schedule</a>
@@ -59,7 +59,7 @@
     <div class="container">
       <div class="section-badge">01 · ACID</div>
       <h2>De fire <em>garantiene</em></h2>
-      <p>ACID er ikke fire uavhengige funksjoner — det er fire måter å beskrive samme grunnløfte: <em>en transaksjon ser ut som en atomisk, varig, alenestående endring av en konsistent database</em>.</p>
+      <p><strong>ACID</strong> står for <em>Atomicity, Consistency, Isolation, Durability</em> — de fire garantiene en transaksjon gir. Det er ikke fire uavhengige funksjoner, men fire måter å beskrive samme grunnløfte: <em>en transaksjon ser ut som en atomisk, varig, alenestående endring av en konsistent database</em>.</p>
 
       <div class="table-wrap">
         <table>
@@ -67,15 +67,15 @@
           <tbody>
             <tr><td><strong>A</strong></td><td>Atomicity</td><td>Alle stegene gjennomføres, eller ingen. Ingen «halvferdige» transaksjoner kan observeres etterpå.</td><td>Recovery (undo)</td></tr>
             <tr><td><strong>C</strong></td><td>Consistency</td><td>Hver transaksjon tar databasen fra én lovlig tilstand til en annen — PK, FK, CHECK osv. holder.</td><td>SQL-modellen + bruker</td></tr>
-            <tr><td><strong>I</strong></td><td>Isolation</td><td>Selv om mange kjører samtidig, skal effekten være som en eller annen seriell rekkefølge.</td><td>Concurrency control (8B)</td></tr>
-            <tr><td><strong>D</strong></td><td>Durability</td><td>Etter <code>COMMIT</code> overlever resultatet alt — strømbrudd, krasj, OS-kill.</td><td>WAL + redo (8C)</td></tr>
+            <tr><td><strong>I</strong></td><td>Isolation</td><td>Selv om mange kjører samtidig, skal effekten være som en eller annen seriell rekkefølge.</td><td>Samtidighetskontroll — låser/MVCC (forklart i 8B)</td></tr>
+            <tr><td><strong>D</strong></td><td>Durability</td><td>Etter <code>COMMIT</code> overlever resultatet alt — strømbrudd, krasj, hvis operativsystemet dreper databaseprosessen.</td><td>Logging og redo etter krasj (forklart i 8C)</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="callout">
         <span class="label">Merk</span>
-        <p>«Consistency» har to betydninger i kurset. I ACID handler det om brukerens integritetskrav. I <em>concurrency control</em> brukes det også om at samtidige effekter er konsistente (samme som serielle). Forelesningen følger første betydning.</p>
+        <p>«Consistency» har to betydninger i kurset. I ACID handler det om brukerens integritetskrav. I <em>samtidighetskontroll (concurrency control)</em> brukes det også om at samtidige effekter er konsistente (samme som serielle). Forelesningen følger første betydning.</p>
       </div>
 
       <div class="mcq" data-mcq>
@@ -103,15 +103,17 @@
       <ul>
         <li><code>r<sub>i</sub>(X)</code> — transaksjon <em>i</em> leser dataelement X</li>
         <li><code>w<sub>i</sub>(X)</code> — transaksjon <em>i</em> skriver dataelement X</li>
-        <li><code>c<sub>i</sub></code> — commit av T<sub>i</sub></li>
-        <li><code>a<sub>i</sub></code> — abort av T<sub>i</sub></li>
+        <li><code>c<sub>i</sub></code> — commit av T<sub>i</sub> (transaksjonen erklærer seg ferdig og endringene blir permanente)</li>
+        <li><code>a<sub>i</sub></code> — abort av T<sub>i</sub> (transaksjonen avbrytes og endringene rulles tilbake)</li>
       </ul>
-      <p>En <strong>schedule</strong> (eller historie) er en sekvens av slike operasjoner fra én eller flere transaksjoner. <em>Seriell</em> schedule = ingen interleaving (én transaksjon helt ferdig før neste begynner).</p>
+      <p>Når vi vil vise <em>hvilken</em> verdi som skrives, bruker vi notasjonen <code>w<sub>i</sub>(X = uttrykk)</code> — for eksempel <code>w<sub>1</sub>(B = B−100)</code> betyr at T1 skriver verdien B−100 til B.</p>
+      <p>En <strong>schedule</strong> (eller historie) er en sekvens av slike operasjoner fra én eller flere transaksjoner. <em>Seriell</em> schedule = ingen sammenfletting (én transaksjon helt ferdig før neste begynner).</p>
 
       <pre><code>Seriell:        r1(A); w1(A); c1; r2(A); w2(A); c2;
-Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
+Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
+      <p style="font-size:0.92rem;color:var(--ink-faded);margin-top:-0.4rem">(I løpetekst skriver vi <code>r1(A)</code> i stedet for <code>r<sub>1</sub>(A)</code> for å spare plass — det er samme.)</p>
 
-      <p>Spørsmålet hele dette kapittelet handler om: <em>hvilke interleavede schedules er trygge — det vil si gir samme resultat som en eller annen seriell?</em></p>
+      <p>Spørsmålet hele dette kapittelet handler om: <em>hvilke sammenflettede (interleavede) schedules er trygge — det vil si gir samme resultat som en eller annen seriell?</em></p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Schedule</div>
@@ -236,13 +238,13 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         <div class="q-label">Sjekk · Bankeksempel</div>
         <div class="q-text">I steget over ble «overføringens andre halvdel» (innskuddet på A) klemt mellom T2 sine to operasjoner. Hva er navnet på selve fenomenet — at T2 så A før T1 var ferdig?</div>
         <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read (T2 leste en ucommitted verdi fra T1)</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Inkonsistent / feil resultat — schedulen er ikke serializable</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Phantom read</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Dirty write</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Phantom read (et nytt rad-sett dukket opp underveis)</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Dirty write (T2 overskrev en ucommitted verdi fra T1)</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Ikke-serializable.</strong> «Dirty read» ville krevd at T2 leste en <em>uncommitted</em> verdi fra T1 — her leste T2 bare gamle (committed) verdier. Likevel er resultatet ikke ekvivalent med noen seriell ordning. Vi skal lære navnet på de spesifikke anomaliene i 8B; her holder det å se at <em>noe</em> er galt.
+          <strong>Ikke-serializable.</strong> «Dirty read» ville krevd at T2 leste en <em>uncommitted</em> verdi fra T1 — her leste T2 bare gamle (committed) verdier. Likevel er resultatet ikke ekvivalent med noen seriell ordning. Vi skal lære navnet på de spesifikke <em>anomaliene</em> (typiske feilmønstre som oppstår uten samtidighetskontroll) i 8B; her holder det å se at <em>noe</em> er galt.
         </div>
       </div>
     </div>
@@ -308,7 +310,7 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         <li>Dette er det vi sjekker mekanisk — typisk via en <em>presedensgraf</em> (neste seksjon).</li>
       </ul>
 
-      <p>Conflict-serializability impliserer serializability, men ikke omvendt. 2PL (kapittel 8B) implementerer nettopp conflict-serializability.</p>
+      <p>Conflict-serializability impliserer serializability, men ikke omvendt. 2PL (two-phase locking — forklart i 8B) implementerer nettopp conflict-serializability.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Serializability</div>
@@ -434,7 +436,7 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
     <div class="container">
       <div class="section-badge">07 · Recoverability</div>
       <h2>Når kan vi <em>angre</em> en abort?</h2>
-      <p>Conflict-serializability handler om resultatet er korrekt <em>hvis ingen aborter</em>. Men aborter skjer hele tiden — deadlocks, krasj, brukervalg. Spørsmålet er: <em>kan vi rulle tilbake en transaksjon uten å ødelegge committed andre?</em></p>
+      <p>Conflict-serializability handler om resultatet er korrekt <em>hvis ingen aborter</em>. Men aborter skjer hele tiden — <em>deadlock</em> (to transaksjoner som venter på hverandres låser — forklares i 8B), krasj, brukervalg. Spørsmålet er: <em>kan vi rulle tilbake en transaksjon uten å ødelegge committed andre?</em></p>
 
       <h3>Recoverable schedule</h3>
       <p>En schedule er <strong>recoverable</strong> hvis hver transaksjon T<sub>j</sub> som har lest fra T<sub>i</sub>, committer <em>etter</em> T<sub>i</sub>. Da kan vi alltid rulle tilbake T<sub>i</sub> sammen med T<sub>j</sub> hvis T<sub>i</sub> aborter.</p>
@@ -446,7 +448,7 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
       <p>En sterkere garanti: en transaksjon leser <em>bare</em> committed verdier. Da slipper vi <em>cascading aborts</em> — situasjoner der én abort tvinger frem flere.</p>
 
       <h3>Strict</h3>
-      <p>Sterkest: en transaksjon kan verken lese eller skrive over uncommitted verdier. Dette gjør undo trivielt — vi kan rulle tilbake bare ved å skrive «before-image» tilbake.</p>
+      <p>Sterkest: en transaksjon kan verken lese eller skrive over uncommitted verdier. Dette gjør undo trivielt — vi kan rulle tilbake bare ved å skrive «before-image» (verdien som lå der før endringen) tilbake.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Tenk selv · Recoverable</div>
@@ -491,7 +493,7 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Alle schedules + strict</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Conflict-serializable + strict.</strong> Strict 2PL (kapittel 8B) gir akkurat denne kombinasjonen automatisk: 2PL ⇒ conflict-serializable, og «hold X-låser til commit/abort» ⇒ strict.
+          <strong>Conflict-serializable + strict.</strong> Strict 2PL (kapittel 8B — en variant av two-phase locking) gir akkurat denne kombinasjonen automatisk: 2PL ⇒ conflict-serializable, og «hold X-låser til commit/abort» ⇒ strict. (Du møter strict 2PL og X-låser i 8B — her holder det å vite at det finnes en variant av 2PL som leverer både korrekthet og enkel rollback.)
         </div>
       </div>
     </div>

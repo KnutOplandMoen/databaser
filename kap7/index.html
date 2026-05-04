@@ -28,7 +28,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 7 · Forelesning 13 · Del 2</div>
       <h1>Spørrings<em>utføring</em></h1>
-      <p class="lede">Aksessmetoder, sortering og join-algoritmer — hvordan en SELECT faktisk blir kjørt mot disk.</p>
+      <p class="lede">Hvordan databasen velger måter å hente rader på (aksessmetoder), sorterer store datamengder, og kombinerer tabeller (join-algoritmer) — hvordan en SELECT faktisk blir kjørt mot disk.</p>
     </div>
   </header>
 
@@ -49,11 +49,11 @@
       <h2>Fra plan til <em>resultat</em></h2>
       <p>I forrige kapittel så vi <em>hvor</em> data ligger — heap, B+-tre, hash. Nå ser vi hvordan databasen faktisk plukker dem opp og setter dem sammen.</p>
       <ul>
-        <li>Optimizer velger plan, executor kjører den</li>
-        <li>Aksessveier: filscan, indeksscan, range-scan, indeks-lookup</li>
-        <li>External merge sort — sortering når data er større enn RAM</li>
-        <li>Fire join-algoritmer: nested loop (J1), index nested loop (J2), sort-merge (J3), partition-hash (J4)</li>
-        <li>EXPLAIN viser den valgte planen og hjelper med feilsøking</li>
+        <li><strong>Optimizer</strong> (planleggeren) velger en utføringsplan, <strong>executor</strong> (utføreren) kjører den</li>
+        <li>Aksessveier (måter å hente rader): filscan, indeksscan, range-scan, indeks-lookup</li>
+        <li>External merge sort — sortering på disk når dataene er større enn RAM</li>
+        <li>Fire join-algoritmer (J1–J4 som de er nummerert i kompendiet): nested loop, index nested loop, sort-merge og partition-hash. Detaljer på innholdssiden.</li>
+        <li><code>EXPLAIN</code> (en MySQL-kommando som viser den valgte planen) hjelper med feilsøking</li>
       </ul>
       <div class="callout callout-blue">
         <span class="label">Slides</span>
@@ -72,7 +72,7 @@
           <span class="sp-icon">7</span>
           <div class="sp-info">
             <div class="sp-title">Aksessmetoder, sortering, join-algoritmer</div>
-            <div class="sp-desc">Bratsberg kap. 12–14 · 8 seksjoner · animasjoner · innebygde quizer</div>
+            <div class="sp-desc">Bratsbergs kompendium kap. 12–14 · 8 seksjoner · animasjoner · innebygde quizer</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -88,14 +88,14 @@
         <table>
           <thead><tr><th>Begrep</th><th>Forklaring</th></tr></thead>
           <tbody>
-            <tr><td>Aksessvei</td><td>Hvordan executoren henter rader: filscan, indeksscan, range-scan, indeks-lookup.</td></tr>
-            <tr><td>Statistikk</td><td>Antall rader, antall blokker per tabell/indeks, B+-tre-høyde, low-/highkey, histogrammer. Optimizeren bruker dette til kostnadsestimat.</td></tr>
-            <tr><td>External merge sort</td><td>Sortering på disk i to faser: initialfase + merge. n_R, d_M, antall passer.</td></tr>
-            <tr><td>Nested loop join (J1)</td><td>For hver rad i ytre tabell: scan indre. Block nested loop bruker bufferblokker.</td></tr>
-            <tr><td>Index nested loop (J2)</td><td>Ytre scannes; indre slås opp via indeks per rad.</td></tr>
-            <tr><td>Sort-merge join (J3)</td><td>Sorter begge sider på join-attributtet, gå gjennom med to pekere.</td></tr>
-            <tr><td>Partition-hash join (J4)</td><td>Hash begge tabeller på join-attributtet; join hver partisjon i RAM.</td></tr>
-            <tr><td>EXPLAIN</td><td>MySQL viser planen optimizeren har valgt — type, key, rows, Extra.</td></tr>
+            <tr><td>Aksessvei</td><td>Måten executoren henter rader på: filscan (les hele tabellen), indeksscan, range-scan, indeks-lookup.</td></tr>
+            <tr><td>Statistikk</td><td>Antall rader, antall blokker per tabell/indeks, B+-tre-høyde, lavest og høyest forekommende verdi (lowkey/highkey), histogrammer (verdifordelinger). Optimizeren bruker dette til kostnadsestimat.</td></tr>
+            <tr><td>External merge sort</td><td>Sortering på disk når dataene ikke får plass i RAM. To faser: en initialfase og deretter merge-passes som flettes parvis. Variablene n_R, d_M og antall passes forklares på innholdssiden.</td></tr>
+            <tr><td>Nested loop join (J1)</td><td>For hver rad i ytre tabell: scan indre tabell. Block nested loop bruker bufferblokker for å laste flere rader om gangen.</td></tr>
+            <tr><td>Index nested loop (J2)</td><td>Ytre tabell scannes; for hver rad slås matchende rader i indre tabell opp via en indeks.</td></tr>
+            <tr><td>Sort-merge join (J3)</td><td>Sorter begge sider på join-attributtet (kolonnen vi joiner på), gå gjennom dem med to pekere som flytter seg parallelt.</td></tr>
+            <tr><td>Partition-hash join (J4)</td><td>Hash begge tabeller på join-attributtet; join hver partisjon for seg når dataene får plass i RAM.</td></tr>
+            <tr><td>EXPLAIN</td><td>MySQL-kommando som viser planen optimizeren har valgt — kolonnene type, key, rows, Extra.</td></tr>
           </tbody>
         </table>
       </div>
@@ -130,7 +130,7 @@
         <div class="q-text">Hvorfor er <em>clustered</em> versus <em>unclustered</em> indeks så avgjørende ved range-spørringer?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Clustered = radene ligger fysisk i nøkkelorden, så et range-treff blir et sammenhengende blokk-scan. Unclustered = radene er spredt; hvert treff kan bety en ny RID-pekerfølging og en ny blokk-aksess. Ved bredt treff blir unclustered ofte verre enn full scan.</div>
+          <div class="answer">Clustered = radene ligger fysisk i nøkkelorden, så et range-treff blir et sammenhengende blokk-scan. Unclustered = radene er spredt; hvert treff kan bety følging av en RID-peker (Record IDentifier — peker til en rad i heap-filen) og en ny blokk-aksess. Ved bredt treff blir unclustered ofte verre enn full scan.</div>
         </div>
       </div>
 
@@ -139,7 +139,7 @@
         <div class="q-text">I external merge sort: hva er totalformelen for I/O og hvorfor multipliseres b med 2?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Total I/O = 2b · (1 + #merge-passes). 2-en kommer av at hvert pass både leser og skriver hele datasettet — initial-passet inkludert.</div>
+          <div class="answer">Total I/O (antall blokk-lesinger/skrivinger) = 2b · (1 + #merge-passes). 2-tallet kommer av at hvert pass både leser og skriver hele datasettet — initial-passet inkludert.</div>
         </div>
       </div>
 
@@ -184,7 +184,7 @@
         <div class="q-text">Hvilken statistikk lagrer SQL-dictionaryet for et B+-tre, og hva brukes den til?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Trehøyde, LowKey, HighKey og antall blokker. Optimizeren bruker dette til å estimere antall blokk-aksesser for indeks-lookup, range-scan og indeksscan, og til å velge billigste plan.</div>
+          <div class="answer">Trehøyde, LowKey (laveste forekommende nøkkelverdi), HighKey (høyeste) og antall blokker. Optimizeren bruker dette til å estimere antall blokk-aksesser for indeks-lookup, range-scan og indeksscan, og til å velge billigste plan. SQL-dictionaryet (databasens metadata-katalog) er der disse tallene lagres.</div>
         </div>
       </div>
 

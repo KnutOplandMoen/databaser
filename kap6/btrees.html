@@ -797,7 +797,7 @@
         </div>
         <div class="key-card">
           <h4 style="margin-top:0">LSM-tre</h4>
-          <p style="margin-bottom:0">Best på <strong>write</strong> — store sekvensielle skrivinger. Reads kan være tregere fordi nøkkelen kan ligge i memtable, L0, L1 … og må sjekkes flere steder (Bloom filter hjelper).</p>
+          <p style="margin-bottom:0">Best på <strong>write</strong> — store sekvensielle skrivinger. Reads kan være tregere fordi nøkkelen kan ligge i memtable, L0, L1 … og må sjekkes flere steder (et <em>Bloom filter</em> — en kompakt sannsynlighets-datastruktur som raskt svarer «sikkert ikke her» — hjelper på read-ytelsen).</p>
         </div>
       </div>
 
@@ -828,7 +828,7 @@
       </ul>
       <div class="callout">
         <span class="label">Neste kapittel</span>
-        <p><a href="../kap7/">Kapittel 7</a> bruker disse strukturene til å bygge en query-kjøremotor: hvordan optimalisatoren velger mellom B+-tre-traversering, nested loop join og full scan basert på statistikk.</p>
+        <p><a href="../kap7/">Kapittel 7</a> bruker disse strukturene til å bygge en spørringsmotor (executor): hvordan optimalisatoren velger mellom B+-tre-traversering, nested loop join og full scan basert på statistikk.</p>
       </div>
     </div>
   </section>

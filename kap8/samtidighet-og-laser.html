@@ -45,7 +45,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8B · Forelesning 15</div>
       <h1>Samtidighet og <em>låser</em></h1>
-      <p class="lede">Notater kap. 16–17. Hvordan databasen faktisk gjennomtvinger isolation når flere transaksjoner går samtidig — uten å bli for treg.</p>
+      <p class="lede">Notater kap. 16–17. Hvordan databasen faktisk gjennomtvinger <em>isolation</em> (I-en i ACID — at samtidige transaksjoner ikke skal forstyrre hverandre) når flere transaksjoner går samtidig — uten å bli for treg.</p>
       <nav class="toc">
         <a href="#anomalier"><span>01</span> Anomalier</a>
         <a href="#laser"><span>02</span> S- og X-låser</a>
@@ -65,7 +65,7 @@
     <div class="container">
       <div class="section-badge">01 · Hvorfor</div>
       <h2>Klassiske <em>anomalier</em></h2>
-      <p class="dropcap">Før vi snakker om låser, må vi se hva som går galt uten dem. Disse fire mønstrene er årsaken til at concurrency control finnes.</p>
+      <p class="dropcap">Før vi snakker om låser, må vi se hva som går galt uten dem. Disse fem mønstrene er årsaken til at <em>samtidighetskontroll (concurrency control)</em> finnes.</p>
 
       <div class="anomaly-grid">
         <div class="anomaly-card">
@@ -86,7 +86,7 @@
         </div>
         <div class="anomaly-card">
           <h4>Phantom read</h4>
-          <p>T1 utfører en spørring to ganger. Mellom dem har T2 satt inn en ny rad som matcher predikatet. Den «dukker opp» i andre kjøring. Krever range-/predikatlåser for å unngå.</p>
+          <p>T1 utfører en spørring to ganger. Mellom dem har T2 satt inn en ny rad som matcher predikatet. Den «dukker opp» i andre kjøring. Krever spesielle låser (forklart i seksjon 06 — range-/predikatlåser) for å unngå.</p>
         </div>
       </div>
 
@@ -160,7 +160,7 @@
           <div class="mcq-option" data-correct="true"><span class="marker">D</span><span>Phantom read</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Unrepeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em>, ikke bare radlåser.
+          <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Unrepeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em> (låser som dekker «alle rader som matcher en WHERE» — vi kommer tilbake til dette), ikke bare radlåser.
         </div>
       </div>
     </div>
@@ -171,7 +171,7 @@
     <div class="container">
       <div class="section-badge">02 · Låser</div>
       <h2>Shared og <em>exclusive</em></h2>
-      <p>Den enkleste mekanismen mot anomaliene: tving transaksjonene til å ta <em>låser</em> før de leser/skriver, og slipp dem etterpå.</p>
+      <p>Den enkleste mekanismen mot anomaliene: tving transaksjonene til å ta <em>låser</em> (markører som reserverer et dataelement for transaksjonen) før de leser/skriver, og slipp dem etterpå.</p>
 
       <ul>
         <li><strong>Shared (S, read lock)</strong> — flere transaksjoner kan holde S-lås på samme element samtidig.</li>
@@ -198,7 +198,7 @@
 
       <p style="font-style: italic; color: var(--ink-soft);">Tommelfingerregel: writers lockes ut alle. Readers tolererer hverandre.</p>
 
-      <p>Låser administreres av en <strong>låstabell</strong> i RAM. Hver aktiv transaksjon har en oppføring som peker til de låsene den allerede holder («has locks») og de den venter på («wants locks»). Operasjoner som må vente blir <em>blokkert</em> til lås frigjøres.</p>
+      <p>Låser administreres av en <strong>låstabell</strong> i RAM. Hver aktiv transaksjon har en oppføring som peker til de låsene den allerede holder («has locks») og de den venter på («wants locks»). Operasjoner som må vente blir <em>blokkert</em> (settes på vent til lås kan tildeles).</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Låskompatibilitet</div>
@@ -240,7 +240,7 @@
 
           <!-- peak marker -->
           <circle cx="320" cy="60" r="5" fill="#1f4e79"/>
-          <text x="320" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">peak: lock point</text>
+          <text x="320" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#1f4e79">lock point (toppen)</text>
 
           <!-- phase labels -->
           <text x="180" y="40" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="13" fill="#3d6b3a">Vokse-fase (bare ta låser)</text>
@@ -249,7 +249,7 @@
           <!-- vertical divider at peak -->
           <line x1="320" y1="60" x2="320" y2="200" stroke="#1f4e79" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
         </svg>
-        <figcaption>2PL: antall holdte låser øker monotont til <em>lock point</em>, deretter avtar monotont. Aldri vri.</figcaption>
+        <figcaption>2PL: antall holdte låser øker monotont (stadig) til <em>lock point</em> (det punktet hvor transaksjonen holder flest låser samtidig), deretter avtar monotont. Aldri vri.</figcaption>
       </figure>
 
       <p><strong>Hovedteorem:</strong> Hvis alle transaksjoner følger 2PL, er enhver schedule de produserer <em>conflict-serializable</em>. Det er grunnen til at 2PL er den de-facto standarden.</p>
@@ -307,7 +307,7 @@
         </table>
       </div>
 
-      <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør recovery enkelt (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
+      <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør <em>recovery</em> (gjenoppretting etter krasj — kapittel 8C) enkel (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · 2PL-varianter</div>
@@ -332,6 +332,7 @@
       <h2>Når begge venter på <em>hverandre</em></h2>
       <p>Prisen for låser: noen ganger venter to transaksjoner på hverandre samtidig. Klassisk eksempel:</p>
 
+      <p style="font-size:0.94rem;color:var(--ink-soft);margin-bottom:0.5rem">(Notasjon: <code>read_lock(X)</code> = «be om S-lås på X», <code>write_lock(X)</code> = «be om X-lås på X». ✓ betyr lås tildelt.)</p>
       <div class="tx-timeline">
         <div class="tx-head">Steg</div><div class="tx-head">T1</div><div class="tx-head">T2</div>
 
@@ -410,7 +411,7 @@
     <div class="container">
       <div class="section-badge">06 · Granularitet</div>
       <h2>Hva låser vi <em>egentlig</em>?</h2>
-      <p>Et dataelement i 2PL-teori. I virkeligheten har vi et hierarki av muligheter:</p>
+      <p><strong>Granularitet</strong> = hvor stort eller lite område én lås dekker. I 2PL-teori snakker vi om «et dataelement», men i virkeligheten har vi et hierarki av muligheter:</p>
 
       <figure>
         <svg viewBox="0 0 540 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hierarki: database, tabell, side, record">
@@ -445,7 +446,7 @@
           <text x="510" y="44"  text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257">grov</text>
           <text x="510" y="190" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b6257">fin</text>
         </svg>
-        <figcaption>Hierarki: hele DB → tabell → side → record. Lav granularitet = mindre overhead, høy granularitet = mindre kontensjon.</figcaption>
+        <figcaption>Hierarki: hele DB → tabell → side → record. Grov granularitet (få store låser) = mindre overhead i låstabellen, men flere transaksjoner kniper om samme lås. Fin granularitet (mange små låser) = bedre samtidighet, men dyrere låstabell.</figcaption>
       </figure>
 
       <p>Pensum lister fem typer låser:</p>
@@ -457,7 +458,7 @@
         <li><strong>Predikatlåser</strong> — låser alle rader som matcher et predikat. Også for fantomer, mer presis enn range-låser.</li>
       </ul>
 
-      <p>Moderne databaser bruker typisk post- og range-låser. Trade-off er klart: lavere granularitet ⇒ mindre metadata, men mer kontensjon. Høyere granularitet ⇒ mer samtidighet, men dyrere lock manager.</p>
+      <p>Moderne databaser bruker typisk post- og range-låser. Trade-off er klart: grovere granularitet ⇒ mindre metadata, men mer konkurranse om de samme låsene. Finere granularitet ⇒ mer samtidighet, men dyrere lock manager.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Granularitet</div>
@@ -480,7 +481,7 @@
     <div class="container">
       <div class="section-badge">07 · MVCC</div>
       <h2>Multi-version concurrency <em>control</em></h2>
-      <p>Problem med rene låser: en read blokkerer en write og omvendt. Det betyr at en lang rapporterings-spørring kan stenge ute hele OLTP-traffikken.</p>
+      <p>Problem med rene låser: en read blokkerer en write og omvendt. Det betyr at en lang rapporterings-spørring kan stenge ute hele OLTP-traffikken (Online Transaction Processing — vanlige korte forretningstransaksjoner).</p>
 
       <p>MVCC (også kalt <strong>snapshot isolation</strong>) løser dette ved å la <em>hver write lage en ny versjon</em> i stedet for å overskrive. Reads ser et konsistent øyeblikksbilde fra et bestemt tidspunkt — typisk transaksjonens starttid.</p>
 
@@ -512,13 +513,13 @@
         <figcaption>MVCC: X eksisterer som en kjede av versjoner. En lese-transaksjon ser den versjonen som var committed da den startet — selv om andre committer nye versjoner i mellomtiden.</figcaption>
       </figure>
 
-      <p><strong>Reads låser ikke writes, og writes låser ikke reads.</strong> Bare write/write-konflikter krever låsing eller (i optimistic varianter) abort av en transaksjon ved commit hvis det er konflikt.</p>
+      <p><strong>Reads låser ikke writes, og writes låser ikke reads.</strong> Bare write/write-konflikter krever låsing eller (i <em>optimistiske</em> varianter — der vi lar transaksjoner kjøre fritt og sjekker konflikter ved commit) abort av en transaksjon ved commit hvis det er konflikt.</p>
 
       <p>PostgreSQL, Oracle, SQL Server (RCSI), MySQL/InnoDB — alle bruker MVCC. Det er <em>de-facto</em> i moderne SQL.</p>
 
       <div class="callout">
         <span class="label">Snapshot isolation i praksis</span>
-        <p>Snapshot isolation brukes av PostgreSQL, MySQL/InnoDB, Oracle, SQL Server m.fl. Tradisjonell MVCC ble basert på <em>tidsstempelordning</em>; moderne databaser kaller løsningen sin SNAPSHOT ISOLATION og bruker write-låser kombinert med versjonering av skrevne rader.</p>
+        <p>Snapshot isolation brukes av PostgreSQL, MySQL/InnoDB, Oracle, SQL Server m.fl. Moderne databaser kaller løsningen sin SNAPSHOT ISOLATION og bruker write-låser kombinert med versjonering av skrevne rader.</p>
       </div>
 
       <div class="mcq" data-mcq>
