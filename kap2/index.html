@@ -139,7 +139,7 @@
           <div class="num">07</div>
           <div>
             <div class="title"><a href="relasjonsalgebra.html#oversikt">Operator-oversikt</a></div>
-            <div class="desc">σ, π, ×, ∪, −, ρ + avledede ⋈, ∩, ÷.</div>
+            <div class="desc">σ, π, ×, ∪, −, ρ + avledede ⋈, ∩, ← og utvidet γ.</div>
           </div>
           <div class="min">~6 min</div>
         </div>
@@ -154,10 +154,10 @@
         <div class="path-step">
           <div class="num">09</div>
           <div>
-            <div class="title"><a href="relasjonsalgebra.html#division">Division</a></div>
-            <div class="desc">«Alle som …»-spørringer. Det dobbelte NOT EXISTS-trikset.</div>
+            <div class="title"><a href="relasjonsalgebra.html#aggregat">Aggregering</a></div>
+            <div class="desc">γ-operatoren: avg, min, max, sum, count — med og uten GROUP BY.</div>
           </div>
-          <div class="min">~8 min</div>
+          <div class="min">~6 min</div>
         </div>
         <div class="path-step">
           <div class="num">10</div>
@@ -189,7 +189,7 @@
           <span class="sp-icon">2B</span>
           <div class="sp-info">
             <div class="sp-title">Relasjonsalgebra</div>
-            <div class="sp-desc">σ, π, ×, ∪, −, ρ, ⋈, ∩, ÷ — med eksempler, Venn-diagrammer og en interaktiv runner</div>
+            <div class="sp-desc">σ, π, ×, ∪, −, ρ, ⋈, ∩ + γ-aggregering — med eksempler, Venn-diagrammer og en interaktiv runner</div>
           </div>
           <span class="sp-arrow">&rarr;</span>
         </a>
@@ -255,7 +255,7 @@
           <!-- Algebra -->
           <rect class="bh" x="290" y="280" width="140" height="60" rx="6"/>
           <text class="lbl-c" x="360" y="302" text-anchor="middle">Relasjonsalgebra</text>
-          <text class="cap"   x="360" y="320" text-anchor="middle">σ π × ∪ − ρ ⋈ ∩ ÷</text>
+          <text class="cap"   x="360" y="320" text-anchor="middle">σ π × ∪ − ρ ⋈ ∩ γ</text>
 
           <!-- SQL -->
           <rect class="b" x="290" y="40" width="140" height="60" rx="6"/>
@@ -363,7 +363,7 @@
         <div class="q-text">List de seks fundamentale operatorene i relasjons­algebra, og en avledet operator du oftere bruker.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fundamentale: <code>σ</code> select, <code>π</code> project, <code>×</code> kartesisk produkt, <code>∪</code> union, <code>−</code> differanse, <code>ρ</code> rename. Avledet: <code>⋈</code> join (= σ etter ×), <code>∩</code> intersect (= R − (R − S)), <code>÷</code> division.</div>
+          <div class="answer">Fundamentale: <code>σ</code> select, <code>π</code> project, <code>×</code> kartesisk produkt, <code>∪</code> union, <code>−</code> differanse, <code>ρ</code> rename. Avledet: <code>⋈</code> join (= σ etter ×), <code>∩</code> intersect (= R − (R − S)). I tillegg har vi <code>←</code> assignment for delresultater og den utvidede operatoren <code>γ</code> for aggregering.</div>
         </div>
       </div>
 
@@ -404,11 +404,11 @@
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 14 · Vanskelig · Division</div>
-        <div class="q-text">Forklar med ord hva <code>R ÷ S</code> beregner, og gi et naturlig eksempel.</div>
+        <div class="q-label">Spørsmål 14 · Vanskelig · Aggregering</div>
+        <div class="q-text">Skriv et algebra-uttrykk som finner gjennomsnittslønnen <em>per avdeling</em> for alle avdelinger som har minst tre instruktører. Hvilken SQL-konstruksjon blir den oversatt til?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer"><code>R ÷ S</code> finner de tuplene fra <code>R</code> (over attributtene som <em>ikke</em> er i <code>S</code>) som er paret med <em>hver eneste</em> rad i <code>S</code>. Klassisk: <code>tatt(student, kurs) ÷ påkrevd(kurs)</code> gir studenter som har tatt alle påkrevde kurs. I SQL implementeres det med dobbel <code>NOT EXISTS</code>.</div>
+          <div class="answer"><code>σ<sub>cnt ≥ 3</sub>(<sub>dept_name</sub>γ<sub>avg(salary), count(*) AS cnt</sub>(instructor))</code>. SQL-motstykket: <code>SELECT dept_name, AVG(salary) FROM instructor GROUP BY dept_name HAVING COUNT(*) ≥ 3</code>. <code>HAVING</code>-klausen tilsvarer <code>σ</code> brukt <em>etter</em> γ — i motsetning til <code>WHERE</code> som filtrerer rader før gruppering.</div>
         </div>
       </div>
 

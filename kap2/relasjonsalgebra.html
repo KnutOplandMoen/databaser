@@ -77,8 +77,8 @@
         <a href="#kartesisk"><span>05</span> × Kartesisk produkt</a>
         <a href="#join"><span>06</span> ⋈ Join</a>
         <a href="#mengde"><span>07</span> ∪ ∩ −</a>
-        <a href="#rename"><span>08</span> ρ Rename</a>
-        <a href="#division"><span>09</span> ÷ Division</a>
+        <a href="#rename"><span>08</span> ρ Rename · ← Assignment</a>
+        <a href="#aggregat"><span>09</span> γ Aggregering</a>
         <a href="#komposisjon"><span>10</span> Komposisjon</a>
         <a href="#runner"><span>11</span> Bygg en spørring</a>
         <a href="#oppsummering"><span>12</span> Oppsummering</a>
@@ -99,7 +99,7 @@
         <li><strong>Lukket</strong> — input og output er begge relasjoner. Operasjoner kan komponeres som funksjoner: <code>π<sub>name</sub>(σ<sub>dept='Physics'</sub>(instructor))</code>.</li>
         <li><strong>Funksjonell</strong> — ingen sideeffekter. Samme input gir samme output.</li>
         <li><strong>Algebraiske lover</strong> — <code>σ<sub>p</sub>(R ⋈ S) = σ<sub>p</sub>(R) ⋈ S</code> hvis <code>p</code> bare nevner attributter i R. Slike lover er det optimalisatoren utnytter.</li>
-        <li><strong>Komplett nok</strong> — alle SQL-spørringer (utenom aggregat og null-håndtering) kan oversettes til en relasjons­algebra-uttrykk.</li>
+        <li><strong>Komplett nok</strong> — alle SQL-spørringer (utenom null-håndtering og noen rekursive konstruksjoner) kan oversettes til en relasjons­algebra-uttrykk. Aggregering dekkes av en utvidet operator (<code>γ</code>).</li>
       </ul>
 
       <div class="callout">
@@ -131,7 +131,13 @@
       <div class="op-grid">
         <div class="op-card"><div class="op-sym">⋈</div><div class="op-name">Join</div><div class="op-desc">σ-filter + ×. Theta, equi, natural.</div></div>
         <div class="op-card"><div class="op-sym">∩</div><div class="op-name">Intersect</div><div class="op-desc">Tupler som finnes i begge. <code>R ∩ S = R − (R − S)</code>.</div></div>
-        <div class="op-card"><div class="op-sym">÷</div><div class="op-name">Division</div><div class="op-desc">«For alle …»-spørringer.</div></div>
+        <div class="op-card"><div class="op-sym">←</div><div class="op-name">Assignment</div><div class="op-desc">Lagre mellomresultat: <code>tmp ← E</code>.</div></div>
+      </div>
+
+      <h3>Utvidet algebra</h3>
+      <div class="op-grid">
+        <div class="op-card"><div class="op-sym">γ</div><div class="op-name">Aggregering</div><div class="op-desc">avg, min, max, sum, count — også med GROUP BY.</div></div>
+        <div class="op-card"><div class="op-sym">⟕ ⟖ ⟗</div><div class="op-name">Outer joins</div><div class="op-desc">Bevarer rader som ikke matcher (NULL-fyllt).</div></div>
       </div>
 
       <p>Hver operator har et <strong>input-skjema</strong>, et <strong>output-skjema</strong> og en presis semantikk. Vi går gjennom dem en for en med samme lille datasett, og avslutter med en interaktiv «bygg en spørring»-runner.</p>
@@ -470,83 +476,69 @@
         <span class="label">SQL-mapping</span>
         <p>I SQL gjøres det samme med tabell-aliaser: <code>FROM instructor i, instructor w</code>. ρ er det algebraiske motstykket.</p>
       </div>
+
+      <h3>← Assignment — lagre delresultat</h3>
+      <p><strong>Notasjon:</strong> <code>var ← E</code> — gir uttrykket <code>E</code> et midlertidig navn <code>var</code> som kan brukes videre. Praktisk for å splitte lange uttrykk.</p>
+      <pre><code>F2017 ← π<sub>course_id</sub>(σ<sub>semester="Fall" ∧ year=2017</sub>(section))
+S2018 ← π<sub>course_id</sub>(σ<sub>semester="Spring" ∧ year=2018</sub>(section))
+F2017 ∪ S2018</code></pre>
+      <p>Tilordningen er ikke en operator i seg selv — den er bare leselig syntaks for å bygge større uttrykk steg for steg.</p>
     </div>
   </section>
 
-  <!-- ─────────── 09 DIVISION ─────────── -->
-  <section id="division">
+  <!-- ─────────── 09 AGGREGERING ─────────── -->
+  <section id="aggregat">
     <div class="container">
-      <div class="section-badge">09 · ÷ Division</div>
-      <h2>«Alle som …»-spørringer</h2>
+      <div class="section-badge">09 · γ Aggregering</div>
+      <h2>Fra rader til oppsummeringer</h2>
 
-      <p><strong>Notasjon:</strong> <code>R ÷ S</code> — gitt at <code>S</code>'s skjema er en delmengde av <code>R</code>'s.</p>
-      <p><strong>Semantikk:</strong> Resultatet er de <code>t</code>-verdiene fra <code>R</code> (over attributter <em>ikke</em> i <code>S</code>) der <code>t</code> kombinert med <em>hver</em> rad i <code>S</code> finnes i <code>R</code>.</p>
+      <p><strong>Notasjon:</strong> <code><sub>G</sub>γ<sub>f(A)</sub>(R)</code> — grupper raden i <code>R</code> etter attributtene i <code>G</code>, og regn ut aggregatfunksjonen <code>f</code> på attributt <code>A</code> for hver gruppe.</p>
+      <p>Aggregatfunksjonene som er med: <code>avg</code>, <code>min</code>, <code>max</code>, <code>sum</code>, <code>count</code>. Operatoren er en del av <em>utvidet</em> relasjons­algebra — ikke en av de seks fundamentale, men nødvendig for å uttrykke SQL-aggregater.</p>
 
-      <p>Klassisk eksempel: «Finn alle studenter som har tatt <em>alle</em> CS-kurs.»</p>
-
-      <h3>Konkret eksempel</h3>
-      <p>La <code>tatt(student, kurs)</code> og <code>påkrevd(kurs)</code>. Vi vil ha studenter som har tatt hvert kurs i <code>påkrevd</code>.</p>
-      <div class="figgrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
+      <h3>Eksempel — gjennomsnittslønn per avdeling</h3>
+      <p>Spørring: <code><sub>dept_name</sub>γ<sub>avg(salary)</sub>(instructor)</code></p>
+      <div class="figgrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
         <figure>
           <table class="demo">
-            <caption class="label">tatt</caption>
-            <thead><tr><th>student</th><th>kurs</th></tr></thead>
+            <caption class="label">instructor (input)</caption>
+            <thead><tr><th>ID</th><th>name</th><th>dept_name</th><th>salary</th></tr></thead>
             <tbody>
-              <tr><td>Anna</td><td>CS-101</td></tr>
-              <tr><td>Anna</td><td>CS-102</td></tr>
-              <tr><td>Anna</td><td>MA-100</td></tr>
-              <tr><td>Bo</td><td>CS-101</td></tr>
-              <tr><td>Bo</td><td>CS-102</td></tr>
-              <tr><td>Cara</td><td>CS-101</td></tr>
+              <tr><td>10101</td><td>Srinivasan</td><td>Comp. Sci.</td><td>65 000</td></tr>
+              <tr><td>22222</td><td>Einstein</td><td>Physics</td><td>95 000</td></tr>
+              <tr><td>33456</td><td>Gold</td><td>Physics</td><td>87 000</td></tr>
+              <tr><td>76766</td><td>Crick</td><td>Biology</td><td>72 000</td></tr>
+              <tr><td>83821</td><td>Brandt</td><td>Comp. Sci.</td><td>92 000</td></tr>
             </tbody>
           </table>
         </figure>
         <figure>
           <table class="demo">
-            <caption class="label">påkrevd</caption>
-            <thead><tr><th>kurs</th></tr></thead>
+            <caption class="label">resultat</caption>
+            <thead><tr><th>dept_name</th><th>avg(salary)</th></tr></thead>
             <tbody>
-              <tr><td>CS-101</td></tr>
-              <tr><td>CS-102</td></tr>
-            </tbody>
-          </table>
-        </figure>
-        <figure>
-          <table class="demo">
-            <caption class="label">tatt ÷ påkrevd</caption>
-            <thead><tr><th>student</th></tr></thead>
-            <tbody>
-              <tr><td>Anna</td></tr>
-              <tr><td>Bo</td></tr>
+              <tr><td>Comp. Sci.</td><td>78 500</td></tr>
+              <tr><td>Physics</td><td>91 000</td></tr>
+              <tr><td>Biology</td><td>72 000</td></tr>
             </tbody>
           </table>
         </figure>
       </div>
 
-      <p>Cara har tatt CS-101 men ikke CS-102, så hun mangler en av de påkrevde — fjernes. Anna har tatt begge (pluss MA-100, som ikke disqualifiserer henne). Bo har tatt akkurat de to.</p>
+      <h3>Uten gruppering</h3>
+      <p>Hvis <code>G</code> er tom, blir resultatet én rad med aggregatet over hele relasjonen:</p>
+      <pre><code>γ<sub>avg(salary)</sub>(σ<sub>dept_name="Physics"</sub>(instructor))   →   91 000</code></pre>
 
-      <h3>Avledning fra fundamentale operatorer</h3>
-      <pre><code>R ÷ S = π<sub>R−S</sub>(R) − π<sub>R−S</sub>((π<sub>R−S</sub>(R) × S) − R)</code></pre>
-      <p>Tankegangen: «Alle kandidater» minus «de kandidatene som <em>mangler</em> en kombinasjon». Den siste står igjen som «alle som ikke mangler noen» = «alle som har alle».</p>
-
-      <h3>I SQL — det dobbelte NOT EXISTS-trikset</h3>
-      <pre><code>SELECT DISTINCT t.student
-FROM tatt t
-WHERE NOT EXISTS (
-  SELECT * FROM påkrevd p
-  WHERE NOT EXISTS (
-    SELECT * FROM tatt u
-    WHERE u.student = t.student AND u.kurs = p.kurs
-  )
-);</code></pre>
-      <p>«Det finnes ikke noe påkrevd kurs som <em>ikke</em> finnes blant studentens egne tatt-rader.» Skummelt å lese, men direkte oversettelse av division.</p>
+      <div class="callout callout-blue">
+        <span class="label">SQL-mapping</span>
+        <p><code><sub>G</sub>γ<sub>f(A)</sub>(R)</code> blir <code>SELECT G, f(A) FROM R GROUP BY G</code>. Uten gruppering: <code>SELECT f(A) FROM R</code>.</p>
+      </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Forståelse · Vanskelig</div>
-        <div class="q-text">Hvis <code>påkrevd</code> er <em>tom</em>, hva returnerer <code>tatt ÷ påkrevd</code>?</div>
+        <div class="q-label">Skriv γ-uttrykket · Lett</div>
+        <div class="q-text">Skriv et algebra-uttrykk som finner høyeste lønn i hver avdeling.</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer">Alle distinkte studenter — fordi predikatet «for alle <em>ingen</em> kurs i påkrevd, …» er vakuumt sant. Dette er den klassiske «tomme universelle kvantor»-felle. Sjekk derfor alltid om dataen din kan ha tomme delmengder hvis du bygger «for alle …»-spørringer.</div>
+          <div class="answer"><code><sub>dept_name</sub>γ<sub>max(salary)</sub>(instructor)</code>. På datasettet over: Comp. Sci. → 92 000, Physics → 95 000, Biology → 72 000.</div>
         </div>
       </div>
     </div>
@@ -619,10 +611,11 @@ WHERE NOT EXISTS (
       <div class="section-badge">12 · Oppsummering</div>
       <h2>Du bør nå kunne …</h2>
       <ul>
-        <li>… liste de seks fundamentale operatorene og forklare semantikken til hver.</li>
-        <li>… oversette en SQL-spørring uten aggregat til relasjons­algebra og motsatt.</li>
+        <li>… liste de seks fundamentale operatorene (σ π × ∪ − ρ) og forklare semantikken til hver.</li>
+        <li>… kjenne de avledede operatorene ⋈ og ∩, og hvordan de utledes fra de fundamentale.</li>
+        <li>… bruke utvidet algebra: γ-aggregering (med og uten GROUP BY) og outer joins.</li>
+        <li>… bruke ← for å lagre delresultater i et større uttrykk.</li>
         <li>… skille natural join, theta-join og outer joins, og kjenne SQL-motstykkene.</li>
-        <li>… skrive en division-spørring og vite hvorfor den er triks å skrive i SQL.</li>
         <li>… argumentere for hvorfor algebraen er nyttig: optimalisatoren manipulerer den.</li>
       </ul>
 
