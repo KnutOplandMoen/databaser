@@ -52,7 +52,7 @@
     <div class="container">
       <div class="eyebrow">Kapittel 8 · 8C · Forelesning 16</div>
       <h1>Recovery — <em>livet etter krasj</em></h1>
-      <p class="lede">Notater kap. 18. Loggens jobb: garantere atomicity og durability uansett hva som skjer — strømbrudd, OS-kill, deadlock-abort.</p>
+      <p class="lede">Notater kap. 18. Loggens jobb: garantere atomicity (alt-eller-ingenting) og durability (varig lagring) uansett hva som skjer — strømbrudd, at operativsystemet dreper databaseprosessen, eller en transaksjon som aborteres på grunn av deadlock.</p>
       <nav class="toc">
         <a href="#mal"><span>01</span> Mål</a>
         <a href="#vinnere"><span>02</span> Vinnere/tapere</a>
@@ -80,7 +80,7 @@
         <li><strong>Durability</strong> — alle committed transaksjoner ved krasj skal være på disken etterpå (redo om nødvendig).</li>
       </ul>
 
-      <p>I tillegg må recovery-prosessen være <strong>idempotent</strong>: hvis maskinen krasjer <em>igjen</em> midt under recovery, skal det å starte recovery på nytt fortsatt gi riktig resultat. Det er CLR-ene (kapittel 06 her) som gjør dette mulig.</p>
+      <p>I tillegg må recovery-prosessen være <strong>idempotent</strong> (gir samme resultat uansett hvor mange ganger den kjøres): hvis maskinen krasjer <em>igjen</em> midt under recovery, skal det å starte recovery på nytt fortsatt gi riktig resultat. Det er <em>kompenserende loggposter</em> (CLR — Compensating Log Records, seksjon 06 nedenfor) som gjør dette mulig.</p>
 
       <h3>Tre typer feil</h3>
       <ol>
@@ -110,7 +110,7 @@
     <div class="container">
       <div class="section-badge">02 · Vinnere og tapere</div>
       <h2>Hvilke transaksjoner var <em>egentlig</em> ferdige?</h2>
-      <p>Når strømmen gikk, var noen transaksjoner committed (vi vet det fordi commit-loggrecorden var på disk), andre var midt i. De første kalles <strong>winners</strong>, de andre <strong>losers</strong>.</p>
+      <p>Når strømmen gikk, var noen transaksjoner committed (vi vet det fordi commit-loggposten — en oppføring i loggen som markerer at transaksjonen committet — var på disk), andre var midt i. De første kalles <strong>winners</strong>, de andre <strong>losers</strong>.</p>
 
       <figure>
         <svg class="crashline" viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vinnere og tapere ved krasj">
@@ -160,7 +160,7 @@
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Vinnere</div>
-        <div class="q-text">En transaksjon har skrevet en <code>commit</code> log-record til log-bufferen i RAM, men maskinen krasjer før loggbufferen blir tømt til disk. Er den winner eller loser?</div>
+        <div class="q-text">En transaksjon har skrevet en <code>commit</code>-loggpost til <em>log-bufferen</em> (et RAM-område der nye loggposter samles før de skrives til disk), men maskinen krasjer før loggbufferen blir tømt til disk. Er den winner eller loser?</div>
         <div class="mcq-options">
           <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Winner — den prøvde å committe</span></div>
           <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Loser — committen var ikke på stabil lagring (disk) ved krasjet</span></div>
@@ -168,7 +168,7 @@
           <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Avhenger av isolation level</span></div>
         </div>
         <div class="mcq-feedback">
-          <strong>Loser.</strong> RAM forsvinner ved krasj. Vi vet kun om transaksjoner som har commit-record <em>på disk</em>. Det er nettopp derfor «force-log-at-commit» finnes — for å gjøre commit-loggen synkron med disk og sikre durability.
+          <strong>Loser.</strong> RAM forsvinner ved krasj. Vi vet kun om transaksjoner som har commit-record <em>på disk</em>. Det er nettopp derfor regelen om at log-bufferen må flushes (skrives ut) til disk før commit returneres til klienten finnes — for å sikre durability. Vi går inn på dette i §05 (WAL).
         </div>
       </div>
     </div>
@@ -179,14 +179,14 @@
     <div class="container">
       <div class="section-badge">03 · Buffer-policy</div>
       <h2>Force og <em>steal</em></h2>
-      <p>Hvilken algoritme et DBMS trenger avhenger av to designvalg om buffer-poolen:</p>
+      <p>Hvilken algoritme et DBMS trenger avhenger av to designvalg om <em>buffer-poolen</em> (RAM-området der databasen mellomlagrer datasider fra disk — kap. 6):</p>
 
       <ul>
         <li><strong>Force</strong>: Tvinger systemet at <em>alle</em> data-sider skrives til disk ved commit?
           <ul><li>Ja (force) — durability lett, men dyr commit (mange random writes).</li>
               <li>Nei (no-force) — billig commit, men trenger redo etter krasj.</li></ul>
         </li>
-        <li><strong>Steal</strong>: Kan en buffer-slot stjeles fra en uavsluttet transaksjon (skrives til disk)?
+        <li><strong>Steal</strong>: Kan en plass i bufferpoolen «stjeles» (skrives til disk) fra en uavsluttet transaksjon?
           <ul><li>Ja (steal) — fleksibel buffer-bruk, men trenger undo for halvskrevne sider.</li>
               <li>Nei (no-steal) — uavsluttede sider holdes i buffer til commit. Begrenset.</li></ul>
         </li>
@@ -204,11 +204,11 @@
         </table>
       </div>
 
-      <p><strong>ARIES</strong> sitter i steal/no-force-hjørnet: maksimal fleksibilitet for buffer manager, men krever <em>både</em> undo- og redo-logging. Det er prisen for ytelse i moderne SQL-databaser.</p>
+      <p><strong>ARIES</strong> (<em>Algorithms for Recovery and Isolation Exploiting Semantics</em> — den klassiske recovery-algoritmen, fra IBM på 90-tallet) sitter i steal/no-force-hjørnet: maksimal fleksibilitet for buffer manager, men krever <em>både</em> undo- og redo-logging. Det er prisen for ytelse i moderne SQL-databaser.</p>
 
       <div class="callout">
         <span class="label">Update-in-place vs shadowing</span>
-        <p>De tre andre cellene gir alternative recoveryteknikker pensum nevner kort: <em>Undo/no-redo</em> (force + steal), <em>No-undo/redo</em> (no-force + no-steal), og <em>Shadowing</em> (force + no-steal — uten logg, lager kopier av data og bytter pekere ved commit, f.eks. Copy-On-Write B+-trær). Hovedskillet er <strong>update-in-place</strong> (ARIES — endrer datablokken direkte) versus <strong>shadowing</strong> (lager nye kopier).</p>
+        <p>De tre andre cellene gir alternative recoveryteknikker pensum nevner kort: <em>Undo/no-redo</em> (force + steal), <em>No-undo/redo</em> (no-force + no-steal), og <em>Shadowing</em> (force + no-steal — uten logg, lager kopier av data og bytter pekere ved commit, for eksempel <em>Copy-On-Write</em>-strukturer som lager ny kopi før endring i stedet for å skrive over). Hovedskillet er <strong>update-in-place</strong> (ARIES — endrer datablokken direkte) versus <strong>shadowing</strong> (lager nye kopier).</p>
       </div>
 
       <div class="mcq" data-mcq>
@@ -232,7 +232,7 @@
     <div class="container">
       <div class="section-badge">04 · Loggen</div>
       <h2>Append-only <em>kronologi</em></h2>
-      <p>Loggen er en sekvensiell, append-only fil på en egen disk. Hvert log-record har en monotont voksende <strong>LSN</strong> (Log Sequence Number).</p>
+      <p>Loggen er en sekvensiell, append-only (bare tilføy, aldri overskriv) fil på en egen disk. Hver loggpost har en stadig voksende <strong>LSN</strong> (Log Sequence Number — et unikt løpenummer).</p>
 
       <h3>Generisk log-record</h3>
       <pre><code>(LSN, TransID, PrevLSN, OpType, PageID, Offset, BeforeImage, AfterImage)</code></pre>
@@ -302,7 +302,7 @@
       <h2>Write-ahead <em>logging</em></h2>
       <p>Hele recovery-arkitekturen hviler på én regel:</p>
 
-      <blockquote><strong>WAL-regelen:</strong> Før en endret dataside skrives til disk, må alle log-records som beskriver endringen være på disk først.</blockquote>
+      <blockquote><strong>WAL-regelen:</strong> Før en endret dataside skrives til disk, må alle loggposter som beskriver endringen være på disk først.</blockquote>
 
       <p>Konkret: før vi skriver dirty side P med <code>PageLSN = L</code> til disk, må <code>FlushedLSN ≥ L</code>. Hvis ikke, kunne et krasj rett etter side-skrivingen latt oss stå med en delvis oppdatert side på disk uten noen log-record som forteller hvordan vi skulle rulle den tilbake — atomicity brutt.</p>
 
@@ -360,13 +360,13 @@
       <h2>Compensating Log <em>Records</em></h2>
       <p>Tenk: under undo for en aborted transaksjon krasjer maskinen. Når den starter på nytt — hvor langt har vi kommet i å rulle tilbake? Skal vi rulle tilbake samme record igjen?</p>
 
-      <p>ARIES sin eleganse: når vi <em>undoer</em> en log-record, skriver vi en ny log-record som beskriver «jeg har angret den endringen». Den heter en <strong>CLR</strong> (Compensating Log Record). PageLSN på siden oppdateres til CLR-ens LSN.</p>
+      <p>ARIES sin eleganse: når vi <em>undoer</em> en loggpost, skriver vi en ny loggpost som beskriver «jeg har angret den endringen». Den heter en <strong>CLR</strong> (Compensating Log Record — kompenserende loggpost). PageLSN på siden oppdateres til CLR-ens LSN.</p>
 
       <p>Egenskaper:</p>
       <ul>
         <li>CLR-er kan <strong>redoes</strong> hvis krasj skjer under undo, men <strong>undoes aldri</strong>.</li>
         <li>Undo-prosessen følger <code>PrevLSN</code> i den opprinnelige (non-CLR) loggposten for å finne neste loggpost å angre.</li>
-        <li>CLR-en lar undo bli en <em>roll-forward</em>-operasjon — andre operasjoner kan fortsette på samme blokk.</li>
+        <li>CLR-en lar undo bli en <em>roll-forward</em>-operasjon (vi går framover i loggen i stedet for bakover) — andre operasjoner kan fortsette på samme blokk.</li>
       </ul>
 
       <p>Resultat: <strong>idempotent recovery</strong>. Du kan krasje, restarte, krasje igjen — slutt-tilstanden er den samme.</p>
@@ -392,21 +392,21 @@
     <div class="container">
       <div class="section-badge">07 · Datastrukturer</div>
       <h2>Det ARIES holder rede på</h2>
-      <p>To tabeller i RAM (kopieres til logg ved sjekkpunkter):</p>
+      <p>To tabeller i RAM (kopieres til logg ved sjekkpunkter — sjekkpunkter forklares i §10):</p>
 
       <h3>Transaction Table (TT)</h3>
       <p>Én rad per <em>aktiv</em> transaksjon. Inneholder:</p>
       <ul>
         <li><code>TransID</code></li>
         <li><code>Status</code> — active / committed / aborted</li>
-        <li><code>LastLSN</code> — siste log-record skrevet av denne Tx (start på undo-kjeden)</li>
+        <li><code>LastLSN</code> — siste loggpost skrevet av denne Tx (start på undo-kjeden)</li>
       </ul>
 
       <h3>Dirty Page Table (DPT)</h3>
       <p>Én rad per <em>dirty</em> side i buffer (modifisert, men ikke skrevet til disk). Inneholder:</p>
       <ul>
         <li><code>PageID</code></li>
-        <li><code>RecLSN</code> — LSN av <em>første</em> log-record som gjorde siden dirty etter siste flush. Det er det <em>tidligste</em> punktet redo må gå tilbake til for denne siden.</li>
+        <li><code>RecLSN</code> — LSN av <em>første</em> loggpost som gjorde siden dirty etter siste flush. Det er det <em>tidligste</em> punktet redo må gå tilbake til for denne siden.</li>
       </ul>
 
       <p>Hvorfor skiller vi RecLSN fra PageLSN? Begge gjelder samme side, men ulike formål: <em>RecLSN</em> sier hvor langt tilbake redo må starte; <em>PageLSN</em> sier hvor langt redo allerede er kommet.</p>
@@ -439,17 +439,17 @@
           <div class="aries-phase">
             <span class="phase-num">FASE 1</span>
             <h4>Analysis</h4>
-            <p>Skann logg fra siste sjekkpunkt og fremover. Bygg opp <strong>Transaction Table</strong> og <strong>Dirty Page Table</strong> slik de var ved krasjet. Identifiser winners (committed) og losers (in-flight).</p>
+            <p>Skann logg fra siste <em>sjekkpunkt</em> (et merket startpunkt vi forklarer i §10) og fremover. Bygg opp <strong>Transaction Table</strong> og <strong>Dirty Page Table</strong> slik de var ved krasjet. Identifiser winners (committed) og losers (in-flight).</p>
           </div>
           <div class="aries-phase">
             <span class="phase-num">FASE 2</span>
             <h4>Redo</h4>
-            <p>Start ved <em>minste RecLSN</em> i DPT. Skann fremover. For hver log-record: utfør den om <code>PageLSN &lt; LSN</code>. <strong>Repeating history</strong> — alle endringer (også fra losere!) gjenspilles.</p>
+            <p>Start ved <em>minste RecLSN</em> i DPT. Skann fremover. For hver loggpost: utfør den om <code>PageLSN &lt; LSN</code>. <strong>Repeating history</strong> (vi gjenspiller all historikk) — alle endringer (også fra losere!) gjenspilles.</p>
           </div>
           <div class="aries-phase">
             <span class="phase-num">FASE 3</span>
             <h4>Undo</h4>
-            <p>Gå <em>baklengs</em> gjennom log-recordene til losers (via PrevLSN). For hver, skriv en CLR og angre endringen. Når alle losers er rullet helt tilbake — ferdig.</p>
+            <p>Gå <em>baklengs</em> gjennom loggpostene til losers (via PrevLSN). For hver, skriv en CLR og angre endringen. Når alle losers er rullet helt tilbake — ferdig.</p>
           </div>
         </div>
         <div class="tx-stepper-controls">
@@ -503,6 +503,7 @@
           </tbody>
         </table>
       </div>
+      <p style="font-size:0.88rem;color:var(--ink-faded);margin-top:-0.6rem"><em>(<code>ckpt</code> = checkpoint, sjekkpunkt — se §10.)</em></p>
 
       <p>Ved sjekkpunkt (LSN 105) hadde TT og DPT følgende:</p>
 
@@ -628,18 +629,18 @@
         <li>Skriv «checkpoint»-record i loggen.</li>
         <li>Slipp alle løs igjen.</li>
       </ol>
-      <p>Korrekt, men lammer systemet i sekunder — uakseptabelt for OLTP.</p>
+      <p>Korrekt, men lammer systemet i sekunder — uakseptabelt for OLTP-trafikk.</p>
 
       <h3>Fuzzy checkpoint (ARIES)</h3>
       <ol>
-        <li>Skriv <code>begin_checkpoint</code>-record.</li>
-        <li>Skriv en <code>end_checkpoint</code>-record som inneholder snapshot av TT og DPT akkurat nå.</li>
+        <li>Skriv <code>begin_checkpoint</code>-loggpost.</li>
+        <li>Skriv en <code>end_checkpoint</code>-loggpost som inneholder et øyeblikksbilde (snapshot) av TT og DPT akkurat nå.</li>
         <li>Oppdater <strong>log anchor</strong> (et lite, fast sted på disk) til å peke på begin_checkpoint.</li>
         <li>Bakgrunnsprosess flusher dirty sider <em>uten å blokkere</em> drift.</li>
       </ol>
       <p>Recovery starter ved <code>begin_checkpoint</code>; den vet hva TT/DPT så ut da, og leser videre forover for å bygge nåværende tilstand.</p>
 
-      <h3>Penultimate checkpointing</h3>
+      <h3>Penultimate checkpointing (nest siste sjekkpunkt)</h3>
       <p>En annen variant pensum nevner: skriv data ved sjekkpunkting, men bruk <em>nest siste</em> sjekkpunkt som startpunkt for recovery. Garanterer at all data referert i loggen før det punktet er på disk, så Analysis/REDO trenger ikke gå lenger tilbake. Ikke ARIES — ARIES bruker fuzzy checkpoint og DPT i stedet.</p>
 
       <p>Trade-off: hyppige sjekkpunkter ⇒ kort recovery, mer normaldrift-overhead. I praksis kjører kommersielle systemer fuzzy checkpoint hvert 5–10 minutt eller hver N-te MB logg.</p>

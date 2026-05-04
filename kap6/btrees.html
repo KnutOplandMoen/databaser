@@ -77,8 +77,8 @@
         <a href="#hvorfor-bplus"><span>01</span> Hvorfor B+ over B</a>
         <a href="#struktur"><span>02</span> Struktur</a>
         <a href="#sok"><span>03</span> Søk</a>
-        <a href="#interaktiv"><span>04</span> Interaktivt B+-tre</a>
-        <a href="#innsetting"><span>05</span> Innsetting og splitt</a>
+        <a href="#innsetting"><span>04</span> Innsetting og splitt</a>
+        <a href="#interaktiv"><span>05</span> Interaktivt B+-tre</a>
         <a href="#sletting"><span>06</span> Sletting</a>
         <a href="#cluster"><span>07</span> Clustered vs unclustered</a>
         <a href="#kompositt"><span>08</span> Komposittnøkler</a>
@@ -309,42 +309,9 @@
   </section>
 
   <!-- ============= 04 ============= -->
-  <section id="interaktiv">
-    <div class="container">
-      <div class="section-badge">04 · Interaktivt B+-tre</div>
-      <h2>Bygg ditt eget B+-tre</h2>
-      <p>Sett inn nøkler og søk i treet under. Treet har orden 4 — hver blokk holder maks 3 nøkler. Når en blokk fylles, splittes den; hvis dette propagerer opp til roten, vokser treet med ett nivå.</p>
-
-      <div class="interactive-card">
-        <h4>Visualisering — orden 4</h4>
-        <svg id="bpt-svg" viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
-        <div class="controls">
-          <input type="number" id="bpt-key" class="ctrl-input" placeholder="Nøkkel" min="1" max="999">
-          <button class="ctrl-btn" id="bpt-insert">Sett inn</button>
-          <button class="ctrl-btn" id="bpt-search">Søk</button>
-          <button class="ctrl-btn" id="bpt-demo">Kjør standard-eksempelet</button>
-          <button class="ctrl-btn" id="bpt-reset">Tilbakestill</button>
-        </div>
-        <div class="status-line" id="bpt-status">Tomt tre. Sett inn en nøkkel for å starte. Eksempel-sekvensen fra notatene: 2, 5, 14, 22, 27, 33, 3, 7, 16, 24.</div>
-      </div>
-
-      <p style="font-size:0.94rem;color:var(--ink-faded);margin-top:1rem"><em>Tips:</em> Kjør eksempel-sekvensen fra notatene trinnvis (start med tilbakestilling, deretter sett inn 2, 5, 14, 22, 27, 33, 3, 7, 16, 24 i denne rekkefølgen) — du vil se nøyaktig de samme trinnene som kompendiet viser.</p>
-
-      <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 4 · Vanskelig</div>
-        <div class="q-text">Treet vokser oppover, ikke nedover. Hvorfor er det viktig at det vokser kun når roten splittes — og ikke i bladene?</div>
-        <div class="quiz-reveal">
-          <button class="reveal-btn">Se svar</button>
-          <div class="answer">Fordi <strong>det er den eneste måten å holde treet balansert på</strong>. Hvis blader kunne gå dypere mens andre forblir grunne, ville søketider variere. Ved å la splittinger forplante seg oppover og kun introdusere nytt nivå når roten må splittes, garanterer vi at <em>alle</em> blader alltid er på samme avstand fra roten — det er det som gjør O(log_d N) garantert, ikke bare gjennomsnittlig.</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============= 05 ============= -->
   <section id="innsetting">
     <div class="container">
-      <div class="section-badge">05 · Innsetting og splitt</div>
+      <div class="section-badge">04 · Innsetting og splitt</div>
       <h2>Splitting fra blad og oppover</h2>
 
       <h3>Algoritmen i fire trinn</h3>
@@ -418,7 +385,7 @@
       </ul>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 5 · Middels</div>
+        <div class="q-label">Spørsmål 4 · Middels</div>
         <div class="q-text">En insert i et stort B+-tre med 4 nivåer fyller bladet og forårsaker en splitt. Foreldrenoden har plass. Hvor mange blokker må <em>skrives</em> til disk i verste fall?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
@@ -427,11 +394,44 @@
       </div>
 
       <div class="quiz" data-quiz>
-        <div class="q-label">Spørsmål 6 · Vanskelig</div>
+        <div class="q-label">Spørsmål 5 · Vanskelig</div>
         <div class="q-text">Hvorfor er fyllingsgraden i et B+-tre statistisk 2/3 i stedet for 100 % når data settes inn i tilfeldig rekkefølge?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
           <div class="answer">Hver gang en blokk splittes, halveres den. De to halvdelene fylles etter hvert opp av nye inserts, men i snitt vil fordelingen mellom «nettopp splittet (50 % full)» og «på vei til full (95 % full)» konvergere til ca. <strong>69 %</strong> (= ln(2) ≈ 0.693, et kjent matteresultat). Notatene bruker 2/3 ≈ 67 % som praktisk approksimasjon. Hvis du derimot setter inn i strengt sortert rekkefølge (auto-increment ID), vil siste blokk alltid være den som splittes, og venstresiden blir 100 % full.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 05 ============= -->
+  <section id="interaktiv">
+    <div class="container">
+      <div class="section-badge">05 · Interaktivt B+-tre</div>
+      <h2>Bygg ditt eget B+-tre</h2>
+      <p>Nå som du kjenner splitt-algoritmen, prøv den selv. Sett inn nøkler og se hvordan blader fylles, splittes og hvordan separator-nøkler propagerer oppover. Treet har orden 4 — hver blokk holder maks 3 nøkler.</p>
+
+      <div class="interactive-card">
+        <h4>Visualisering — orden 4</h4>
+        <svg id="bpt-svg" viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="controls">
+          <input type="number" id="bpt-key" class="ctrl-input" placeholder="Nøkkel" min="1" max="999">
+          <button class="ctrl-btn" id="bpt-insert">Sett inn</button>
+          <button class="ctrl-btn" id="bpt-search">Søk</button>
+          <button class="ctrl-btn" id="bpt-demo">Kjør standard-eksempelet</button>
+          <button class="ctrl-btn" id="bpt-reset">Tilbakestill</button>
+        </div>
+        <div class="status-line" id="bpt-status">Tomt tre. Sett inn en nøkkel for å starte. Eksempel-sekvensen fra notatene: 2, 5, 14, 22, 27, 33, 3, 7, 16, 24.</div>
+      </div>
+
+      <p style="font-size:0.94rem;color:var(--ink-faded);margin-top:1rem"><em>Tips:</em> Kjør eksempel-sekvensen fra notatene trinnvis (start med tilbakestilling, deretter sett inn 2, 5, 14, 22, 27, 33, 3, 7, 16, 24 i denne rekkefølgen) — du vil se nøyaktig de samme trinnene som kompendiet viser.</p>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 6 · Vanskelig</div>
+        <div class="q-text">Treet vokser oppover, ikke nedover. Hvorfor er det viktig at det vokser kun når roten splittes — og ikke i bladene?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">Fordi <strong>det er den eneste måten å holde treet balansert på</strong>. Hvis blader kunne gå dypere mens andre forblir grunne, ville søketider variere. Ved å la splittinger forplante seg oppover og kun introdusere nytt nivå når roten må splittes, garanterer vi at <em>alle</em> blader alltid er på samme avstand fra roten — det er det som gjør O(log_d N) garantert, ikke bare gjennomsnittlig.</div>
         </div>
       </div>
     </div>

@@ -62,8 +62,8 @@
       <ol class="chapter-toc-list">
         <li><span class="toc-num">01</span><a href="#hvorfor">Hvorfor lagring?</a></li>
         <li><span class="toc-num">02</span><a href="#hierarki">Hierarkiet</a></li>
-        <li><span class="toc-num">03</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
-        <li><span class="toc-num">04</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">03</span><a href="#deler">Deler</a></li>
+        <li><span class="toc-num">04</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
         <li><span class="toc-num">05</span><a href="#oppsummering">Oppsummering</a></li>
         <li><span class="toc-num">06</span><a href="#quiz">Test deg selv</a></li>
       </ol>
@@ -210,11 +210,42 @@
     </div>
   </section>
 
+  <section id="deler">
+    <div class="container">
+      <div class="section-badge">03 · Deler</div>
+      <h2>Utforsk <em>kapittelet</em></h2>
+      <p>Kapittelet er delt i to halvdeler. Begynn med 6A — du må forstå hvordan en rad ligger i en blokk før indekser gir mening.</p>
+      <div class="subpage-list">
+        <a href="lagring.html" class="subpage-card">
+          <span class="sp-icon">6A</span>
+          <div class="sp-info">
+            <div class="sp-title">Lagring — record-format, blokker, buffer, hashing</div>
+            <div class="sp-desc">Notater kap. 1–8. Animasjoner av slot directory, buffer pool og extendible hashing. 8 quizer.</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+        <a href="btrees.html" class="subpage-card">
+          <span class="sp-icon">6B</span>
+          <div class="sp-info">
+            <div class="sp-title">B+-trær og indekser</div>
+            <div class="sp-desc">Notater kap. 9–11. Interaktivt B+-tre — sett inn nøkler og se tre-splitting. 9 quizer.</div>
+          </div>
+          <span class="sp-arrow">&rarr;</span>
+        </a>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Slides og notater</span>
+        <p>Hovedkilde: <a href="../powerpoints/lagring.pdf">lagring.pdf</a> + Bratsbergs notater kap. 1–11. («Bratsberg» er kursets håndskrevne lagrings-kompendium — du finner det i pensumlisten på forsiden.) Læreboka dekker ikke lagringsdelen — disse to filene <em>er</em> pensum.</p>
+      </div>
+    </div>
+  </section>
+
   <section id="nokkelbegreper">
     <div class="container">
-      <div class="section-badge">03 · Nøkkelbegreper</div>
+      <div class="section-badge">04 · Nøkkelbegreper</div>
       <h2>Tolv ord som låser opp kapittelet</h2>
-      <p>Hvis du forstår disse 12, har du forstått kjernen. Resten er detaljer.</p>
+      <p>Du møter alle disse begrepene i 6A og 6B over. Bruk listen som ordliste-sjekkliste <em>etter</em> du har lest begge underkapitlene — hvis du forstår disse 12, har du forstått kjernen. Resten er detaljer.</p>
 
       <div class="two-col">
         <div class="key-card">
@@ -276,37 +307,6 @@
             <strong>3–4 blokker.</strong> Høyden er <code>log<sub>200</sub>(1 000 000) ≈ 2.6</code>, så vi runder opp til 3 nivåer i selve treet (treet må ha hele nivåer). Hvis indeksen er <em>unclustered</em> trenger vi i tillegg ett oppslag i heapfilen for å hente selve raden — totalt 4. Hvis den er <em>clustered</em>, ligger raden allerede i bladet — 3.
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="deler">
-    <div class="container">
-      <div class="section-badge">04 · Deler</div>
-      <h2>Utforsk <em>kapittelet</em></h2>
-      <p>Kapittelet er delt i to halvdeler. Begynn med 6A — du må forstå hvordan en rad ligger i en blokk før indekser gir mening.</p>
-      <div class="subpage-list">
-        <a href="lagring.html" class="subpage-card">
-          <span class="sp-icon">6A</span>
-          <div class="sp-info">
-            <div class="sp-title">Lagring — record-format, blokker, buffer, hashing</div>
-            <div class="sp-desc">Notater kap. 1–8. Animasjoner av slot directory, buffer pool og extendible hashing. 8 quizer.</div>
-          </div>
-          <span class="sp-arrow">&rarr;</span>
-        </a>
-        <a href="btrees.html" class="subpage-card">
-          <span class="sp-icon">6B</span>
-          <div class="sp-info">
-            <div class="sp-title">B+-trær og indekser</div>
-            <div class="sp-desc">Notater kap. 9–11. Interaktivt B+-tre — sett inn nøkler og se tre-splitting. 9 quizer.</div>
-          </div>
-          <span class="sp-arrow">&rarr;</span>
-        </a>
-      </div>
-
-      <div class="callout callout-blue">
-        <span class="label">Slides og notater</span>
-        <p>Hovedkilde: <a href="../powerpoints/lagring.pdf">lagring.pdf</a> + Bratsbergs notater kap. 1–11. («Bratsberg» er kursets håndskrevne lagrings-kompendium — du finner det i pensumlisten på forsiden.) Læreboka dekker ikke lagringsdelen — disse to filene <em>er</em> pensum.</p>
       </div>
     </div>
   </section>
