@@ -171,7 +171,7 @@
           <!-- Note -->
           <g transform="translate(20,320)">
             <text font-family="IBM Plex Sans" font-size="11" fill="#6b6257">
-              <tspan x="0" dy="0">Moderne DBMS-er kompilerer ofte den utvalgte planen til maskinkode (JIT) før kjøring — mye raskere enn å fortolke plan-noder én etter én.</tspan>
+              <tspan x="0" dy="0">Moderne DBMS-er kompilerer ofte den utvalgte planen til maskinkode (JIT — Just-In-Time-kompilering) før kjøring. Detalj utenfor pensum.</tspan>
             </text>
           </g>
         </svg>
@@ -180,7 +180,7 @@
 
       <ol class="num-bullet" style="counter-reset: nb;">
         <li><strong>SQL-kompilatoren</strong> parser teksten og slår opp i katalogen for å oversette til et internt algebra-tre med konkrete tabell- og kolonnereferanser.</li>
-        <li><strong>Optimizeren</strong> genererer mange mulige kjøreplaner (med ulike join-rekkefølger og indekser) og velger den med lavest forventet I/O-kostnad basert på katalogstatistikk.</li>
+        <li><strong>Optimizeren</strong> genererer mange mulige kjøreplaner (med ulike join-rekkefølger og indekser) og velger den med lavest forventet diskaksess-kostnad (kalt I/O — Input/Output: lese/skrive blokker) basert på statistikk fra katalogen.</li>
         <li><strong>Executoren</strong> kjører planen — den ber om blokker fra <em>buffer pool</em>, tar låser via <em>lock manager</em>, og skriver til <em>logfilen</em> hvis den endrer noe.</li>
         <li><strong>Buffer pool</strong> er det eneste laget som faktisk leser/skriver disk. Alt over snakker kun med buffer pool.</li>
       </ol>
