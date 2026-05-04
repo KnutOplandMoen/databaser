@@ -88,6 +88,20 @@
         <li><strong>System-krasj</strong> — strømbrudd, OS-kill, software-feil. RAM forsvinner, disk overlever.</li>
         <li><strong>Mediefeil</strong> — disken selv er ødelagt. Trenger backup + redo. <em>(Utenfor pensum.)</em></li>
       </ol>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Recovery-mål</div>
+        <div class="q-text">Hvilke ACID-egenskaper er recovery managerens ansvar?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>I og C</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Bare A</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>A og D</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>A, C og D</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>A og D — Atomicity og Durability.</strong> Atomicity oppnås ved undo (rull tilbake løsere) og Durability ved redo (sørg for at vinneres endringer er på disk). Isolation er lock managerens jobb (kapittel 8B), og Consistency er brukerens ansvar via integritetskrav.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -196,6 +210,20 @@
         <span class="label">Update-in-place vs shadowing</span>
         <p>De tre andre cellene gir alternative recoveryteknikker pensum nevner kort: <em>Undo/no-redo</em> (force + steal), <em>No-undo/redo</em> (no-force + no-steal), og <em>Shadowing</em> (force + no-steal — uten logg, lager kopier av data og bytter pekere ved commit, f.eks. Copy-On-Write B+-trær). Hovedskillet er <strong>update-in-place</strong> (ARIES — endrer datablokken direkte) versus <strong>shadowing</strong> (lager nye kopier).</p>
       </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Force/Steal</div>
+        <div class="q-text">Hvorfor unngår de fleste databaser <em>force</em>-policyen ved commit?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Det bryter med ACID</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Det er dyrt — datablokkene kan være spredt utover disken og krever mange random writes</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Det krever shadowing</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det er ikke mulig på SSD</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Random writes er dyrt.</strong> Force betyr at <em>alle</em> berørte datablokker må skrives til disk ved commit — og det kan være mange små, spredte sider. Loggen er sekvensiell og rask å skrive. No-force lar datablokkene flushes asynkront i bakgrunnen, mot at vi må kunne redoe etter krasj.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -250,6 +278,20 @@
         </svg>
         <figcaption>FlushedLSN = nyeste log-record på disk. PageLSN på dataside = LSN av siste endring på siden. Ved å sammenlikne kan vi vite om en endring trenger redo.</figcaption>
       </figure>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Loggpost-felt</div>
+        <div class="q-text">Hva er <code>PrevLSN</code>-feltet i en loggpost brukt til?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Identifisere forrige sjekkpunkt</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Lenke loggposter for samme transaksjon bakover — brukes ved abort/undo</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Peke til forrige loggpost på disken</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Holde rede på neste LSN som skal skrives</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig.</strong> PrevLSN lager en kjede gjennom alle loggposter fra samme transaksjon. Ved abort starter vi på LastLSN i transaksjonstabellen og følger PrevLSN bakover for å undoe alle endringene transaksjonen har gjort. Lenken er essensiell — uten den måtte undo skanne hele loggen.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -328,6 +370,20 @@
       </ul>
 
       <p>Resultat: <strong>idempotent recovery</strong>. Du kan krasje, restarte, krasje igjen — slutt-tilstanden er den samme.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · CLR</div>
+        <div class="q-text">Kan en CLR (Compensating Log Record) bli undone?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Ja — som en hvilken som helst loggpost</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Nei — CLR-er er redo-only. Det er nettopp det som gjør recovery idempotent.</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Bare hvis transaksjonen aborterer</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Bare i strict 2PL</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Nei.</strong> CLR-er undoes aldri — kun redoes hvis krasj skjer under recovery. Hvis CLR-er kunne undoes, ville en serie krasj kunne sette databasen i en uendelig løkke av undo/undo-undo. Ved at de er redo-only og oppdaterer PageLSN på siden, vet vi alltid hvor langt undo har kommet.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -405,6 +461,20 @@
       <div class="callout">
         <span class="label">Snikende detalj — repeating history</span>
         <p>Redo gjenspiller <em>alt</em>, også endringer gjort av løsere. Hvorfor? Fordi PageLSN-sjekken bruker LSN-sammenlikning, og fordi det forenkler logikken: når vi når undo-fasen, er databasen i nøyaktig samme tilstand som ved krasjet (inkludert halvgjorte endringer fra losere). Så undo må bare reverse log-recordene, uansett hva som har skjedd.</p>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · ARIES-faser</div>
+        <div class="q-text">Hvorfor må Analysis kjøres før Redo?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Det må den ikke — rekkefølgen kan byttes</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Redo trenger DPT for å vite hvor langt tilbake i loggen den må starte (minste RecLSN)</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Analysis bruker mindre minne enn Redo</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Analysis sletter loggen etter at den er ferdig</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>DPT trengs først.</strong> Analysis rekonstruerer DPT og TT slik de var ved krasjet. Redo bruker DPT til å starte ved minste RecLSN — uten det måtte Redo skanne hele loggen fra start. Undo trenger TT til å vite hvilke transaksjoner som er løsere. Faserekkefølgen Analysis → Redo → Undo er fast.
+        </div>
       </div>
     </div>
   </section>

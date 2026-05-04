@@ -687,6 +687,15 @@
         <span class="label">Praktisk</span>
         <p>Optimizeren velger algoritme basert på statistikk (tabellstørrelser, eksisterende indekser, sortering) og estimert I/O-kost. Nested loop dominerer fortsatt når en av tabellene er liten.</p>
       </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-text">Begge tabeller er allerede sortert på join-attributtet. Hvilken algoritme er typisk billigst?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer"><strong>Sort-merge join (J3).</strong> Sortfasen er hoppet over fordi inputen alt er sortert — vi går bare parallelt gjennom dem med to pekere. Hash join må gjøre ekstra arbeid (build + probe), og nested loop skanner indre tabell flere ganger.</div>
+        </div>
+      </div>
     </div>
   </section>
 

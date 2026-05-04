@@ -112,6 +112,20 @@
 Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
 
       <p>Spørsmålet hele dette kapittelet handler om: <em>hvilke interleavede schedules er trygge — det vil si gir samme resultat som en eller annen seriell?</em></p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Schedule</div>
+        <div class="q-text">Hva betyr at en schedule er <em>seriell</em>?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Den kjører fortest mulig</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Den fletter ikke operasjoner fra forskjellige transaksjoner — én transaksjon ferdig før neste begynner</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Den bruker ingen låser</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Alle operasjoner er reads</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig.</strong> En seriell schedule kjører transaksjoner én etter én, uten interleaving. Vi <em>ønsker</em> ikke serielle schedules i praksis — de gir for lite samtidighet — men de tjener som korrekthetsreferanse: en ekvivalent seriell schedule er definisjonen på serializability.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -295,6 +309,20 @@ Interleaved:    r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
       </ul>
 
       <p>Conflict-serializability impliserer serializability, men ikke omvendt. 2PL (kapittel 8B) implementerer nettopp conflict-serializability.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Serializability</div>
+        <div class="q-text">Hvilken sammenheng er korrekt?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Serializable ⇒ conflict-serializable (men ikke omvendt)</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Conflict-serializable ⇒ serializable (men ikke omvendt)</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>De to begrepene er identiske</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Conflict-serializable ⇒ seriell</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig.</strong> Conflict-serializability er en strengere (mer restriktiv) klasse enn serializability — alle conflict-serializable schedules er serializable, men noen serializable schedules er ikke conflict-serializable. Vi sjekker conflict-serializability fordi det er mekanisk avgjørbart via presedensgraf, mens generell serializability er NP-hardt.
+        </div>
+      </div>
     </div>
   </section>
 

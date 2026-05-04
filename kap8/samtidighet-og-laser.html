@@ -199,6 +199,20 @@
       <p style="font-style: italic; color: var(--ink-soft);">Tommelfingerregel: writers lockes ut alle. Readers tolererer hverandre.</p>
 
       <p>Låser administreres av en <strong>låstabell</strong> i RAM. Hver aktiv transaksjon har en oppføring som peker til de låsene den allerede holder («has locks») og de den venter på («wants locks»). Operasjoner som må vente blir <em>blokkert</em> til lås frigjøres.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Låskompatibilitet</div>
+        <div class="q-text">T1 holder en S-lås på X. T2 ber om en lås på X. Hvilke kombinasjoner går?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="true"><span class="marker">A</span><span>T2 får S-lås umiddelbart; T2 må vente om den ber om X-lås</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>T2 får både S og X umiddelbart</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>T2 må vente uansett hva den ber om</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>T2 får X-lås, T1 sin S oppgraderes til X</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig.</strong> S-låser er kompatible med andre S-låser (delt), men X-låser er eksklusive — én X-lås stenger ute alle andre. Tommelfingerregel: writers stenger ute alle, readers tolererer hverandre.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -294,6 +308,20 @@
       </div>
 
       <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør recovery enkelt (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · 2PL-varianter</div>
+        <div class="q-text">Hva er forskjellen mellom <em>strict</em> og <em>rigorous</em> 2PL?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Strict tar låser én og én; rigorous tar alt på forhånd</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Strict slipper S-låser tidlig men holder X-låser til commit; rigorous holder alle låser til commit</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Strict bruker bare X-låser; rigorous bruker både S og X</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>De er identiske — ulike navn for samme konsept</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig.</strong> Begge holder X-låser til commit/abort (gir strict schedule + cascadeless), men strict 2PL kan slippe S-låser tidligere mens rigorous holder alt. Rigorous er enklere å implementere; strict gir litt mer samtidighet.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -430,6 +458,20 @@
       </ul>
 
       <p>Moderne databaser bruker typisk post- og range-låser. Trade-off er klart: lavere granularitet ⇒ mindre metadata, men mer kontensjon. Høyere granularitet ⇒ mer samtidighet, men dyrere lock manager.</p>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Granularitet</div>
+        <div class="q-text">Hvilken låsetype trenger vi for å unngå <em>fantomer</em>?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Postlåser</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Tabellåser</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>Range-/verdiområdelåser eller predikatlåser</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Blokklåser</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Range-/predikatlåser.</strong> En postlås beskytter bare eksisterende rader. En fantom oppstår når en INSERT lager en ny rad som matcher predikatet — det finnes ingen post å låse på forhånd. Range-låser låser et nøkkelintervall, predikatlåser låser «alle rader som matcher denne WHERE-en».
+        </div>
+      </div>
     </div>
   </section>
 
@@ -477,6 +519,20 @@
       <div class="callout">
         <span class="label">Snapshot isolation i praksis</span>
         <p>Snapshot isolation brukes av PostgreSQL, MySQL/InnoDB, Oracle, SQL Server m.fl. Tradisjonell MVCC ble basert på <em>tidsstempelordning</em>; moderne databaser kaller løsningen sin SNAPSHOT ISOLATION og bruker write-låser kombinert med versjonering av skrevne rader.</p>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · MVCC</div>
+        <div class="q-text">Under snapshot isolation: T1 starter, leser X = 100. T2 oppdaterer X til 150 og committer. T1 leser X igjen — hva ser den?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="true"><span class="marker">A</span><span>X = 100 — snapshotet fra T1s starttidspunkt</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>X = 150 — siste committede verdi</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>T1 må vente på T2 sin write-lås</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Avhenger av hvilken database</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>X = 100.</strong> Dette er hele poenget med snapshot isolation: T1 ser den versjonen som var committed da T1 startet, selv om andre committer nye versjoner i mellomtiden. Lesere blokkerer aldri skrivere, og skrivere blokkerer aldri lesere. Nye transaksjoner (startet etter T2 sin commit) ser X = 150.
+        </div>
       </div>
     </div>
   </section>
