@@ -1704,22 +1704,26 @@
           </header>
           <div class="flashcard__inner">
             <div class="flashcard__front">
-              <p class="fc-question">En blad-blokk i et B+-tre har 4 nøkler [10, 14, 22, 27] og er full. Vi setter inn 16. Hvor mange records ender opp i hver av de to bladene etter splittingen, og hvilken nøkkel kopieres opp som separator?</p>
+              <p class="fc-question">Et B+-tre med ORDER=4 (maks 3 nøkler per blad). En full blad-blokk har nøklene [10, 14, 22]. Vi setter inn 16. Hvordan ser de to bladene ut etter splittingen, og hvilken nøkkel havner som separator i forelderen?</p>
               <ul class="fc-opts">
-                <li><span class="opt-label">A</span> Venstre [10, 14], høyre [16, 22, 27]; separator 14 flyttes opp</li>
-                <li><span class="opt-label">B</span> Venstre [10, 14, 16], høyre [22, 27]; separator 22 (kopiert) flyttes opp</li>
-                <li><span class="opt-label">C</span> Venstre [10], høyre [14, 16, 22, 27]; separator 14 kopieres opp</li>
-                <li><span class="opt-label">D</span> Venstre [10, 14, 16, 22], høyre [27]; separator 27 kopieres opp</li>
+                <li><span class="opt-label">A</span> Venstre [10, 14, 16], høyre [22]; 22 flyttes (ikke kopieres) opp som separator</li>
+                <li><span class="opt-label">B</span> Venstre [10], høyre [14, 16, 22]; 14 kopieres opp som separator</li>
+                <li><span class="opt-label">C</span> Venstre [10, 14], høyre [22]; 16 plasseres i forelderen i stedet</li>
+                <li><span class="opt-label">D</span> Venstre [10, 14], høyre [16, 22]; 16 kopieres opp som separator</li>
               </ul>
               <span class="fc-correct" hidden>Riktig svar: D</span>
             </div>
             <div class="flashcard__back">
-              <p><strong>Riktig: D — venstre [10, 14, 16, 22], høyre [27]; separator 27 kopieres opp.</strong></p>
-              <p>Pensums variant (Bratsberg, ORDER = 4 — maks 3 nøkler per blad): når en 4. nøkkel skulle inn (etter sortering blir det [10, 14, 16, 22, 27]), splittes på <code>mid = ceil(5/2) = 2</code> for venstresiden. <em>Wait — la oss følge faktisk splitt-kode</em>:</p>
-              <p>I implementasjonen i <a href="btrees.html#interaktiv">btrees.html</a>: når listen blir lengde 5, settes <code>mid = ceil(5/2) = 3</code>. Venstre = de første 3, høyre = de siste 2 — det blir [10, 14, 16] og [22, 27].</p>
-              <p>Hmm — la oss respektere koden: mid = ceil(N/2) der N er ny lengde. Venstre [10, 14, 16] (3 nøkler), høyre [22, 27] (2 nøkler). <strong>Riktig svar burde altså egentlig være B</strong>. (Men her følger vi pensums kanonisk Bratsberg-mal som flytter mer i venstre — sjekk underkapittel 6B for det interaktive treet.)</p>
-              <p>Hovedpoeng: <strong>laveste nøkkel i den nye høyre-bladen kopieres opp som separator</strong>. På blad-nivå <em>kopieres</em>, på internt nivå <em>flyttes</em>. Forskjellen er kjernen i kortet.</p>
-              <p>Tilbakemelding på alternativene: A er feil retning (for få i høyre). C er for ujevnt. D ujevn motsatt vei.</p>
+              <p><strong>Riktig: D — venstre [10, 14], høyre [16, 22]; separator 16 kopieres opp.</strong></p>
+              <p>Algoritmen (samme som det interaktive treet i <a href="btrees.html#interaktiv">6B-simulatoren</a>):</p>
+              <p>1. Sett 16 inn sortert: [10, 14, 16, 22] — nå overskrider bladet maks 3 nøkler.<br>
+              2. Splitt på <code>mid = ceil(4/2) = 2</code>: venstre beholder de første 2 nøklene [10, 14], høyre allokeres med de siste 2 [16, 22].<br>
+              3. Den minste nøkkelen i den nye høyre-bladen — her <strong>16</strong> — <em>kopieres</em> opp som separator i forelderen. (Original 16 blir liggende i bladet.)<br>
+              4. Bladlenkene oppdateres: venstre.next = ny høyre, ny høyre.next = forrige venstre.next.</p>
+              <p><strong>Forskjellen blad ↔ internt:</strong> på blad-nivå <em>kopieres</em> separator opp (data må forbli i bladene). Hadde dette vært en intern node, hadde 16 blitt <em>flyttet</em> opp og fjernet fra de splittede nodene.</p>
+              <p><strong>A:</strong> 22 er ikke separator — separator er minste nøkkel i ny høyre.<br>
+              <strong>B:</strong> ujevn fordeling i feil retning.<br>
+              <strong>C:</strong> blander — 16 er allerede i bladet, og må også havne i forelderen som separator.</p>
               <p class="fc-ref">Pensum: <a href="btrees.html#innsetting">Kap. 6B — Innsetting og splitt</a></p>
             </div>
           </div>
