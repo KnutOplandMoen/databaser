@@ -1,0 +1,343 @@
+/* ==========================================================================
+   Flashcards — kapittel-eksamen
+   Bruker variabler fra style.css (--paper, --rust, --ochre, --ink, ...)
+   Sammen med flashcards.js og HTML-strukturen i eksamen/FLASHCARDS_MAL.md
+   ========================================================================== */
+
+.flashcard-deck {
+  margin: 1.6rem 0;
+  outline: none;
+}
+
+.flashcard-deck:focus-visible,
+.flashcard-deck *:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* --- Toolbar --- */
+
+.flashcard-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--paper-dark);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.fc-counter {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink-faded);
+  min-width: 4.5rem;
+  text-align: center;
+}
+
+.fc-btn {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.85rem;
+  background: var(--paper);
+  color: var(--rust);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+
+.fc-btn:hover {
+  background: var(--rust);
+  color: var(--paper);
+  border-color: var(--rust);
+}
+
+.fc-btn:active {
+  transform: translateY(1px);
+}
+
+.fc-btn--alt {
+  border-color: var(--ochre);
+  color: var(--ochre);
+}
+
+.fc-btn--alt:hover {
+  background: var(--ochre);
+  color: var(--paper);
+  border-color: var(--ochre);
+}
+
+/* Push shuffle/reset to the right */
+.fc-btn[data-fc-shuffle] {
+  margin-left: auto;
+}
+
+@media (max-width: 560px) {
+  .flashcard-toolbar { gap: 0.4rem; }
+  .fc-btn { font-size: 0.74rem; padding: 0.4rem 0.6rem; }
+  .fc-btn[data-fc-shuffle] { margin-left: 0; }
+  .fc-counter { min-width: 3.6rem; }
+}
+
+/* --- Card 3D flip --- */
+
+.flashcard {
+  perspective: 1600px;
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+}
+
+.flashcard__inner {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flashcard__inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard__front,
+.flashcard__back {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  padding: 1.4rem 1.6rem 1.6rem;
+  background: var(--paper);
+  border-radius: 0 0 7px 7px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.flashcard__back {
+  transform: rotateY(180deg);
+  background: #fafaf6;
+  border-top: 3px solid var(--ochre);
+}
+
+/* Header strip on each side */
+
+.flashcard__head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--line-soft);
+  font-size: 0.85rem;
+  color: var(--ink-faded);
+}
+
+.flashcard__topic {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+  background: rgba(31, 78, 121, 0.08);
+  color: var(--rust);
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.flashcard__diff {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+}
+
+.flashcard[data-fc-type="regning"] .flashcard__topic {
+  background: rgba(198, 138, 31, 0.14);
+  color: #8a5e10;
+}
+
+/* Front content */
+
+.fc-question {
+  font-family: var(--serif);
+  font-size: 1.08rem;
+  line-height: 1.55;
+  margin: 0 0 1rem;
+  color: var(--ink);
+}
+
+/* Multiple-choice options on front */
+
+.fc-opts {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fc-opts > li {
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: var(--paper);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.fc-opts > li.is-clickable {
+  cursor: pointer;
+}
+
+.fc-opts > li.is-clickable:hover {
+  background: var(--paper-dark);
+  border-color: var(--rust);
+}
+
+.fc-opts > li.is-correct {
+  background: #ecfdf5;
+  border-color: #10b981;
+}
+
+.fc-opts > li.is-correct .opt-label {
+  color: #047857;
+}
+
+.fc-opts > li.is-correct::after {
+  content: "✓";
+  margin-left: auto;
+  color: #047857;
+  font-weight: 700;
+}
+
+.fc-opts > li.is-wrong {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.fc-opts > li.is-wrong .opt-label {
+  color: #b91c1c;
+}
+
+.fc-opts > li.is-wrong::after {
+  content: "✗";
+  margin-left: auto;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.opt-label {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--rust);
+  min-width: 1.1rem;
+}
+
+/* Hint at the bottom of the front side */
+.flashcard__front::after {
+  content: "Klikk kortet for å se forklaringen ↻";
+  display: block;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-ghost);
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.flashcard:has(.fc-opts) .flashcard__front::after {
+  content: "Velg et alternativ — eller klikk kortet for fasit ↻";
+}
+
+/* Back content */
+
+.flashcard__back p {
+  margin: 0.5rem 0;
+  line-height: 1.55;
+  font-size: 0.96rem;
+}
+
+.flashcard__back p:first-of-type {
+  margin-top: 0;
+}
+
+.flashcard__back code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--paper-dark);
+  padding: 0.05em 0.35em;
+  border-radius: 3px;
+}
+
+.flashcard__back strong {
+  color: var(--ink);
+}
+
+.fc-ref {
+  margin-top: auto !important;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--line-soft);
+  font-size: 0.84rem !important;
+  color: var(--ink-faded);
+}
+
+.fc-ref a {
+  color: var(--rust);
+}
+
+.flashcard__back::after {
+  content: "Klikk for å gå tilbake til spørsmålet ↺";
+  display: block;
+  margin-top: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-ghost);
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+/* Smaller screens: shorter min-height, less padding */
+@media (max-width: 720px) {
+  .flashcard__inner { min-height: 420px; }
+  .flashcard__front, .flashcard__back { padding: 1.1rem 1.2rem 1.3rem; }
+  .fc-question { font-size: 1rem; }
+}
+
+/* When the card has a hidden marker for correct answer, never show it */
+.fc-correct[hidden] { display: none !important; }
+
+/* Keyboard hint above toolbar */
+.flashcard-hint {
+  display: block;
+  margin: 0.6rem 0 1.2rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-faded);
+}
+
+.flashcard-hint kbd {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--paper-dark);
+  color: var(--ink);
+}

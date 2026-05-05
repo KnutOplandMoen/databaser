@@ -290,9 +290,15 @@
 
   // ─── Markdown + KaTeX render pipeline ──────────────────────────────────
   function preProcessMath(text) {
-    // Recover bare-bracket math: [\n\frac{a}{b}\n] → \[ \frac{a}{b} \]
-    text = text.replace(/^\s*\[\s*$([^]*?)^\s*\]\s*$/gm, '\\[\n$1\n\\]');
-    text = text.replace(/^\s*\[\s*(\\[a-zA-Z][^\n]*?)\s*\]\s*$/gm, '\\[ $1 \\]');
+    // Recover bare-bracket math blocks: `[ \cmd ... ]` → `\[ \cmd ... \]`.
+    // Handles single-line (`[ \frac{a}{b} ]`) and multi-line forms where the
+    // opening `[` starts a line and the closing `]` ends a line, with arbitrary
+    // content (incl. newlines) in between. Requires the body to begin with a
+    // TeX command (`\letter`) to avoid eating ordinary `[text]` brackets.
+    text = text.replace(
+      /^[ \t]*\[([ \t]*\\[a-zA-Z][\s\S]*?)\][ \t]*$/gm,
+      '\\[$1\\]'
+    );
     return text;
   }
   function renderBot(el, raw) {
