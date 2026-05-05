@@ -926,6 +926,32 @@
 
       <p>Sammenliknet med statisk hashing er ekstrakostnaden én directory-aksess. Til gjengjeld blir ytelsen ikke kvalt av lange overflow-kjeder.</p>
 
+      <h3 id="ext-hash-trase" style="margin-top:1.6rem;">Steg-for-steg trase — fra tom til 2 doublings</h3>
+      <p>Vi setter inn nøklene <strong>4, 5, 6, 12, 7, 11</strong> i en extendible hash med <strong>kapasitet 2 records per blokk</strong>. Vi indekserer på de siste <em>d</em> bitene av nøkkelens binære representasjon. Start: <em>d = 0</em>, én slot som peker til én tom blokk A (d'=0).</p>
+
+      <div class="table-wrap" style="margin: 1rem 0;">
+        <table style="font-family: var(--mono); font-size: 0.86rem;">
+          <thead>
+            <tr><th>#</th><th>Op</th><th>Tilstand etter</th><th>Hva skjedde</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>insert 4</td><td>d=0; A=[4] (d'=0)</td><td>Plass — sett inn.</td></tr>
+            <tr><td>2</td><td>insert 5</td><td>d=0; A=[4,5] (d'=0)</td><td>A blir full.</td></tr>
+            <tr style="background: rgba(122, 74, 45, 0.08);"><td>3</td><td>insert 6</td><td>d=1; slot 0→A=[4,6], slot 1→B=[5]; d'(A)=d'(B)=1</td><td><strong>Doubling #1.</strong> A var full og d'=d=0 → doble katalog (d: 0→1), splitt A på siste bit. 4 (...0), 6 (...0) → A; 5 (...1) → ny B.</td></tr>
+            <tr style="background: rgba(122, 74, 45, 0.08);"><td>4</td><td>insert 12</td><td>d=2; slot 00→A=[4,12], slot 10→C=[6], slots 01,11→B=[5]; d'(A)=d'(C)=2, d'(B)=1</td><td><strong>Doubling #2.</strong> 12 (...0) → A (full), d'(A)=d=1 → doble (d: 1→2), splitt A på siste 2 bit. 4 (...00), 12 (...00) → A; 6 (...10) → ny C. B uendret — d'(B)=1, så slot 01 og 11 deler B.</td></tr>
+            <tr><td>5</td><td>insert 7</td><td>d=2; B=[5,7]</td><td>7 (...11) → B. Plass.</td></tr>
+            <tr style="background: rgba(122, 74, 45, 0.08);"><td>6</td><td>insert 11</td><td>d=2; slot 01→B=[5], slot 11→D=[7,11]; d'(B)=d'(D)=2</td><td><strong>Splitt uten doubling.</strong> 11 (...11) → B (full). d'(B)=1 &lt; d=2 → splitt B på siste 2 bit, men ingen ny doubling. 5 (...01) → B; 7 (...11), 11 (...11) → ny D.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Resultat:</strong> 2 directory-doublings, 4 datablokker (A, B, C, D), endelig d = 2.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">To-regelen for splitting</span>
+        <p><strong>Full blokk og d'(blokk) = d:</strong> doble katalogen først (d → d+1), deretter splitt blokken. <strong>Full blokk og d'(blokk) &lt; d:</strong> splitt bare blokken — flere katalogslots pekte før til denne ene blokken, nå deler de seg på to.</p>
+      </div>
+
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 11 · Vanskelig</div>
         <div class="q-text">Hva betyr det at en blokk har <em>local depth 2</em> mens directoriet har <em>global depth 3</em>?</div>
@@ -941,6 +967,15 @@
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
           <div class="answer"><strong>Fordel:</strong> 2 blokk-aksesser uavhengig av filstørrelse (directory + datablokk). B+-tre har 3–4 nivåer for store tabeller. <strong>Ulempe:</strong> ingen sortering — range-søk og ORDER BY er ubrukelige. Også: directoriet kan bli stort hvis dataene er sterkt skjeve, og verken ORDER BY eller foreign key-traversering har noen hjelp av strukturen.</div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">Spørsmål 13 · Anvend trasen</div>
+        <div class="q-text">Etter steg 6 i trasen ovenfor: vi setter inn nøkkelen <strong>9</strong> (siste 2 bit = 01). Hva blir resultatet?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">9s siste 2 bit = 01 → B (som bare holder [5]). Plass — sett inn. Etter: B = [5, 9]. Ingen splitt, ingen doubling, ingen ny blokk. Etter steg 6 var B ledig (kun [5] etter splittingen), så enkle innsettinger landet rolig før neste eventuelle splitt.</div>
         </div>
       </div>
     </div>
