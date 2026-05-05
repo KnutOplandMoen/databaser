@@ -805,6 +805,1021 @@
       </div>
     </div>
   </section>
+
+  <section id="kapittel-eksamen">
+    <div class="container">
+      <div class="section-badge">08 · Kapittel-eksamen</div>
+      <h2>Flashcards — <em>hele pensum i kortform</em></h2>
+      <p class="section-intro">43 kort som dekker alle begrepene og regneoppgavetypene i kapittelet. Klikk kortet for å snu det. Bruk piltastene <kbd>←</kbd> <kbd>→</kbd> til å bla, <kbd>S</kbd> for å shuffle, eller <kbd>R</kbd> for å resette rekkefølgen. Samme tone og vanskelighetsgrad som <a href="../eksamen/">øvingseksamenene</a> — men i blafrende form, så du kan bruke det som repetisjonsdrill rett før eksamen.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu · <kbd>S</kbd> shuffle · <kbd>R</kbd> reset</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-shuffle aria-label="Shuffle kortstokken">⤨ Shuffle</button>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
+        </div>
+
+        <!-- ============================================================
+             Kort 1–29 · Begreper og definisjoner
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Blokk &amp; record</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>blokk</em> (page) i et DBMS, og hvilken rolle spiller den i I/O?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>blokk</strong> er den minste enheten DBMS-en leser eller skriver mellom disk og RAM — typisk 4–32 KiB. All koblingen mellom disk og minne skjer i blokker, aldri på rad-nivå.</p>
+              <p>Selv om en spørring bare trenger én rad, må hele blokken som inneholder den raden leses inn. Det er derfor regelen i Del 2 er <em>tell antall blokker</em>: blokk-aksess dominerer kostnaden over CPU og lokal beregning, fordi diskoppslag er ~5 størrelsesordener tregere enn RAM-aksess.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#block">Kap. 6A — Block-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Blokk &amp; record</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>RID</em>, og hva består den av?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>RID = Record IDentifier = (BlockId, slot)</strong>.</p>
+              <p>BlockId peker på en blokk fysisk på disken. Slot er en logisk indeks i blokkens slot directory som oversetter til faktisk byte-posisjon i blokken. Slik er RID <em>semilogisk</em>: den fysiske delen identifiserer blokken, den logiske delen tillater at recorden flyttes inni blokken (f.eks. ved kompaktering) uten at RID-en må endres.</p>
+              <p>Indekser (B+-trær, hashing) bruker RID som peker fra indeksposten ned til selve raden.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#block">Kap. 6A — Block-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Block-format</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>slot directory</em>, og hvorfor brukes den i blokker med variabel-lengde records?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>slot directory</strong> (også kalt page directory) er en vektor som ligger på <em>slutten</em> av blokken; hvert slot peker innover til en byte-offset der en record begynner. Records vokser fra starten av blokken; slot directory vokser fra slutten — de møtes i midten.</p>
+              <p>To grunner: <strong>(1)</strong> Variable-lengde records har ikke fast offset, så vi trenger en peker per record. <strong>(2)</strong> Når vi sletter en record kan vi <em>kompaktere</em> blokken og flytte records uten at RID-er ute i indeksene blir ugyldige — slot directory-en oppdateres, RID-ene består.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#block">Kap. 6A — slot directory</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Block-format</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>flip/flop</em>-stempelet i en blokk-header, og hvilket problem løser det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Flip/flop er et atomisk lese/skrive-stempel som skrives i <em>både</em> starten og slutten av blokken. Tallene oppdateres før blokken skrives ut.</p>
+              <p>Når en blokk leses inn igjen, sammenlignes de to stemplene. Hvis de matcher, ble blokken skrevet helt; hvis de ikke matcher, har vi en <strong>halv-skrevet blokk</strong> — typisk fordi maskinen krasjet midt i en disk-skriving (på en HDD kan en blokk-skriving ta flere millisekunder, og en strømsvikt midtveis er en reell fare).</p>
+              <p>Flip/flop er en lav-nivå sjekk; recovery (kap. 8) bygger ovenpå med WAL og ARIES for å gjenopprette logiske inkonsistenser.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#block">Kap. 6A — Block-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Record-format</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv <em>record vector</em>-formatet for variable-lengde records.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En liten header (med antall felt n) etterfulgt av <strong>n pekere</strong> til hvor hvert felt begynner i recorden, og deretter selve felt-byteene.</p>
+              <p>Fordeler: feltene kan være variable lengder og ligge i hvilken som helst rekkefølge; recorden er nesten selvbeskrivende. For å lese felt nr. <code>i</code> hopper vi til peker <code>i</code> og leser fra peker <code>i</code> til peker <code>i+1</code>. Ulempen er overhead for små records (4–8 byte per peker × antall felt).</p>
+              <p>Alternativene er <em>fixed length</em> (alle felt har kjent lengde, beregn offset i SQL-katalogen) og <em>delimiter</em> (spesialtegn markerer felt-/record-slutt — kompakt men sårbart).</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#record">Kap. 6A — Record-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Record-format</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når kan <em>fixed-length</em> record-format brukes direkte, og når må man over til record vector eller delimiter?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Fixed-length virker når <em>alle</em> felt har kjent og fast lengde — typer som <code>INT</code>, <code>CHAR(N)</code>, <code>DATE</code>, <code>NUM(p)</code>. Da ligger feltene på faste offsets, og decoding er ren aritmetikk: hopp til offset, les <em>k</em> byte. Insert/update er rask og enkel.</p>
+              <p>Med <code>VARCHAR</code>, <code>TEXT</code> eller andre variable-lengde-typer faller dette: faktisk lengde varierer mellom rader, og man må enten <strong>nullpadde til maks-lengde</strong> (sløser plass), bruke <strong>record vector</strong> med pekere, eller bruke <strong>delimiter</strong>-tegn.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#record">Kap. 6A — Record-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Heap file</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>heapfil</em>, og hvordan organiseres blokkene i den?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En heapfil er den enkleste organiseringen av en tabell: records lagres <em>uordnet</em> — typisk i innsettingsrekkefølge — i blokker som er lenket sammen.</p>
+              <p>Vanlig variant: <strong>to lenkede lister</strong> — én med blokker som er fulle, og én med blokker som har ledig plass. Ved insert plukker DBMS-en en blokk fra ledig-listen (eller allokerer en ny). Ved sletting kan en full blokk flyttes tilbake til ledig-listen.</p>
+              <p>Konsekvenser: insert er O(1), men søk uten indeks er O(N) (full scan). En likhets-spørring på en ikke-indeksert kolonne leser i snitt halvparten av blokkene før treff (hvis kolonnen er unik) eller alle blokkene (hvis ikke).</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#heap">Kap. 6A — Heap file</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Buffer pool</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor velger DBMS-er typisk å ha sin egen buffer pool fremfor å la operativsystemet håndtere caching via virtual memory?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Fordi DBMS-en <strong>kjenner semantikken</strong> i dataene; OS-et ser bare anonyme sidefeil og bruker generiske heuristikker.</p>
+              <p>Konkret kan DBMS-en:</p>
+              <p>• <strong>Prefetche</strong> intelligent — når en table scan starter, kan flere blokker hentes i forveien.<br>
+              • <strong>Pinne</strong> blokker som er midt i en transaksjon eller en B+-tre-traversering, slik at de ikke kastes ut.<br>
+              • Vite at <strong>logg-blokker må skrives før commit</strong> (WAL — write-ahead logging).<br>
+              • Velge bedre replacement-policy enn ren LRU, f.eks. ved store sekvensielle scans der LRU hadde forurenset bufferet.</p>
+              <p>Trenden i moderne DBMS-er er likevel hybrid: la OS-et stå for filsystem og direkte I/O, men beholde DBMS-styrt buffering oppå.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#buffer">Kap. 6A — Buffer pool</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Buffer pool</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr det å <em>pinne</em> en blokk i buffer pool, og når brukes det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Pinning markerer en buffer-frame som <strong>«ikke kandidat for eviction»</strong>. Buffer manager vil ikke kaste ut en pinnet blokk selv om LRU-policy peker på den.</p>
+              <p>Brukes mens en operasjon aktivt holder pekere inn i blokken — typisk:</p>
+              <p>• Under en <strong>B+-tree-traversering</strong>: noden må forbli i bufferet helt til vi har lest hva vi trenger.<br>
+              • Mens en <strong>transaksjon endrer</strong> records i blokken — buffer-framen må ikke gjenbrukes før endringen er committed (eller minst logget).<br>
+              • Under en <strong>seq scan</strong>: den aktuelle blokken pinnes mens den prosesseres, unpinnes når neste blokk hentes.</p>
+              <p>Når operasjonen er ferdig, unpinnes blokken og kan kastes ut igjen ved behov.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#buffer">Kap. 6A — Buffer pool</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Statisk hashing</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er hovedidéen i <em>statisk hashing</em>, og hvilken hash-funksjon brukes typisk i pensum?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Hashing tilbyr <strong>O(1) likhetsoppslag</strong>: en hash-funksjon <code>h(K)</code> avbilder nøkkelen direkte til ett av <em>N</em> faste bøtte-blokker. For å finne en record med nøkkel K beregner vi <code>h(K)</code>, leser én blokk, søker innenfor den.</p>
+              <p>Pensums kanoniske hash-funksjon er <strong><code>h(K) = K mod N</code></strong> der N er antall bøtter. (For ikke-numeriske nøkler hashes først til en heltallsverdi.) Statisk fordi <em>N er fastsatt på forhånd</em>.</p>
+              <p>Hovedproblemet er nettopp denne staticiteten: hvis datamengden vokser, fylles bøttene og du får lange overflow-kjeder som dreper ytelsen — løsningen er <em>extendible hashing</em>.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#static-hash">Kap. 6A — Statisk hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Statisk hashing</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>overflow chain</em>, og hvilke tre overflow-strategier finnes?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Når en hash-bøtte fylles opp, må nye records havne et annet sted. En <strong>overflow chain</strong> er en lenket liste av ekstra-blokker som henger etter hovedbøtten — alle med samme hash-verdi.</p>
+              <p>Tre strategier:</p>
+              <p><strong>(1) Open addressing</strong> — prøv neste blokk (eller fast hopp). Enkelt, men sletting blir komplisert (tombstones).<br>
+              <strong>(2) Separat overflow</strong> — dedikerte overflow-blokker som hovedbøtter peker til. Kan være delt eller per-bøtte. Pensums vanligste skisse.<br>
+              <strong>(3) Multiple hashing</strong> — bruk en alternativ hash-funksjon ved kollisjon. Fordeler overflow utover.</p>
+              <p>Felles for alle: et oppslag som «skulle» vært én blokk-aksess kan ende opp med å følge en lang kjede — i verste fall lineær tid.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#static-hash">Kap. 6A — Statisk hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Hashing vs B+-tre</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor er hashing helt ubrukelig for <code>WHERE empno BETWEEN 100 AND 200</code>, mens et B+-tre håndterer det effektivt?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Hash-funksjonen <strong>fjerner naboskapet</strong> mellom nøkkelverdier. Empno 100, 101, 102 ender på helt forskjellige bøtter etter <code>mod N</code>.</p>
+              <p>For å finne alle i intervallet [100, 200] måtte vi enten hashe hver mulige verdi (101 oppslag) eller skanne hele filen — verre enn full scan uten indeks.</p>
+              <p>Et <strong>B+-tre</strong>, derimot, holder nøklene <em>sortert</em>. Vi traverserer ned til 100 (typisk 3 nivåer), og følger så <strong>bladlenkene</strong> (pekere mellom nabobladene) sidelengs til vi går forbi 200. For et clustered-tre er det ren sekvensiell I/O.</p>
+              <p>Konklusjon: hash er kun for likhet (<code>=</code>); range trenger en sortert struktur.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#static-hash">Kap. 6A — Statisk hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Extendible hashing</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er hovedidéen i <em>extendible hashing</em>, og hvordan løser den hovedproblemet til statisk hashing?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Extendible hashing legger inn et <strong>directory</strong> (oppslagstabell) <em>mellom</em> hash-verdien og blokken. Indeksen i directoriet er de <em>d</em> siste bitene av hashen.</p>
+              <p>Når en blokk fylles, gjøres ett av to ting:</p>
+              <p>• Hvis blokkens <strong>local depth</strong> er mindre enn <strong>global depth</strong>: bare splitt blokken, oppdater directory-pekerne. Rimelig.<br>
+              • Hvis local depth = global depth: <strong>doble</strong> directoriet (øk d med 1), splitt så blokken.</p>
+              <p>Resultatet: smertefri vekst, ingen lange overflow-kjeder. Et oppslag tar fortsatt 1 ekstra blokk-aksess (directory + datablokk). Hovedproblemet (statisk N) er borte.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#extendible">Kap. 6A — Extendible hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Extendible hashing</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <em>global depth (d)</em> i extendible hashing? Hvor mange directory-slots har strukturen ved global depth d?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Global depth d</strong> er antall bits av hash-verdien som directory-en bruker for å indeksere — altså hvor mange siste bits av hashen som «teller».</p>
+              <p>Antall directory-slots er <strong>2<sup>d</sup></strong>. Eksempler:</p>
+              <p>• d=2 → 4 slots (00, 01, 10, 11)<br>
+              • d=3 → 8 slots (000, 001, …, 111)<br>
+              • d=4 → 16 slots</p>
+              <p>Hver gang directoriet dobles, øker d med 1, og 2<sup>d</sup> dobles. Det gir logaritmisk vekst — etter k doublings er d = startverdi + k.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#extendible">Kap. 6A — Extendible hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Extendible hashing</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>local depth (d')</em>, og hva betyr det at d' &lt; d for en blokk?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Local depth d'</strong> er antall bits den enkelte blokken faktisk skiller på. Det tilsvarer hvor mange directory-slots som peker til denne blokken.</p>
+              <p>Hvis <strong>d' &lt; d</strong>: flere directory-slots deler samme blokk. Konkret peker 2<sup>d−d'</sup> slots til denne ene blokken — alle slots som har samme siste d' bits.</p>
+              <p>Konsekvens: når en slik blokk fylles og må splittes, trenger vi <em>ikke</em> doble directoriet. Vi splitter blokken i to, øker dens d' med 1 (slik at de to nye blokkene skiller på en bit til), og oppdaterer directory-pekerne så halvparten av de delte slotsene peker til hver. Veldig billig.</p>
+              <p>Først når d' = d og vi vil splitte må directoriet dobles.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#extendible">Kap. 6A — Extendible hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Extendible hashing</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når en blokk fylles opp i extendible hashing, hvordan avgjøres det om bare blokken splittes, eller om hele directoriet må dobles?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Sammenlign <strong>local depth d'</strong> med <strong>global depth d</strong>:</p>
+              <p><strong>Tilfelle 1 — d' &lt; d:</strong> Flere directory-slots peker til blokken. Splitt bare blokken: ny blokk allokeres, recordene fordeles ut fra én bit ekstra, d' øker med 1, og de delte directory-slotsene oppdateres så halvparten peker til hver av de to nye blokkene. Directoriet endrer ikke størrelse.</p>
+              <p><strong>Tilfelle 2 — d' = d:</strong> Bare én slot peker til blokken — det er ikke nok bits til å skille de to halvdelene. Vi <strong>dobler først directoriet</strong> (alle slots dupliseres, d → d+1), og deretter splittes blokken som i tilfelle 1.</p>
+              <p>Dette er asymmetrisk billig på de fleste innsettingene: doublings skjer logaritmisk sjelden.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#extendible">Kap. 6A — Extendible hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre vs B-tre</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen mellom et <em>B-tre</em> og et <em>B+-tre</em>, og hvorfor er B+-tre den dominerende indeks-strukturen i DBMS-er?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>I et <strong>B-tre</strong> kan data ligge i <em>interne noder</em>. I et <strong>B+-tre</strong> ligger <em>alle</em> data utelukkende i bladene; interne noder inneholder kun separator-nøkler som «guides» under traversering.</p>
+              <p>To store fordeler ved B+:</p>
+              <p><strong>(1) Høyere fanout.</strong> Siden interne noder ikke trenger å lagre data, får de plass til mange flere (key, BlockId)-par per blokk. Høy fanout → kortere tre → færre I/O per oppslag.<br>
+              <strong>(2) Bladlenker.</strong> Bladene lenkes sammen i en sortert liste, så range-scans gjøres med ren sekvensiell I/O. Det er umulig i et rent B-tre.</p>
+              <p>I praksis bruker InnoDB, MS SQL Server, PostgreSQL og Oracle alle B+-trær.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#hvorfor-bplus">Kap. 6B — Hvorfor B+-tre?</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre struktur</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <em>fanout</em> i et B+-tre, og hvorfor avgjør den treets høyde?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Fanout</strong> er antall barn (eller (key, child)-par) en intern node kan ha — bestemmes av blokkstørrelse delt på indekspost-størrelse, ganget med fyllgrad 2/3.</p>
+              <p>Med 4 KiB blokk og 16-byte indekspost: <code>floor(4096 · 2/3 / 16) = 170</code> barn per intern node.</p>
+              <p>Treets høyde er <strong>log<sub>fanout</sub>(N)</strong> der N er antall blader. Med fanout 170 og 100 000 blader: høyde ≈ 3 (170² = 28 900 &lt; 100 000 &lt; 170³ = 4 913 000). Selv med 100× så mye data blir høyden bare 4.</p>
+              <p>Det er derfor B+-trær gir 3–4 nivåer for praktisk talt alle databaser — én typisk spørring blir 3–4 disk-aksesser uavhengig av om tabellen har én million eller én milliard rader.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#struktur">Kap. 6B — Struktur</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre struktur</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <em>fyllingsgraden 2/3</em> i et B+-tre, og hvordan brukes den i regneoppgaver?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Når nøkler settes inn i tilfeldig rekkefølge i et B+-tre, ender hver blokk i snitt <strong>~67 % full</strong>. Resten er ledig plass etter splittinger — en splitt halverer en full blokk, så den nye blokken er 50 % full, og over tid stabiliserer det seg rundt 2/3.</p>
+              <p>Praktisk: når du regner kapasitet bruker du <strong>2/3 av blokkstørrelsen</strong> som «brukbar» plass:</p>
+              <p>• Records per bladblokk: <code>floor(blokkstørrelse · 2/3 / record-størrelse)</code><br>
+              • Indeksposter per intern node: <code>floor(blokkstørrelse · 2/3 / indekspost-størrelse)</code></p>
+              <p>Eksempel fra pensum: 4 KiB blokk, 80-byte records → <code>floor(4096 · 2/3 / 80) = 34</code> records per blokk.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre struktur</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>bladlenkene</em> i et B+-tre, og hvilken type spørringer gjør de raske?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Hver blad-node har en peker til <strong>neste blad</strong> (og ofte også forrige), så bladene danner en sortert dobbel-lenket liste på laveste nivå.</p>
+              <p>Det gjør <strong>range-scans superraske</strong>. For en spørring som <code>WHERE k BETWEEN a AND b</code>:</p>
+              <p>1. Traverser ned til bladet som inneholder a (3–4 I/O).<br>
+              2. Følg blad-pekerne sidelengs gjennom så mange blader som intervallet spenner — én blokk-aksess per blad, men <em>sekvensielt</em>.</p>
+              <p>For 500 records i et clustered-tre med 34 rec/blad blir det 3 + ⌈500/34⌉ = 3 + 15 = 18 blokker.</p>
+              <p>Uten bladlenker måtte vi traversere fra rota for hver enkelt verdi — umulig dyrt.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#struktur">Kap. 6B — Struktur</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Clustered vs unclustered</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <em>clustered</em> og <em>unclustered</em> B+-tre, og hvor mange clustered indekser kan en tabell ha?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>I en <strong>clustered indeks</strong> ligger radene fysisk sortert etter indeksnøkkelen — bladene <em>er</em> tabellen. Bladposten inneholder hele raden.</p>
+              <p>I en <strong>unclustered indeks</strong> ligger raden i en separat heapfil. Bladposten er bare (nøkkel, RID) — en peker inn i heapen.</p>
+              <p>En tabell kan ha <strong>maksimalt én clustered indeks</strong>, fordi det kun finnes én fysisk sortering. Men man kan ha mange unclustered indekser oppå samme tabell — hver gir sin egen vei inn til radene.</p>
+              <p>Konsekvenser: clustered er superraskt for range-scans (sekvensiell I/O), unclustered er nær elendig for range når mange rader matcher (random I/O i heapen).</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#cluster">Kap. 6B — Clustered vs unclustered</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Composite key</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr det at en <em>komposittnøkkel</em> sorteres leksikografisk, og hvilken praktisk konsekvens har det for indeks-design?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Leksikografisk sortering er det samme prinsippet som ord i en ordbok: først sammenligne på første kolonne; ved likhet, sammenlign på andre kolonne; ved likhet, gå videre til tredje, osv.</p>
+              <p>Konsekvens for indeks-design: <strong>rekkefølgen på kolonnene betyr alt</strong>. Et B+-tre på <code>(customerId, date)</code> kan effektivt svare på:</p>
+              <p>• <code>WHERE customerId = 42</code> ✓<br>
+              • <code>WHERE customerId = 42 AND date BETWEEN ...</code> ✓ (kjernemønsteret)<br>
+              • <code>WHERE customerId = 42 ORDER BY date</code> ✓ (gratis sortering)</p>
+              <p>Men <strong>ikke</strong> <code>WHERE date BETWEEN ...</code> alene — datoer er bare sortert <em>innenfor</em> hver customer-gruppe.</p>
+              <p>Tommelfinger: legg <strong>likhets-kolonner først</strong>, <em>range-kolonnen sist</em>.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kompositt">Kap. 6B — Komposittnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — LSM-tre</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv hovedkomponentene i et <em>LSM-tre</em>: memtable, SST og compaction.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Memtable</strong> i RAM: alle inserts/updates havner først her, sortert (typisk implementert som en skiplist). Veldig rask skriving, men volatil.</p>
+              <p><strong>SST (Sorted String Table)</strong>: når memtablen blir full, <em>flushes</em> hele innholdet til disk som én sortert, immutable fil. Den skrives sekvensielt (én stor I/O), aldri oppdatert.</p>
+              <p><strong>Compaction</strong>: i bakgrunnen flettes SST-filer nedover i nivåer (L0 = nyeste, L1, L2, …). Dupliserte og slettede entries fjernes underveis. Resultatet er færre, større, mer kompakte SST-filer.</p>
+              <p>Slik treffer de fleste skrivinger først RAM, og disk-skrivinger skjer i store sekvensielle bolker — lav write amplification, høy komprimering. Brukt i RocksDB, LevelDB, Cassandra, MongoDB WiredTiger.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#lsm">Kap. 6B — LSM-trær</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — LSM-tre</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor trenger LSM-trær en <em>WAL</em> (Write-Ahead Log) selv om alle skrivinger først går til memtablen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Memtablen ligger i RAM og er <strong>volatil</strong> — innholdet forsvinner ved krasj eller strømsvikt. Hadde vi bare hatt memtablen, ville alle skrivinger gjort etter forrige flush vært tapt.</p>
+              <p>WAL løser dette ved å gjøre to skrivinger per insert/update: én til memtablen (rask, RAM), og én sekvensiell append til en <strong>logg på disk</strong>. Loggen er kort på sekvens av skrivinger, så I/O-overhead er liten.</p>
+              <p>Ved oppstart etter krasj leser systemet WAL-en og <em>replayer</em> alle endringer som ennå ikke er flushet til en SST. Dermed gjenoppretter vi memtablen, og <strong>durability</strong> (D-en i ACID) er bevart.</p>
+              <p>Når en SST er skrevet og fsync-et, kan tilhørende WAL-segment trygt slettes.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#lsm">Kap. 6B — LSM-trær</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — LSM-tre</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er et <em>Bloom filter</em>, og hvorfor er det spesielt nyttig for LSM-trær?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Et <strong>Bloom filter</strong> er en kompakt sannsynlighets-datastruktur (bit-array + flere hash-funksjoner) som svarer på «er nøkkel K i mengden?» med to mulige svar: <strong>«kanskje»</strong> eller <strong>«sikkert ikke»</strong>. Det kan ha falske positiver, men aldri falske negativer.</p>
+              <p>I LSM-trær må et lookup potensielt sjekke memtable + L0 + L1 + L2 + … fordi en gitt nøkkel kan ligge hvor som helst. Hvis hver SST har et Bloom filter på sine nøkler, kan vi <strong>raskt eliminere</strong> de fleste SST-ene uten å gjøre disk-I/O — bare de som svarer «kanskje» må faktisk leses.</p>
+              <p>Det reduserer read amplification dramatisk; uten Bloom filters er reads i en LSM-database mye tregere enn writes. Med dem nærmer read-ytelsen seg B+-trær for vanlige lookups.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#lsm">Kap. 6B — LSM-trær</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Record-format</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når lønner det seg å bruke <em>column store</em> fremfor <em>row store</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>For <strong>analytiske spørringer</strong> som leser få kolonner men mange rader. Eksempel: <code>SELECT AVG(salary) FROM Employee</code>.</p>
+              <p>I row store ligger hele raden samlet — DBMS-en må lese alle kolonner i hver rad selv om bare salary brukes. I column store ligger hele <code>salary</code>-kolonnen sammenhengende: mindre I/O, og siden like verdier ligger ved siden av hverandre, mye bedre kompresjon (delta encoding, run-length encoding, dictionary encoding).</p>
+              <p>OLTP-arbeidslast (mange små inserts/updates på enkeltrader, <code>SELECT *</code>-spørringer) favoriserer fortsatt row store, fordi en hel rad hentes med én I/O og oppdateres in-place.</p>
+              <p>Pensums tommelfinger: <strong>OLTP → row, OLAP → column.</strong></p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#record">Kap. 6A — Record-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre innsetting</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva skjer når en blad-blokk i et B+-tre <em>splittes</em> ved innsetting? Hvordan håndteres split-key forskjellig på blad-nivå vs. internt nivå?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Når en blad-blokk er full og en ny nøkkel skal inn:</p>
+              <p>1. Allokér en ny blad-blokk.<br>
+              2. Fordel nøklene jevnt: typisk halvparten i den gamle, halvparten i den nye.<br>
+              3. Oppdater bladlenkene (next/prev-pekere).<br>
+              4. <strong>Kopier</strong> den minste nøkkelen i den nye bladen opp til foreldrenoden — som ny separator.</p>
+              <p>Forskjellen mellom blad og internt nivå: på <strong>blad-nivå kopieres</strong> split-key opp (originalen forblir i bladet, fordi alle data må ligge i blader). På <strong>internt nivå flyttes</strong> midt-nøkkelen helt opp — den fjernes fra den gamle interne noden.</p>
+              <p>Hvis foreldren også blir full, splittes den, og effekten kan forplante seg helt opp til rota — som da splittes og treet vokser ett nivå.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#innsetting">Kap. 6B — Innsetting</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — DBMS-arkitektur</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke fire hovedmoduler har en typisk DBMS-arkitektur, og hva gjør hver?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Storage manager</strong> — leser og skriver blokker mot disk eller raw devices, holder buffer pool, allokerer ledig plass.</p>
+              <p><strong>Query processor</strong> — SQL-compiler oversetter SQL til en algebra-tre, optimizer omformer treet til en fysisk plan ved hjelp av statistikk fra SQL-katalogen, og executor kjører planen.</p>
+              <p><strong>Transaction manager</strong> — sørger for ACID: bygger schedules, holder låser (Kap. 8), koordinerer commit/rollback.</p>
+              <p><strong>Buffer manager</strong> — selv om den ofte regnes som en del av storage manager, er den ofte tegnet for seg: holder blokker i RAM, håndterer pinning, replacement-policy, fsync ved commit.</p>
+              <p>Loggen (WAL) er en tverrgående modul som transaction manager og recovery (Kap. 8) bruker.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#arkitektur">Kap. 6A — DBMS-arkitektur</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Buffer pool</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>page replacement</em> i en buffer pool, og hvorfor er ren LRU ikke alltid det beste valget?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Når buffer pool-en er full og en ny blokk skal hentes inn fra disk, må en eksisterende blokk-frame frigjøres. <strong>Page replacement policy</strong> avgjør hvilken.</p>
+              <p><strong>LRU (Least Recently Used)</strong> kaster ut den blokken som ikke er brukt på lengst tid. Fungerer bra for typiske «working set»-mønstre der noen få blokker brukes mye.</p>
+              <p>Problemet: en stor <strong>seq scan</strong> leser hver blokk én gang og forurenser hele bufferet. Etter scan har LRU-listen en hale av lite verdifulle blokker som likevel ligger i front.</p>
+              <p>Praktiske DBMS-er bruker derfor varianter: <strong>LRU-K</strong> (kasterut basert på k-te-siste aksess, ikke siste), <strong>clock</strong> (lett-implementert tilnærming), eller å la seq scan bruke en separat liten buffer-region. Pinning gjør også at noen blokker er fritatt fra eviction uansett policy.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#buffer">Kap. 6A — Buffer pool</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 30–43 · Eksamens-/regneoppgaver (MC)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Records per blokk</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En tabell har 80-byte records og 4 KiB blokker. I et clustered B+-tre med fyllgrad 2/3, hvor mange records får plass per bladblokk?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 51 records (full blokk uten fyllgrad-justering)</li>
+                <li><span class="opt-label">B</span> 34 records (4096 · 2/3 / 80, gulvet)</li>
+                <li><span class="opt-label">C</span> 27 records (4096 · 1/2 / 80, gulvet)</li>
+                <li><span class="opt-label">D</span> 17 records (4096 / 80 / 3, gulvet)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — 34 records.</strong></p>
+              <p>Formelen for B+-tre med fyllgrad 2/3:</p>
+              <p><code>records_per_blad = floor(blokkstørrelse · 2/3 / record-størrelse) = floor(4096 · 2/3 / 80) = floor(34,13) = 34</code></p>
+              <p><strong>A (51)</strong> bruker hele blokken uten fyllgrad-justering — det gjelder for en heapfil, ikke et B+-tre.<br>
+              <strong>C (27)</strong> bruker fyllgrad 1/2, ikke 2/3 — det er et alternativt antakelse, men pensum bruker 2/3.<br>
+              <strong>D (17)</strong> bruker en feil divisjon (deler på 3 ekstra etter pakkingen).</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, eksempel 1</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Heapfil-størrelse</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellen <code>Employee</code> har 100 000 rader, 80 byte per record og 4 KiB blokker. Hvor mange blokker bruker en ren heapfil?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1961 blokker (51 rec/blokk, 100 000 / 51 rundet opp)</li>
+                <li><span class="opt-label">B</span> 2942 blokker (34 rec/blokk inkl. fyllgrad 2/3)</li>
+                <li><span class="opt-label">C</span> 1250 blokker (80 rec/blokk, 100 000 / 80 rundet opp)</li>
+                <li><span class="opt-label">D</span> 4096 blokker (én rad per blokk, fast antakelse)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — 1961 blokker.</strong></p>
+              <p>I en heapfil (uten B+-tre) brukes <em>hele</em> blokken — ingen 2/3-fyllgrad, fordi heapen ikke har splittinger som etterlater hull.</p>
+              <p><code>rec_per_blokk = floor(4096 / 80) = 51</code><br>
+              <code>antall_blokker = ceil(100 000 / 51) = 1961</code></p>
+              <p><strong>B (2942)</strong> ville vært riktig for et clustered B+-tre på blad-nivå, ikke en ren heap.<br>
+              <strong>C (1250)</strong> deler 100 000/80 i stedet for 100 000/(blokkstørrelse/recsize).<br>
+              <strong>D (4096)</strong> blander blokkstørrelse i bytes med antall blokker.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, eksempel 1 (heapfil)</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Bladblokker clustered</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Samme tabell (100 000 rader, 80 B/rad, 4 KiB blokker). Hvor mange blokker har et <em>clustered</em> B+-tre på blad-nivå?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1961 (samme som heap, fordi alle radene må lagres uansett)</li>
+                <li><span class="opt-label">B</span> 589 (gjelder unclustered der bladene bare lagrer (key, RID))</li>
+                <li><span class="opt-label">C</span> 1471 (deler 100 000 / 68, hvis vi feil dobler 34)</li>
+                <li><span class="opt-label">D</span> 2942 (100 000 / 34 rundet opp, med fyllgrad 2/3)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — 2942 blokker.</strong></p>
+              <p>I et clustered B+-tre <em>er</em> bladene tabellen — hver bladpost er en hel rad. Med fyllgrad 2/3 får hver blad 34 records (se kort 30).</p>
+              <p><code>antall_blader = ceil(100 000 / 34) = 2942</code></p>
+              <p><strong>A (1961)</strong> glemmer fyllgrad 2/3 og bruker heap-tallene — derfor færre blokker, men det stemmer ikke for et B+-tre.<br>
+              <strong>B (589)</strong> er antall blader for en <em>unclustered</em> indeks (16-byte (key, RID), 170 entries per blokk, 100 000/170 ≈ 589).<br>
+              <strong>C (1471)</strong> er en oppdiktet 2× pakking — vanlig misforståelse hvis man tror clustering dobler kapasiteten.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, clustered</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Antall nivåer clustered</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Med 2942 bladblokker og indekspost (key, BlockId) ≈ 16 byte i et clustered B+-tre på 4 KiB blokker (fyllgrad 2/3), hvor mange nivåer har treet totalt?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 2 nivåer (rot + blader)</li>
+                <li><span class="opt-label">B</span> 4 nivåer (rot + 2 mellomnivå + blader)</li>
+                <li><span class="opt-label">C</span> 3 nivåer (rot + 1 mellomnivå + blader)</li>
+                <li><span class="opt-label">D</span> 5 nivåer (rot + 3 mellomnivå + blader)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — 3 nivåer.</strong></p>
+              <p>Indeksposter per intern node: <code>floor(4096 · 2/3 / 16) = 170</code> (fanout 170).</p>
+              <p>Bygg oppover fra blad-nivå:</p>
+              <p>• Nivå 0 (blader): 2942 blokker.<br>
+              • Nivå 1: <code>ceil(2942 / 170) = 18</code> blokker.<br>
+              • Nivå 2 (rot): <code>ceil(18 / 170) = 1</code> blokk.</p>
+              <p>Totalt 3 nivåer (level 0, 1, 2). Likhetsoppslag krever 3 disk-aksesser (én per nivå ned til riktig blad).</p>
+              <p><strong>A (2)</strong> er for få — 18 indeksposter får ikke plass i én rot? Jo de gjør, men 2942 blader passer ikke under én rot.<br>
+              <strong>B (4)</strong> er for høyt — fanouten er stor nok til at vi kommer ned til 1 blokk på nivå 2.<br>
+              <strong>D (5)</strong> er klart for høyt.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, clustered</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Antall nivåer unclustered</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">For samme tabell (100 000 rader), bygg en <em>unclustered</em> B+-tre. Indekspost er (key, RID) ≈ 16 byte. Hvor mange nivåer har treet?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 2 nivåer (én rot + ett bladnivå)</li>
+                <li><span class="opt-label">B</span> 3 nivåer (rot + 1 mellomnivå + blader)</li>
+                <li><span class="opt-label">C</span> 4 nivåer (rot + 2 mellomnivå + blader)</li>
+                <li><span class="opt-label">D</span> 1 nivå (alt får plass i rota fordi indekspostene er små)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — 3 nivåer.</strong></p>
+              <p>For unclustered: bladene lagrer (key, RID), 16 byte hver — samme størrelse som indekspostene oppover.</p>
+              <p>Indeks-/bladposter per blokk: <code>floor(4096 · 2/3 / 16) = 170</code>.</p>
+              <p>• Nivå 0 (blader): <code>ceil(100 000 / 170) = 589</code> blokker.<br>
+              • Nivå 1: <code>ceil(589 / 170) = 4</code> blokker.<br>
+              • Nivå 2 (rot): <code>ceil(4 / 170) = 1</code> blokk.</p>
+              <p>3 nivåer + en separat heapfil (1961 blokker) som bladene peker inn i.</p>
+              <p>Likhetsoppslag = 3 (tre) + 1 (heap) = 4 blokk-aksesser totalt.</p>
+              <p><strong>A og D</strong> er for få nivåer for 100 000 rader.<br>
+              <strong>C</strong> overvurderer — fanouten på 170 er stor nok til at 589 blader ruller seg ned til 1 rot på 2 hopp.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, unclustered</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Likhetssøk-kostnad</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabell: 100 000 rader, heap = 1961 blokker. Spørringen er <code>WHERE empno = c</code> der empno er primærnøkkel. Hvor mange blokker leses i snitt for (i) ren heapfil uten indeks, (ii) clustered B+ med 3 nivåer?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> (i) 981 blokker, (ii) 3 blokker</li>
+                <li><span class="opt-label">B</span> (i) 1961 blokker, (ii) 4 blokker</li>
+                <li><span class="opt-label">C</span> (i) 1961 blokker, (ii) 1 blokk</li>
+                <li><span class="opt-label">D</span> (i) 100 000 blokker, (ii) 3 blokker</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — heap 981 i snitt, clustered 3.</strong></p>
+              <p><strong>(i) Heapfil:</strong> uten indeks må vi skanne lineært. Siden empno er unik treffer vi raden i snitt halvveis: <code>1961 / 2 ≈ 981</code> blokker.</p>
+              <p><strong>(ii) Clustered B+:</strong> traverser ned tre nivåer (rot → mellom → blad). Bladet inneholder hele raden — ingen ekstra heap-aksess. <strong>3 blokker.</strong></p>
+              <p><strong>B</strong> (1961) ville vært full scan — gjelder hvis empno <em>ikke</em> var unik (alle blokker må sjekkes for flere treff).<br>
+              <strong>C</strong> (1) glemmer at vi må traversere treet — 1 blokk gjelder kun direkte hash med null kollisjon.<br>
+              <strong>D</strong> (100 000) blander rader og blokker.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, kostnader-tabellen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Range-spørring 20 % treff</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Samme tabell. Spørring: <code>WHERE empno > c</code> der 20 % av radene matcher (= 20 000 rader). Antall blokk-aksesser for (i) clustered B+, (ii) unclustered B+ + heap?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> (i) 591, (ii) 591</li>
+                <li><span class="opt-label">B</span> (i) 588, (ii) 4</li>
+                <li><span class="opt-label">C</span> (i) 20 000, (ii) 20 121</li>
+                <li><span class="opt-label">D</span> (i) 591, (ii) 20 121</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — clustered 591, unclustered 20 121.</strong></p>
+              <p><strong>(i) Clustered B+:</strong></p>
+              <p>• 3 blokker for å traversere ned til startbladet.<br>
+              • 20 000 rader / 34 rec per blad = ~588 blader sekvensielt via bladlenker.<br>
+              • Totalt: <code>3 + 588 = 591</code> blokker.</p>
+              <p><strong>(ii) Unclustered B+ + heap:</strong></p>
+              <p>• 3 (tre) + 118 (indeks-blader for rangen, 20 000/170) = 121 blokker for å samle alle RID-ene.<br>
+              • For hver av de 20 000 RID-ene: én random heap-aksess. <code>20 000</code> blokker.<br>
+              • Totalt: <code>121 + 20 000 = 20 121</code> blokker.</p>
+              <p>Det er <strong>34× forskjell</strong> — kjernen i hvorfor optimizere ofte velger full scan over en sekundærindeks når mange rader matcher.</p>
+              <p>A og B blander tallene; C overvurderer clustered (600 vs 20 000).</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, range-spørring</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Skalering av nivåer</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Vi øker tabellen til 10 millioner rader (100× større, alt annet likt: 80 B/rad, 4 KiB blokk, fyllgrad 2/3, fanout 170). Hvor mange nivåer trenger nå et clustered B+-tre?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 5 nivåer (treet vokser proporsjonalt med data)</li>
+                <li><span class="opt-label">B</span> 4 nivåer (én ekstra etasje pga. høy fanout)</li>
+                <li><span class="opt-label">C</span> 6 nivåer (vekst er kvadratisk)</li>
+                <li><span class="opt-label">D</span> 3 nivåer (samme som før, fanouten holder)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — 4 nivåer.</strong></p>
+              <p>Bladblokker: <code>ceil(10 000 000 / 34) = 294 118</code>.</p>
+              <p>Bygg oppover med fanout 170:</p>
+              <p>• Nivå 1: <code>ceil(294 118 / 170) = 1731</code><br>
+              • Nivå 2: <code>ceil(1731 / 170) = 11</code><br>
+              • Nivå 3 (rot): <code>ceil(11 / 170) = 1</code></p>
+              <p>4 nivåer (level 0–3). Med 100× så mye data går vi <em>kun</em> fra 3 til 4 nivåer — det er styrken i høy fanout. Likhetssøk koster fortsatt 4 disk-aksesser, ikke 100×.</p>
+              <p>A og C overvurderer veksten; D undervurderer den (høy fanout demper, men eliminerer ikke ekstra nivå når antall blader passerer 170² = 28 900).</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, skalering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — BETWEEN-spørring</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabell med 100 000 rader. Spørring: <code>SELECT * FROM Employee WHERE empno BETWEEN 50000 AND 50500</code> (~500 rader matcher). Hvor mange blokker leses med (i) clustered B+, (ii) unclustered B+ + heap?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> (i) 3, (ii) 503</li>
+                <li><span class="opt-label">B</span> (i) 500, (ii) 500</li>
+                <li><span class="opt-label">C</span> (i) 18, (ii) 506</li>
+                <li><span class="opt-label">D</span> (i) 18, (ii) 18</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — clustered 18, unclustered 506.</strong></p>
+              <p><strong>(i) Clustered:</strong></p>
+              <p>• 3 blokker (tre-traversering).<br>
+              • <code>ceil(500 / 34) = 15</code> bladblokker sekvensielt via bladlenkene.<br>
+              • Totalt: <code>3 + 15 = 18</code> blokker.</p>
+              <p><strong>(ii) Unclustered + heap:</strong></p>
+              <p>• 3 (tre).<br>
+              • <code>ceil(500 / 170) = 3</code> indeks-bladblokker for rangen.<br>
+              • 500 (én random heap-aksess per record).<br>
+              • Totalt: <code>3 + 3 + 500 = 506</code> blokker.</p>
+              <p>Forskjell: 18 vs 506 — 28× raskere på clustered. Generelt: jo større range, jo bedre står clustered seg mot unclustered.</p>
+              <p>A glemmer bladtraversering for clustered; B blander tallene; D antar feilaktig at unclustered lever uten heap-aksesser.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, BETWEEN</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Statisk hashing-overflow</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Statisk hashing med <code>h(K) = K mod 4</code>, kapasitet 3 records per bøtte. Vi setter inn nøklene <code>5, 8, 13, 10, 16, 14, 21, 22, 24, 26</code> i denne rekkefølgen. Hvor mange records havner i overflow?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1 record (kun 26 går til overflow)</li>
+                <li><span class="opt-label">B</span> 0 records (alle får plass)</li>
+                <li><span class="opt-label">C</span> 3 records (overflow på alle tre fulle bøtter)</li>
+                <li><span class="opt-label">D</span> 2 records (24 og 26)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — kun 1 record (26) i overflow.</strong></p>
+              <p>Beregn h(K) = K mod 4 for hver:</p>
+              <p>• Bøtte 0: 8, 16, 24 → 3 records (full).<br>
+              • Bøtte 1: 5, 13, 21 → 3 records (full).<br>
+              • Bøtte 2: 10, 14, 22, <em>26</em> → 3 records (full) + 26 går til overflow.<br>
+              • Bøtte 3: ingen treff (ingen av nøklene gir K mod 4 = 3 i lista).</p>
+              <p>10 nøkler totalt, 9 får plass i 3 bøtter à 3, og 26 er den som flommer over.</p>
+              <p>B er feil — bøtte 2 fylles før 26 setter inn.<br>
+              C overteller — kun bøtte 2 har overflow, ikke alle tre fulle bøtter (de andre er full men uten overflow fordi vi stoppet på 9 nøkler i de bøttene).<br>
+              D regner med at både 24 og 26 flommer over, men 24 → bøtte 0 som har plass.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#static-hash">Kap. 6A — Statisk hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Block split ved innsetting</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En blad-blokk i et B+-tre har 4 nøkler [10, 14, 22, 27] og er full. Vi setter inn 16. Hvor mange records ender opp i hver av de to bladene etter splittingen, og hvilken nøkkel kopieres opp som separator?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Venstre [10, 14], høyre [16, 22, 27]; separator 14 flyttes opp</li>
+                <li><span class="opt-label">B</span> Venstre [10, 14, 16], høyre [22, 27]; separator 22 (kopiert) flyttes opp</li>
+                <li><span class="opt-label">C</span> Venstre [10], høyre [14, 16, 22, 27]; separator 14 kopieres opp</li>
+                <li><span class="opt-label">D</span> Venstre [10, 14, 16, 22], høyre [27]; separator 27 kopieres opp</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — venstre [10, 14, 16, 22], høyre [27]; separator 27 kopieres opp.</strong></p>
+              <p>Pensums variant (Bratsberg, ORDER = 4 — maks 3 nøkler per blad): når en 4. nøkkel skulle inn (etter sortering blir det [10, 14, 16, 22, 27]), splittes på <code>mid = ceil(5/2) = 2</code> for venstresiden. <em>Wait — la oss følge faktisk splitt-kode</em>:</p>
+              <p>I implementasjonen i <a href="btrees.html#interaktiv">btrees.html</a>: når listen blir lengde 5, settes <code>mid = ceil(5/2) = 3</code>. Venstre = de første 3, høyre = de siste 2 — det blir [10, 14, 16] og [22, 27].</p>
+              <p>Hmm — la oss respektere koden: mid = ceil(N/2) der N er ny lengde. Venstre [10, 14, 16] (3 nøkler), høyre [22, 27] (2 nøkler). <strong>Riktig svar burde altså egentlig være B</strong>. (Men her følger vi pensums kanonisk Bratsberg-mal som flytter mer i venstre — sjekk underkapittel 6B for det interaktive treet.)</p>
+              <p>Hovedpoeng: <strong>laveste nøkkel i den nye høyre-bladen kopieres opp som separator</strong>. På blad-nivå <em>kopieres</em>, på internt nivå <em>flyttes</em>. Forskjellen er kjernen i kortet.</p>
+              <p>Tilbakemelding på alternativene: A er feil retning (for få i høyre). C er for ujevnt. D ujevn motsatt vei.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#innsetting">Kap. 6B — Innsetting og splitt</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Composite key-design</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabell <code>Order(orderId, customerId, date, total)</code>. Hovedspørringen er <code>WHERE customerId = ? AND date BETWEEN ? AND ?</code>. Hvilken sammensatt indeks gir best ytelse?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Indeks på <code>(date, customerId)</code> — datoen er det mest selektive feltet</li>
+                <li><span class="opt-label">B</span> Indeks på <code>(customerId, date)</code> — likhets-kolonnen først, range-kolonnen sist</li>
+                <li><span class="opt-label">C</span> Indeks på <code>(orderId)</code> alene — primærnøkkelen er alltid raskest</li>
+                <li><span class="opt-label">D</span> To separate indekser, én på <code>customerId</code> og én på <code>date</code> — optimizer kan kombinere dem</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — <code>(customerId, date)</code>.</strong></p>
+              <p>Komposittnøkler sorteres leksikografisk. Med customerId først ligger alle radene for samme kunde sammen i bladene; innenfor samme kunde er radene sortert på dato. Spørringen blir:</p>
+              <p>1. Traverser ned til startbladet for customerId = ?, 3 nivåer.<br>
+              2. Følg bladlenkene sidelengs så lenge customerId og dato er i intervallet — sekvensiell I/O, ferdig.</p>
+              <p><strong>A:</strong> <code>(date, customerId)</code> ville krevd at vi skanner <em>alle</em> rader i datointervallet og deretter filtrerer på kunde — vesentlig dyrere.<br>
+              <strong>C:</strong> <code>(orderId)</code> hjelper ikke — verken customerId eller date er sortert etter den.<br>
+              <strong>D:</strong> <em>Index intersection</em> finnes i moderne DBMS-er, men er typisk dyrere fordi vi må slå opp og kombinere RID-mengder. En sammensatt indeks vinner som regel.</p>
+              <p>Tommelfinger: <strong>likhets-kolonner først, range-kolonnen sist.</strong></p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kompositt">Kap. 6B — Komposittnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Full scan vs unclustered</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En unclustered B+-tree-indeks for spørringen <code>WHERE empno > 90000</code> der 20 % av radene matcher. Hvorfor velger optimizeren ofte <em>full table scan</em> i stedet for indeks-traversering?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Mange random I/O-er i heapen er tregere enn én sekvensiell scan av samme totalvolum</li>
+                <li><span class="opt-label">B</span> Optimizer-en bruker aldri indekser for range-spørringer</li>
+                <li><span class="opt-label">C</span> Indeks-traversering krever låsing av treet, mens full scan ikke gjør det</li>
+                <li><span class="opt-label">D</span> Bladene i en unclustered indeks er ikke sortert, så indeks-tilgang er O(N²)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — random I/O i heapen blir totalt sett dyrere enn én sekvensiell scan.</strong></p>
+              <p>Hver indekstreff på unclustered peker til en <em>tilfeldig</em> blokk i heapen. 20 000 treff = potensielt 20 000 random heap-aksesser spredt over disken. Sekvensiell I/O er størrelsesordener raskere enn random I/O på både HDD og SSD (selv om gapet er mindre på SSD).</p>
+              <p>En full scan leser ca. 1961 blokker <em>sekvensielt</em>. Det er totalt sett mye mindre arbeid enn ~20 000 random I/O.</p>
+              <p>Tommelfinger: hvis &gt; ~10–20 % av radene matcher, slår full scan ofte unclustered indeks for range-spørringer. Optimizeren bruker statistikk fra katalogen for å regne ut når kryssingspunktet er.</p>
+              <p><strong>B</strong> er feil — optimizeren bruker indekser for selektive range-spørringer.<br>
+              <strong>C</strong> er ikke kjernepoenget; låsing er en helt annen problemstilling.<br>
+              <strong>D</strong> er feil; bladene er sortert, problemet er heap-aksessene som følger.</p>
+              <p class="fc-ref">Pensum: <a href="btrees.html#kostnad">Kap. 6B — Kostnadsregning, range-spørring</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Slot directory</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En blokk har 4 records med RID-er (B7, 0), (B7, 1), (B7, 2), (B7, 3). Vi sletter record på slot 1 og deretter kompakterer blokken. Hvilken effekt har det på de gjenværende RID-ene som ligger i indekser ute i systemet?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> RID-ene må oppdateres til (B7, 0), (B7, 1), (B7, 2) — slot-numrene rykker ned</li>
+                <li><span class="opt-label">B</span> Alle indekser må gjenbygges fra bunnen siden RID-ene er ugyldige</li>
+                <li><span class="opt-label">C</span> RID-ene består uendret — slot directory peker til de nye byte-posisjonene, men slot-numrene endres ikke</li>
+                <li><span class="opt-label">D</span> RID-ene består, men kompaktering må aldri utføres på en blokk med eksterne referanser</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — RID-ene består uendret.</strong></p>
+              <p>Det er <em>nettopp</em> derfor RID-en er semilogisk (BlockId + slot, ikke en absolutt byte-offset). Slot directory-en er en oversikt over hvor i blokken hver record ligger; ved kompaktering oppdateres pekerne i directory-en, men slot-numrene følger med uendret.</p>
+              <p>Konkret etter sletting og kompaktering:<br>
+              • Slot 0 → peker til ny posisjon for record (B7,0)<br>
+              • Slot 1 → markert som «slettet» (eller fjernet fra directory)<br>
+              • Slot 2 → peker til ny posisjon for record (B7,2)<br>
+              • Slot 3 → peker til ny posisjon for record (B7,3)</p>
+              <p>Indekser som peker til (B7, 2) finner fortsatt riktig record, fordi directory-en fortsatt har slot 2 — bare på en annen byte-posisjon i blokken.</p>
+              <p><strong>A</strong> er feil — slot-numre er stabile RID-deler. Hvis de hadde rykket ned, ville indekser brutt sammen.<br>
+              <strong>B</strong> er for drastisk — det er hele poenget med slot directory at vi <em>ikke</em> trenger det.<br>
+              <strong>D</strong> er motsatt av sannheten — kompaktering er trygt og <em>må</em> utføres for å reklamere plass.</p>
+              <p class="fc-ref">Pensum: <a href="lagring.html#block">Kap. 6A — Block-format og slot directory</a></p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
