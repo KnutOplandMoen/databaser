@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../favicon.png" type="image/png">
+<title>Avsluttende eksamen 2025 — TDT4145</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="genererte/exam.css">
+<style>
+  .exam-head { padding: 4rem 0 2rem; border-bottom: 1px solid var(--line-soft); }
+  .exam-head h1 { font-size: 3rem; margin: 0; }
+  .exam-head h1 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-head .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    padding: 5px 12px;
+    border-radius: 14px;
+    margin-bottom: 1.2rem;
+  }
+  .exam-head .meta {
+    color: var(--ink-faded);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    margin: 0.6rem 0 0;
+  }
+  .exam-part { padding: 2.5rem 0 1rem; }
+  .exam-part h2 {
+    font-size: 1.8rem;
+    margin: 0 0 0.4rem;
+    border-bottom: 2px solid var(--rust);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+  }
+  .exam-part h2 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-part .part-desc {
+    color: var(--ink-soft);
+    margin: 0.4rem 0 1.2rem;
+    font-style: italic;
+  }
+  .q-table {
+    border-collapse: collapse;
+    margin: 0.8rem 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+  }
+  .q-table th, .q-table td {
+    border: 1px solid var(--line);
+    padding: 4px 12px;
+    text-align: left;
+  }
+  .q-table th { background: var(--paper-dark); font-weight: 600; }
+  .q-code {
+    font-family: var(--mono);
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    margin: 0.6rem 0 1rem;
+    white-space: pre;
+    overflow-x: auto;
+    font-size: 0.88rem;
+  }
+  .free-text-area {
+    width: 100%;
+    min-height: 110px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+    box-sizing: border-box;
+    margin: 0 0 0.8rem;
+  }
+  .free-text-area:focus {
+    outline: 2px solid var(--rust);
+    outline-offset: 1px;
+    border-color: var(--rust);
+  }
+  .multi-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .multi-list > li {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    background: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.88rem;
+  }
+  .multi-list .opt-label {
+    font-weight: 600;
+    color: var(--rust);
+    min-width: 1.4rem;
+  }
+  .note-missing {
+    border-left: 3px solid var(--blue);
+    background: rgba(122, 74, 45, 0.06);
+    padding: 0.6rem 0.9rem;
+    margin: 0.6rem 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back" style="margin-left:auto">← Eksamener</a>
+  </div>
+</nav>
+
+<main data-chapter="Avsluttende eksamen 2025">
+  <header class="exam-head">
+    <div class="container">
+      <span class="tag">Avsluttende eksamen · TDT4145 · Vår 2025</span>
+      <h1><em>Avsluttende</em> eksamen 2025</h1>
+      <p class="meta">Del 2-tunge oppgaver · 14 problemer · Total: 100 poeng</p>
+      <p class="meta">Klikk et alternativ for å låse svaret. Multi-select og langsvar har «Vis fasit»-felt.</p>
+    </div>
+  </header>
+
+  <section class="exam-part">
+    <div class="container">
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 1 — B+-trær</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 6 — Løvnivå</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Vi har et clustered B+-tre hvor vi setter inn 20&nbsp;200 studentposter à 120 byte. Nøkkelen <code>studNr</code> er 4 byte, RecordID er 12 byte, BlockId er 8 byte, blokken er 4096 byte. Hvor mange blokker finnes på løvnivå (level=0) etter at alle postene er satt inn? Anta 2/3 fyllgrad.</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 571</li>
+            <li><span class="opt-label">B</span> 919</li>
+            <li><span class="opt-label">C</span> Ingen av de andre alternativene er riktige</li>
+            <li><span class="opt-label">D</span> 5000</li>
+            <li><span class="opt-label">E</span> 22</li>
+            <li><span class="opt-label">F</span> 595</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Tilgjengelig plass per blokk: <code>4096 · 2/3 ≈ 2730</code> byte. Poster per blokk: <code>floor(2730 / 120) = 22</code>. Løvblokker: <code>ceil(20200 / 22) = 919</code>.</p>
+              <p>I et clustered tre lagres hele postene på løvnivå.</p>
+              <p class="ref">Pensum: <a href="../kap6/btrees.html">Kap. 6 — B+-trær</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 2 — B+-tre level 1</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 6 — Indre nivå</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Samme oppsett som Problem 1. Hvor mange blokker finnes på <code>level=1</code> i B+-treet?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 3</li>
+            <li><span class="opt-label">B</span> 2</li>
+            <li><span class="opt-label">C</span> 5</li>
+            <li><span class="opt-label">D</span> 4</li>
+            <li><span class="opt-label">E</span> 1</li>
+            <li><span class="opt-label">F</span> Ingen av de andre alternativene er riktige</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Index-records (key + BlockId) er <code>4 + 8 = 12</code> byte. Med 2/3 fyllgrad: <code>floor(2730 / 12) = 227</code> entries per blokk på indre nivå. Level 1 trenger én entry per løvblokk: <code>ceil(919 / 227) = 5</code>.</p>
+              <p>Du kan også regne det med full kapasitet: <code>floor(4096/12) = 341</code>, deretter <code>341 · 2/3 ≈ 227</code> — samme resultat.</p>
+              <p class="ref">Pensum: <a href="../kap6/btrees.html">Kap. 6 — B+-trær</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 3 — Access paths</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 7 — PK-oppslag</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Clustered B+-tre på <code>AnsattId</code>: 1000 løvblokker, 3 nivåer. Unclustered B+-tre på <code>EtterNavn</code>: 500 løvblokker, 3 nivåer. Spørring:</p>
+          <pre class="q-code">SELECT EtterNavn FROM Ansatt WHERE AnsattId = 12001;</pre>
+          <p class="q-text">Hvor mange blokker aksesseres ved optimal utføring?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 1002</li>
+            <li><span class="opt-label">B</span> Ingen av de andre alternativene er riktige</li>
+            <li><span class="opt-label">C</span> 5</li>
+            <li><span class="opt-label">D</span> 4</li>
+            <li><span class="opt-label">E</span> 3</li>
+            <li><span class="opt-label">F</span> 502</li>
+            <li><span class="opt-label">G</span> 2</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: E</span>
+              <p>Equality-oppslag på <code>AnsattId</code> bruker det clustered treet. 3 nivåer = 3 blokk-aksesser fra rot ned til løv. Posten ligger ferdig i løvblokken (clustered) — ingen ekstra heap-aksess.</p>
+              <p class="ref">Pensum: <a href="../kap7/innhold.html">Kap. 7 — Spørringsutføring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 4 — Access paths</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 7 — Unclustered + heap</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Samme oppsett som Problem 3. Spørring:</p>
+          <pre class="q-code">SELECT ForNavn FROM Ansatt WHERE EtterNavn = 'Johannessen';</pre>
+          <p class="q-text">Anta at det finnes nøyaktig én med dette etternavnet. Hvor mange blokker aksesseres optimalt?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Ingen av de andre alternativene er riktige.</li>
+            <li><span class="opt-label">B</span> 502</li>
+            <li><span class="opt-label">C</span> 1002</li>
+            <li><span class="opt-label">D</span> 3</li>
+            <li><span class="opt-label">E</span> 4</li>
+            <li><span class="opt-label">F</span> 6</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: F</span>
+              <p>Bruk det unclustered treet på EtterNavn (3 nivåer = 3 blokker) for å finne <code>AnsattId</code>. <code>ForNavn</code> ligger ikke i indeksen, så vi må slå opp posten via det clustered treet på AnsattId (3 nivåer = 3 blokker). Totalt: <code>3 + 3 = 6</code>.</p>
+              <p>Vi kan ikke gå direkte til en heap-blokk: i en clustered struktur er løvene B+-treets egne, så «heap-aksessen» er en traversering fra rot til løv på det clustered treet.</p>
+              <p class="ref">Pensum: <a href="../kap7/innhold.html">Kap. 7 — Spørringsutføring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 5 — Access paths</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 7 — Sortert skann</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Samme oppsett som Problem 3. Spørring:</p>
+          <pre class="q-code">SELECT EtterNavn FROM Ansatt ORDER BY EtterNavn DESC;</pre>
+          <p class="q-text">Hvor mange blokker aksesseres optimalt?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 6</li>
+            <li><span class="opt-label">B</span> Ingen av de andre alternativene er riktige</li>
+            <li><span class="opt-label">C</span> 1503</li>
+            <li><span class="opt-label">D</span> 502</li>
+            <li><span class="opt-label">E</span> 3</li>
+            <li><span class="opt-label">F</span> 1002</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>Vi trenger bare <code>EtterNavn</code>, og det ligger sortert i det unclustered treet — perfekt index-only scan. Traverser fra rot til ytre løv (2 indre + 1 første løv = 3 blokker), deretter skann de resterende 499 løvblokkene baklengs via søsken-pekerne. Totalt: <code>3 + 499 = 502</code>.</p>
+              <p>Vi går aldri til selve heap-tabellen, og vi bruker ikke det clustered treet (det er sortert på AnsattId, ikke EtterNavn).</p>
+              <p class="ref">Pensum: <a href="../kap7/innhold.html">Kap. 7 — Spørringsutføring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 6 — Konfliktserialiserbarhet</span>
+          <span class="exam-q__points">6 %</span>
+          <span class="exam-q__topic">Kap. 8 — Schedules</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvilke av disse historiene er konfliktserialiserbare? (<em>multi-select</em>)</p>
+          <ol class="multi-list">
+            <li><span class="opt-label">1</span> r1(B); w3(A); r3(B); w2(A); r1(A);</li>
+            <li><span class="opt-label">2</span> w2(A); r2(B); w1(A); w1(B); r2(B); w2(B); r3(C);</li>
+            <li><span class="opt-label">3</span> r1(A); r2(A); w1(A); w2(A); r3(B); w3(B);</li>
+            <li><span class="opt-label">4</span> r2(A); r1(B); w2(A); r3(A); w1(B); w3(A); r2(B); w2(B);</li>
+            <li><span class="opt-label">5</span> r2(A); w1(B); w2(A); r3(A); w2(B); w3(A); r1(B); w2(B);</li>
+          </ol>
+          <textarea class="free-text-area" placeholder="Skriv hvilke nummer som er konfliktserialiserbare ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: 1 og 4</span>
+              <p><strong>Schedule 1:</strong> Konflikter: w3(A)→w2(A) (T3→T2), w3(A)→r1(A) (T3→T1), w2(A)→r1(A) (T2→T1). Presedens: T3→T2→T1, T3→T1. Ingen sykel ⇒ <em>konfliktserialiserbar</em>.</p>
+              <p><strong>Schedule 2:</strong> w2(A)→w1(A) gir T2→T1. r2(B)→w1(B) gir T2→T1, men w1(B)→r2(B) (andre opptreden) gir T1→T2. Sykel ⇒ <em>ikke</em> konfliktserialiserbar.</p>
+              <p><strong>Schedule 3:</strong> r1(A)→w2(A) (T1→T2), r2(A)→w1(A) (T2→T1). Sykel ⇒ <em>ikke</em> konfliktserialiserbar.</p>
+              <p><strong>Schedule 4:</strong> Edges: T2→T3 (r2(A) før w3(A); w2(A) før r3(A)/w3(A)) og T1→T2 (r1(B) før w2(B); w1(B) før r2(B)/w2(B)). Ingen sykel ⇒ <em>konfliktserialiserbar</em>.</p>
+              <p><strong>Schedule 5:</strong> w1(B)→w2(B) (T1→T2) og w2(B)→r1(B) (T2→T1). Sykel ⇒ <em>ikke</em> konfliktserialiserbar.</p>
+              <p class="ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Transaksjoner: teori</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 7 — ARIES analyse-fase</span>
+          <span class="exam-q__points">8 %</span>
+          <span class="exam-q__topic">Kap. 8 — DPT</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Etter et krasj (ARIES). Sjekkpunkt LSN=107 hadde tx-tabell <code>(T1, lastLSN=105, Active)</code>, <code>(T2, lastLSN=104, Active)</code>, og DPT <code>(A, recLSN=102), (B, recLSN=103)</code>. Hvilke elementer er med i DPT etter analysen? (<em>multi-select</em>)</p>
+          <div class="note-missing">Selve loggen er en figur i papireksamen og vises ikke her. Fasiten under følger den offisielle løsningen.</div>
+          <ol class="multi-list">
+            <li><span class="opt-label">A</span> (A, recLSN=102)</li>
+            <li><span class="opt-label">B</span> (B, recLSN=104)</li>
+            <li><span class="opt-label">C</span> (B, recLSN=103)</li>
+            <li><span class="opt-label">D</span> (C, recLSN=105)</li>
+            <li><span class="opt-label">E</span> (E, recLSN=110)</li>
+            <li><span class="opt-label">F</span> (A, recLSN=101)</li>
+            <li><span class="opt-label">G</span> (D, recLSN=109)</li>
+            <li><span class="opt-label">H</span> (Commit, recLSN=111)</li>
+            <li><span class="opt-label">I</span> Ingen av de andre alternativene er korrekte</li>
+          </ol>
+          <textarea class="free-text-area" placeholder="Skriv hvilke alternativer du velger ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Typisk riktig svar (basert på offisiell løsning): A, C, D, E, G</span>
+              <p><strong>Analyse-fasen:</strong> start fra DPT i sjekkpunktet, skann forover. Regler:</p>
+              <ul>
+                <li>Update på en page som <em>allerede</em> er i DPT: behold <em>opprinnelig</em> recLSN.</li>
+                <li>Update på en ny page: legg til (page, recLSN = LSN av den loggposten).</li>
+                <li>Commit/abort/end: oppdater tx-tabell, ikke DPT.</li>
+              </ul>
+              <p>Med tilhørende logg blir A og C fra sjekkpunktet uendret. Nye updates på C, E, D legges til med sin første LSN. B forblir på 103 (ikke 104). H er ikke en page — Commit oppdaterer tx-tabellen, ikke DPT. F endres ikke fordi A allerede har recLSN=102.</p>
+              <p class="ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Recovery</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 8 — ARIES sikkert flushed</span>
+          <span class="exam-q__points">8 %</span>
+          <span class="exam-q__topic">Kap. 8 — Steal/no-force</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Sjekkpunkt LSN=107: tx-tabell <code>(T1, lastLSN=105, Active), (T2, lastLSN=104, Active)</code>, DPT <code>(A, recLSN=102), (C, recLSN=105)</code>. I tillegg: ved kjøring av loggpost LSN=105 ble plassen til Page B «stjålet» fra bufferet. Hvilke pages kan vi <em>med sikkerhet</em> si ble skrevet til disk før krasjen? (<em>multi-select</em>)</p>
+          <div class="note-missing">Loggen er en figur i papireksamen. Fasiten følger standard ARIES-resonnement.</div>
+          <ol class="multi-list">
+            <li><span class="opt-label">A</span> A</li>
+            <li><span class="opt-label">B</span> Ingen av de andre alternativene er riktige</li>
+            <li><span class="opt-label">C</span> D</li>
+            <li><span class="opt-label">D</span> E</li>
+            <li><span class="opt-label">E</span> B</li>
+            <li><span class="opt-label">F</span> C</li>
+          </ol>
+          <textarea class="free-text-area" placeholder="Skriv hvilke pages ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: E (kun B med sikkerhet)</span>
+              <p>«Stjålet fra bufferet» betyr i steal-policyen at sidens innhold ble skrevet ut til disk før plassen ble overtatt av en annen side. Dermed vet vi <strong>med sikkerhet</strong> at B nådde disken før krasjen.</p>
+              <p>Pages som er i DPT etter analysen (A, C, og evt. D/E hvis i loggen) er per definisjon <em>dirty</em> — de har ennå ikke blitt skrevet til disk. Vi kan derfor ikke garantere at A, C, D eller E er på disk. Bare B kvalifiserer.</p>
+              <p class="ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Recovery</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 9 — Lock setting</span>
+          <span class="exam-q__points">7 %</span>
+          <span class="exam-q__topic">Kap. 8 — Rigorous 2PL</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Vi har en bestemt låsetilstand (figur i papireksamen) som er resultatet av rigorous 2PL. Hvilken sekvens kunne ha produsert tilstanden?</p>
+          <div class="note-missing">Figuren med låsekjedene vises ikke her. Bruk fasiten til å se hvordan løsningen typisk argumenteres — den oppgitte fasiten markerer det offisielle svaret.</div>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> r1(X); r2(X); w1(Y); r2(Y); w3(Y);</li>
+            <li><span class="opt-label">B</span> Ingen av de andre alternativene er korrekte</li>
+            <li><span class="opt-label">C</span> r1(X); r3(X); w1(Y); r3(Y); r2(Y);</li>
+            <li><span class="opt-label">D</span> w3(X); r2(Y); r3(Y); r2(X); r1(X);</li>
+            <li><span class="opt-label">E</span> w1(X); r2(X); w1(Y); r3(Y); r2(Y);</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar (offisielt): C</span>
+              <p>Tankegangen: i rigorous 2PL holder hver transaksjon alle sine låser til commit. Tilstandsfiguren viser hvilke transaksjoner som <em>holder</em> en lås på hvert element, og hvilke som <em>venter</em>. Sekvensen må gi nøyaktig samme bilde av holdte/ventende låser.</p>
+              <p>Uten figuren kan du ikke avgjøre svaret eksakt — men typisk for denne typen oppgave er svaret den sekvensen der ingen tx må aborteres pga. inkompatible operasjoner, og der rekkefølgen av låser stemmer med <em>has locks</em>-rekkefølgen i figuren.</p>
+              <p class="ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — Samtidighet og låser</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 10 — Commit-rekkefølge med rigorous 2PL</span>
+          <span class="exam-q__points">7 %</span>
+          <span class="exam-q__topic">Kap. 8 — 2PL-utføring</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Sekvens som kommer inn til scheduleren:</p>
+          <pre class="q-code">r1(X); r2(X); w1(X); r3(Y); c1; w2(Y); c2; r3(Z); c3;</pre>
+          <p class="q-text">I hvilken rekkefølge committer T1, T2 og T3?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> T3; T1; T2;</li>
+            <li><span class="opt-label">B</span> T3; T2; T1;</li>
+            <li><span class="opt-label">C</span> T2; T1; T3;</li>
+            <li><span class="opt-label">D</span> Vi får vranglås mellom T1 og T2.</li>
+            <li><span class="opt-label">E</span> T1; T3; T2;</li>
+            <li><span class="opt-label">F</span> T1; T2; T3;</li>
+            <li><span class="opt-label">G</span> Ingen av de andre alternativene stemmer</li>
+            <li><span class="opt-label">H</span> T2; T3; T1;</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B (T3; T2; T1)</span>
+              <p>Trace:</p>
+              <ul>
+                <li><code>r1(X)</code>: T1 får S(X). <code>r2(X)</code>: T2 får S(X) (kompatibel).</li>
+                <li><code>w1(X)</code>: T1 vil ha X(X), men T2 holder S(X). <strong>T1 blokkeres</strong>.</li>
+                <li><code>r3(Y)</code>: T3 får S(Y).</li>
+                <li><code>c1</code>: T1 venter ennå — kan ikke commite.</li>
+                <li><code>w2(Y)</code>: T2 vil ha X(Y), men T3 holder S(Y). <strong>T2 blokkeres</strong>.</li>
+                <li><code>c2</code>: T2 venter — kan ikke commite.</li>
+                <li><code>r3(Z)</code>: T3 får S(Z). <code>c3</code>: T3 commiter, frigir S(Y), S(Z). <strong>T3 først.</strong></li>
+                <li>Nå kan T2 få X(Y), gjøre w2(Y), commite, og frigi S(X), X(Y). <strong>T2 deretter.</strong></li>
+                <li>Til slutt får T1 X(X), gjør w1(X), commiter. <strong>T1 sist.</strong></li>
+              </ul>
+              <p>Ingen vranglås (ventekjeden er asyklisk: T1→T2→T3, og T3 har ingenting den venter på).</p>
+              <p class="ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — Samtidighet og låser</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 11 — Normalisering</span>
+          <span class="exam-q__points">4 %</span>
+          <span class="exam-q__topic">Kap. 4 — Høyeste NF</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>Geography(CountryCode, CountryName, Population, Continent)</code> med</p>
+          <pre class="q-code">F = { CountryCode → CountryName;
+      CountryName → CountryCode, Population, Continent }</pre>
+          <p class="q-text">Antar 1NF. Finn den høyeste normalformen som tabellen oppfyller.</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 3NF</li>
+            <li><span class="opt-label">B</span> BCNF</li>
+            <li><span class="opt-label">C</span> 1NF</li>
+            <li><span class="opt-label">D</span> 2NF</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B (BCNF)</span>
+              <p>Attributthyller: <code>{CountryCode}+ = {CountryCode, CountryName, Population, Continent}</code> (alle), <code>{CountryName}+ = {CountryName, CountryCode, Population, Continent}</code> (alle). Begge er kandidatnøkler (minimale superkeys).</p>
+              <p>BCNF-test: hver venstre side i F må være supernøkkel.</p>
+              <ul>
+                <li><code>CountryCode → CountryName</code> ✓ (CountryCode er supernøkkel)</li>
+                <li><code>CountryName → ...</code> ✓ (CountryName er supernøkkel)</li>
+              </ul>
+              <p>Begge oppfyller BCNF — som er strengeste normalform i pensum. Tabellen er på BCNF.</p>
+              <p class="ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 12 — BCNF-dekomponering</span>
+          <span class="exam-q__points">8 %</span>
+          <span class="exam-q__topic">Kap. 4 — Dekomponering</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabell:</p>
+          <pre class="q-code">Exam(StudentNo, StudentName, CourseNo, CourseName,
+     ExamNo, ExamDay, ExamMonth, ExamYear, Grade)
+
+F = { StudentNo → StudentName;
+      CourseNo  → CourseName;
+      ExamNo    → CourseNo;
+      ExamNo    → ExamDay, ExamMonth, ExamYear;
+      StudentNo, ExamNo → Grade }</pre>
+          <p class="q-text">Splitt opp tabellen slik at alle deltabeller er på BCNF, med attributtbevaring, FD-bevaring og tapsløst-join. Begrunn.</p>
+          <textarea class="free-text-area" placeholder="Foreslå deltabeller, deres nøkler, og begrunn hvorfor egenskapene er oppfylt ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <p><strong>Kandidatnøkkel for Exam:</strong> <code>{StudentNo, ExamNo}</code> — beregn closure for å verifisere.</p>
+              <p><strong>Foreslått BCNF-dekomponering (4 tabeller):</strong></p>
+              <pre class="q-code">Student(StudentNo, StudentName)
+       FD: StudentNo → StudentName        (PK = StudentNo)
+
+Course(CourseNo, CourseName)
+       FD: CourseNo → CourseName          (PK = CourseNo)
+
+Exam(ExamNo, CourseNo, ExamDay, ExamMonth, ExamYear)
+       FD: ExamNo → CourseNo, ExamDay, ExamMonth, ExamYear
+                                          (PK = ExamNo,
+                                           FK CourseNo → Course)
+
+Result(StudentNo, ExamNo, Grade)
+       FD: StudentNo, ExamNo → Grade      (PK = (StudentNo, ExamNo),
+                                           FK StudentNo → Student,
+                                           FK ExamNo    → Exam)</pre>
+              <p><strong>BCNF:</strong> i hver tabell er venstresiden av hver FD en supernøkkel (faktisk hele PK-en).</p>
+              <p><strong>Attributtbevaring:</strong> union av kolonnene = de 9 originale.</p>
+              <p><strong>FD-bevaring:</strong> alle 5 originale FD-er gjenfinnes lokalt — ingen krever join på tvers.</p>
+              <p><strong>Tapsløst-join:</strong> hver split foregår på en supernøkkel av den ene komponenten (Chase-test eller BCNF-dekomponeringsalgoritmen garanterer dette).</p>
+              <p class="ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 13 — Relasjonsalgebra</span>
+          <span class="exam-q__points">8 %</span>
+          <span class="exam-q__topic">Kap. 2 — RA-graf</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skjema:</p>
+          <pre class="q-code">By(ByID, Navn, KommuneNr, Innbyggertall)
+        -- KommuneNr FK → Kommune, NOT NULL
+Kommune(KommuneNr, Navn, Innbyggertall, FylkesNr)
+        -- FylkesNr  FK → Fylke,  NOT NULL
+Fylke(FylkesNr, Navn, AdministrasjonsBy, Areal)
+        -- AdministrasjonsBy FK → By, kan være NULL</pre>
+          <p class="q-text">Lag en RA-spørring som finner alle byer i Nordland fylke med ≥ 10&nbsp;000 innbyggere. Resultat: <code>(Navn, Innbyggertall)</code>, sortert synkende på <code>Innbyggertall</code>. Helst som RA-graf.</p>
+          <textarea class="free-text-area" placeholder="Skriv RA-uttrykk eller beskriv RA-grafen din ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar (lineær form):</span>
+              <pre class="q-code">τ_{Innbyggertall DESC} (
+  π_{B.Navn, B.Innbyggertall} (
+    σ_{F.Navn = 'Nordland' ∧ B.Innbyggertall ≥ 10000} (
+      ρ_{B}(By) ⋈_{B.KommuneNr = K.KommuneNr}
+      ρ_{K}(Kommune) ⋈_{K.FylkesNr = F.FylkesNr}
+      ρ_{F}(Fylke)
+    )
+  )
+)</pre>
+              <p><strong>RA-graf (bottom-up):</strong></p>
+              <ol>
+                <li>Bladene: <code>By</code>, <code>Kommune</code>, <code>Fylke</code> (omdøpt B, K, F).</li>
+                <li><strong>σ</strong> tidlig: <code>σ_{Navn='Nordland'}(F)</code> for å redusere størrelse.</li>
+                <li><strong>σ</strong> tidlig: <code>σ_{Innbyggertall ≥ 10000}(B)</code>.</li>
+                <li><strong>⋈</strong> Kommune ⋈ Fylke (filtrert) på FylkesNr → kommuner i Nordland.</li>
+                <li><strong>⋈</strong> By (filtrert) ⋈ resultatet på KommuneNr.</li>
+                <li><strong>π_{Navn, Innbyggertall}</strong>.</li>
+                <li><strong>τ_{Innbyggertall DESC}</strong> til slutt.</li>
+              </ol>
+              <p>Push-down av selections (σ før ⋈) er en standard optimalisering som halverer eller bedre antall mellomraderr.</p>
+              <p class="ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Problem 14 — ER-modellering: EiT</span>
+          <span class="exam-q__points">19 %</span>
+          <span class="exam-q__topic">Kap. 4 — ER-diagram</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Lag en ER-modell for Eksperter i Team (EiT). Bruk hele pensumet (spesialisering, kategorier). Ta utgangspunkt i beskrivelsen av EiT under (oppsummert):</p>
+          <ul style="font-size:0.9rem;color:var(--ink-soft);">
+            <li>EiT undervises én gang per år (Årgang).</li>
+            <li>Hver Årgang har flere Landsbyer (unikt landsbynr per årgang) — svak entitet, totalt avhengig av Årgang.</li>
+            <li>Landsbytype: Langsgående eller Intensiv (spesialisering).</li>
+            <li>Lærer (PK PersonID; også AnsattID, Navn, e-post, Tittel) er <em>Landsbyleder</em> (1 per landsby) og kan være det for flere landsbyer/årganger.</li>
+            <li>Hver landsby har 4–6 studentgrupper (unik gruppenr per landsby) — svak entitet under landsby.</li>
+            <li>Hver gruppe har 5–7 studenter, et gruppetema som passer landsbytemaet.</li>
+            <li>Hver landsby har 2 læringsassistenter (en student som jobber på kontrakt, kun i én landsby per årgang).</li>
+            <li>Hver Årgang har én emneansvarlig (Lærer) og flere undervisningsassistenter (Student på kontrakt).</li>
+            <li>Restriksjon: en student kan ikke samtidig være student-i-emnet og assistent i samme årgang. Læringsassistent og undervisningsassistent er gjensidig utelukkende per årgang.</li>
+            <li>Hver gruppe leverer 2 Rapporter (prosjektrapport + prosessrapport) — type-attributt eller spesialisering.</li>
+            <li>Hver rapport vurderes av landsbyleder + ekstern Sensor (egen entitet, registreres i hver årgang).</li>
+            <li>Karakter og begrunnelse settes felles av leder + sensor på hver rapport. Sluttkarakter for gruppen = snitt av de to.</li>
+            <li>Kategori (union type): "Person" kan være Lærer / Student / Sensor (kategori, fordi PK-domenene kan overlappe).</li>
+          </ul>
+          <textarea class="free-text-area" placeholder="Skriv konsept-liste eller beskriv ER-diagrammet ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-løsning (skisse — tegnes på papir):</span>
+              <p><strong>Sterke entiteter:</strong> <code>Aargang(aar)</code>, <code>Lærer</code>, <code>Student</code>, <code>Sensor</code>.</p>
+              <p><strong>Svake entiteter:</strong> <code>Landsby</code> (diskriminator landsbynr, eier Aargang) og <code>Gruppe</code> (diskriminator gruppenr, eier Landsby).</p>
+              <p><strong>Spesialisering:</strong> Landsby ISA (Langsgående | Intensiv) — total/disjoint.</p>
+              <p><strong>Kategori (union):</strong> <code>Person ∈ Lærer ∪ Student ∪ Sensor</code> — siden samme person kan ha ulike roller i forskjellige årganger.</p>
+              <p><strong>Relasjoner per Årgang:</strong></p>
+              <ul>
+                <li><code>EmneAnsvarligFor(Lærer, Aargang)</code> — 1 lærer per årgang.</li>
+                <li><code>UndervisningsAssistent(Student, Aargang)</code> — N:M mellom Student og Årgang.</li>
+                <li><code>Landsbyleder(Lærer, Landsby)</code> — 1 lærer per landsby.</li>
+                <li><code>Læringsassistent(Student, Landsby)</code> — student kun i én landsby per årgang (constraint i tekst).</li>
+                <li><code>TarEmnet(Student, Gruppe)</code> — student tilhører én gruppe per årgang.</li>
+              </ul>
+              <p><strong>Rapport-side:</strong></p>
+              <ul>
+                <li><code>Rapport(rid, tittel, type ∈ {prosjekt, prosess})</code> — eies av Gruppe.</li>
+                <li><code>Vurdering(landsbyleder: Lærer, sensor: Sensor, karakter, begrunnelse)</code> — knyttet til Rapport (en vurdering per rapport).</li>
+                <li><code>SensorerForÅrgang(Sensor, Aargang)</code> — pool av tilgjengelige sensorer.</li>
+              </ul>
+              <p><strong>Constraints i tekst (kan ikke uttrykkes i ER):</strong></p>
+              <ul>
+                <li>En student kan ikke være TarEmnet og samtidig (Læringsassistent ∨ Undervisningsassistent) i samme Aargang.</li>
+                <li>Læringsassistent og Undervisningsassistent er gjensidig utelukkende per årgang.</li>
+                <li>Gruppestørrelse 5–7; landsbyantall typisk 30 studenter; 2 læringsassistenter per landsby.</li>
+                <li>Sluttkarakter = snitt av de to rapportkarakterene.</li>
+              </ul>
+              <p>Tegn diagrammet med svake entiteter (dobbel ramme), ISA-trekant for landsbytypene, og halvsirkel-symbol for kategori-union over Person.</p>
+              <p class="ref">Pensum: <a href="../kap4/er-modellen.html">Kap. 4 — ER-modellen</a> · <a href="../kap4/er-til-relasjon.html">Kap. 4 — ER til relasjon</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="exam-part" style="padding-bottom:3rem">
+    <div class="container">
+      <p style="color:var(--ink-faded);font-style:italic;text-align:center;">Slutt på avsluttende eksamen 2025.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="genererte/exam.js"></script>
+<script src="../chat-widget.js"></script>
+</body>
+</html>
