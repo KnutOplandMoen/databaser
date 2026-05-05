@@ -107,10 +107,17 @@ Det betyr at **fasitens innhold er det brukeren ser etter et svar** — det skal
 
 ### Innholdskrav for alternativene
 
-- Alle 4 (eller 5) alternativer skal være **omtrent like lange** — et markant lengre riktig svar er en gratis vink til den som gjetter.
-- **Ingen distraktorer skal være åpenbart feil** for noen som ikke har lest pensum. Alle feil alternativer skal være plausible — typisk basert på vanlige misforståelser eller halvt riktige resonnementer.
-- Hold **samme grammatiske form og detaljnivå** på tvers av A–D. Hvis ett svar starter med et tall, bør de andre også; hvis ett er en hel setning, skal alle være det.
+**Den vanligste lekkasjen er at det riktige svaret skiller seg ut.** Studenten leser ikke teksten — bare formen — og velger likevel riktig. Pass spesielt på dette:
+
+- **Lengde — det viktigste.** Det riktige svaret skal *ikke* systematisk være det lengste. Tell tegnene før du publiserer: hvis riktig svar er lengre enn snittet av distraktorene, må du enten korte ned riktig svar eller pumpe opp distraktorene med samme detaljnivå (kvalifiseringer, eksempler, presiseringer). Gjennom et helt sett bør riktig svar være lengst, mellomlangt og kortest *omtrent like ofte* — sjekk fordelingen.
+- **Variér posisjonen til riktig svar.** Riktig alternativ skal fordeles jevnt mellom A, B, C og D over hele settet — unngå "C-tendens". Hvis du oppdager skjevhet, bytt om rekkefølgen på alternativene i noen oppgaver.
+- **Ingen "tell-tale words".** Ord som *alltid*, *aldri*, *kun*, *eneste* gjør et alternativ lett å eliminere; ord som *typisk*, *vanligvis*, *ofte* gjør det mistenkelig "trygt". Bruk dem i både riktige og feile svar — eller unngå dem helt.
+- **Samme grammatiske form og detaljnivå** på tvers av A–D. Hvis ett svar starter med et tall, bør de andre også; hvis ett er en hel setning, skal alle være det; hvis ett bruker fagterminologi (f.eks. "konfliktserialiserbar"), skal alle gjøre det.
+- **Distraktorene må være plausible** — basert på vanlige misforståelser eller halvt riktige resonnementer, ikke "fyll". En leser som ikke kan stoffet skal ikke kunne eliminere noen av dem på formgrunnlag alene.
+- **Alternativene skal være innbyrdes uavhengige** — ikke "A og B, men ikke C". Unngå også at to distraktorer er nesten identiske (da blir det reelt 3-valg). Samtidig: ikke alle fire skal være variasjoner over samme svar — da kan studenten eliminere dem som gruppe.
 - **Ikke gjør "Ingen av de andre alternativene er riktige"** til riktig svar i mer enn ca. 1 av 10 oppgaver — overbruk svekker dets verdi som konseptsjekk.
+
+> **Sjekk før publisering:** Les hver oppgave kun ved å se på alternativene (skjul spørsmålsteksten). Klarer du å peke ut riktig svar bare ut fra hvordan de er formulert? Hvis ja — skriv om.
 
 ---
 
@@ -263,6 +270,9 @@ For alle slike: hold spørsmålet *konkret* (presis spec) og distraktorene *plau
 - [ ] Ingen oppgave er en direkte kopi av [midterm_2026.md](../midterm_2026.md) eller [vår_2025.md](../vår_2025.md). Tall, navn og scenario er endret.
 - [ ] Alle oppgaver har grundig forklaring som dekker både hvorfor riktig er riktig og hvorfor distraktorene er feil.
 - [ ] Distraktorene er plausible (typiske misforståelser), ikke "fyllalternativer", og er omtrent like lange som det riktige svaret.
+- [ ] **Lengdesjekk:** over hele settet er riktig svar lengst, mellomlangt og kortest *omtrent like ofte* — ikke systematisk det lengste alternativet.
+- [ ] **Posisjonssjekk:** riktig svar (A/B/C/D) er fordelt jevnt over settet, ikke konsentrert på én bokstav.
+- [ ] **Form-test:** for hver oppgave, prøv å gjette riktig svar uten å lese spørsmålet. Hvis du klarer det fra formuleringen alene, må alternativene skrives om.
 - [ ] Hver oppgave har en pensum-lenke i `.ref` som peker til riktig kapittelside.
 - [ ] For hver Del 2-regnearts-oppgave (B+-tre, ARIES, 2PL, merge-sort): tallene er nye, ikke gjenbruk av tidligere oppgavers oppsett.
 
