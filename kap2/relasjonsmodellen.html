@@ -256,27 +256,28 @@
 
       <h3>Visualisering — supernøkkel ⊃ kandidat ⊃ primær</h3>
       <figure>
-        <svg viewBox="0 0 560 320" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <style>
               .lbl { font-family: 'IBM Plex Mono'; font-size:11px; }
               .lbl-r { font-family: 'IBM Plex Mono'; font-size:10px; fill:#6b6257; }
             </style>
           </defs>
-          <ellipse cx="280" cy="160" rx="265" ry="140" fill="#f4f1ea" stroke="#c9c0ae"/>
-          <ellipse cx="280" cy="170" rx="190" ry="92"  fill="#e8e3d6" stroke="#c9c0ae"/>
-          <ellipse cx="280" cy="180" rx="72"  ry="42"  fill="#1f4e79" fill-opacity="0.18" stroke="#1f4e79"/>
+          <ellipse cx="300" cy="190" rx="285" ry="180" fill="#f4f1ea" stroke="#c9c0ae"/>
+          <ellipse cx="300" cy="190" rx="210" ry="110" fill="#e8e3d6" stroke="#c9c0ae"/>
+          <ellipse cx="300" cy="195" rx="78"  ry="44"  fill="#1f4e79" fill-opacity="0.18" stroke="#1f4e79"/>
 
-          <text class="lbl-r" x="280" y="48"  text-anchor="middle">supernøkler — alle unike kombinasjoner</text>
-          <text class="lbl-r" x="280" y="110" text-anchor="middle">kandidatnøkler — minimale supernøkler</text>
-          <text class="lbl"   x="280" y="128" text-anchor="middle">{ID, name}, {ID, salary}, …</text>
+          <text class="lbl-r" x="300" y="42"  text-anchor="middle">supernøkler — alle unike kombinasjoner</text>
 
-          <text class="lbl"   x="280" y="178" text-anchor="middle" fill="#1a1612">primærnøkkel</text>
-          <text class="lbl-r" x="280" y="196" text-anchor="middle">{ID}</text>
+          <text class="lbl-r" x="300" y="115" text-anchor="middle">kandidatnøkler — minimale supernøkler</text>
+          <text class="lbl"   x="300" y="140" text-anchor="middle">{ID, name}, {ID, salary}, …</text>
 
-          <text class="lbl"   x="280" y="246" text-anchor="middle">{ID, name, dept_name, salary}</text>
+          <text class="lbl"   x="300" y="193" text-anchor="middle" fill="#1a1612">primærnøkkel</text>
+          <text class="lbl-r" x="300" y="212" text-anchor="middle">{ID}</text>
+
+          <text class="lbl"   x="300" y="335" text-anchor="middle">{ID, name, dept_name, salary}</text>
         </svg>
-        <figcaption>Inklusjons­hierarki. Primærnøkkel ⊆ kandidatnøkler ⊆ supernøkler.</figcaption>
+        <figcaption>Inklusjons­hierarki. Primærnøkkel ⊆ kandidatnøkler ⊆ supernøkler. Eksempelet nederst er en supernøkkel — den inneholder alt og er derfor ikke minimal.</figcaption>
       </figure>
 
       <div class="quiz" data-quiz>
