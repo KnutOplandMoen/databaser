@@ -864,8 +864,32 @@
         </div>
       </div>
 
-      <h3>Index nested loop</h3>
-      <p>Hvis indre tabell har en indeks på join-attributtet, hopper vi over hele scanningen og slår opp direkte. Da blir kostnaden ca. <code>|R| · (kost pr. oppslag)</code>, ofte 3–4 blokker pr. rad i R. Dramatisk billigere når R er liten.</p>
+      <h3>Index nested loop (J2)</h3>
+      <p>Hvis indre tabell har en indeks på join-attributtet, hopper vi over hele indre-scanningen og slår opp direkte for hver ytre rad. Vi bytter altså ut <em>én scan av S pr. ytre bunke</em> mot <em>ett indeks-oppslag pr. ytre rad</em>. Det blir billig når R er liten i radantall, og indeksen er klargjort.</p>
+
+      <div class="formula-block">
+        <div class="formula-eq">J2 med clustered indeks på indre &nbsp;<code>cost = b_R + |R| · (h_S + 1)</code></div>
+        <p class="formula-why"><strong>Hvorfor — bygd ledd for ledd:</strong> Det første leddet (<code>b_R</code>) er identisk med J1 — vi må fortsatt lese hele ytre én gang. Det er det andre leddet som endrer seg fundamentalt: i stedet for å re-scanne indre <code>⌈b_R/(n_B−2)⌉</code> ganger (J1), gjør vi <em>ett oppslag pr. ytre rad</em>. Hvert oppslag koster <code>h_S + 1</code> blokker — det er nøyaktig formelen for «punkt-oppslag clustered» fra §02. Vi gjenbruker derfor formelen vi allerede har. <strong>Sammenheng med J1:</strong> J1 har faktor <code>b_S</code> i andre ledd, J2 har faktor <code>(h_S + 1)</code>. Siden <code>h_S + 1</code> typisk er 3–4 og <code>b_S</code> kan være tusenvis, vinner J2 så lenge <code>|R|</code> ikke er for stor. Hvis join-attributtet kan ha duplikater må vi legge til <code>matches/rad − 1</code> ekstra bladblokker (rader med samme nøkkel som ikke får plass i én blokk).</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">J2 med unclustered indeks på indre &nbsp;<code>cost = b_R + |R| · (h_S + 1 + matches_S)</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Helt parallelt med formelen for «punkt-oppslag unclustered» (§02) — hver matchende RID krever ett ekstra hopp til heap-filen, og hver kan lande på en ny blokk. På likhet med <code>V(A, S)</code> distinkte verdier i join-kolonnen er antall matcher i snitt <code>matches_S = ⌈|S| / V(A, S)⌉</code>. <strong>Når blir J2 dårlig?</strong> Når <code>matches_S</code> er stor — typisk ved bredt duplikat-mønster — kan <code>|R| · matches_S</code> bli større enn én eller to scans av indre. Da slår både J3 (sort-merge) og J4 (hash) tilbake.</p>
+      </div>
+
+      <h4>Worked example — J1 vs J2 på samme data</h4>
+      <p>Samme join, samme tabeller — kun algoritmen varierer. Vi har <code>R</code> = 50 blokker (1000 rader), <code>S</code> = 500 blokker, <code>n_B</code> = 5, og det finnes en clustered B+-tre på <code>S.pk</code> med høyde <code>h_S = 2</code> (3-nivåtre).</p>
+      <ul class="ex-list">
+        <li><strong>J1 (block NL), R ytre:</strong> &nbsp;<code>50 + ⌈50/3⌉·500 = 50 + 17·500 = <strong>8550</strong></code> blokker</li>
+        <li><strong>J2 med clustered S.pk:</strong> &nbsp;<code>50 + 1000·(2 + 1) = 50 + 3000 = <strong>3050</strong></code> blokker</li>
+      </ul>
+      <p>J2 vinner med 65 % færre I/O — fordi 1000 indeks-oppslag à 3 blokker er mye billigere enn 17 fulle scans av en 500-blokkers tabell.</p>
+      <p style="font-size:0.92rem; color:var(--ink-soft);"><strong>Men hvor er kryssingspunktet?</strong> Hvis <code>R</code> hadde vært 100 000 rader, ville J2 kostet <code>50 + 300 000 = 300 050</code> — verre enn J1 (som vokser sakte i ytre). Generelt vinner J2 når <code>|R| · (h_S + 1) &lt; ⌈b_R/(n_B − 2)⌉ · b_S</code>. <em>Venstre side</em> vokser lineært med <code>|R|</code>; <em>høyre side</em> vokser med <code>b_R</code> men er begrenset av <code>b_S</code>. Når <code>|R|</code> er stor nok til at venstre side overstiger høyre, snur dominansforholdet — og optimizeren bytter algoritme.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Når foretrekker optimizeren J2?</span>
+        <p>Tre forutsetninger må vanligvis stemme samtidig: (1) ytre tabell er <em>liten</em> i radantall (ikke bare i blokker — det er <code>|R|</code> som er ganger-faktor i formelen), (2) indre har en <em>brukbar indeks</em> på join-attributtet (helst clustered, slik at vi slipper RID-hopp), og (3) join-attributtet har <em>høy selektivitet</em> i indre (få matcher pr. ytre rad — så <code>matches_S</code> er lite). Bryter en av disse, vinner ofte block nested loop, sort-merge eller hash. <strong>Pedagogisk kobling:</strong> alle tre punktene henger sammen med formler du allerede har sett — radantall (§02), oppslagskost (§02), og selektivitet (kommer i §07).</p>
+      </div>
 
       <div class="quiz inline" data-quiz>
         <div class="q-label">Sjekk forståelsen</div>

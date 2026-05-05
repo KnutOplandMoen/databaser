@@ -440,43 +440,21 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
 
       <h3>Tre strategier</h3>
       <ol>
-        <li><strong>Forebygging</strong> — conservative 2PL (alle låser opp foran), eller rangér ressurser globalt så alle tar låser i samme rekkefølge, eller bruk timestamp-ordning (se nedenfor).</li>
+        <li><strong>Forebygging (unngåelse)</strong> — conservative 2PL (alle låser opp foran), eller rangér ressurser globalt så alle tar låser i samme rekkefølge.</li>
         <li><strong>Deteksjon + offer</strong> — periodisk sjekk wait-for-grafen; finn sykel; abort en transaksjon (ofte den yngste eller den som har gjort minst).</li>
         <li><strong>Timeout</strong> — om en transaksjon ikke fullfører innen X sekunder, abort. Enkelt, men vanskelig å sette gode timeouts.</li>
       </ol>
 
       <p>De fleste kommersielle systemer (PostgreSQL, MySQL/InnoDB) bruker en kombinasjon av deteksjon og timeout.</p>
 
-      <h3 style="margin-top:1.6rem;">Wait-die og Wound-wait — timestamp-basert forebygging</h3>
-      <p>Hver transaksjon får en <strong>tidsstempel</strong> (TS) når den starter. Eldre tidsstempel = lavere TS = «høyere prioritet». Når T<sub>i</sub> ber om en lås T<sub>j</sub> holder, sjekker schedulerne TS-ene og bestemmer hvem som venter eller dør:</p>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Strategi</th><th>Hvis T<sub>i</sub> er eldre (TS<sub>i</sub> &lt; TS<sub>j</sub>)</th><th>Hvis T<sub>i</sub> er yngre (TS<sub>i</sub> &gt; TS<sub>j</sub>)</th></tr></thead>
-          <tbody>
-            <tr><td><strong>Wait-die</strong> (ikke-preemptiv)</td><td>T<sub>i</sub> venter</td><td>T<sub>i</sub> «dør» (abort + restart med <em>samme</em> TS)</td></tr>
-            <tr><td><strong>Wound-wait</strong> (preemptiv)</td><td>T<sub>i</sub> «sårer» T<sub>j</sub> (T<sub>j</sub> aborter); T<sub>i</sub> får låsen</td><td>T<sub>i</sub> venter</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <p>Idéen: kantene i wait-for-grafen går alltid bare én retning langs TS-aksen ⇒ ingen sykel mulig ⇒ ingen deadlock.</p>
-
-      <p><strong>Hvorfor «restart med samme TS»?</strong> En transaksjon som dør gjentatte ganger ville fått ny (yngre) TS hver gang og kunne dø igjen — sult. Ved å beholde TS blir transaksjonen «eldre og eldre relativt sett» og vinner til slutt.</p>
-
-      <div class="callout callout-blue">
-        <span class="label">Vanlig feil</span>
-        <p>Studenter snur ofte wait-die og wound-wait. Huskeregel: <em>wait-die</em> har «wait» først ⇒ <em>eldre venter</em>. <em>Wound-wait</em> har «wound» først ⇒ <em>eldre sårer (preempter) yngre</em>. I begge er det «yngre dør / venter» som hovedregel.</p>
-      </div>
-
       <h3 style="margin-top:1.6rem;">Lock upgrade — en stille deadlock-felle</h3>
-      <p>En vanlig oppskrift: T1 leser X (tar S(X)), regner litt, og bestemmer seg for å skrive — den ber om <em>oppgradering</em> til X(X). Men hvis T2 også holder S(X) og samtidig ber om oppgradering, sitter begge og venter på at den andre skal slippe sin S — <strong>deadlock</strong>.</p>
+      <p>Pensum nevner at låser kan <em>oppgraderes</em> (S → X) og nedgraderes. Det er en typisk oppskrift: T1 leser X (tar S(X)), regner litt, og bestemmer seg for å skrive — den ber om oppgradering til X(X). Men hvis T2 også holder S(X) og samtidig ber om oppgradering, sitter begge og venter på at den andre skal slippe sin S — <strong>deadlock</strong>.</p>
 
       <pre><code>T1: S(X)  ............  request_X(X)  ← venter på T2
 T2: ...... S(X)  ......  request_X(X)  ← venter på T1
                               DEADLOCK</code></pre>
 
-      <p>Begge T-ene følger 2PL korrekt. Likevel havner de i sykel. Løsningen i mange DBMS-er: <em>update lock (U)</em> — en mellomting som er kompatibel med S men ikke med en annen U, slik at bare én transaksjon i taget kan ha planer om å oppgradere.</p>
+      <p>Begge T-ene følger 2PL korrekt. Likevel havner de i sykel. Dette er en vanlig årsak til deadlock i praksis selv når ingen «øyeblikkelig» konflikt foreligger.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Deadlock</div>
@@ -547,78 +525,6 @@ T2: ...... S(X)  ......  request_X(X)  ← venter på T1
       </ul>
 
       <p>Moderne databaser bruker typisk post- og range-låser. Trade-off er klart: grovere granularitet ⇒ mindre metadata, men mer konkurranse om de samme låsene. Finere granularitet ⇒ mer samtidighet, men dyrere lock manager.</p>
-
-      <h3 style="margin-top:1.8rem;">Intent locks — IS, IX, SIX</h3>
-      <p>Hvis vi blander grov og fin granularitet, oppstår et problem: T1 har en X-lås på <em>én record</em> i tabell K. T2 vil ta en X-lås på <em>hele tabell K</em>. Hvordan oppdager låsmanageren konflikten uten å sjekke hver eneste record?</p>
-
-      <p>Løsningen er <strong>intent locks (intensjonslåser)</strong>: før T1 låser en record, må T1 først ta en <em>varsel-lås</em> på alle nivåer over (side, tabell, database) som signaliserer «jeg har tenkt å ta finere låser her nede». Dermed ser T2 umiddelbart på tabell-nivå at noen jobber inni.</p>
-
-      <ul>
-        <li><strong>IS (Intent-Shared)</strong> — «jeg har tenkt å ta S-låser lenger ned i hierarkiet».</li>
-        <li><strong>IX (Intent-eXclusive)</strong> — «jeg har tenkt å ta X-låser lenger ned».</li>
-        <li><strong>SIX (Shared + Intent-eXclusive)</strong> — «jeg leser hele noden, men vil oppdatere noen barn». Brukes typisk ved scan + update.</li>
-      </ul>
-
-      <p>Kompatibilitetsmatrisen utvides:</p>
-
-      <div class="lock-matrix">
-        <table>
-          <thead>
-            <tr>
-              <th rowspan="2" colspan="2">Holder</th>
-              <th colspan="5">Vil sette</th>
-            </tr>
-            <tr><th>IS</th><th>IX</th><th>S</th><th>SIX</th><th>X</th></tr>
-          </thead>
-          <tbody>
-            <tr><th rowspan="5">Eksisterende</th><th>IS</th><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">✗</td></tr>
-            <tr><th>IX</th><td class="yes">✓</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
-            <tr><th>S</th><td class="yes">✓</td><td class="no">✗</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td></tr>
-            <tr><th>SIX</th><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
-            <tr><th>X</th><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td><td class="no">✗</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h4 style="margin-top:1.2rem;">Protokoll — slik tas låsene</h4>
-      <ol>
-        <li>For å sette <strong>S</strong> eller <strong>IS</strong> på en node, må man holde minst <strong>IS</strong> (eller IX) på foreldrenoden.</li>
-        <li>For å sette <strong>X</strong>, <strong>IX</strong> eller <strong>SIX</strong> på en node, må man holde <strong>IX</strong> (eller SIX) på foreldrenoden.</li>
-        <li>Låser tas <em>ovenfra og ned</em>; slippes <em>nedenfra og opp</em>.</li>
-      </ol>
-
-      <p>Eksempel — T1 vil oppdatere én record i tabell K (database D):</p>
-      <pre><code>1. T1 tar IX(D)        — varsler intensjon nedover
-2. T1 tar IX(K)        — varsler intensjon på tabellen
-3. T1 tar IX(side P)   — varsler intensjon på siden
-4. T1 tar X(record r)  — selve låsen</code></pre>
-
-      <p>Hvis T2 nå vil ta X(K) (lås hele tabellen for skriving), ser låsmanageren med én sjekk at IX(K) holdes — T2 må vente. Hadde vi ikke hatt intent locks, måtte T2 ha skannet alle sider og records i K for å sjekke konflikt.</p>
-
-      <div class="callout">
-        <span class="label">SIX i praksis</span>
-        <p>SIX = «jeg leser hele tabellen (S), men vil endre noen rader (IX)». Eksempel: <code>UPDATE konto SET saldo = saldo + 100 WHERE rente_type = 'spar'</code> — DBMS-en må scanne hele <em>konto</em>, men oppdaterer bare et lite utvalg. SIX er presist kompromiss mellom S (for stivt — hindrer alle IX) og IX (for løst — andre kunne lest ucommitted data fra ulåste rader).</p>
-      </div>
-
-      <div class="mcq" data-mcq>
-        <div class="q-label">Sjekk · Intent locks</div>
-        <div class="q-text">T1 holder IX på tabell K. T2 vil ta S på K. Hva skjer?</div>
-        <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>T2 får S — IX er bare en intensjon, ikke en faktisk lås</span></div>
-          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>T2 må vente — IX og S er ikke kompatible</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>T2 får SIX i stedet</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>T1 sin IX oppgraderes automatisk til SIX</span></div>
-        </div>
-        <div class="mcq-feedback">
-          <strong>T2 må vente.</strong> Sjekk matrisen: IX (holdt) × S (ønsket) = ✗. Grunnen er at T1 har varslet at den vil X-låse noe inni — om T2 fikk lese hele K, kunne T2 sett ucommitted endringer fra T1. IS (kun lese-intensjon nedover) ville derimot vært kompatibel med S.
-        </div>
-      </div>
-
-      <h3 style="margin-top:1.8rem;">Vanlig feil</h3>
-      <div class="callout callout-blue">
-        <span class="label">Pass på</span>
-        <p>Studenter glemmer ofte at intent-lås-protokollen krever at låsene tas <em>ovenfra og ned</em>. Hvis T1 hopper rett til X(record) uten å ta IX(side), IX(K), IX(D) først, har T1 brutt protokollen og mister effekten av multi-granularitet. Ved oppgaver: skriv alltid alle nivåene eksplisitt.</p>
-      </div>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Granularitet</div>
