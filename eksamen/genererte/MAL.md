@@ -12,7 +12,7 @@ Dette dokumentet beskriver hvordan en øvingseksamen bør se ut når vi lager ny
 - **Lengde per oppgavesett:** 25–30 oppgaver totalt (ca. 12–14 i Del 1, ca. 14–18 i Del 2). Hver oppgave har et poengtall som summerer til 100.
 - **Tidsramme (anbefalt):** 3 timer for et komplett sett — speiler eksamen.
 
-> **Viktig om gamle eksamener:** [vår_2025.md](../vår_2025.md) og [midterm_2026.md](../midterm_2026.md) ligger som referanse for *stilen*, ikke fasit. Bruk dem til å forstå tonen, vanskelighetsgraden og oppgavetypene — men **ikke replikér oppgaver**. I tillegg må vi teste deler av pensum som ikke ble berørt der (særlig Del 1 sine kapitler om views/triggere/funksjoner/rekursjon, Beyond Relational Databases, og deler av Del 2 som hashing, sortering og isolation levels). Variér tall, skjemaer og scenarier hver gang.
+> **Viktig om gamle eksamener:** [vår_2025.md](../vår_2025.md) og [midterm_2026.md](../midterm_2026.md) ligger som referanse for *stilen*, ikke fasit. Bruk dem til å forstå tonen, vanskelighetsgraden og oppgavetypene — men **ikke replikér oppgaver**. I tillegg må vi teste deler av pensum som ikke ble berørt der (særlig Del 1 sine kapitler om views/triggere/funksjoner/rekursjon, og deler av Del 2 som hashing, sortering og isolation levels). Variér tall, skjemaer og scenarier hver gang.
 
 ---
 
@@ -114,7 +114,7 @@ Det betyr at **fasitens innhold er det brukeren ser etter et svar** — det skal
 
 ---
 
-## 3. Del 1 — Theodoros (~40 %, ca. 12–14 oppgaver)
+## 3. Del 1 — Theodoros (~40 %, ca. 11–13 oppgaver)
 
 Stilen ligner [midterm_2026.md](../midterm_2026.md): korte konseptspørsmål + små tabeller man "kjører" SQL/RA mot i hodet. Hver eksamen skal dekke alle de seks blokkene under, med minst én oppgave per blokk.
 
@@ -163,13 +163,6 @@ Spørsmålstyper som **må** representeres over tid:
 - BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF — hvilke implikasjoner gjelder?
 - Lossless-join og dependency preservation ved dekomponering — hvilken dekomponering bevarer hva?
 - Identifiser brudd på 2NF (delvis avhengighet av PK) og 3NF (transitiv avhengighet).
-
-### 3.7 Beyond Relational Databases (deler av kap. 8, 10, 11, 29) — 1 oppgave
-**Sjelden testet historisk, men er på pensum — må være med i flere sett.**
-- Forskjell på relasjonelle, objekt-relasjonelle og NoSQL-databaser.
-- Dokumentdatabaser (JSON), key-value, kolonneorienterte, grafdatabaser — typiske bruksområder.
-- ACID vs BASE, CAP-teoremet (kort).
-- Komplekse typer: arrays, nested tables, user-defined types.
 
 ---
 
@@ -251,9 +244,9 @@ For alle slike: hold spørsmålet *konkret* (presis spec) og distraktorene *plau
 - [ ] Hver oppgave er en `<article class="exam-q">` med riktig HTML-struktur (se §2) — `.opt-label` per alternativ, `.fasit-correct` med `Riktig svar: X`, og en `<details class="fasit-details">` med forklaring.
 - [ ] Sett er testet i nettleser: klikk på et alternativ låser oppgaven, fargelegger riktig/feil, og åpner forklaringen automatisk.
 - [ ] Total poengsum = 100, og fordelingen er ≈ 40/60 mellom Del 1 og Del 2.
-- [ ] Hver av de seks Del 1-blokkene (§3.1–3.7) er representert med minst én oppgave.
+- [ ] Hver av de seks Del 1-blokkene (§3.1–3.6) er representert med minst én oppgave.
 - [ ] Hver av de seks Del 2-blokkene (§4.1–4.6) er representert med minst én oppgave.
-- [ ] Minst én oppgave dekker det "underrepresenterte" stoffet: views, triggere, rekursjon, Beyond Relational, hashing-detaljer, isolation levels, MVCC.
+- [ ] Minst én oppgave dekker det "underrepresenterte" stoffet: views, triggere, rekursjon, hashing-detaljer, isolation levels, MVCC.
 - [ ] Ingen oppgave er en direkte kopi av [midterm_2026.md](../midterm_2026.md) eller [vår_2025.md](../vår_2025.md). Tall, navn og scenario er endret.
 - [ ] Alle oppgaver har grundig forklaring som dekker både hvorfor riktig er riktig og hvorfor distraktorene er feil.
 - [ ] Distraktorene er plausible (typiske misforståelser), ikke "fyllalternativer", og er omtrent like lange som det riktige svaret.

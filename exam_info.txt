@@ -31,10 +31,6 @@ Del 1/3: Seksjon 6.1–6.6 – Innføring i databasedesign, ER-modellen
 Del 2/3: Seksjon 6.7, 6.9 og 7.1 – Reduksjon av ER til relasjonsskjema, designproblemer, intro til normalformer
 Del 3/3: Seksjon 7.1–7.3 og 7.6 – Funksjonelle avhengigheter, dekomponering, normalformer, BCNF
 
-Beyond Relational Databases (Forelesning 10)
-
-Deler av kapittel 8, 10, 11 og 29 – Komplekse datatyper, objekt-relasjonelle og ikke-relasjonelle databaser
-
 
 Del 2 – Svein Erik (~60 %)
 Denne delen baserer seg på egne notater (ikke læreboka), og kapittelnummereringen refererer til disse notatene. Denne delen er det viktigste på eksamen, og den ligner historisk mye på tidligere år – så gamle eksamensoppgaver er gull verdt her.

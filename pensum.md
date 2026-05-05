@@ -19,7 +19,6 @@ Kun multiple choiche dette året - i motsetning til tidligere år der det også 
 | F7 | Databasedesign del 1/3 — ER-modellen | 6.1–6.6 |
 | F8 | Databasedesign del 2/3 — ER → skjema, designproblemer, intro normalformer | 6.7, 6.9, 7.1 |
 | F9 | Databasedesign del 3/3 — FD-er, dekomponering, BCNF | 7.1–7.3, 7.6 |
-| F10 | Beyond Relational Databases | Deler av kap. 8, 10, 11, 29 |
 
 ## Del 2 — Bratsbergs notater
 

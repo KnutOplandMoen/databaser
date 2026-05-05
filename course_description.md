@@ -12,18 +12,17 @@ moderne databasesystemer faktisk er bygget — fra SQL-overflate til diskblokker
 1. Relasjonsmodellen og relasjonsalgebra
 2. SQL: DDL, spørringer, joins, views, transaksjons-syntaks, prosedyrer/triggere
 3. Databasedesign: ER-modell, funksjonelle avhengigheter, normalformer (BCNF)
-4. Komplekse typer og NoSQL (kort)
-5. Lagring: record/block-format, buffer-pool, heapfiler, hashing
-6. Indeksering: B+-trær, clustered vs unclustered
-7. Spørringsutføring: aksessmetoder, sortering, join-algoritmer, kostnadsestimering
-8. Transaksjoner: ACID, schedules, serializability
-9. Samtidighet: 2PL, deadlock, MVCC, isolation levels
-10. Recovery: WAL, undo/redo, ARIES, sjekkpunkter
+4. Lagring: record/block-format, buffer-pool, heapfiler, hashing
+5. Indeksering: B+-trær, clustered vs unclustered
+6. Spørringsutføring: aksessmetoder, sortering, join-algoritmer, kostnadsestimering
+7. Transaksjoner: ACID, schedules, serializability
+8. Samtidighet: 2PL, deadlock, MVCC, isolation levels
+9. Recovery: WAL, undo/redo, ARIES, sjekkpunkter
 
 ## Vekting
 
-- **Del 1 (Theodoros) ~ 40 %** — pkt 1–4. Lik stil som midtveiseksamen.
-- **Del 2 (Svein Erik) ~ 60 %** — pkt 5–10. Lik stil som tidligere års eksamen.
+- **Del 1 (Theodoros) ~ 40 %** — pkt 1–3. Lik stil som midtveiseksamen.
+- **Del 2 (Svein Erik) ~ 60 %** — pkt 4–9. Lik stil som tidligere års eksamen.
 
 ## Pensum
 

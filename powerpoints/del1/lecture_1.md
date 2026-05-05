@@ -87,7 +87,7 @@ Week Date Lecture Topic
 05.02.2026 8 ER - Part 2/2
 7 10.02.2026 9 Normalization
 12.02.2026 NO LECTURE
-8 17.02.2026 10 Beyond Relational Databases
+8 17.02.2026 NO LECTURE
 19.02.2026 NO LECTURE
 9
 Outline

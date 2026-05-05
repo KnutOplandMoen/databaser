@@ -12,7 +12,6 @@
     'kap4/er-modellen.html',
     'kap4/er-til-relasjon.html',
     'kap4/normalformer.html',
-    'kap5/innhold.html',
     'kap6/lagring.html',
     'kap6/btrees.html',
     'kap7/innhold.html',
