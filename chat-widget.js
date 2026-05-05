@@ -290,21 +290,32 @@
 
   // ─── Markdown + KaTeX render pipeline ──────────────────────────────────
   function preProcessMath(text) {
-    // Recover bare-bracket display math: `[ \cmd ... ]` → `\[ \cmd ... \]`.
-    // Handles single-line (`[ \frac{a}{b} ]`) and multi-line forms where the
-    // opening `[` starts a line and the closing `]` ends a line. Body must
-    // begin with a TeX command (`\letter`) so we don't eat plain `[text]`.
+    // We normalize every math form the model uses into `$$...$$` (display) or
+    // `$...$` (inline). The reason is markdown: marked processes CommonMark
+    // backslash-escapes, so `\[`, `\]`, `\(`, `\)` are all stripped during
+    // `marked.parse(...)` and KaTeX never sees its delimiters. `$$` and `$`
+    // have no special meaning in default marked, so they survive untouched
+    // and KaTeX's auto-renderer (which already lists them) finds the math.
+    function wrapDisplay(_, body) { return '$$' + body + '$$'; }
+    function wrapInline(_, body)  { return '$'  + body + '$';  }
+
+    // 1. Already-escaped display: `\[ ... \]` → `$$ ... $$`.
+    text = text.replace(/\\\[([\s\S]+?)\\\]/g, wrapDisplay);
+    // 2. Already-escaped inline: `\( ... \)` → `$ ... $`.
+    text = text.replace(/\\\(([\s\S]+?)\\\)/g, wrapInline);
+    // 3. Bare-bracket display: `[ \cmd ... ]` on its own line(s). Single-line
+    //    or multi-line; body must begin with a TeX command so we don't eat
+    //    plain `[text]` brackets or markdown reference-links.
     text = text.replace(
       /^[ \t]*\[([ \t]*\\[a-zA-Z][\s\S]*?)\][ \t]*$/gm,
-      '\\[$1\\]'
+      wrapDisplay
     );
-    // Recover bare-paren inline math: `( ... \cmd ... )` → `\( ... \cmd ... \)`.
-    // Body must contain at least one TeX command, must not contain nested
-    // parens or newlines, and the delimiters must not already be escaped
-    // (skip existing `\(...\)`).
+    // 4. Bare-paren inline: `( ... \cmd ... )`. Body must contain a TeX
+    //    command, must stay on one line, must not have nested parens, and
+    //    the delimiters must not already be backslash-escaped.
     text = text.replace(
       /(?<!\\)\(([^()\n]*\\[a-zA-Z][^()\n]*)(?<!\\)\)/g,
-      '\\($1\\)'
+      wrapInline
     );
     return text;
   }
