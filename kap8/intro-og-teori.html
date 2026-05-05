@@ -234,17 +234,9 @@ Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         </div>
       </div>
 
-      <h3 style="margin-top:1.6rem;">Bekreft formelt — presedensgraf</h3>
-      <p>Klippet over påstår at schedulen er ikke-serializable. La oss sjekke det med konfliktanalysen vi nettopp lærte. Konfliktparene er:</p>
-      <ul>
-        <li><code>w<sub>1</sub>(B)</code> (steg 2) ↔ <code>r<sub>2</sub>(B)</code> (steg 5) ⇒ <strong>T1 → T2</strong> via B</li>
-        <li><code>w<sub>2</sub>(A)</code> (steg 4) ↔ <code>r<sub>1</sub>(A)</code> (steg 8) ⇒ <strong>T2 → T1</strong> via A</li>
-      </ul>
-      <p>Vi har T1 → T2 <em>og</em> T2 → T1 — sykel. Presedensgrafen er ikke acyklisk ⇒ ikke conflict-serializable. Det er nettopp grunnen til at sluttverdien (sum = 312) avviker fra både T1;T2 og T2;T1 sine svar.</p>
-
       <div class="callout">
-        <span class="label">Slik kobler vi teori og effekt</span>
-        <p>Sykel i presedensgrafen er ikke bare et matematisk mønster — den <em>forutsier</em> at minst én transaksjon ser eller blir påvirket av en mellomliggende tilstand som ingen seriell rekkefølge ville produsert. I bankeksempelet: T2 leste «gammel» A før T1 hadde lagt på, men «ny» B etter T1 hadde trukket fra. Resultatet kan ikke gjenskapes serielt.</p>
+        <span class="label">Foregriper</span>
+        <p>Vi vil komme tilbake til <em>nøyaktig</em> dette eksempelet i seksjonene 04–06: schedulen har <strong>to konfliktende lese/skrive-mønstre på samme dataelement</strong> — T1 sin <code>w<sub>1</sub>(B)</code> kommer før T2 sin <code>r<sub>2</sub>(B)</code>, mens T2 sin <code>w<sub>2</sub>(A)</code> kommer før T1 sin <code>r<sub>1</sub>(A)</code>. Disse to «motgående» avhengighetene er det som gjør schedulen umulig å gjenskape serielt. Når vi har lært presedensgraf, vil vi se denne sykelen formelt.</p>
       </div>
 
       <div class="mcq" data-mcq>

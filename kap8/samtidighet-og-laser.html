@@ -448,13 +448,13 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
       <p>De fleste kommersielle systemer (PostgreSQL, MySQL/InnoDB) bruker en kombinasjon av deteksjon og timeout.</p>
 
       <h3 style="margin-top:1.6rem;">Lock upgrade — en stille deadlock-felle</h3>
-      <p>Pensum nevner at låser kan <em>oppgraderes</em> (S → X) og nedgraderes. Det er en typisk oppskrift: T1 leser X (tar S(X)), regner litt, og bestemmer seg for å skrive — den ber om oppgradering til X(X). Men hvis T2 også holder S(X) og samtidig ber om oppgradering, sitter begge og venter på at den andre skal slippe sin S — <strong>deadlock</strong>.</p>
+      <p>Pensum nevner at låser kan <em>oppgraderes</em> (read_lock → write_lock) og nedgraderes. En typisk oppskrift: T1 leser X (tar read_lock(X)), regner litt, og bestemmer seg for å skrive — den ber om oppgradering til write_lock(X). Men hvis T2 også holder read_lock(X) og samtidig ber om oppgradering, sitter begge og venter på at den andre skal slippe sin S-lås — <strong>deadlock</strong>:</p>
 
-      <pre><code>T1: S(X)  ............  request_X(X)  ← venter på T2
-T2: ...... S(X)  ......  request_X(X)  ← venter på T1
-                              DEADLOCK</code></pre>
+      <pre><code>T1: read_lock(X) ........... write_lock(X)  ← venter på T2
+T2: ......... read_lock(X) . write_lock(X)  ← venter på T1
+                                  DEADLOCK</code></pre>
 
-      <p>Begge T-ene følger 2PL korrekt. Likevel havner de i sykel. Dette er en vanlig årsak til deadlock i praksis selv når ingen «øyeblikkelig» konflikt foreligger.</p>
+      <p>Begge T-ene følger 2PL korrekt. Likevel havner de i sykel — dette er en vanlig årsak til deadlock i praksis selv når ingen «øyeblikkelig» konflikt foreligger ved den initielle låsingen.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Deadlock</div>

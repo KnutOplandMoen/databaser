@@ -906,26 +906,102 @@
   <section id="andre-join">
     <div class="container">
       <div class="section-badge">06 · Andre join-metoder</div>
-      <h2>Tre alternativer pensum <em>nevner</em></h2>
-      <p>Pensum behandler nested loop i detalj, men nevner tre andre join-algoritmer som finnes i SQL-databaser. Du bør kjenne navnene og hovedideen.</p>
+      <h2>Sort-merge og hash join — <em>med</em> formler</h2>
+      <p>Pensum behandler nested loop i detalj. De to neste — sort-merge (J3) og partition-hash (J4) — nevnes ofte «konseptuelt», men eksamen kan be deg <em>sammenligne kost</em> mellom dem. Da trenger du formlene. Begge bygger på byggesteiner du allerede kan: J3 bruker external merge sort fra §04, og J4 minner om en grov hashing-strategi som speiler statisk hash-fil fra kap. 6.</p>
 
-      <ul>
-        <li><strong>Single-loop / index nested loop (J2)</strong> — som over: når indre tabell har indeks på join-attributtet, slipper vi indre scan og slår opp direkte. Ofte raskest når ytre er liten.</li>
-        <li><strong>Sort-merge join (J3)</strong> — sorter begge tabellene på join-attributtet (eller bruk eksisterende sortering), og gå parallelt gjennom dem med to pekere. Lønner seg når begge allerede er sortert, eller når resultatet uansett skal sorteres.</li>
-        <li><strong>Partition-hash join (J4)</strong> — partisjoner begge tabeller ved å hashe join-attributtet (alle rader med samme hash-verdi havner i samme partisjon). To faser: <em>build</em>-fasen lager en hash-tabell på den ene siden, <em>probe</em>-fasen slår opp den andre siden mot tabellen. Når partisjonene er små nok kan hver join gjøres i RAM. NTNUs Kjell Bratbergsengen var pioneren her (publisert på VLDB-konferansen — Very Large Data Bases — i 1984).</li>
+      <h3>Sort-merge join (J3)</h3>
+      <p>Sorter begge tabellene på join-attributtet, og gå parallelt gjennom dem med to pekere. Når en peker leser et match, lar vi den andre stå stille til alle matchene er parret. Effektivt fordi sortert input gjør at vi <em>aldri må gå tilbake</em> — flettingen er én lineær gjennomgang.</p>
+
+      <div class="formula-block">
+        <div class="formula-eq">J3 totalkost &nbsp;<code>cost = sortkost(R) + sortkost(S) + b_R + b_S</code></div>
+        <p class="formula-why"><strong>Hvorfor — ledd for ledd:</strong> De to første leddene er <em>nøyaktig</em> external merge sort fra §04, anvendt på hver side: <code>sortkost(X) = 2·b_X·(1 + ⌈log_(d_M)(n_R)⌉)</code>. Vi gjenbruker den formelen direkte. Det tredje og fjerde leddet — <code>b_R + b_S</code> — er <em>flettetrinnet</em>: vi leser begge sorterte filer én gang hver, side om side, med to pekere. Ingen tilbake-skritt fordi sortert input garanterer at hvis nåværende verdi i R er mindre enn i S, vil ingen senere R-rad matche denne S-raden — så vi flytter bare R-pekeren framover. <strong>Når sortering er gratis:</strong> hvis input alt er sortert (f.eks. resultat av en clustered B+-tre-scan eller en tidligere ORDER BY), faller den respektive <code>sortkost</code>-termen vekk. Det er denne sammenhengen som gjør J3 ekstra attraktiv som «ledd nederst i en plan» når rotnoden uansett krever sortert output.</p>
+      </div>
+
+      <h4>Eksempel — koblet til external merge sort</h4>
+      <p>R = 100 blokker, S = 500 blokker, n_B = 6 ⇒ d_M = 5.</p>
+      <ul class="ex-list">
+        <li>sortkost(R): &nbsp;n_R = ⌈100/6⌉ = 17, &nbsp;passes = ⌈log₅(17)⌉ = 2 &nbsp;⇒ <code>2·100·(1+2) = 600</code></li>
+        <li>sortkost(S): &nbsp;n_R = ⌈500/6⌉ = 84, &nbsp;passes = ⌈log₅(84)⌉ = 3 &nbsp;⇒ <code>2·500·(1+3) = 4000</code></li>
+        <li>flettetrinnet: <code>100 + 500 = 600</code></li>
+        <li>Total: <code>600 + 4000 + 600 = <strong>5200</strong></code> blokker</li>
       </ul>
+      <p style="font-size:0.92rem; color:var(--ink-soft);">Hvis begge alt var sortert: cost = <code>0 + 0 + 600 = 600</code>. <em>Faktor 8.7 forskjell</em>. Det er nettopp derfor query-planlegging belønner planer som leverer sortert output billig (clustered indeks, eller en tidligere sortering som kan gjenbrukes).</p>
+
+      <h3>Partition-hash join (J4)</h3>
+      <p>Hash begge tabeller på join-attributtet — alle rader med samme hash-verdi havner garantert i samme partisjon (uansett hvilken tabell de kom fra). Innenfor en partisjon: bygg en hash-tabell i RAM på den minste siden (<em>build</em>-fasen), scan den andre siden og slå opp mot hash-tabellen (<em>probe</em>-fasen). Når en partisjon er liten nok til å få plass i RAM blir join-en innenfor den «gratis» — vi slipper både sortering og re-scan.</p>
+
+      <div class="formula-block">
+        <div class="formula-eq">J4 totalkost (grace hash) &nbsp;<code>cost = 3 · (b_R + b_S)</code></div>
+        <p class="formula-why"><strong>Hvorfor — tre passes over data:</strong> <em>Pass 1 (partisjonering av R):</em> les <code>b_R</code> blokker, hash hver rad og fordel den i en av <code>n_B − 1</code> output-partisjoner, skriv <code>b_R</code> tilbake til disk ⇒ <code>2·b_R</code>. <em>Pass 2 (partisjonering av S):</em> samme — <code>2·b_S</code>. <em>Pass 3 (build + probe):</em> for hver partisjons-par leser vi begge sider én gang hver, og bygger/prober hash-tabellen i RAM ⇒ <code>b_R + b_S</code>. Sum: <code>3·(b_R + b_S)</code>. <strong>Forutsetning:</strong> minste partisjon må få plass i RAM, omtrent <code>n_B² &gt; b_min</code>. Hvis ikke, må vi rekursivt partisjonere på nytt — én ekstra pass pr. nivå rekursjon. <strong>Sammenligning med J3:</strong> J4 unngår sortering, og er derfor mer robust når buffer er lite (sortering med få runs vinner; sortering med mange runs taper). Pedagogisk: J3 og J4 er to forskjellige måter å «strukturere data slik at like nøkler havner sammen» — sortering for J3, hashing for J4.</p>
+      </div>
+
+      <h4>Eksempel — samme tall, ny algoritme</h4>
+      <p>Samme R = 100, S = 500: <code>cost = 3·(100 + 500) = <strong>1800</strong></code> blokker. <em>Mye billigere enn J3 (5200)</em> i dette scenarioet, fordi sortering var dyrt med så lite buffer (n_B = 6). Hadde n_B vært 30 ville J3 kostet bare ett pass og kommet på samme nivå som J4.</p>
+      <p style="font-size:0.88rem; color:var(--ink-soft);">NTNUs Kjell Bratbergsengen er pioner på partition-hash join (publisert på VLDB-konferansen — Very Large Data Bases — i 1984).</p>
+
+      <h3>Beslutningstabell — når vinner hvilken?</h3>
+      <div class="viz">
+        <div class="viz-title">J1–J4 sammenligning — formel, vinnerscenario, fallgruve</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead>
+              <tr><th>Algoritme</th><th>Kostformel</th><th>Vinner når …</th><th>Faller for …</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>J1 block NL</td>
+                <td class="mono-cell">b_R + ⌈b_R/(n_B−2)⌉·b_S</td>
+                <td>én side er liten (få blokker); ingen indeks</td>
+                <td>begge store; mange passes over indre</td>
+              </tr>
+              <tr>
+                <td>J2 index NL</td>
+                <td class="mono-cell">b_R + |R|·(h_S+1[+m])</td>
+                <td>R har få rader; S har clustered indeks på join-attr</td>
+                <td>R er stor (lineær i |R|); mange duplikater i S</td>
+              </tr>
+              <tr>
+                <td>J3 sort-merge</td>
+                <td class="mono-cell">sortkost·2 + b_R + b_S</td>
+                <td>begge alt sortert; må sortere uansett (ORDER BY)</td>
+                <td>liten buffer ⇒ mange merge-passes ⇒ sortering eksploderer</td>
+              </tr>
+              <tr>
+                <td>J4 hash</td>
+                <td class="mono-cell">3·(b_R + b_S)</td>
+                <td>begge store; equi-join; partisjon får plass i RAM</td>
+                <td>data-skjevhet (én partisjon eksploderer); ikke equi-join</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.88rem; color:var(--ink-faded); margin-top:0.6rem;"><em>Equi-join</em> betyr join-betingelsen er likhet (<code>R.a = S.b</code>) — sort-merge og hash krever dette, mens nested loop tåler vilkårlige predikater (<code>&lt;</code>, <code>&gt;</code>, BETWEEN osv.). <strong>Pedagogisk innsikt:</strong> alle fire algoritmer har <code>b_R + b_S</code> som «gulv» — du kan ikke joine to tabeller uten å lese dem minst én gang hver. Forskjellen er hvor mye <em>ekstra</em> som legges på toppen.</p>
+      </div>
 
       <div class="callout">
-        <span class="label">Praktisk</span>
-        <p>Optimizeren velger algoritme basert på statistikk (tabellstørrelser, eksisterende indekser, sortering) og estimert I/O-kost. Nested loop dominerer fortsatt når en av tabellene er liten.</p>
+        <span class="label">Praktisk merknad</span>
+        <p>De fleste DBMS-er har alle fire algoritmene tilgjengelig og bytter dynamisk basert på statistikk. MySQL har historisk vært nested-loop-orientert (med en enkel «join buffer» som tilnærmer hash); PostgreSQL og kommersielle systemer (Oracle, SQL Server) bruker alle fire flittig. Pensum forventer at du kjenner formlene og kan velge mellom dem på papir — ikke nødvendigvis at du kjenner hver enkelt implementasjon.</p>
       </div>
 
       <div class="quiz inline" data-quiz>
-        <div class="q-label">Sjekk forståelsen</div>
+        <div class="q-label">Sjekk forståelsen — sortert input</div>
         <div class="q-text">Begge tabeller er allerede sortert på join-attributtet. Hvilken algoritme er typisk billigst?</div>
         <div class="quiz-reveal">
           <button class="reveal-btn">Se svar</button>
-          <div class="answer"><strong>Sort-merge join (J3).</strong> Sortfasen er hoppet over fordi inputen alt er sortert — vi går bare parallelt gjennom dem med to pekere. Hash join må gjøre ekstra arbeid (build = bygg hash-tabell på den ene siden + probe = slå opp den andre siden mot tabellen), og nested loop skanner indre tabell flere ganger.</div>
+          <div class="answer"><strong>Sort-merge join (J3).</strong> Sortfasen er hoppet over fordi inputen alt er sortert — vi går bare parallelt gjennom dem med to pekere. Total = <code>b_R + b_S</code>. Hash join koster fortsatt <code>3·(b_R + b_S)</code>, og nested loop skanner indre tabell flere ganger. Dette er hovedårsaken til at en plan som leverer sortert output (f.eks. via clustered B+-tre) kan ha lavere totalkost enn én som ikke gjør det — selv om aksessveien isolert sett er dyrere.</div>
+        </div>
+      </div>
+
+      <div class="quiz inline" data-quiz>
+        <div class="q-label">Regneoppgave — J3 vs J4</div>
+        <div class="q-text">R = 200 blokker, S = 1000 blokker, n_B = 11 ⇒ d_M = 10. Hvilken vinner: J3 eller J4?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p><strong>J3:</strong> sortkost(R) — n_R = ⌈200/11⌉ = 19, passes = ⌈log₁₀(19)⌉ = 2, cost = 2·200·3 = 1200. sortkost(S) — n_R = ⌈1000/11⌉ = 91, passes = ⌈log₁₀(91)⌉ = 2, cost = 2·1000·3 = 6000. Flettetrinn: 1200. Totalt: <strong>8400</strong>.</p>
+            <p><strong>J4:</strong> 3·(200+1000) = <strong>3600</strong>.</p>
+            <p><strong>J4 vinner</strong> — sortering på 1000 blokker krever to merge-passes selv med d_M = 10. Den faste «3 passes»-strukturen til hash join slår sortering når sorteringen ikke får gjort jobben på ett pass.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -936,7 +1012,35 @@
     <div class="container">
       <div class="section-badge">07 · Statistikk &amp; EXPLAIN</div>
       <h2>Hvordan optimizeren <em>gjetter</em></h2>
-      <p>Optimizeren sammenligner planer uten å kjøre dem. Den må <em>estimere</em> kost basert på statistikk lagret i SQL-dictionaryet (databasens metadata-katalog — der skjema, indekser og slik statistikk holdes).</p>
+      <p>Optimizeren sammenligner planer uten å kjøre dem. Den må <em>estimere</em> kost basert på statistikk lagret i SQL-dictionaryet (databasens metadata-katalog — der skjema, indekser og slik statistikk holdes). Denne paragrafen forklarer <em>hvordan</em> den gjetter — selve regnemaskineriet bak alle kostnadstallene vi har sett til nå.</p>
+
+      <h3>Selektivitetsfaktor — andelen som overlever et predikat</h3>
+      <p><em>Selektivitet</em> er nøkkelen til alle kostnadsestimat. Hvert predikat (<code>WHERE depno = 5</code>, <code>WHERE alder &gt; 60</code>) reduserer antall rader som går videre. Optimizeren tildeler hvert predikat en <code>sf</code> mellom 0 og 1 — andelen rader som matcher — og bruker den til å estimere både output-størrelse og hvilken aksessmetode som vinner. <strong>Hvorfor det er kritisk:</strong> alle formlene i §02–§06 har <code>sf</code>, <code>|R|</code> eller <code>matches</code> i seg. Disse beregnes alle fra selektivitet — det er den ene knaggen optimizeren lener seg på når den velger plan.</p>
+
+      <div class="formula-block">
+        <div class="formula-eq">Likhet på attributt A &nbsp;<code>sf = 1 / V(A, R)</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Hvis attributtet har <code>V(A, R)</code> distinkte verdier og fordelingen er uniform (alle verdier like sannsynlige), vil hver verdi forekomme i <code>|R|/V</code> rader. Sannsynligheten for at en tilfeldig rad har en bestemt verdi er da <code>1/V</code> — som er definisjonen på selektivitet. Eksempel: <code>|Employee| = 100 000</code>, <code>V(depno) = 10</code> ⇒ <code>WHERE depno = 5</code> estimeres til <code>10 000</code> rader (sf = 0.1). <strong>Spesialtilfelle:</strong> når kolonnen er PRIMARY KEY har vi <code>V = |R|</code>, så sf = 1/|R| (én rad). Uniform-antakelsen er den vanligste kilden til feilestimat — i virkeligheten er fordelinger ofte skjeve (mange ansatte i salgsavdelingen, få i toppledelsen).</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Range &nbsp;<code>sf = (high(A) − c) / (high(A) − low(A))</code> &nbsp;for predikatet <code>A &gt; c</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Vi antar verdiene er jevnt fordelt mellom <code>low</code> og <code>high</code> (lagret i SQL-dictionaryet pr. indekserte kolonne). Andelen av aksen som er «over <code>c</code>» blir <code>(high − c)/(high − low)</code>. Eksempel: <code>low = 0</code>, <code>high = 100</code>, predikat <code>empno &gt; 80</code> ⇒ <code>sf = 20/100 = 0.2</code>. Tilsvarende formel: for <code>A &lt; c</code> bruk <code>(c − low)/(high − low)</code>; for BETWEEN <code>c1 AND c2</code> bruk <code>(c2 − c1)/(high − low)</code>. <strong>Histogrammer</strong> (lagret som verdifordelinger pr. bucket) gir bedre estimater når fordelingen ikke er uniform — f.eks. mange ansatte har lønn 400–500k, få har over 1M. Histogrammer er essensielt en stykkevis lineær approksimasjon.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">AND av predikater &nbsp;<code>sf_total = sf_1 · sf_2</code> &nbsp;(antar uavhengighet)</div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Hvis to predikater er statistisk uavhengige (det ene sier ikke noe om sannsynligheten for det andre), er sannsynligheten for at en rad oppfyller <em>begge</em> produktet av sannsynlighetene — klassisk sannsynlighetsregning. Eksempel: <code>WHERE depno = 5 AND alder &gt; 50</code>. Hvis 10 % er i avd. 5 og 30 % er over 50 år, gjetter optimizeren <code>0.10 · 0.30 = 3 %</code> oppfyller begge. <strong>Når antakelsen feiler:</strong> hvis avd. 5 tilfeldigvis er pensjonist-avdelingen er korrelasjonen høy og det reelle tallet kanskje 25 %. Estimatet blir for lavt, optimizeren undervurderer mellomresultatets størrelse, og den valgte planen blir feil. Dette er en kjent og vanlig kilde til dårlige planer i produksjon — derfor lagrer moderne DBMS-er <em>multi-column statistics</em> som dekker korrelasjon mellom kolonner.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">OR av predikater &nbsp;<code>sf_total = sf_1 + sf_2 − sf_1 · sf_2</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Inklusjon-eksklusjon — vi summerer treffene fra hvert predikat, men trekker fra de som ble talt to ganger (rader som oppfyller <em>begge</em>). Følger samme sannsynlighetsregel: <code>P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</code>. For små sf-verdier er <code>sf_1 · sf_2</code> liten, så <code>sf_total ≈ sf_1 + sf_2</code> er en rimelig hurtig-tilnærming. <strong>Sammenheng med AND:</strong> de er duale — AND multipliserer (gjør sf mindre, færre treff), OR summerer (gjør sf større, flere treff).</p>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Hvorfor selektivitet binder hele kapittelet sammen</span>
+        <p>Selektivitet bestemmer hvor mange rader som «overlever» hvert ledd i planen — og dermed hvor stort input neste ledd må jobbe med. Den dukker opp i: range-scan-kostnad (§02: <code>sf · b</code>), unclustered-fellen (§02: <code>sf · |R|</code>), output-størrelse pr. tabell (input til join), join-output-størrelse (input til sort/projection), og final result size. <strong>En faktor 10 i feil estimat på øverste ledd kan multiplisere seg gjennom planen og gi en faktor 100–1000 i feil totalkost.</strong> Det er derfor moderne DBMS-er bruker så mye energi på <em>histogrammer</em>, <em>multi-column statistics</em> og <em>adaptive re-planning</em> når estimatet er åpenbart feil.</p>
+      </div>
 
       <h3>Statistikk i SQL-dictionaryet</h3>
       <ul>
@@ -973,10 +1077,152 @@
     </div>
   </section>
 
-  <!-- ──────────────────────── 08 SLUTTQUIZ ──────────────────────── -->
+  <!-- ──────────────────────── 08 REGN PÅ EN SPØRRING ──────────────────────── -->
+  <section id="regnoppskrift">
+    <div class="container">
+      <div class="section-badge">08 · Regn på en spørring</div>
+      <h2>Slik <em>angriper</em> du oppgaven</h2>
+      <p class="dropcap">Eksamen tester sjelden ett enkelt konsept — den ber deg ofte regne <em>totalkostnaden</em> for en plan, eller velge mellom 2–3 planer. Da må du jobbe deg gjennom verktøykassen i en bestemt rekkefølge. Denne paragrafen samler alt fra §02–§07 til én oppskrift, ett komplett worked example, og et formelark for raskt oppslag.</p>
+
+      <div class="callout">
+        <span class="label">Sjekkliste — bruk denne på enhver kost-oppgave</span>
+        <ol style="margin: 0.4rem 0 0; padding-left: 1.4rem;">
+          <li><strong>Skriv opp kjente størrelser:</strong> <code>|R|, b_R, |S|, b_S, n_B</code>, hvilke indekser finnes og om de er clustered, høyde <code>h</code> for hver. Dette er bokføringen — gjør den eksplisitt, ikke i hodet.</li>
+          <li><strong>Estimer selektivitet for hvert predikat:</strong> <code>sf = 1/V</code> (likhet), range-formelen, eller AND/OR-kombinasjon. Beregn forventet output-størrelse <code>sf · |R|</code>.</li>
+          <li><strong>Velg aksessvei pr. tabell:</strong> regn kost for filscan (<code>b</code>), indeks-lookup, range-scan clustered/unclustered. Velg billigst — det er denne du går videre med.</li>
+          <li><strong>Velg join-algoritme</strong> hvis det finnes en join: J1, J2 (hvis indeks finnes på indre), J3 (hvis sortering nyttig), J4. Sammenlign tallene; vinneren går inn i planen.</li>
+          <li><strong>Legg til sortering</strong> dersom ORDER BY/GROUP BY/DISTINCT — med mindre clustered indeks alt gir sortert output (gratis).</li>
+          <li><strong>Sum opp.</strong> Hver operatorkost legges sammen ⇒ totalkostnad. Skal flere planer sammenlignes: gjenta steg 3–5 for hver, sammenlign sluttsummen.</li>
+        </ol>
+      </div>
+
+      <p style="font-size:0.92rem; color:var(--ink-soft); margin-top:0.6rem;"><strong>Pedagogisk poeng:</strong> oppskriften går «utenfra og inn» — først filtrerer vi (steg 2–3), så kombinerer (steg 4), så ordner (steg 5). Det speiler nøyaktig hvordan optimizeren tenker, og hvordan den fysiske planen er strukturert som et tre nedenfra og opp.</p>
+
+      <h3>Komplett worked example</h3>
+      <p>La oss kjøre sjekklisten på en realistisk oppgave — én som kombinerer aksess, join, sortering, og selektivitet. Følg med på hvert steg.</p>
+
+      <div class="viz">
+        <div class="viz-title">Oppgave</div>
+        <pre class="plan-tree">SELECT e.name
+FROM Employee e JOIN Department d ON e.depno = d.depno
+WHERE d.dname = 'Sales'
+ORDER BY e.name;</pre>
+        <p style="font-size:0.92rem; margin-top:0.7rem;">
+          <strong>Kjente størrelser:</strong> Employee = 100 000 rader / 1961 blokker. Department = 50 rader / 5 blokker. n_B = 10 buffer.<br>
+          <strong>Indekser:</strong> Clustered B+ på <code>Employee.empno</code> (h=2), <em>unclustered</em> B+ på <code>Employee.depno</code> (h=2). Ingen indeks på Department.<br>
+          <strong>Statistikk:</strong> V(dname, Department) = 50 (hver avdeling har unikt navn). V(depno, Employee) = 50.
+        </p>
+      </div>
+
+      <h4>Steg 1–2: selektivitet og output-størrelser</h4>
+      <ul class="ex-list">
+        <li><code>WHERE d.dname = 'Sales'</code>: sf = 1/V(dname, Dept) = 1/50 = 0.02 ⇒ <strong>1 rad ut av Department</strong>.</li>
+        <li>Etter join: hver Department-rad matcher i snitt <code>|Employee|/V(depno, Employee) = 100 000/50 = 2000</code> Employee-rader ⇒ <strong>join-output ≈ 2000 rader</strong>.</li>
+      </ul>
+      <p style="font-size:0.92rem; color:var(--ink-soft);">Vi vet allerede <em>før</em> vi regner kost at sluttresultatet bare er 2000 rader. Det er en sterk hint om at vi vil unngå å lese hele Employee om mulig.</p>
+
+      <h4>Steg 3: aksessvei pr. tabell</h4>
+      <ul class="ex-list">
+        <li><strong>Department:</strong> ingen indeks ⇒ filscan = 5 blokker. Vi filtrerer på <code>dname = 'Sales'</code> mens vi scanner.</li>
+        <li><strong>Employee:</strong> hvilken aksessvei vi bruker avhenger av join-algoritmen — derfor regnes den i steg 4 sammen med joinen.</li>
+      </ul>
+
+      <h4>Steg 4: join-algoritme</h4>
+      <p>Department er liten ⇒ ytre. Etter filtrering har vi 1 rad (≈ 1 blokk i mellomresultat). Vi sammenligner alle fire algoritmer:</p>
+      <ul class="ex-list">
+        <li><strong>J1 (block NL), filtrert Department ytre, Employee indre:</strong> &nbsp;<code>5 (les Dept) + ⌈1/8⌉·1961 = 5 + 1961 = <strong>1966</strong></code>. Kun én scan av Employee fordi ytre passer i én buffer-bunke.</li>
+        <li><strong>J2 med <em>unclustered</em> indeks på Employee.depno:</strong> &nbsp;ett oppslag pr. ytre rad. matches_S = 2000. <code>5 + 1·(2 + 1 + 2000) = <strong>2008</strong></code>. Litt verre — fordi 2000 RID-hopp er mye når indeksen er unclustered.</li>
+        <li><strong>J3 sort-merge:</strong> må sortere Employee. d_M = 9, n_R = ⌈1961/10⌉ = 197, passes = ⌈log₉(197)⌉ = 3 ⇒ sortkost = 2·1961·4 = 15 688. Verre med god margin — sortering er ikke verdt det her.</li>
+        <li><strong>J4 partition-hash:</strong> <code>3·(5 + 1961) = <strong>5898</strong></code>. Også verre — fast 3 passes-kost slår dårlig ut når en side er bittesmå (J1 utnytter dette bedre).</li>
+      </ul>
+      <p style="font-size:0.92rem; color:var(--ink-soft);"><strong>Vinner:</strong> J1 med 1966 blokker. Pedagogisk poeng: når én side er bittesmå (1 rad etter filtrering!), faller alle de «smarte» algoritmene gjennom — den enkleste vinner. <em>Liten ytre × stor indre × ingen revisning</em> er nested loops naturlige hjem.</p>
+
+      <h4>Steg 5: ORDER BY e.name</h4>
+      <p>Output er 2000 rader. Forutsatt 100 rader pr. blokk ⇒ ~20 blokker. Sortering: n_R = ⌈20/10⌉ = 2, passes = ⌈log₉(2)⌉ = 1, sortkost = 2·20·2 = 80 blokker.</p>
+
+      <h4>Steg 6: totalkostnad</h4>
+      <div style="background: var(--paper-dark); padding: 0.9rem 1.1rem; border-radius: 6px; border-left: 3px solid var(--green); margin: 0.6rem 0;">
+        <p style="margin: 0;"><strong>Total = J1 + sort = 1966 + 80 ≈ 2046 blokker.</strong></p>
+      </div>
+      <p style="font-size:0.92rem; color:var(--ink-soft);"><strong>Hva-hvis-analyse:</strong> hvis Employee.depno hadde vært <em>clustered</em> i stedet for unclustered, ville J2 kostet <code>5 + 1·(2 + 1) = 8</code> for å finne riktig blader, pluss å lese 2000-rad-segmentet ≈ 39 sammenhengende blokker — totalt rundt <strong>50 blokker</strong>. Det er en faktor 40 forskjell. Det er denne sensitiviteten — at clustering på riktig kolonne kan endre kostnaden så dramatisk — som gjør indeks-design så viktig under databasedesign.</p>
+
+      <h3>Formelark — alt på én side</h3>
+      <p>For repetisjon rett før eksamen — alle formler i kapittelet samlet, slik at du kan bla rett til den du trenger. <em>Ikke en erstatning for forståelsen</em>, men praktisk når du jobber gjennom en oppgave under tidspress.</p>
+
+      <div class="viz">
+        <div class="viz-title">Aksessmetoder</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Operasjon</th><th>Formel</th></tr></thead>
+            <tbody>
+              <tr><td>Blocking factor</td><td class="mono-cell">bf = ⌊B/R⌋ &nbsp;(B+-tre-blader: <code>⌊B·⅔/R⌋</code>; hash: <code>⌊B·0.8/R⌋</code>)</td></tr>
+              <tr><td>Antall datablokker</td><td class="mono-cell">b = ⌈|R|/bf⌉</td></tr>
+              <tr><td>B+-tre-høyde</td><td class="mono-cell">h = ⌈log_d(b)⌉ &nbsp;(d = fan-out)</td></tr>
+              <tr><td>Filscan</td><td class="mono-cell">b</td></tr>
+              <tr><td>Punkt-oppslag clustered</td><td class="mono-cell">h + 1</td></tr>
+              <tr><td>Punkt-oppslag unclustered</td><td class="mono-cell">h + 1 + matches</td></tr>
+              <tr><td>Range-scan clustered</td><td class="mono-cell">h + ⌈sf·b⌉</td></tr>
+              <tr><td>Range-scan unclustered</td><td class="mono-cell">h + ⌈sf·b_indeks⌉ + sf·|R|</td></tr>
+              <tr><td>Hash punkt-oppslag</td><td class="mono-cell">≈ 1.2 (clustered hash)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="viz">
+        <div class="viz-title">External merge sort</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Størrelse</th><th>Formel</th></tr></thead>
+            <tbody>
+              <tr><td>Antall initialruns</td><td class="mono-cell">n_R = ⌈b / n_B⌉</td></tr>
+              <tr><td>Mergegrad</td><td class="mono-cell">d_M = n_B − 1</td></tr>
+              <tr><td>Antall merge-passes</td><td class="mono-cell">⌈log_(d_M)(n_R)⌉</td></tr>
+              <tr><td>Total I/O</td><td class="mono-cell">2·b·(1 + #merge-passes)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="viz">
+        <div class="viz-title">Join-algoritmer</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Algoritme</th><th>Formel</th></tr></thead>
+            <tbody>
+              <tr><td>J1 block NL</td><td class="mono-cell">b_R + ⌈b_R/(n_B−2)⌉·b_S</td></tr>
+              <tr><td>J2 index NL clustered</td><td class="mono-cell">b_R + |R|·(h_S + 1)</td></tr>
+              <tr><td>J2 index NL unclustered</td><td class="mono-cell">b_R + |R|·(h_S + 1 + matches_S)</td></tr>
+              <tr><td>J3 sort-merge</td><td class="mono-cell">sortkost(R) + sortkost(S) + b_R + b_S</td></tr>
+              <tr><td>J4 partition-hash</td><td class="mono-cell">3·(b_R + b_S)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="viz">
+        <div class="viz-title">Selektivitet</div>
+        <div class="table-wrap">
+          <table class="cost-table">
+            <thead><tr><th>Predikat</th><th>Formel</th></tr></thead>
+            <tbody>
+              <tr><td>Likhet <code>A = c</code></td><td class="mono-cell">sf = 1 / V(A, R)</td></tr>
+              <tr><td>Range <code>A &gt; c</code></td><td class="mono-cell">sf = (high(A) − c) / (high(A) − low(A))</td></tr>
+              <tr><td>AND</td><td class="mono-cell">sf_1 · sf_2</td></tr>
+              <tr><td>OR</td><td class="mono-cell">sf_1 + sf_2 − sf_1·sf_2</td></tr>
+              <tr><td>Forventet output-størrelse</td><td class="mono-cell">sf · |R| rader</td></tr>
+              <tr><td>Matches pr. ytre rad i join</td><td class="mono-cell">|S| / V(join-attr, S)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────── 09 SLUTTQUIZ ──────────────────────── -->
   <section id="sluttquiz">
     <div class="container">
-      <div class="section-badge">08 · Sluttquiz</div>
+      <div class="section-badge">09 · Sluttquiz</div>
       <h2>Test deg selv på <em>hele</em> kapittelet</h2>
       <p class="section-intro">Blandet vanskelighet. Klikk «Se svar» når du har tenkt.</p>
 

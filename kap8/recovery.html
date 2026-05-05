@@ -488,19 +488,21 @@
         utfør operasjonen; sett PageLSN = LSN
 
     # ── UNDO ──
-    ToUndo ← {Tx.lastLSN for Tx i losers}     # max-heap på LSN
-    while ToUndo ikke tom:
-        L ← største LSN i ToUndo
-        record ← logg[L]
-        if record er CLR:
-            ToUndo.legg_til(record.UndoNextLSN)   # hopp over allerede angret
-        else:
-            angre record; skriv CLR (med UndoNextLSN = record.PrevLSN)
-            ToUndo.legg_til(record.PrevLSN)       # 0 ⇒ ferdig med denne Tx
-        ToUndo.fjern(L)
+    for hver loser Tx:
+        L ← Tx.lastLSN
+        while L ≠ 0:
+            record ← logg[L]
+            if record er CLR:
+                # CLR-er undoes aldri — hopp via PrevLSN av non-CLR-en
+                # som CLR-en kompenserte for
+                L ← PrevLSN av non-CLR-en CLR-en peker på
+            else:
+                angre operasjonen; skriv CLR
+                # PageLSN på berørt side = CLR-ens LSN
+                L ← record.PrevLSN
     skriv "end_recovery" til logg</code></pre>
 
-      <p style="font-size:0.92rem;color:var(--ink-soft);">UndoNextLSN i CLR-en sier «hvis vi krasjer igjen, fortsett undo herfra» — peker forbi den vi nettopp angret.</p>
+      <p style="font-size:0.92rem;color:var(--ink-soft);">CLR-er er redo-only. Ved krasj under undo: ny restart finner siste CLR fra loseren og fortsetter via PrevLSN av den loggposten CLR-en kompenserte for — derfor blir aldri samme operasjon angret to ganger.</p>
 
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · ARIES-faser</div>
@@ -675,12 +677,12 @@
       <p>Etter analysis: <strong>T4 er winner</strong> (commit på LSN 250), <strong>T5 er loser</strong> (ingen commit). T5 sin <code>lastLSN = 260</code>.</p>
 
       <h4>Undo-fasen, steg for steg</h4>
-      <p>Vi følger PrevLSN-kjeden bakover fra T5.lastLSN, skriver en CLR for hver angring og oppdaterer PageLSN. <code>UndoNextLSN</code> i CLR-en sier «hvis vi krasjer igjen, fortsett herfra»:</p>
+      <p>Vi følger PrevLSN-kjeden bakover fra T5.lastLSN, skriver en CLR for hver angring og oppdaterer PageLSN. Hver CLR peker tilbake til den non-CLR-en den kompenserer for — det er <em>den</em> recorden vi følger PrevLSN av hvis vi krasjer:</p>
 
       <div class="numlog">
         <table>
           <thead>
-            <tr><th>Steg</th><th>Angrer LSN</th><th>Page</th><th>Skriver CLR</th><th>UndoNextLSN i CLR</th></tr>
+            <tr><th>Steg</th><th>Angrer LSN</th><th>Page</th><th>Skriver CLR</th><th>Neste i kjeden</th></tr>
           </thead>
           <tbody>
             <tr><td>1</td><td>260</td><td>P3</td><td><strong>LSN 270</strong> (CLR for 260)</td><td>230 (= PrevLSN av 260)</td></tr>
@@ -697,16 +699,16 @@
       <p>Anta krasj rett etter at vi skrev CLR 270 (som angrer 260) og siden P3 ble flushed til disk. Vi starter recovery på nytt:</p>
 
       <ol>
-        <li><strong>Analysis</strong> ser nå LSN 270 som siste record fra T5. CLR-en peker via <code>UndoNextLSN</code> til 230. T5 har fortsatt status «active» (ingen commit funnet), så T5 er fortsatt loser.</li>
+        <li><strong>Analysis</strong> ser nå LSN 270 som siste record fra T5. T5 har fortsatt status «active» (ingen commit funnet), så T5 er fortsatt loser.</li>
         <li><strong>Redo</strong> kjøres på vanlig vis. Når den treffer LSN 270 (CLR), redo-er den om <code>PageLSN(P3) &lt; 270</code> — men siden ble flushed, så <code>PageLSN(P3) = 270</code> ⇒ skip. Ingen dobbel-undo.</li>
-        <li><strong>Undo</strong> starter på T5.lastLSN = <strong>270</strong> (CLR-en, ikke 260!). Siden CLR-er <em>aldri</em> undoes, hopper vi rett til CLR-ens UndoNextLSN = <strong>230</strong>. Derfra fortsetter undo som før — vi angrer 230, så 210, og er ferdig. Vi har <em>ikke</em> forsøkt å angre 260 to ganger.</li>
+        <li><strong>Undo</strong> starter på T5.lastLSN = <strong>270</strong> (CLR-en, ikke 260!). Siden CLR-er <em>aldri</em> undoes, hopper vi forbi 270 og finner non-CLR-en CLR-en peker på (LSN 260). Derfra følger vi <code>PrevLSN(260) = 230</code>. Resten av kjeden: angrer 230, så 210, ferdig. Vi har <em>ikke</em> forsøkt å angre 260 to ganger.</li>
       </ol>
 
-      <p>Det er <em>nøyaktig</em> dette CLR + UndoNextLSN er bygd for: idempotens. Krasj når som helst — neste restart fortsetter herfra og produserer samme slutt-tilstand.</p>
+      <p>Det er <em>nøyaktig</em> dette CLR-mekanismen er bygd for: idempotens. Krasj når som helst — neste restart finner siste CLR for hver loser og fortsetter undo via PrevLSN av den loggposten CLR-en kompenserte for, og produserer samme slutt-tilstand.</p>
 
       <div class="callout callout-blue">
         <span class="label">Vanlig feil</span>
-        <p>Studenter prøver å oppdatere LastLSN i TT under undo. Det skal man <em>ikke</em>. LastLSN settes i analysis-fasen og brukes som inngang til undo-kjeden. Det er <code>UndoNextLSN</code> i CLR-er som styrer undo-progresjonen, ikke TT.</p>
+        <p>Studenter tror CLR-er kan undoes som vanlige loggposter. Det kan de <em>ikke</em>. CLR-er er <em>redo-only</em> — i undo-fasen hopper vi over dem og bruker PrevLSN av non-CLR-en de kompenserer for. Hvis CLR-er kunne undoes, ville vi havnet i en uendelig løkke ved gjentatt krasj.</p>
       </div>
 
       <div class="mcq" data-mcq>
