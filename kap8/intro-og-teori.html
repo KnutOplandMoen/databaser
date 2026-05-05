@@ -6,6 +6,7 @@
 <link rel="icon" href="../favicon.png" type="image/png">
 <title>Transaksjoner: intro og teori — Kap 8A</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../flashcards.css">
 <link rel="stylesheet" href="kap8.css">
 <style>
   /* Page-local styles for precedence graph */
@@ -420,18 +421,113 @@ Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         <figcaption>Sykel T1 → T3 → T2 → T1. <strong>Ikke conflict-serializable.</strong> Ingen seriell ordning gir samme resultat.</figcaption>
       </figure>
 
-      <div class="mcq" data-mcq>
-        <div class="q-label">Sjekk · Presedensgraf</div>
-        <div class="q-text">En presedensgraf for fire transaksjoner har kanter T1→T2, T2→T3, T3→T4, T4→T1. Hva betyr dette?</div>
-        <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Schedulen er conflict-serializable; ordningen er T1, T2, T3, T4</span></div>
-          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Det er en sykel — schedulen er ikke conflict-serializable</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Schedulen er serializable men ikke conflict-serializable</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det betyr at minst to transaksjoner må aborteres</span></div>
+      <p style="margin-top:1.4rem;font-style:italic;color:var(--ink-soft);">Bla gjennom kortene under for å øve på å lese presedensgrafer. Klikk et svaralternativ for å se forklaringen.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu kort</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
         </div>
-        <div class="mcq-feedback">
-          <strong>Sykel ⇒ ikke conflict-serializable.</strong> Vi kan ikke topologisk sortere en syklisk graf. Det betyr ikke automatisk at noen må aborteres — det betyr bare at <em>denne</em> schedulen ikke er ekvivalent med en seriell. Schedulen skal forhindres på forhånd (typisk av 2PL).
-        </div>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Presedensgraf · acyklisk</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En presedensgraf er acyklisk og har kantene T2→T1, T2→T3, T1→T3. Hvilken seriell ordning er schedulen ekvivalent med?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> T1; T2; T3</li>
+                <li><span class="opt-label">B</span> T2; T1; T3</li>
+                <li><span class="opt-label">C</span> T3; T1; T2</li>
+                <li><span class="opt-label">D</span> Ingen — kantene gir ikke nok info</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — T2; T1; T3.</strong></p>
+              <p>En topologisk sortering må respektere alle kantene: T2 før T1, T2 før T3, T1 før T3. Den eneste rekkefølgen som tilfredsstiller alle tre samtidig er <code>T2; T1; T3</code>.</p>
+              <p>Topologisk sortering av en acyklisk graf gir alltid <em>minst én</em> gyldig seriell ordning. Hvis flere ordninger er mulige, er alle ekvivalente.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Presedensgraf · sykel</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En presedensgraf for fire transaksjoner har kanter T1→T2, T2→T3, T3→T4, T4→T1. Hva betyr dette?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Schedulen er conflict-serializable; ordningen er T1, T2, T3, T4</li>
+                <li><span class="opt-label">B</span> Det er en sykel — schedulen er ikke conflict-serializable</li>
+                <li><span class="opt-label">C</span> Schedulen er serializable men ikke conflict-serializable</li>
+                <li><span class="opt-label">D</span> Det betyr at minst to transaksjoner må aborteres</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — sykel ⇒ ikke conflict-serializable.</strong></p>
+              <p>Vi kan ikke topologisk sortere en syklisk graf. Det betyr ikke automatisk at noen må aborteres (D) — det betyr bare at <em>denne</em> schedulen ikke er ekvivalent med en seriell. Schedulen skal forhindres på forhånd (typisk av 2PL i 8B).</p>
+              <p>(C) blander sammen klassene: conflict-serializability er <em>strengere</em> enn serializability, så «ikke conflict-serializable» innebærer ikke automatisk «serializable likevel».</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Presedensgraf · bygging</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>r1(A); w2(A); r1(B); w2(B); c1; c2;</code> — hvilke kanter har presedensgrafen?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Kun T1→T2</li>
+                <li><span class="opt-label">B</span> T1→T2 og T2→T1</li>
+                <li><span class="opt-label">C</span> Kun T2→T1</li>
+                <li><span class="opt-label">D</span> Ingen kanter — ingen konflikt</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — kun T1→T2.</strong></p>
+              <p>Konfliktparene er <code>r1(A) ↔ w2(A)</code> og <code>r1(B) ↔ w2(B)</code>. I begge tilfeller kommer T1 sin operasjon <em>før</em> T2 sin, så vi tegner <strong>T1→T2</strong>. Vi tegner aldri samme kant to ganger — kanten finnes eller ikke.</p>
+              <p>Acyklisk ⇒ schedulen er conflict-serializable, ekvivalent med seriell <code>T1; T2</code>.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Presedensgraf · ekvivalente</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En graf har kantene T1→T2 og T1→T3 (ingen kant mellom T2 og T3). Hvor mange ekvivalente serielle ordninger finnes?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Én — bare T1; T2; T3</li>
+                <li><span class="opt-label">B</span> To — T1; T2; T3 og T1; T3; T2</li>
+                <li><span class="opt-label">C</span> Tre — alle permutasjoner som starter med T1</li>
+                <li><span class="opt-label">D</span> Schedulen er ikke conflict-serializable</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — to ordninger.</strong></p>
+              <p>T1 må komme før både T2 og T3, men det finnes ingen kant mellom T2 og T3, så de er <em>uavhengige</em>. Begge <code>T1; T2; T3</code> og <code>T1; T3; T2</code> respekterer alle kantene.</p>
+              <p>Generelt: når en acyklisk graf har flere topologiske sorteringer, er <em>alle</em> ekvivalente serielle ordninger for schedulen.</p>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -542,6 +638,7 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="../flashcards.js"></script>
 <script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
