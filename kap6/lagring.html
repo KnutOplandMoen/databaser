@@ -826,6 +826,12 @@
         <li>Når <em>d' = d</em> og blokken splittes: directory må først dobles.</li>
       </ul>
 
+      <div class="callout callout-blue" style="margin-top:1rem;">
+        <span class="label">Hvorfor de <em>siste</em> d bitene?</span>
+        <p style="margin:0.4rem 0 0">Det er ingen tilfeldighet — det er det som gjør doublingen elegant. Når <em>d</em> vokser fra 2 til 3, splittes hver gamle slot i to nye: slot <code>01</code> blir <code>0<strong>01</strong></code> og <code>1<strong>01</strong></code>. Begge ender fortsatt på <code>01</code>, så records som før hashet til slot <code>01</code> kan nå fordeles mellom de to nye slottene basert på den <em>nye</em> mest-signifikante biten — uten at vi må røre records i andre blokker. <strong>Direktoriet kan vokse uten at filen rehashes.</strong></p>
+        <p style="margin:0.6rem 0 0">Med "siste d bit"-konvensjonen betyr en directory-fordobling rett og slett: kopier hele tabellen og lim den under seg selv. Så bare blokken som overflyttet trenger å splittes.</p>
+      </div>
+
       <figure class="fig-frame">
         <svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg">
           <!-- Title -->
@@ -916,6 +922,32 @@
         </svg>
         <figcaption>Extendible hashing etter 11 innsettinger med h(K) = K mod 16. Directory bruker 3 bit, men noen blokker har bare local depth 2.</figcaption>
       </figure>
+
+      <h3 id="ext-hash-sim" style="margin-top:1.6rem;">Bygg din egen — interaktiv simulator</h3>
+      <p style="margin-top:0.4rem">Sett inn nøkler én og én, og se hvordan directoriet vokser, hvilke slots som deler samme blokk, og når blokk-splitting utløser directory-doubling. Hash-funksjonen er <code>h(K)=K</code> — vi tar de siste <em>d</em> bitene direkte fra nøkkelen. Prøv eksempelet, eller dine egne nøkler.</p>
+
+      <div class="interactive-card">
+        <h4>Extendible hash-simulator</h4>
+        <div class="controls" style="align-items:center">
+          <label style="display:flex;align-items:center;gap:0.4rem;font-family:var(--mono);font-size:0.85rem">
+            Kapasitet:
+            <select id="ext-cap" class="ctrl-input" style="width:60px;padding:5px 6px">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <input id="ext-key" class="ctrl-input" type="number" min="0" max="999" placeholder="nøkkel" />
+          <button class="ctrl-btn" id="ext-insert">Sett inn</button>
+          <button class="ctrl-btn" id="ext-random">Tilfeldig</button>
+          <button class="ctrl-btn" id="ext-example">Spill av eksempel: 4,5,6,12,7,11</button>
+          <button class="ctrl-btn" id="ext-reset">Tilbakestill</button>
+        </div>
+        <svg id="ext-svg" viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;background:#f4f1ea;border:1px solid var(--line);border-radius:6px"></svg>
+        <div class="status-line" id="ext-status">Klar. Tom struktur: d=0, ett slot pekende til en tom blokk A. Kapasitet 2 records per blokk.</div>
+        <div style="margin-top:0.4rem;font-size:0.8rem;color:var(--ink-faded);font-style:italic">Tips: gul = slot/blokk som ble brukt sist · grønn = nylig opprettet ny blokk fra splitt.</div>
+      </div>
 
       <h3>Søk i extendible hashing — alltid 2 blokk-aksesser</h3>
       <ol class="num-bullet">
@@ -1206,6 +1238,250 @@
     }
   };
   render();
+})();
+</script>
+
+<!-- Extendible hashing simulator -->
+<script>
+(function(){
+  const svg = document.getElementById('ext-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  let state = null;
+  let highlight = null;
+
+  function el(name, attrs, text){
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function init(){
+    const cap = parseInt(document.getElementById('ext-cap').value, 10);
+    state = {
+      d: 0,
+      capacity: cap,
+      directory: [0],
+      blocks: [{id:'A', depth:0, records:[]}],
+      nextId: 1,
+    };
+    highlight = null;
+    setStatus('Klar. Tom struktur: <code>d=0</code>, ett slot pekende til en tom blokk A. Kapasitet ' + cap + ' records per blokk.');
+    render();
+  }
+
+  function nextBlockId(){
+    // A, B, ..., Z, AA, AB, ...
+    let n = state.nextId++;
+    let s = '';
+    do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n/26) - 1; } while (n >= 0);
+    return s;
+  }
+
+  function setStatus(html){ document.getElementById('ext-status').innerHTML = html; }
+
+  function bin(K, bits){
+    if (bits <= 0) return '∅';
+    let s = (K >>> 0).toString(2);
+    while (s.length < bits) s = '0' + s;
+    if (s.length > bits) s = s.slice(-bits);
+    return s;
+  }
+
+  function lastBits(K, bits){
+    if (bits <= 0) return 0;
+    return K & ((1 << bits) - 1);
+  }
+
+  function insert(K){
+    const events = [];
+    const startD = state.d;
+    insertInner(K, events, 0);
+
+    const finalSlot = lastBits(K, state.d);
+    const blockId = state.blocks[state.directory[finalSlot]].id;
+
+    // Show binary form of K with last d bits highlighted
+    const totalBits = Math.max(state.d + 1, 4);
+    const fullBin = bin(K, totalBits);
+    const slotPart = state.d > 0 ? fullBin.slice(-state.d) : '';
+    const restPart = state.d > 0 ? fullBin.slice(0, -state.d) : fullBin;
+    const binHTML = '<code>' + restPart + '<span style="color:#7a4a2d;font-weight:700;text-decoration:underline">' + slotPart + '</span></code><sub>2</sub>';
+
+    const slotHTML = state.d > 0 ? bin(finalSlot, state.d) : '∅';
+    const summary = 'Satt inn <strong>' + K + '</strong> = ' + binHTML + '. Slot <code>' + slotHTML + '</code> → blokk <strong>' + blockId + '</strong>. ' + events.join(' ');
+    setStatus(summary);
+  }
+
+  function insertInner(K, events, depth){
+    if (depth > 24){ events.push('(For mange splittinger — abort.)'); return; }
+    const slot = lastBits(K, state.d);
+    const blockIdx = state.directory[slot];
+    const block = state.blocks[blockIdx];
+
+    if (block.records.length < state.capacity){
+      block.records.push(K);
+      highlight = {type:'put', slot:slot, blockIdx:blockIdx};
+      events.push('Plass i blokken — sett inn.');
+      return;
+    }
+
+    let didDouble = false;
+    if (block.depth === state.d){
+      // Double directory
+      const newDir = new Array(state.directory.length * 2 || 2);
+      const oldLen = state.directory.length;
+      for (let i = 0; i < newDir.length; i++){
+        newDir[i] = state.directory[i % oldLen];
+      }
+      state.directory = newDir;
+      state.d++;
+      didDouble = true;
+      events.push('<strong>Directory doblet</strong> (' + (state.d-1) + '→' + state.d + ').');
+    }
+
+    // Split the full block
+    const oldDepth = block.depth;
+    block.depth = oldDepth + 1;
+    const newBlock = {id: nextBlockId(), depth: oldDepth + 1, records: []};
+    const bitPos = oldDepth;
+    const stayInOld = [];
+    for (const k of block.records){
+      if ((k >> bitPos) & 1) newBlock.records.push(k);
+      else stayInOld.push(k);
+    }
+    block.records = stayInOld;
+    state.blocks.push(newBlock);
+    const newBlockIdx = state.blocks.length - 1;
+
+    for (let i = 0; i < state.directory.length; i++){
+      if (state.directory[i] === blockIdx && ((i >> bitPos) & 1)){
+        state.directory[i] = newBlockIdx;
+      }
+    }
+
+    events.push('Blokk <strong>' + block.id + '</strong> splittes → ' + block.id + ' og <strong>' + newBlock.id + '</strong> (d\'=' + (oldDepth+1) + '). Skiller på bit ' + bitPos + '.');
+    highlight = {type:'split', oldIdx: blockIdx, newIdx: newBlockIdx};
+
+    insertInner(K, events, depth + 1);
+  }
+
+  function render(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    const slotCount = state.directory.length;
+    const slotH = Math.max(18, Math.min(28, 260 / slotCount));
+    const dirH = slotCount * slotH + 30;
+    const blockH = 42;
+    const blockGap = 8;
+    const blocksH = state.blocks.length * (blockH + blockGap) + 30;
+    const totalH = Math.max(dirH, blocksH) + 40;
+    svg.setAttribute('viewBox', '0 0 720 ' + totalH);
+
+    // Title
+    svg.appendChild(el('text', {x:20, y:18, 'font-family':'IBM Plex Mono','font-size':12, fill:'#1f4e79','font-weight':700},
+      'Global depth d = ' + state.d + '   ·   ' + slotCount + ' slot' + (slotCount === 1 ? '' : 's') + '   ·   ' + state.blocks.length + ' blokk' + (state.blocks.length === 1 ? '' : 'er') + '   ·   kapasitet = ' + state.capacity));
+
+    // Directory
+    const dirX = 20, dirY = 38, dirW = 110;
+    svg.appendChild(el('text', {x:dirX, y:dirY-6, 'font-family':'IBM Plex Mono','font-size':9, fill:'#6b6257'}, 'DIRECTORY'));
+    svg.appendChild(el('rect', {x:dirX, y:dirY, width:dirW, height:slotCount*slotH, fill:'#e6edf6', stroke:'#1f4e79','stroke-width':1.2}));
+
+    for (let i = 0; i < slotCount; i++){
+      const y = dirY + i * slotH;
+      const isHL = highlight && highlight.type === 'put' && highlight.slot === i;
+      svg.appendChild(el('rect', {x:dirX, y:y, width:dirW, height:slotH,
+        fill: isHL ? '#fff0c4' : (i % 2 === 0 ? '#f4f1ea' : '#ebe5d4'),
+        stroke:'#a39886','stroke-width':0.5}));
+      const label = state.d > 0 ? bin(i, state.d) : '∅';
+      const fontSz = Math.min(11, slotH - 6);
+      svg.appendChild(el('text', {x:dirX + dirW/2, y:y + slotH/2 + fontSz/3, 'font-family':'IBM Plex Mono','font-size':fontSz,'text-anchor':'middle', fill:'#1a1612'}, label));
+    }
+
+    // Blocks
+    const blkX = 380, blkY = 38, blkW = 320;
+    svg.appendChild(el('text', {x:blkX, y:blkY-6, 'font-family':'IBM Plex Mono','font-size':9, fill:'#6b6257'}, 'DATABLOKKER'));
+
+    const blockYs = [];
+    state.blocks.forEach((blk, i) => {
+      const y = blkY + i * (blockH + blockGap);
+      blockYs.push(y);
+
+      let fill = '#e8e3d6';
+      let strokeW = 1;
+      if (highlight){
+        if (highlight.type === 'put' && state.directory[highlight.slot] === i){
+          fill = '#fff0c4'; strokeW = 1.6;
+        } else if (highlight.type === 'split'){
+          if (highlight.oldIdx === i){ fill = '#fff0c4'; strokeW = 1.6; }
+          else if (highlight.newIdx === i){ fill = '#c8e6c9'; strokeW = 1.6; }
+        }
+      }
+      svg.appendChild(el('rect', {x:blkX, y:y, width:blkW, height:blockH, fill:fill, stroke:'#7a4a2d','stroke-width':strokeW, rx:4}));
+      svg.appendChild(el('text', {x:blkX+10, y:y+15, 'font-family':'IBM Plex Mono','font-size':11,'font-weight':700, fill:'#7a4a2d'}, 'Blokk ' + blk.id));
+      const recsStr = blk.records.length === 0 ? '(tom)' : blk.records.join(', ');
+      svg.appendChild(el('text', {x:blkX+10, y:y+33, 'font-family':'IBM Plex Mono','font-size':12, fill:'#1a1612'}, recsStr));
+      svg.appendChild(el('text', {x:blkX+blkW-8, y:y+33, 'text-anchor':'end','font-family':'IBM Plex Mono','font-size':10, fill:'#7a4a2d'}, "d'=" + blk.depth + ' · ' + blk.records.length + '/' + state.capacity));
+    });
+
+    // Arrows
+    for (let i = 0; i < slotCount; i++){
+      const blockIdx = state.directory[i];
+      const sx = dirX + dirW;
+      const sy = dirY + i * slotH + slotH/2;
+      const bx = blkX;
+      const by = blockYs[blockIdx] + blockH/2;
+      const isHL = highlight && highlight.type === 'put' && highlight.slot === i;
+      svg.appendChild(el('line', {x1:sx, y1:sy, x2:bx, y2:by, stroke: isHL ? '#7a4a2d' : '#1f4e79','stroke-width': isHL ? 1.4 : 0.7, opacity: isHL ? 1 : 0.5}));
+    }
+  }
+
+  // --- Wire up controls ---
+  let exampleTimer = null;
+  function clearExample(){ if (exampleTimer){ clearTimeout(exampleTimer); exampleTimer = null; } }
+
+  document.getElementById('ext-insert').onclick = () => {
+    clearExample();
+    const v = document.getElementById('ext-key').value;
+    const K = parseInt(v, 10);
+    if (isNaN(K) || K < 0){
+      setStatus('Skriv inn en ikke-negativ heltallsnøkkel først.');
+      return;
+    }
+    insert(K);
+    document.getElementById('ext-key').value = '';
+    render();
+  };
+  document.getElementById('ext-random').onclick = () => {
+    clearExample();
+    const K = Math.floor(Math.random() * 32);
+    document.getElementById('ext-key').value = K;
+    insert(K);
+    render();
+  };
+  document.getElementById('ext-example').onclick = () => {
+    clearExample();
+    init();
+    const seq = [4, 5, 6, 12, 7, 11];
+    let i = 0;
+    const step = () => {
+      if (i >= seq.length){ exampleTimer = null; return; }
+      insert(seq[i]);
+      render();
+      i++;
+      exampleTimer = setTimeout(step, 1300);
+    };
+    step();
+  };
+  document.getElementById('ext-reset').onclick = () => { clearExample(); init(); };
+  document.getElementById('ext-cap').onchange = () => { clearExample(); init(); };
+  document.getElementById('ext-key').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('ext-insert').click();
+  });
+
+  init();
 })();
 </script>
 
