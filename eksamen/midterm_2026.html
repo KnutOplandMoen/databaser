@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../favicon.png" type="image/png">
+<title>Midtveiseksamen 2026 — TDT4145</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="genererte/exam.css">
+<style>
+  .exam-head { padding: 4rem 0 2rem; border-bottom: 1px solid var(--line-soft); }
+  .exam-head h1 { font-size: 3rem; margin: 0; }
+  .exam-head h1 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-head .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    padding: 5px 12px;
+    border-radius: 14px;
+    margin-bottom: 1.2rem;
+  }
+  .exam-head .meta {
+    color: var(--ink-faded);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    margin: 0.6rem 0 0;
+  }
+  .exam-part { padding: 2.5rem 0 1rem; }
+  .exam-part h2 {
+    font-size: 1.8rem;
+    margin: 0 0 0.4rem;
+    border-bottom: 2px solid var(--rust);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+  }
+  .exam-part h2 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-part .part-desc {
+    color: var(--ink-soft);
+    margin: 0.4rem 0 1.2rem;
+    font-style: italic;
+  }
+  .q-table {
+    border-collapse: collapse;
+    margin: 0.8rem 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+  }
+  .q-table th, .q-table td {
+    border: 1px solid var(--line);
+    padding: 4px 12px;
+    text-align: left;
+  }
+  .q-table th { background: var(--paper-dark); font-weight: 600; }
+  .q-code {
+    font-family: var(--mono);
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    margin: 0.6rem 0 1rem;
+    white-space: pre;
+    overflow-x: auto;
+    font-size: 0.88rem;
+  }
+  .free-text-area {
+    width: 100%;
+    min-height: 110px;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+    box-sizing: border-box;
+    margin: 0 0 0.8rem;
+  }
+  .free-text-area:focus {
+    outline: 2px solid var(--rust);
+    outline-offset: 1px;
+    border-color: var(--rust);
+  }
+  .note-missing {
+    border-left: 3px solid var(--blue);
+    background: rgba(122, 74, 45, 0.06);
+    padding: 0.6rem 0.9rem;
+    margin: 0.6rem 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="./" class="nav-back" style="margin-left:auto">← Eksamener</a>
+  </div>
+</nav>
+
+<main data-chapter="Midtveiseksamen 2026">
+  <header class="exam-head">
+    <div class="container">
+      <span class="tag">Midtveiseksamen · TDT4145 · Vår 2026</span>
+      <h1><em>Midtveiseksamen</em> 2026</h1>
+      <p class="meta">Del 1-stil · 14 flervalg + 5 langsvar · Total: ~95 poeng</p>
+      <p class="meta">Klikk et alternativ for å låse svaret. På langsvar — skriv selv og åpne fasit-feltet.</p>
+    </div>
+  </header>
+
+  <section class="exam-part">
+    <div class="container">
+      <h2>Del 1 — <em>Flervalg</em></h2>
+      <p class="part-desc">Relasjonsalgebra, SQL, ER-modellering, normalformer.</p>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.1 Relational Operators</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 2 — RA</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvilken av de følgende er <em>ikke</em> en basis/fundamental operator i relasjonsalgebraen?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Set intersection.</li>
+            <li><span class="opt-label">B</span> Set union.</li>
+            <li><span class="opt-label">C</span> No other alternative is correct.</li>
+            <li><span class="opt-label">D</span> Selection.</li>
+            <li><span class="opt-label">E</span> Projection.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>De fundamentale operatorene er σ (selection), π (projection), × (cartesian product), ∪ (union), − (set difference) og ρ (rename). <em>Set intersection</em> kan utledes fra differanse: <code>R ∩ S = R − (R − S)</code>.</p>
+              <p class="ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.2 Keys</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 2 — Nøkler</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Den minimale mengden av en supernøkkel (superkey) kalles for:</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Minimal subkey.</li>
+            <li><span class="opt-label">B</span> No other alternative is correct.</li>
+            <li><span class="opt-label">C</span> Candidate key.</li>
+            <li><span class="opt-label">D</span> Primary key.</li>
+            <li><span class="opt-label">E</span> Discriminator.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>En kandidatnøkkel er per definisjon en <em>minimal</em> supernøkkel — fjerning av et hvilket som helst attributt gir en mengde som ikke lenger unikt identifiserer rader. Primærnøkkelen er <em>én utvalgt</em> kandidatnøkkel.</p>
+              <p class="ref">Pensum: <a href="../kap2/relasjonsmodellen.html">Kap. 2 — Relasjonsmodellen</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.3 Join Types</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 2 — Joins</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Velg alle utsagn fra det følgende som er sanne (<em>multi-select</em>):</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> The order in which inner joins are written does not affect the result of a query.</li>
+            <li><span class="opt-label">B</span> A full outer join always results in tuples that contain null values.</li>
+            <li><span class="opt-label">C</span> The size of the result of a left outer join is always equal to the size of the left relation.</li>
+            <li><span class="opt-label">D</span> Every natural join operation can be replaced by a combination of the cross product and the selection operator.</li>
+            <li><span class="opt-label">E</span> The result size of a full outer join is always smaller than that of the cross product.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A og D (multi-select)</span>
+              <p><strong>A — sant:</strong> inner join er assosiativ og kommutativ (modulo attributt-rekkefølge).</p>
+              <p><strong>B — usant:</strong> hvis alle rader matcher, vil ingen null-verdier oppstå.</p>
+              <p><strong>C — usant:</strong> én rad i venstre relasjon kan matche flere rader i høyre, så resultatet kan bli større enn venstre relasjon.</p>
+              <p><strong>D — sant:</strong> R ⋈ S ≡ π_attrs(σ_θ(R × S)) (med en passende projeksjon for å fjerne duplikat-kolonner — i denne kursets tradisjon teller dette som «kombinasjon med selection»).</p>
+              <p><strong>E — usant:</strong> hvis R og S er små og ikke matcher, kan |R ⋈_full S| = |R|+|S| {{«}}større{{»}} enn |R|·|S|. Eks: |R|=|S|=1 og ingen match → kryss = 1, full outer = 2.</p>
+              <p class="ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.4 RA Result</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 2 — RA-evaluering</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Følgende tabeller er gitt:</p>
+          <table class="q-table">
+            <tr><th colspan="3">employee</th></tr>
+            <tr><th>name</th><th>salary</th><th>manager</th></tr>
+            <tr><td>Alice</td><td>40000</td><td>John</td></tr>
+            <tr><td>Trevor</td><td>38000</td><td>John</td></tr>
+            <tr><td>Bob</td><td>35000</td><td>Trevor</td></tr>
+            <tr><td>Jim</td><td>35000</td><td>Trevor</td></tr>
+            <tr><td>Dorothy</td><td>36000</td><td>Trevor</td></tr>
+          </table>
+          <table class="q-table">
+            <tr><th colspan="3">person</th></tr>
+            <tr><th>f_name</th><th>salary</th><th>city</th></tr>
+            <tr><td>Siobhan</td><td>40000</td><td>Trondheim</td></tr>
+            <tr><td>Marine</td><td>35000</td><td>Zurich</td></tr>
+            <tr><td>Yiyu</td><td>35000</td><td>Athens</td></tr>
+          </table>
+          <p class="q-text">Hvor mange tupler returnerer det opprinnelige RA-uttrykket (eks: π<sub>name</sub>(employee ⋈<sub>employee.salary = person.salary</sub> σ<sub>city='Trondheim'</sub>(person)))?</p>
+          <div class="note-missing">Det presise RA-uttrykket fra papireksamen vises ikke i denne digitale versjonen. Fasit her følger den oppgitte løsningen.</div>
+          <textarea class="free-text-area" placeholder="Skriv ditt svar (et tall) her ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: 1</span>
+              <p>Med den oppgitte løsningen er svaret 1 tuppel. Den eneste personen i Trondheim er Siobhan med salary=40000; den eneste employee med salary=40000 er Alice — gir én match.</p>
+              <p class="ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.5 SQL Query Result 1</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — SQL self-join</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Den følgende tabellen er gitt:</p>
+          <table class="q-table">
+            <tr><th colspan="3">employee</th></tr>
+            <tr><th>name</th><th>salary</th><th>manager</th></tr>
+            <tr><td>John</td><td>50000</td><td>NULL</td></tr>
+            <tr><td>Alice</td><td>40000</td><td>John</td></tr>
+            <tr><td>Trevor</td><td>38000</td><td>John</td></tr>
+            <tr><td>Bob</td><td>35000</td><td>Trevor</td></tr>
+            <tr><td>Jim</td><td>35000</td><td>Trevor</td></tr>
+            <tr><td>Dorothy</td><td>36000</td><td>Trevor</td></tr>
+            <tr><td>Samuel</td><td>36000</td><td>Alice</td></tr>
+          </table>
+          <p class="q-text">Hva er resultatet av:</p>
+          <pre class="q-code">SELECT count(*)
+FROM employee AS a, employee AS b
+WHERE a.salary &lt; 40000</pre>
+          <textarea class="free-text-area" placeholder="Skriv ditt svar (et tall) her ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: 35</span>
+              <p>Antall employees med <code>salary &lt; 40000</code>: Trevor, Bob, Jim, Dorothy, Samuel = 5. WHERE-klausulen filtrerer kun på <code>a</code>; <code>b</code> kjøres som ufiltrert kryssprodukt med alle 7 ansatte. Resultat: 5 × 7 = 35.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.6 SQL Query Result 2</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — SQL self-join</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Samme employee-tabell som over. Hva er resultatet av:</p>
+          <pre class="q-code">SELECT b.salary
+FROM employee AS a JOIN employee AS b ON (a.manager = b.name)
+WHERE a.salary &lt; 36000
+ORDER BY b.salary
+LIMIT 1</pre>
+          <textarea class="free-text-area" placeholder="Skriv ditt svar (et tall) her ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: 38000</span>
+              <p>Employees med <code>salary &lt; 36000</code>: Bob (35000) og Jim (35000). Begge har manager = Trevor. Trevor har <code>salary = 38000</code>. ORDER BY + LIMIT 1 gir 38000.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.7 SQL og Relasjonsalgebra</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 2/3 — Oversettelse</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skjema: <code>bar(bar_id, name)</code>, <code>drink(drink_id, name)</code>, <code>serves(bar_id, drink_id, price)</code> der serves.bar_id → bar.bar_id og serves.drink_id → drink.drink_id. Hvilket RA-uttrykk er ekvivalent med:</p>
+          <pre class="q-code">SELECT bar.name, drink.name
+FROM bar, serves, drink
+WHERE bar.bar_id = serves.bar_id
+  AND drink.drink_id = serves.drink_id
+  AND price &gt; 20</pre>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> π<sub>bar.name, drink.name</sub>(σ<sub>price &gt; 20</sub>(bar ⋈ serves ⋈ drink))</li>
+            <li><span class="opt-label">B</span> σ<sub>price &gt; 20</sub>(π<sub>bar.name, drink.name</sub>(bar ⋈ serves ⋈ drink))</li>
+            <li><span class="opt-label">C</span> π<sub>bar.name, drink.name</sub>(bar ⋈ serves ⋈ drink) ∩ σ<sub>price &gt; 20</sub>(serves)</li>
+            <li><span class="opt-label">D</span> π<sub>bar.name, drink.name</sub>(σ<sub>bar.bar_id = drink.drink_id</sub>(bar × serves × drink))</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>SQL-spørringen joiner alle tre tabeller på fremmednøkler, filtrerer på <code>price &gt; 20</code>, og projiserer på de to navnekolonnene. Det matcher A.</p>
+              <p>B prøver å projisere før selection, men da er <code>price</code> borte og selection feiler. C bruker ∩ feilaktig (ulike skjemaer). D bytter join-betingelsen ut med en ulogisk likhet.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.8 Terminology</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — Begreper</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvilken term matcher best beskrivelsen:</p>
+          <p class="q-text"><em>"A relation that is not part of the conceptual model but is made visible to a user as a 'virtual relation'"</em></p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Domain.</li>
+            <li><span class="opt-label">B</span> No other alternative is correct.</li>
+            <li><span class="opt-label">C</span> Decomposition.</li>
+            <li><span class="opt-label">D</span> View.</li>
+            <li><span class="opt-label">E</span> Assertion.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>En <em>view</em> er en navngitt SELECT-spørring som presenteres for brukeren som en tabell, men som ikke nødvendigvis er materialisert i den underliggende konseptuelle modellen — derav "virtual relation".</p>
+              <p class="ref">Pensum: <a href="../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views, transaksjoner, integritet</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.9 SQL Query Processing</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — SQL-evaluering</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Når et SQL-query (uten nøstede subqueries) prosesseres, hvilken av klausulene utføres til slutt (av de oppgitte)?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> WHERE.</li>
+            <li><span class="opt-label">B</span> SELECT.</li>
+            <li><span class="opt-label">C</span> GROUP BY.</li>
+            <li><span class="opt-label">D</span> FROM.</li>
+            <li><span class="opt-label">E</span> HAVING.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Logisk evalueringsrekkefølge: <code>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</code>. Av alternativene som er listet, er <code>SELECT</code> sist.</p>
+              <p>Dette forklarer hvorfor man ikke kan referere til SELECT-aliaser i WHERE.</p>
+              <p class="ref">Pensum: <a href="../kap3/ddl-og-spoerringer.html">Kap. 3 — DDL og spørringer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.10 Transactions (ACID)</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 8 — ACID</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">ACID består av Atomicity, Consistency, ?, og Durability. Hva står "I" for?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Isolation.</li>
+            <li><span class="opt-label">B</span> Indexing.</li>
+            <li><span class="opt-label">C</span> Integrity.</li>
+            <li><span class="opt-label">D</span> Irreversibility.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>I i ACID står for <em>Isolation</em>: konkurrente transaksjoner skal oppføre seg som om de kjørte serielt (avhengig av valgt isolasjonsnivå).</p>
+              <p class="ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Transaksjoner: teori</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.11 Foreign Keys</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — Constraints</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>T</code>:</p>
+          <pre class="q-code">CREATE TABLE T (
+    tid varchar(20),
+    attr integer,
+    PRIMARY KEY (tid)
+)</pre>
+          <p class="q-text">Du kjører deretter:</p>
+          <pre class="q-code">CREATE TABLE RT (
+    tid varchar(20),
+    attr varchar(20),
+    PRIMARY KEY (tid),
+    FOREIGN KEY (attr) REFERENCES T
+)</pre>
+          <p class="q-text">Hvilken setning er sann?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> The query fails because no attribute was given in the foreign key definition.</li>
+            <li><span class="opt-label">B</span> The query is executed successfully; RT.attr of table RT references T.attr.</li>
+            <li><span class="opt-label">C</span> No other alternative is correct.</li>
+            <li><span class="opt-label">D</span> The query fails because T.attr and RT.attr have different domains.</li>
+            <li><span class="opt-label">E</span> The query is executed successfully; RT.attr references T.tid.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: E</span>
+              <p>Når <code>FOREIGN KEY (...) REFERENCES T</code> oppgis uten kolonnenavn på høyresiden, refereres primærnøkkelen til <code>T</code> — som her er <code>tid</code>. <code>T.tid</code> er <code>varchar(20)</code> og <code>RT.attr</code> er <code>varchar(20)</code>: domenene matcher, og setningen utføres.</p>
+              <p class="ref">Pensum: <a href="../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views, transaksjoner, integritet</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.12 ER to Relations</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 4 — ER-mapping</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Se det aktuelle ER-diagrammet (et typisk M:N-forhold mellom to entiteter, som <code>Person ⨯ Movie</code> via <code>review</code>). Hva er minimum antall relasjoner som trengs for å mappe det til relasjonsmodellen?</p>
+          <div class="note-missing">ER-figuren vises ikke her. Standardsvaret for det opprinnelige diagrammet (Person—reviews—Movie, M:N) er 3 tabeller.</div>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> No other alternative is correct.</li>
+            <li><span class="opt-label">B</span> The ER diagram cannot be mapped to relations.</li>
+            <li><span class="opt-label">C</span> 2.</li>
+            <li><span class="opt-label">D</span> 3.</li>
+            <li><span class="opt-label">E</span> 1.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>For et M:N-forhold trenger man én tabell per entitet (Person, Movie) pluss én join-tabell for relasjonen (Review). Totalt: 3 tabeller. 1:N kunne ha klart seg med 2; et 1:1-forhold med total deltagelse på én side også 2.</p>
+              <p class="ref">Pensum: <a href="../kap4/er-til-relasjon.html">Kap. 4 — ER til relasjon</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.13 Constraints in ER</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 4 — ER-tolkning</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Basert på det samme Person/Movie-review-diagrammet (M:N, ingen total deltagelse, review-tekst er ikke unik), velg alle utsagn som er sanne (<em>multi-select</em>):</p>
+          <div class="note-missing">ER-figuren vises ikke her. Fasit antar standard-tolkning av M:N med svak relasjon.</div>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> A person can review multiple movies; a movie can be reviewed by multiple people.</li>
+            <li><span class="opt-label">B</span> Each movie must have at least 1 review.</li>
+            <li><span class="opt-label">C</span> A person cannot submit two separate reviews for the same movie.</li>
+            <li><span class="opt-label">D</span> Each movie can be reviewed by at most one person.</li>
+            <li><span class="opt-label">E</span> No two reviews can have the same review text.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A og C (multi-select)</span>
+              <p><strong>A</strong>: Stemmer for et standard M:N-forhold. <strong>C</strong>: Stemmer hvis (person, movie) er nøkkel for review (ingen diskriminator) — typisk antakelse i denne tradisjonen.</p>
+              <p><strong>B</strong> krever total deltagelse (vanligvis ikke gitt). <strong>D</strong> ville krevd 1:N. <strong>E</strong> krever et nøkkel-constraint på review-teksten — ikke vist.</p>
+              <p class="ref">Pensum: <a href="../kap4/er-modellen.html">Kap. 4 — ER-modellen</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q1.14 Normal Forms</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 4 — Normalformer</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Alle relasjoner som er på BCNF, er også på:</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Second normal form.</li>
+            <li><span class="opt-label">B</span> First, second, and third normal form.</li>
+            <li><span class="opt-label">C</span> First normal form.</li>
+            <li><span class="opt-label">D</span> None of the other alternatives.</li>
+            <li><span class="opt-label">E</span> Third normal form.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Hierarkiet er BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF. Alle BCNF-relasjoner oppfyller derfor 1NF, 2NF og 3NF.</p>
+              <p>A og C/E er ikke feil — bare ufullstendige. B er det <em>mest presise</em> svaret.</p>
+              <p class="ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="exam-part">
+    <div class="container">
+      <h2>Del 2 — <em>Langsvar</em></h2>
+      <p class="part-desc">Skriv SQL/DDL selv. Skjemaet er <code>quiz(quiz_id, quiz_title, quiz_max_points)</code>, <code>question(quiz_id, quest_num, quest_text, quest_max_points)</code>, <code>student(sid, first_name, last_name)</code>, <code>answer(sid, quiz_id, question_num, points_gained)</code>.</p>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q2.1 SQL DDL</span>
+          <span class="exam-q__points">10 %</span>
+          <span class="exam-q__topic">Kap. 3 — DDL</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skriv SQL-koden som lager tabellen <code>question</code> slik at:</p>
+          <ul>
+            <li><code>quiz_id</code> og <code>quest_num</code> er av typen integer.</li>
+            <li><code>quest_max_points</code> er av numeric-typen med maksimalt 2 siffer og ingen desimaler.</li>
+            <li><code>quest_text</code> er av typen <code>varchar(100)</code>.</li>
+            <li>De underlinjede attributtene (<code>quiz_id</code>, <code>quest_num</code>) er primærnøkler.</li>
+            <li><code>quiz_id</code> er en fremmednøkkel som refererer attributtet med samme navn i <code>quiz</code>.</li>
+            <li><code>quest_text</code> og <code>quest_max_points</code> kan ikke være NULL.</li>
+            <li>Verdien til <code>quest_max_points</code> skal være innen [0, 20].</li>
+          </ul>
+          <textarea class="free-text-area" placeholder="CREATE TABLE question (..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <pre class="q-code">CREATE TABLE question (
+    quiz_id          integer       NOT NULL,
+    quest_num        integer       NOT NULL,
+    quest_text       varchar(100)  NOT NULL,
+    quest_max_points numeric(2,0)  NOT NULL CHECK (quest_max_points BETWEEN 0 AND 20),
+    PRIMARY KEY (quiz_id, quest_num),
+    FOREIGN KEY (quiz_id) REFERENCES quiz(quiz_id)
+);</pre>
+              <p>Pass på at <code>NOT NULL</code> ligger på de to nevnte kolonnene, at <code>numeric(2,0)</code> dekker «maks 2 siffer, ingen desimaler», og at både PK og FK er deklarert riktig.</p>
+              <p class="ref">Pensum: <a href="../kap3/ddl-og-spoerringer.html">Kap. 3 — DDL og spørringer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q2.2 SQL Query 1</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — Aggregat + HAVING</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Finn alle quiz hvor summen av <code>quest_max_points</code> overskrider <code>quiz_max_points</code> for samme quiz. Skriv ut <code>quiz_id</code>.</p>
+          <textarea class="free-text-area" placeholder="SELECT ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <pre class="q-code">SELECT q.quiz_id
+FROM   quiz q
+JOIN   question qu ON qu.quiz_id = q.quiz_id
+GROUP BY q.quiz_id, q.quiz_max_points
+HAVING SUM(qu.quest_max_points) &gt; q.quiz_max_points;</pre>
+              <p>Du kan også bruke en korrelert subquery: <code>WHERE q.quiz_max_points &lt; (SELECT SUM(quest_max_points) FROM question WHERE quiz_id = q.quiz_id)</code>.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q2.3 SQL Query 2</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — GROUP BY + LIKE</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Beregn total poengsum per quiz oppnådd av studenten <code>sid=12345</code>, for quiz hvor tittelen inneholder ordet <em>databases</em>. Skriv ut <code>quiz_id</code> og total poengsum.</p>
+          <textarea class="free-text-area" placeholder="SELECT ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <pre class="q-code">SELECT a.quiz_id, SUM(a.points_gained) AS total
+FROM   answer a
+JOIN   quiz   q ON q.quiz_id = a.quiz_id
+WHERE  a.sid = 12345
+  AND  q.quiz_title LIKE '%databases%'
+GROUP BY a.quiz_id;</pre>
+              <p>Bruk <code>ILIKE</code> i PostgreSQL for case-insensitivt søk hvis ønskelig.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q2.4 SQL Query 3</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — DISTINCT + JOIN</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">For quiz med <code>quiz_id=4325</code>: skriv ut alle <code>quest_text</code> for spørsmål som har blitt svart av minst én student. Ikke bruk aggregeringsfunksjoner.</p>
+          <textarea class="free-text-area" placeholder="SELECT DISTINCT ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <pre class="q-code">SELECT DISTINCT q.quest_text
+FROM   question q
+JOIN   answer   a ON a.quiz_id = q.quiz_id
+                  AND a.question_num = q.quest_num
+WHERE  q.quiz_id = 4325;</pre>
+              <p>Alternativt med <code>EXISTS</code>: <code>WHERE EXISTS (SELECT 1 FROM answer a WHERE a.quiz_id = q.quiz_id AND a.question_num = q.quest_num)</code>.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Q2.5 SQL Query 4</span>
+          <span class="exam-q__points">5 %</span>
+          <span class="exam-q__topic">Kap. 3 — Subquery → JOIN</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skriv om følgende spørring uten nøstede subqueries:</p>
+          <pre class="q-code">SELECT first_name, last_name
+FROM student
+WHERE sid IN (
+    SELECT sid
+    FROM answer
+    WHERE quiz_id = 4326
+      AND question_num = 7
+      AND points_gained &gt; 10
+)</pre>
+          <textarea class="free-text-area" placeholder="SELECT ..."></textarea>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Eksempel-svar:</span>
+              <pre class="q-code">SELECT DISTINCT s.first_name, s.last_name
+FROM   student s
+JOIN   answer  a ON a.sid = s.sid
+WHERE  a.quiz_id = 4326
+  AND  a.question_num = 7
+  AND  a.points_gained &gt; 10;</pre>
+              <p><code>DISTINCT</code> trengs hvis en student kan ha flere svar som matcher (samme student kunne svart flere ganger). I praksis er (sid, quiz_id, question_num) unik, så <code>DISTINCT</code> er ofte overflødig — men trygt å ha med.</p>
+              <p class="ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="exam-part" style="padding-bottom:3rem">
+    <div class="container">
+      <p style="color:var(--ink-faded);font-style:italic;text-align:center;">Slutt på midtveiseksamen 2026.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="genererte/exam.js"></script>
+<script src="../chat-widget.js"></script>
+</body>
+</html>

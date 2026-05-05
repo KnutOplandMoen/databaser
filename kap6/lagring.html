@@ -61,6 +61,7 @@
       <div class="eyebrow">Kapittel 6 · 6A · Forelesning 11</div>
       <h1>Lagring — <em>records, blokker, buffer</em></h1>
       <p class="lede">Bratsbergs notater kap 1–8. Hvordan en rad faktisk er bytes på en disk — og hvordan DBMS-en ber om dem.</p>
+      <p style="font-family: var(--mono); font-size: 0.82rem; color: var(--ink-faded); margin-top: 0.4rem;">Notatmapping → §01 = Bratsberg-kap 1 · §02 = kap 2 · §03 = kap 3 · §04 = kap 4 · §05 = kap 5 · §06 = kap 6 · §07 = kap 7 · §08 = kap 8.&nbsp; <a href="./#notatmapping">Full mapping &rarr;</a></p>
       <nav class="toc">
         <a href="#arkitektur"><span>01</span> DBMS-arkitektur</a>
         <a href="#device"><span>02</span> Device og blokker</a>
@@ -71,6 +72,8 @@
         <a href="#static-hash"><span>07</span> Statisk hashing</a>
         <a href="#extendible"><span>08</span> Extendible hashing</a>
         <a href="#oppsummering"><span>09</span> Oppsummering</a>
+        <a href="#feller-6a"><span>10</span> Vanlige feller</a>
+        <a href="#mcq-6a"><span>11</span> Flervalg-trening</a>
       </nav>
     </div>
   </header>
@@ -1039,6 +1042,147 @@
       <div class="callout">
         <span class="label">Neste steg</span>
         <p>Nå vet du hvordan en rad ligger i en blokk og hvordan blokker går mellom RAM og disk. Neste skritt: <a href="btrees.html">B+-trær</a> — den indeksstrukturen som gjør raske søk og range-spørringer mulige på tabeller med milliarder rader.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 10 · Vanlige feller (6A) ============= -->
+  <section id="feller-6a">
+    <div class="container">
+      <div class="section-badge">10 · Vanlige feller</div>
+      <h2>Det studenter <em>blander sammen</em> i lagringskapittelet</h2>
+      <p>Disse er ikke konseptfeil — de er presisjonsfeil. Les listen <em>etter</em> du har lest 01–09 over; den viser hvor presisjonen må sitte når du leser et MCQ-alternativ.</p>
+
+      <ol class="num-bullet" style="counter-reset: nb;">
+        <li><strong>BlockId vs RID.</strong> BlockId = (deviceId, offset) peker på en blokk. RID = (BlockId, slot) peker på én rad inne i blokken. Indekser bruker RID; buffer pool bruker BlockId. Bratsberg-eksamene oppgir alltid begge byte-størrelser separat — sjekk hvilken som hører hjemme i utregningen din.</li>
+
+          <li><strong>Slot directory ≠ indeks.</strong> Slot directory er <em>internt</em> i én blokk og oversetter slot-nummer til byte-offset i samme blokk. En B+-tre-indeks er en separat struktur som peker på rader på tvers av blokker. Begge bruker «directory»-ordet, men gjør helt forskjellige jobber.</li>
+
+          <li><strong>Pinning er <em>ikke</em> låsing.</strong> Pinning hindrer at en blokk kastes ut av buffer pool, men hindrer <em>ikke</em> at andre transaksjoner endrer dataen i blokken. Lock manager er en helt separat komponent (kap 8). En blokk kan være pinnet uten å være låst, og omvendt.</li>
+
+          <li><strong>WAL-regelen: logg ut før datablokk.</strong> Når en dirty blokk evictes, må <em>alle</em> tilhørende loggposter (opp til blokkens høyeste LSN) være tvunget til disk først. Hvis du svarer at «buffer pool kan skrive datablokken når som helst» — feil. Loggens skriving må komme først.</li>
+
+          <li><strong>LRU er ikke alltid best.</strong> Standardvalget er LRU/Clock, men ved store table scans «forurenser» de bufferet med blokker som aldri leses igjen. MRU er bedre der. Bratsberg-eksamen tester gjerne nettopp dette mønsteret: «hvilken strategi er optimal når DBMS-en gjør en full scan av en stor tabell?» — svar: MRU.</li>
+
+          <li><strong>Statisk hashing skalerer ikke.</strong> Når du vurderer tradeoffs mellom statisk og extendible hashing: statisk har fast antall bøtter ved opprettelse. Vokser dataene, fylles bøttene og overflow-kjeder oppstår — søketiden går fra O(1) til O(N/N₀). Extendible løser dette ved å la directory-en vokse.</li>
+
+          <li><strong>Hashing støtter <em>kun likhet</em>.</strong> Hash-funksjonen sprer nøkler tilfeldig — naboer i nøkkelrommet ender på vidt forskjellige bøtter. <code>WHERE empno BETWEEN 100 AND 200</code> krever full scan i hash-fila. Hvis spørringene har ranges, må du velge B+-tre.</li>
+
+          <li><strong>Heapfil + indeks ≠ clustered.</strong> En heap med en B+-tre-indeks ved siden av er <em>unclustered</em>. Bare når radene er fysisk sortert etter indeksnøkkelen og bladene <em>er</em> data-blokkene, har du en clustered indeks. Maks én clustered per tabell.</li>
+
+          <li><strong>Flip/flop-stempel beskytter mot torn write, ikke krasj.</strong> Stempelet sjekker at hele blokken ble skrevet ferdig fysisk. Det gjenoppretter <em>ikke</em> innholdet — det varsler bare at blokken er korrupt. Det er recovery via WAL (kap 8) som faktisk gjenoppretter dataene.</li>
+
+          <li><strong>Local depth ≤ global depth, alltid.</strong> Et klassisk extendible-hashing-spørsmål: hva skjer ved en split? Hvis local depth (på blokken) &lt; global depth (på directory), splitter vi bare blokken og oppdaterer to directory-pekere — ingen directory-vekst. Hvis local depth = global depth, må directory dobles før split. Bytt om disse to og du svarer feil.</li>
+      </ol>
+
+      <div class="callout callout-blue">
+        <span class="label">Sjekkliste før eksamen</span>
+        <p>Klarer du å forklare alle ti på 30 sekunder hver? Da er du i god form på 6A. Hvis ikke — gå tilbake til seksjonen ved siden av nummeret og les den én gang til.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 11 · MCQ-trening (6A) ============= -->
+  <section id="mcq-6a">
+    <div class="container">
+      <div class="section-badge">11 · Flervalg-trening</div>
+      <h2>MCQ — i samme stil som <em>eksamen i år</em></h2>
+      <p>Eksamen i 2026 er kun flervalg. Disse spørsmålene er konstruert med distraktorer som matcher de vanligste feilene fra Bratsberg-eksamenene. Klikk det alternativet du tror er riktig — du får forklaring etter første feil.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Lett · 6A § 02</div>
+        <div class="q-text">Hva er den <em>minste</em> enheten DBMS-en leser eller skriver mellom disk og RAM?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">Én record (rad)</button></li>
+          <li><button class="mcq-opt" data-letter="B">Ett felt (kolonneverdi)</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">Én blokk (typisk 4–32 KiB)</button></li>
+          <li><button class="mcq-opt" data-letter="D">Én byte</button></li>
+          <li><button class="mcq-opt" data-letter="E">Hele tabellen</button></li>
+        </ul>
+        <div class="mcq-feedback">Blokk er DBMS-ens grunnenhet for I/O. Selv om du spør etter én rad, leses hele blokken raden ligger i. Dette er hvorfor «antall blokker» er kostnadsmålet i alle regneoppgaver.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Lett · 6A § 04</div>
+        <div class="q-text">Hva er en <em>RID</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">En logisk peker = (deviceId, offset)</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">En semilogisk peker = (BlockId, slot)</button></li>
+          <li><button class="mcq-opt" data-letter="C">En fysisk byte-offset i tabellfila</button></li>
+          <li><button class="mcq-opt" data-letter="D">En hash-verdi av primærnøkkelen</button></li>
+          <li><button class="mcq-opt" data-letter="E">Et alias for BlockId</button></li>
+        </ul>
+        <div class="mcq-feedback">RID = Record IDentifier = (BlockId, slot). BlockId-delen peker fysisk på blokken; slot-delen er logisk og oversettes via slot directory. Dette gjør at vi kan flytte recorden inni blokken (kompaktering) uten at indekser blir ugyldige.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels · 6A § 04</div>
+        <div class="q-text">Hva forhindrer flip/flop-stempelet i blokk-headeren og -traileren?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">At to transaksjoner skriver samtidig til samme blokk</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">At vi leser en halvskreven blokk (torn write) etter en krasj</button></li>
+          <li><button class="mcq-opt" data-letter="C">At buffer pool kaster ut blokken før den er pinnet</button></li>
+          <li><button class="mcq-opt" data-letter="D">At indeksene blir ugyldige når records flyttes</button></li>
+          <li><button class="mcq-opt" data-letter="E">At log-filen mister LSN-informasjon</button></li>
+        </ul>
+        <div class="mcq-feedback">Stempelet oppdateres til samme verdi i header og trailer ved hver skriving. Hvis vi etter en krasj leser en blokk hvor de to ikke matcher, vet vi at skrivingen ble avbrutt midtveis. Det er recovery via WAL som faktisk gjenoppretter dataene — flip/flop oppdager bare problemet.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels · 6A § 05</div>
+        <div class="q-text">DBMS-en kjører en stor table scan over en tabell som er mye større enn buffer pool. Hvilken erstatningsstrategi er <em>optimal</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">LRU — kast eldste blokk</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">MRU — kast nyeste blokk</button></li>
+          <li><button class="mcq-opt" data-letter="C">Clock — billig tilnærming til LRU</button></li>
+          <li><button class="mcq-opt" data-letter="D">FIFO — først inn, først ut</button></li>
+          <li><button class="mcq-opt" data-letter="E">Random eviction</button></li>
+        </ul>
+        <div class="mcq-feedback">Ved en sekvensiell scan blir hver blokk lest <em>én</em> gang. LRU/Clock vil kaste ut «hot» data (B+-tre-røtter, ofte brukte blokker) til fordel for skanne-blokker som aldri leses igjen — bufferet «forurenses». MRU kaster ut den sist leste skanne-blokken med en gang, så hot data forblir.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels · 6A § 06</div>
+        <div class="q-text">En tabell har 100 000 rader, hver record er 100 byte, blokk er 4096 byte (uten 2/3 fyllgrad — heap er pakket fullt). Hvor mange blokker leses i snitt for <code>SELECT * FROM Employee WHERE empno = ?</code> hvis empno ikke er indeksert og er unik?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">1</button></li>
+          <li><button class="mcq-opt" data-letter="B">100 000</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">~1250 (halvparten av 2500)</button></li>
+          <li><button class="mcq-opt" data-letter="D">2500</button></li>
+          <li><button class="mcq-opt" data-letter="E">40 (records per blokk)</button></li>
+        </ul>
+        <div class="mcq-feedback">Records per blokk = floor(4096/100) = 40. Antall blokker = ceil(100 000/40) = 2500. Uten indeks = full scan, men siden empno er unik kan vi stoppe når vi finner den; i snitt halvveis: ~1250. Distraktor 2500 er svaret hvis empno <em>ikke</em> er unik (må skanne alt).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6A § 07–08</div>
+        <div class="q-text">Hva er hovedproblemet med <em>statisk hashing</em>, og hvordan løser extendible hashing det?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">Statisk støtter ikke likhetsoppslag — extendible legger det til</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">Antall bøtter er fast — extendible bruker en directory som kan vokse, og splitter kun den fulle blokken</button></li>
+          <li><button class="mcq-opt" data-letter="C">Statisk har høyere kollisjonsrate — extendible bruker bedre hashfunksjon</button></li>
+          <li><button class="mcq-opt" data-letter="D">Statisk lagrer flere records per blokk — extendible reduserer antall</button></li>
+          <li><button class="mcq-opt" data-letter="E">Statisk støtter ikke deletes — extendible legger det til</button></li>
+        </ul>
+        <div class="mcq-feedback">Statisk hashing krever forhåndskjent N. Underestimeres N, fylles bøttene og overflow-kjeder ødelegger ytelsen. Extendible hashing bruker et oppslagstabell (directory) som kan dobles ved behov, og splitter kun den fulle blokken — vekst er smertefritt og oppslag tar fortsatt directory + datablokk = 2 aksesser.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6A § 08</div>
+        <div class="q-text">I extendible hashing: en blokk har local depth = 2, directory har global depth = 3. Hva skjer når blokken blir full og en ny record skal settes inn?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">Directory må dobles før blokken kan splittes</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">Blokken splittes i to; to directory-pekere (av de fire som peker til den) omdirigeres — directory vokser ikke</button></li>
+          <li><button class="mcq-opt" data-letter="C">En overflow-blokk legges til</button></li>
+          <li><button class="mcq-opt" data-letter="D">Hele directoryen halveres</button></li>
+          <li><button class="mcq-opt" data-letter="E">Local depth settes til 0 og records redistribueres</button></li>
+        </ul>
+        <div class="mcq-feedback">Når local depth &lt; global depth peker flere directory-slots til samme blokk (her: 4 av dem). En split kan da skje uten å vokse directory: vi splitter blokken på neste bit, og to av de fire pekerne flyttes til den nye blokken. Begge nye blokker får local depth = 3. Distraktor A er svaret når local depth = global depth.</div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Etter 6A</span>
+        <p>Klarte du flesteparten? Bra. Hvis flere enn to bommet — gå tilbake til den tilsvarende seksjonen før du går videre til 6B (B+-trær).</p>
       </div>
     </div>
   </section>

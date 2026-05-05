@@ -474,7 +474,8 @@
         <a href="#nested-loop"><span>05</span> Nested loop join</a>
         <a href="#andre-join"><span>06</span> Andre join-metoder</a>
         <a href="#kost"><span>07</span> Statistikk &amp; EXPLAIN</a>
-        <a href="#sluttquiz"><span>08</span> Sluttquiz</a>
+        <a href="#regnoppskrift"><span>08</span> Regn på en spørring</a>
+        <a href="#sluttquiz"><span>09</span> Sluttquiz</a>
       </nav>
     </div>
   </header>
@@ -582,6 +583,50 @@
         <li><strong>Range-scan</strong> — gå ned i B+-treet til startnøkkelen, og scan bladene sidelengs til endenøkkelen. Bruk pekere til å hente rader om indeksen er unclustered.</li>
         <li><strong>Indeks-lookup</strong> — direkte oppslag på én nøkkel: ned i treet (eller ett hashoppslag), hent rad.</li>
       </ul>
+
+      <h3>Notasjon — variabler du ser i alle formlene</h3>
+      <p>Før vi regner kostnader trenger vi navn på tingene. Disse seks variablene dukker opp på tvers av hele kapittelet — alle senere formler bygger på dem. Bli komfortabel med dem nå, så slipper du å oversette på nytt under hver formel.</p>
+      <ul class="ex-list">
+        <li><code>|R|</code> — antall rader i tabellen <code>R</code></li>
+        <li><code>b</code> — antall blokker tabellen tar på disk</li>
+        <li><code>bf</code> — <em>blocking factor</em>: antall rader som får plass i én blokk</li>
+        <li><code>h</code> — høyden til et B+-tre (antall <em>interne</em> nivåer over bladene)</li>
+        <li><code>V(A, R)</code> — antall distinkte verdier av attributt <code>A</code> i <code>R</code> (eks: <code>V(depno, Employee)</code> = antall ulike avdelinger)</li>
+        <li><code>sf</code> — <em>selektivitetsfaktor</em>: andel av tabellen som overlever et predikat (mellom 0 og 1)</li>
+      </ul>
+
+      <h3>Kostnadsformler pr. aksessvei — med utledning</h3>
+      <p>Tabellen over viste tall for Employee. Formlene under regner det samme på <em>nye</em> tall — det er disse du faktisk bruker når eksamensoppgaven kommer med andre tabellstørrelser. Hver formel har en kort utledning slik at du forstår <em>hvorfor</em> den er som den er, ikke bare at den finnes.</p>
+
+      <div class="formula-block">
+        <div class="formula-eq">Blocking factor &nbsp;<code>bf = ⌊B / R⌋</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Én blokk er <code>B</code> bytes (typisk 4096), hver rad er <code>R</code> bytes — så det får plass <code>⌊B/R⌋</code> rader, avrundet ned fordi vi ikke kan spare på en halv rad. <strong>Variant for B+-tre-blader:</strong> bruk <code>⌊B·⅔/R⌋</code> fordi noder typisk er to tredjedeler fulle (tilfeldig innsetting splitter blokker ujevnt). For <em>hash-filer</em> brukes ⌊B·0.8/R⌋. Antall blokker tabellen krever blir <code>b = ⌈|R|/bf⌉</code> — denne sammenhengen knytter <code>|R|</code> og <code>b</code>, og du veksler mellom dem hele tiden.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">B+-tre-høyde &nbsp;<code>h = ⌈log_d(b)⌉</code> &nbsp;(d = fan-out)</div>
+        <p class="formula-why"><strong>Hvorfor:</strong> I et balansert tre har et nivå <code>k</code> over bladet kapasitet til <code>d^k</code> blader. Vi vil at det øverste nivået rommer minst <code>b</code> blader ⇒ <code>d^h ≥ b</code> ⇒ <code>h ≥ log_d(b)</code>. Avrunding opp fordi vi ikke kan ha 1.6 nivå. <strong>Hvorfor er <code>h</code> alltid lite?</strong> Fan-out er typisk 100–300 fordi (key, blokk-peker) er små poster (~12–24 bytes). Med <code>d = 200</code> rommer 4 nivå <code>200⁴ = 1.6 milliarder</code> blader. Et oppslag koster <code>h + 1</code> blokk-aksesser fordi vi i tillegg må lese selve bladet — det er denne <code>+1</code>-en som dukker opp i alle oppslagsformlene.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Punkt-oppslag, clustered indeks &nbsp;<code>cost = h + 1</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Vi traverserer <code>h</code> interne nivå (én blokk hver) og leser én bladblokk. I et clustered B+-tre <em>er</em> bladet datablokken — raden ligger der vi lander, ingen ekstra hopp. Det er nettopp denne sparsomheten som gjør clustered så attraktivt: <em>siste</em> blokk-aksess gir oss både nøkkelen og raden. På Employee-eksemplet med <code>h = 2</code>: cost = 3 blokker, mot ~981 ved en heap-scan.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Punkt-oppslag, unclustered indeks &nbsp;<code>cost = h + 1 + matches</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Samme tre-traversering (<code>h + 1</code>) — men nå inneholder bladet <em>(key, RID)</em>-poster, ikke selve raden. Vi må følge hver RID til heap-filen, og hver RID kan i verste fall lande på en ny blokk fordi radene ligger spredt. <strong>Hvorfor «matches»?</strong> På unik nøkkel: én match ⇒ <code>h + 2</code>. På duplikatnøkler er antall matcher i snitt <code>⌈|R|/V(A, R)⌉</code> (uniform-antakelsen) — så for <code>WHERE depno = 5</code> med 10 avdelinger og 100 000 ansatte: 10 000 matcher = 10 000 ekstra blokk-aksesser worst case. Det er denne kostnaden som gjør at unclustered indeks <em>kan slå tilbake</em> mot full scan, og som motiverer hele neste paragraf.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Range-scan, clustered &nbsp;<code>cost ≈ h + ⌈sf · b⌉</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Først <code>h</code> for å finne første matchende blad. Deretter scan vi sidelengs gjennom de matchende bladblokkene via «neste-bladet»-pekerne. Bladene er fysisk sortert ⇒ sammenhengende sekvensiell I/O (billig pr. blokk for OS/disk). Vi leser kun <em>andelen</em> <code>sf · b</code> bladblokker, ikke hele tabellen. <strong>Sammenheng med formelen over:</strong> dette er bare punkt-oppslag (<code>h + 1</code>) pluss «scan til vi er forbi range-grensen» (<code>sf·b − 1</code>) — vi summerer og forenkler. Eksempel: range med 20 % treff på <code>b = 2942</code> blader ⇒ cost ≈ 2 + 589 = 591. Til sammenligning ville full scan vært 1961 — clustered indeks vinner med faktor 3.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Range-scan, unclustered &nbsp;<code>cost ≤ h + ⌈sf · b_indeks⌉ + sf · |R|</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> De to første leddene er identisk med clustered (traversér tre + scan indeksens blader — <em>indeksen er fortsatt sortert</em>). Det er det <em>tredje</em> leddet som ødelegger: vi følger én RID pr. matchende rad, og hver RID kan lande på en <em>ny</em> heap-blokk (radene er ikke sortert i fysisk lagring). Worst case: <code>sf · |R|</code> ekstra random I/O. <strong>Klassisk fallgruve, og koblingen til hovedinnsikten:</strong> når <code>sf · |R| &gt; b</code> blir filscan (<code>b</code>) billigere enn å bruke indeksen — selv om indeksen «matcher» predikatet. På Employee med <code>sf = 0.2</code>, <code>|R| = 100 000</code>, <code>b = 1961</code>: indeks-kost ≥ 20 000 random I/O, filscan kun 1961 sekvensielle. Filscan vinner med faktor 10 — og dette er en av de viktigste grunnene til at en god optimizer noen ganger ignorerer en lovlig indeks. Det er også grunnen til at indeks-valg under databasedesign er så avgjørende.</p>
+      </div>
 
       <div class="quiz inline" data-quiz>
         <div class="q-label">Sjekk forståelsen</div>
@@ -768,6 +813,11 @@
         <li>Buffer = 5 blokker (3 til ytre, 1 til indre, 1 til output)</li>
         <li>Spørring: <code>Employee ⋈ Department WHERE dname='Sales'</code> (⋈ = naturlig join — slå sammen rader der join-attributtet, kolonnen vi joiner på, er likt)</li>
       </ul>
+
+      <div class="formula-block">
+        <div class="formula-eq">Block nested loop &nbsp;<code>cost = b_ytre + ⌈b_ytre / (n_B − 2)⌉ · b_indre</code></div>
+        <p class="formula-why"><strong>Hvorfor — ledd for ledd:</strong> <em>Første ledd</em> (<code>b_ytre</code>): vi leser ytre tabell én gang, blokk for blokk, fra start til slutt. Det er uunngåelig — vi må se hver rad i ytre minst én gang. <em>Andre ledd:</em> for hver «bunke» av ytre-blokker som får plass i bufferet, scanner vi indre én gang. Bufferet rommer <code>n_B</code> blokker totalt; vi må reservere 1 til indre-blokk (en om gangen) og 1 til output-blokk (der match-radene samles før de skrives ut). Resten — <code>n_B − 2</code> — kan brukes til ytre. Antall bunker blir derfor <code>⌈b_ytre / (n_B − 2)⌉</code>, og hver bunke krever én full scan av indre = <code>b_indre</code>. <strong>Konsekvens:</strong> indre-tabellen leses gjentatte ganger. Det er <em>antall ganger vi må re-scanne den store siden</em> som dominerer kostnaden — derav den klassiske heuristikken «liten tabell utenfor». Bytter vi ut en stor ytre med en liten ytre, deler vi typisk antall passes med en faktor 100 eller mer.</p>
+      </div>
 
       <div class="viz">
         <div class="viz-title">Tre scenarioer — hvilken rekkefølge?</div>

@@ -75,8 +75,11 @@
         <li><span class="toc-num">04</span><a href="#deler">Deler</a></li>
         <li><span class="toc-num">05</span><a href="#nokkelbegreper">Nøkkelbegreper</a></li>
         <li><span class="toc-num">06</span><a href="#oppsummering">Oppsummering</a></li>
-        <li><span class="toc-num">07</span><a href="#quiz">Test deg selv</a></li>
-        <li><span class="toc-num">08</span><a href="#kapittel-eksamen">Kapittel-eksamen</a></li>
+        <li><span class="toc-num">07</span><a href="#notatmapping">Notatmapping (Bratsberg 1–11)</a></li>
+        <li><span class="toc-num">08</span><a href="#feller">Vanlige feller</a></li>
+        <li><span class="toc-num">09</span><a href="#scenario">Eksamensscenario</a></li>
+        <li><span class="toc-num">10</span><a href="#quiz">Test deg selv</a></li>
+        <li><span class="toc-num">11</span><a href="#kapittel-eksamen">Kapittel-eksamen</a></li>
       </ol>
     </div>
   </nav>
@@ -690,9 +693,291 @@
     </div>
   </section>
 
+  <!-- ============= 07 · Notatmapping ============= -->
+  <section id="notatmapping">
+    <div class="container">
+      <div class="section-badge">07 · Notatmapping</div>
+      <h2>Hvor i <em>Bratsbergs notater</em> ligger hva?</h2>
+      <p>Pensum i del 2 er Bratsbergs håndskrevne notatkompendium, ikke læreboka. Hver underseksjon på dette nettstedet svarer direkte til ett eller flere av notatkapitlene 1–11. Bruk tabellen som «to-veis-katalog» — finn et notatkapittel og hopp rett til riktig sted, eller motsatt.</p>
+
+      <div class="table-wrap" style="margin: 1.4rem 0;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 14%">Notat-kap.</th>
+              <th>Tema</th>
+              <th>Side hos oss</th>
+              <th style="width: 22%">Eksamen-fokus</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td>DBMS-arkitektur — komponenter, lagdeling, hvor blokker flyter</td>
+              <td><a href="lagring.html#arkitektur">6A · 01 DBMS-arkitektur</a></td>
+              <td>Begrepskontroll</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td>Storage device — disk vs SSD, BlockId-format</td>
+              <td><a href="lagring.html#device">6A · 02 Device og blokker</a></td>
+              <td>Begrepskontroll</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td>Record-format — fixed, record vector, delimiter, row vs column</td>
+              <td><a href="lagring.html#record">6A · 03 Record-format</a></td>
+              <td>MCQ — velg riktig format</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td>Block-format — slot directory, flip/flop-stempel, kompaktering</td>
+              <td><a href="lagring.html#block">6A · 04 Block-format</a></td>
+              <td>MCQ — RID, slot, torn write</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td>Buffer pool — frame, pin, dirty, LRU/MRU/Clock, WAL-pre-condition</td>
+              <td><a href="lagring.html#buffer">6A · 05 Buffer pool</a></td>
+              <td>MCQ — eviction-strategi</td>
+            </tr>
+            <tr>
+              <td><strong>6</strong></td>
+              <td>Heapfil — full-list / free-list, insert O(1), søk O(N)</td>
+              <td><a href="lagring.html#heap">6A · 06 Heapfiler</a></td>
+              <td>Regneoppgave — antall blokker, full scan</td>
+            </tr>
+            <tr>
+              <td><strong>7</strong></td>
+              <td>Statisk hashing — bøtter, overflow-kjeder, fill-faktor</td>
+              <td><a href="lagring.html#static-hash">6A · 07 Statisk hashing</a></td>
+              <td>Regneoppgave — antall bøtter</td>
+            </tr>
+            <tr>
+              <td><strong>8</strong></td>
+              <td>Extendible hashing — directory, global/local depth, splittinger</td>
+              <td><a href="lagring.html#extendible">6A · 08 Extendible hashing</a></td>
+              <td>Tegne-oppgave / MCQ om split</td>
+            </tr>
+            <tr>
+              <td><strong>9</strong></td>
+              <td>B+-tre — struktur, søk, innsetting, sletting</td>
+              <td><a href="btrees.html#struktur">6B · 01–06 Struktur, søk, splitt</a></td>
+              <td>Regneoppgave — høyde, fanout</td>
+            </tr>
+            <tr>
+              <td><strong>10</strong></td>
+              <td>Access paths — clustered vs unclustered, kostnadsregning, kompositt-nøkler</td>
+              <td><a href="btrees.html#cluster">6B · 07–09 Cluster, kompositt, kostnad</a></td>
+              <td><strong>Tyngst på eksamen</strong> — blokkaksesser per spørring</td>
+            </tr>
+            <tr>
+              <td><strong>11</strong></td>
+              <td>LSM-trær — memtable, SST, compaction</td>
+              <td><a href="btrees.html#lsm">6B · 10 LSM-trær</a></td>
+              <td>Begrepskontroll</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Tips for repetisjon</span>
+        <p>Bratsberg-eksamene er svært gjenbrukende. Mer enn 70 % av spørsmålene de siste fem årene har handlet om notatkapittel <strong>9 og 10</strong> (B+-trær og access paths). Hvis tida er knapp: les notat 9–10 grundig, tren på regneoppgaver, og lær begrepene i notat 1–8 godt nok til å gjenkjenne dem i flervalg.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 08 · Vanlige feller ============= -->
+  <section id="feller">
+    <div class="container">
+      <div class="section-badge">08 · Vanlige feller</div>
+      <h2>Ti feil studenter <em>gjør</em> på eksamen</h2>
+      <p>Disse er ikke konsept-misforståelser men presisjons-feil — der to nøkkelbegreper blandes, en formel anvendes feil sted, eller en utregning glemmer en konstant. Les listen igjennom <em>etter</em> du har lest 6A og 6B; den viser hvor du må passe ekstra på.</p>
+
+      <ol class="num-bullet" style="counter-reset: nb;">
+          <li><strong>2/3 fyllingsgrad gjelder også interne noder.</strong> Det er lett å bare bruke 2/3 på bladene og glemme det når man regner fanout. Riktig: <code>fanout = floor(blokkstr · 2/3 / indekspost-størrelse)</code>. Bruk samme regel på alle B+-tre-nivåer.</li>
+
+          <li><strong>Indekspost-størrelse er <em>nøkkel + RID</em>, ikke nøkkel + BlockId.</strong> I et unclustered B+-tre består hver indekspost av nøkkelverdien pluss en peker til selve raden — og peker er en <strong>RID = (BlockId, slot)</strong> som typisk er 12 byte (8 byte BlockId + 4 byte slot), <em>ikke</em> 8. På eksamen får du oppgitt RID-størrelsen — bruk den.</li>
+
+          <li><strong>Clustered B+ er ikke raskere på <code>SELECT *</code>.</strong> En full scan i et clustered tre må lese alle bladblokkene — som på grunn av 2/3-fyllingsgraden er <em>flere</em> enn et tilsvarende heap-fil. Clustered shines på <code>WHERE</code> og <code>BETWEEN</code>, ikke på spørringer som leser hele tabellen.</li>
+
+          <li><strong>Unclustered + range = potensiell katastrofe.</strong> Hvert indeks-treff peker til en tilfeldig blokk i heapen. Hvis 20 % av radene matcher, blir det opp mot <em>20 % × N</em> random disk-aksesser. Ofte er full scan billigere — DBMS-en velger derfor ofte å ignorere indeksen.</li>
+
+          <li><strong>«Antall nivåer» vs «høyde».</strong> Bratsberg-konvensjon: et tre med kun rotnoden har 1 nivå. Antall nivåer = antall blokk-aksesser for ett likhetsoppslag. Sjekk alltid hva oppgaven mener før du svarer.</li>
+
+          <li><strong><code>SELECT EtterNavn ... ORDER BY EtterNavn</code> trenger ikke heap-aksess.</strong> Hvis kolonnen du henter ut <em>er</em> indeksnøkkelen, holder det å skanne bladnivået i indeksen — du har alle dataene der. Dette kalles <em>index-only scan</em> og er et klassisk eksamen-traff.</li>
+
+          <li><strong>Statisk hashing: antall bøtter er fast ved opprettelse.</strong> Hvis du regner antall bøtter for å ha plass til N records, og senere data dobles, vil bøttene fylles og overflow-kjeder oppstå. Det er nettopp dette extendible hashing løser ved å la directory-en vokse.</li>
+
+          <li><strong>Pinning er <em>ikke</em> låsing.</strong> Pinning hindrer at en blokk kastes ut av buffer pool, men hindrer <em>ikke</em> at andre transaksjoner endrer dataen i blokken. Samtidighetskontroll er en annen mekanisme (kap 8).</li>
+
+          <li><strong>WAL-regelen: logg ut før datablokk.</strong> Når en dirty blokk evictes, må <em>alle</em> tilhørende loggposter (opp til blokkens høyeste LSN) være tvunget til disk først. Ellers feiler recovery etter krasj. Detaljer i kap 8, men prinsippet trengs allerede her.</li>
+
+          <li><strong>Komposittnøkkel-rekkefølge er prefiks-stiv.</strong> Indeks <code>(A, B)</code> støtter <code>WHERE A=?</code> og <code>WHERE A=? AND B=?</code>, men <strong>ikke</strong> <code>WHERE B=?</code> alene. Tenk leksikografisk: ordboka sorterer på første bokstav først.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="label">Sjekkliste før eksamen</span>
+        <p>Gå gjennom listen igjen og kryss av i hodet ditt: «Kan jeg forklare denne på 30 sekunder?» Hvis ikke — gå tilbake til seksjonen der den hører hjemme, ikke bare les feilen om igjen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 09 · Eksamensscenario ============= -->
+  <section id="scenario">
+    <div class="container">
+      <div class="section-badge">09 · Eksamensscenario</div>
+      <h2>Bratsberg-stil walkthrough — <em>én tabell, fem spørsmål</em></h2>
+      <p>De fleste regneoppgavene på del 2 bygger på <strong>ett scenario</strong> som blir spurt 4–6 forskjellige ting om. Her er et komplett eksempel i samme form som vår 2025-eksamen, med utregningene synlig. Klikk «Se svar» for å avsløre — men gjør deg først selv et forsøk på papir.</p>
+
+      <div class="key-card" style="margin: 1.4rem 0;">
+        <h4 style="margin-top:0">Felles oppsett — gjelder alle fem spørsmål</h4>
+        <p style="margin-bottom:0.6rem">Tabellen <code>Student(studNr, navn, epost, snitt)</code> har <strong>20 200</strong> studentposter, hver på <strong>120 byte</strong>. Nøkkelen <code>studNr</code> er 4 byte. <strong>RID</strong> er 12 byte og <strong>BlockId</strong> er 8 byte. Blokkene er <strong>4 KiB = 4096 byte</strong>.</p>
+        <p style="margin-bottom:0">Vi har en clustered B+-tre på <code>studNr</code>, og en unclustered B+-tre på <code>navn</code>. Begge har 2/3 fyllingsgrad.</p>
+      </div>
+
+      <h3>Spørsmål 1 · Hvor mange blokker på løvnivå (level 0) i den clustered B+?</h3>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Regneoppgave · Lett</div>
+        <div class="q-text">Regn antall bladblokker i den clustered B+-treet over <code>studNr</code>.</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            Records per bladblokk (2/3 fyllgrad, hele records ligger i bladene):<br>
+            <code>floor(4096 · 2/3 / 120) = floor(22.76) = 22</code> records per blokk.<br>
+            Antall bladblokker:<br>
+            <code>ceil(20 200 / 22) = ceil(918.18) = <strong>919</strong></code>.<br>
+            <em>Fellen:</em> hvis du glemmer 2/3 og regner <code>floor(4096/120) = 34</code> per blokk, får du <code>ceil(20200/34) = 595</code> — som er feil men finnes som distraktor på eksamen.
+          </div>
+        </div>
+      </div>
+
+      <h3>Spørsmål 2 · Hvor mange nivåer har den clustered B+?</h3>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Regneoppgave · Lett</div>
+        <div class="q-text">Hvor mange nivåer (inkl. blader) har den clustered B+-treet?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            Indekspost i intern node = (nøkkel + BlockId) = 4 + 8 = 12 byte (i interne noder peker vi til underliggende blokker, ikke til records, så vi bruker BlockId — ikke RID).<br>
+            <code>fanout = floor(4096 · 2/3 / 12) = 227</code>.<br>
+            Nivå 1 (over bladene): <code>ceil(919 / 227) = 5</code> blokker.<br>
+            Nivå 2: <code>ceil(5 / 227) = 1</code> (rot).<br>
+            <strong>3 nivåer</strong> totalt (level 0 = blader, level 1, level 2 = rot).
+          </div>
+        </div>
+      </div>
+
+      <h3>Spørsmål 3 · Likhetsoppslag på <code>studNr</code></h3>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Access path · Lett</div>
+        <div class="q-text"><code>SELECT navn FROM Student WHERE studNr = 12345;</code> — hvor mange blokker aksesseres optimalt?</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            Vi bruker den clustered B+: 1 (rot) + 1 (nivå 1) + 1 (blad). I bladet ligger <em>selve recorden</em> (clustered = data i blader), så ingen ekstra heap-aksess.<br>
+            <strong>3 blokker.</strong>
+          </div>
+        </div>
+      </div>
+
+      <h3>Spørsmål 4 · Likhetsoppslag på <code>navn</code> (unclustered)</h3>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Access path · Middels</div>
+        <div class="q-text"><code>SELECT epost FROM Student WHERE navn = 'Kari Nordmann';</code> — én treff. Hvor mange blokker aksesseres optimalt? (Den unclustered B+ på navn har også 3 nivåer.)</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            Unclustered B+: 3 (tre-traversering ned til bladet med RID-en) + 1 (følg RID til riktig blokk i clustered fila / heapen).<br>
+            <strong>4 blokker.</strong><br>
+            <em>Felle:</em> Studenter glemmer ofte +1 for selve datablokken. I clustered koster oppslaget 3, i unclustered 4.
+          </div>
+        </div>
+      </div>
+
+      <h3>Spørsmål 5 · ORDER BY på den unclustered indeksens nøkkel</h3>
+      <div class="quiz" data-quiz>
+        <div class="q-label">Access path · Vanskelig</div>
+        <div class="q-text"><code>SELECT navn FROM Student ORDER BY navn DESC;</code> — hvor mange blokker aksesseres optimalt? (Den unclustered B+ på navn har 3 nivåer; antall bladblokker beregnes nedenfor.)</div>
+        <div class="quiz-reveal">
+          <button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            Indekspost i unclustered B+ = nøkkel + RID. Anta navn er 28 byte (CHAR(28)) → indekspost = 28 + 12 = 40 byte.<br>
+            Indeksposter per blokk: <code>floor(4096 · 2/3 / 40) = 68</code>.<br>
+            Bladblokker: <code>ceil(20 200 / 68) = 298</code>.<br><br>
+            Nå til selve spørringen: vi henter bare <code>navn</code> — som <em>er</em> indeksnøkkelen. Da kan vi bruke <strong>index-only scan</strong>: skann bare bladnivået i indeksen sortert (nedover, siden DESC). Ingen heap-aksesser nødvendig.<br>
+            <strong>298 blokker.</strong><br>
+            <em>Fellen:</em> Mange svarer 298 + 20 200 (et oppslag per record i heapen). Det stemmer for andre kolonner, men ikke når kolonnen <em>er</em> indeksnøkkelen.
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <span class="label">Mønsteret</span>
+        <p>Legg merke til strukturen: bygg først opp scenarioet med tall (sp. 1–2), så svar på spørsmål om enkeltspørringer (sp. 3–5). Det er nøyaktig mønsteret på vår 2024 og vår 2025. Trener du på dette, sparer du 5–10 minutter på selve eksamen — du går rett til kalkulasjonen uten å lure på hva oppgaven mener.</p>
+      </div>
+
+      <h3 style="margin-top:2rem">MCQ — flervalg i eksamensformat</h3>
+      <p>Samme stil som du møter på eksamen i år. Klikk på alternativet du tror er riktig.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Lett</div>
+        <div class="q-text">For Student-scenarioet over: hvor mange records får plass i én bladblokk i den clustered B+ med 2/3 fyllgrad?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">34</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">22</button></li>
+          <li><button class="mcq-opt" data-letter="C">227</button></li>
+          <li><button class="mcq-opt" data-letter="D">68</button></li>
+          <li><button class="mcq-opt" data-letter="E">Ingen av de andre alternativene er riktige</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>floor(4096 · 2/3 / 120) = floor(22.76) = 22</code>. Distraktor 34 er svaret hvis du glemmer 2/3-faktoren; 227 er fanout for interne noder; 68 er bladblokk-kapasitet for unclustered indeksen på navn.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels</div>
+        <div class="q-text"><code>SELECT * FROM Student WHERE studNr = 12345;</code> — hvor mange blokker aksesseres optimalt? (3 nivåer i clustered B+.)</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">2</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">3</button></li>
+          <li><button class="mcq-opt" data-letter="C">4</button></li>
+          <li><button class="mcq-opt" data-letter="D">5</button></li>
+          <li><button class="mcq-opt" data-letter="E">919</button></li>
+        </ul>
+        <div class="mcq-feedback">Clustered B+: traverser ned 3 nivåer; bladet inneholder selve recorden — ingen +1 for heap. <strong>3.</strong> Distraktor 4 er svaret for unclustered (+1 heap-aksess); 919 er antall bladblokker (full scan).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig</div>
+        <div class="q-text"><code>SELECT navn FROM Student WHERE studNr BETWEEN 10000 AND 12000;</code> — anta dette gir ~2200 treff. Hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3</button></li>
+          <li><button class="mcq-opt" data-letter="B">2200</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">3 + 100 = 103</button></li>
+          <li><button class="mcq-opt" data-letter="D">3 + 2200 = 2203</button></li>
+          <li><button class="mcq-opt" data-letter="E">919</button></li>
+        </ul>
+        <div class="mcq-feedback">Clustered B+: 3 (traversering ned til første matchende blad) + ceil(2200/22) = 100 (sekvensielle blader via leaf-link). Vi går <em>ikke</em> opp i treet igjen. Distraktor 2203 er svaret hvis indeksen var unclustered (random-aksess per record). Distraktor 919 er full scan.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig</div>
+        <div class="q-text">Samme tabell, men nå <code>SELECT epost FROM Student WHERE navn = 'Kari';</code> med <em>unclustered</em> B+ på navn (3 nivåer). Anta 1 treff. Hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">4</button></li>
+          <li><button class="mcq-opt" data-letter="C">5</button></li>
+          <li><button class="mcq-opt" data-letter="D">298</button></li>
+          <li><button class="mcq-opt" data-letter="E">919</button></li>
+        </ul>
+        <div class="mcq-feedback">3 (unclustered tre-traversering) + 1 (følg RID til datablokk i clustered/heap). <strong>4.</strong> Husk: epost ligger ikke i indeksen — vi må til datablokken. Hvis vi hadde spurt etter <code>navn</code> (indeksnøkkelen), hadde 3 vært nok (index-only scan).</div>
+      </div>
+    </div>
+  </section>
+
   <section id="quiz">
     <div class="container">
-      <div class="section-badge">07 · Test deg selv</div>
+      <div class="section-badge">10 · Test deg selv</div>
       <h2>Helhetsspørsmål</h2>
       <p class="section-intro">12 spørsmål som dekker hele kapittelet. Detaljerte spørsmål om lagring og B+-trær finner du på de respektive underkapitlene.</p>
 
@@ -808,7 +1093,7 @@
 
   <section id="kapittel-eksamen">
     <div class="container">
-      <div class="section-badge">08 · Kapittel-eksamen</div>
+      <div class="section-badge">11 · Kapittel-eksamen</div>
       <h2>Flashcards — <em>hele pensum i kortform</em></h2>
       <p class="section-intro">43 kort som dekker alle begrepene og regneoppgavetypene i kapittelet. Klikk kortet for å snu det. Bruk piltastene <kbd>←</kbd> <kbd>→</kbd> til å bla, <kbd>S</kbd> for å shuffle, eller <kbd>R</kbd> for å resette rekkefølgen. Samme tone og vanskelighetsgrad som <a href="../eksamen/">øvingseksamenene</a> — men i blafrende form, så du kan bruke det som repetisjonsdrill rett før eksamen.</p>
 

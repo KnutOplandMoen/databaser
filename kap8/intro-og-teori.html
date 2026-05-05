@@ -234,6 +234,19 @@ Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
         </div>
       </div>
 
+      <h3 style="margin-top:1.6rem;">Bekreft formelt — presedensgraf</h3>
+      <p>Klippet over påstår at schedulen er ikke-serializable. La oss sjekke det med konfliktanalysen vi nettopp lærte. Konfliktparene er:</p>
+      <ul>
+        <li><code>w<sub>1</sub>(B)</code> (steg 2) ↔ <code>r<sub>2</sub>(B)</code> (steg 5) ⇒ <strong>T1 → T2</strong> via B</li>
+        <li><code>w<sub>2</sub>(A)</code> (steg 4) ↔ <code>r<sub>1</sub>(A)</code> (steg 8) ⇒ <strong>T2 → T1</strong> via A</li>
+      </ul>
+      <p>Vi har T1 → T2 <em>og</em> T2 → T1 — sykel. Presedensgrafen er ikke acyklisk ⇒ ikke conflict-serializable. Det er nettopp grunnen til at sluttverdien (sum = 312) avviker fra både T1;T2 og T2;T1 sine svar.</p>
+
+      <div class="callout">
+        <span class="label">Slik kobler vi teori og effekt</span>
+        <p>Sykel i presedensgrafen er ikke bare et matematisk mønster — den <em>forutsier</em> at minst én transaksjon ser eller blir påvirket av en mellomliggende tilstand som ingen seriell rekkefølge ville produsert. I bankeksempelet: T2 leste «gammel» A før T1 hadde lagt på, men «ny» B etter T1 hadde trukket fra. Resultatet kan ikke gjenskapes serielt.</p>
+      </div>
+
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · Bankeksempel</div>
         <div class="q-text">I steget over ble «overføringens andre halvdel» (innskuddet på A) klemt mellom T2 sine to operasjoner. Hva er navnet på selve fenomenet — at T2 så A før T1 var ferdig?</div>
@@ -438,8 +451,17 @@ Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
       <h2>Når kan vi <em>angre</em> en abort?</h2>
       <p>Conflict-serializability handler om resultatet er korrekt <em>hvis ingen aborter</em>. Men aborter skjer hele tiden — <em>deadlock</em> (to transaksjoner som venter på hverandres låser — forklares i 8B), krasj, brukervalg. Spørsmålet er: <em>kan vi rulle tilbake en transaksjon uten å ødelegge committed andre?</em></p>
 
+      <h3>«Read-from»-relasjonen</h3>
+      <p>Vi sier at <strong>T<sub>j</sub> leser fra T<sub>i</sub></strong> (skrives <code>T<sub>i</sub> → T<sub>j</sub></code> via X) hvis:</p>
+      <ol>
+        <li>T<sub>i</sub> skriver X (<code>w<sub>i</sub>(X)</code>),</li>
+        <li>T<sub>j</sub> leser X etterpå (<code>r<sub>j</sub>(X)</code>),</li>
+        <li>og <em>ingen annen transaksjon</em> skriver X mellom disse to operasjonene.</li>
+      </ol>
+      <p>Det er denne relasjonen vi bruker når vi resonnerer om recoverable, cascadeless og strict.</p>
+
       <h3>Recoverable schedule</h3>
-      <p>En schedule er <strong>recoverable</strong> hvis hver transaksjon T<sub>j</sub> som har lest fra T<sub>i</sub>, committer <em>etter</em> T<sub>i</sub>. Da kan vi alltid rulle tilbake T<sub>i</sub> sammen med T<sub>j</sub> hvis T<sub>i</sub> aborter.</p>
+      <p>En schedule er <strong>recoverable</strong> hvis: for hvert par der T<sub>j</sub> leser fra T<sub>i</sub>, committer T<sub>i</sub> <em>før</em> T<sub>j</sub> committer. Da kan vi alltid rulle tilbake T<sub>i</sub> sammen med T<sub>j</sub> hvis T<sub>i</sub> aborter.</p>
 
       <pre><code>Recoverable:    w1(A); w1(B); r2(A); c1; c2;
 Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's data, men T1 kan fortsatt aborte!</code></pre>

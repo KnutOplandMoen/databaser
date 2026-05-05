@@ -463,6 +463,45 @@
         <p>Redo gjenspiller <em>alt</em>, også endringer gjort av løsere. Hvorfor? Fordi PageLSN-sjekken bruker LSN-sammenlikning, og fordi det forenkler logikken: når vi når undo-fasen, er databasen i nøyaktig samme tilstand som ved krasjet (inkludert halvgjorte endringer fra losere). Så undo må bare reverse log-recordene, uansett hva som har skjedd.</p>
       </div>
 
+      <h3 style="margin-top:1.6rem;">Restart-algoritmen i pseudokode</h3>
+      <pre><code>function RESTART():
+    # ── ANALYSIS ──
+    finn siste begin_checkpoint i loggen via log anchor
+    TT, DPT ← snapshot fra end_checkpoint
+    for hver log-record fra begin_checkpoint og fremover:
+        if record er Update / Insert / Delete:
+            if Tx ikke i TT: legg til (status=active, lastLSN=LSN)
+            else: oppdater Tx.lastLSN = LSN
+            if PageID ikke i DPT: legg til (RecLSN=LSN)
+        else if record er Commit:
+            TT[Tx].status = committed
+        else if record er Abort:
+            TT[Tx].status = aborted
+    losers ← {Tx i TT der status ≠ committed}
+
+    # ── REDO ──
+    startLSN ← min(RecLSN over alle sider i DPT)
+    for hver log-record fra startLSN og fremover:
+        if PageID ikke i DPT: skip
+        if LSN < DPT[PageID].RecLSN: skip
+        les inn siden; if PageLSN ≥ LSN: skip
+        utfør operasjonen; sett PageLSN = LSN
+
+    # ── UNDO ──
+    ToUndo ← {Tx.lastLSN for Tx i losers}     # max-heap på LSN
+    while ToUndo ikke tom:
+        L ← største LSN i ToUndo
+        record ← logg[L]
+        if record er CLR:
+            ToUndo.legg_til(record.UndoNextLSN)   # hopp over allerede angret
+        else:
+            angre record; skriv CLR (med UndoNextLSN = record.PrevLSN)
+            ToUndo.legg_til(record.PrevLSN)       # 0 ⇒ ferdig med denne Tx
+        ToUndo.fjern(L)
+    skriv "end_recovery" til logg</code></pre>
+
+      <p style="font-size:0.92rem;color:var(--ink-soft);">UndoNextLSN i CLR-en sier «hvis vi krasjer igjen, fortsett undo herfra» — peker forbi den vi nettopp angret.</p>
+
       <div class="mcq" data-mcq>
         <div class="q-label">Sjekk · ARIES-faser</div>
         <div class="q-text">Hvorfor må Analysis kjøres før Redo?</div>
@@ -611,6 +650,78 @@
           </div>
         </div>
       </div>
+
+      <h3 style="margin-top:2.2rem;">Større eksempel — undo-kjede med CLR-er</h3>
+      <p>Tenk deg samme strukturen, men nå har vi to losere som har gjort flere endringer hver. Loggen ved krasj-tidspunktet:</p>
+
+      <div class="numlog">
+        <table>
+          <thead>
+            <tr><th>LSN</th><th>PrevLSN</th><th>Tx</th><th>OpType</th><th>Page</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lsn">200</td><td>0</td><td>T4</td><td class="op-update">Update</td><td>P1</td></tr>
+            <tr><td class="lsn">210</td><td>0</td><td>T5</td><td class="op-update">Update</td><td>P2</td></tr>
+            <tr><td class="lsn">220</td><td>200</td><td>T4</td><td class="op-update">Update</td><td>P3</td></tr>
+            <tr><td class="lsn">230</td><td>210</td><td>T5</td><td class="op-update">Update</td><td>P1</td></tr>
+            <tr><td class="lsn">240</td><td>220</td><td>T4</td><td class="op-update">Update</td><td>P2</td></tr>
+            <tr><td class="lsn">250</td><td>240</td><td>T4</td><td class="op-commit">Commit</td><td>—</td></tr>
+            <tr><td class="lsn">260</td><td>230</td><td>T5</td><td class="op-update">Update</td><td>P3</td></tr>
+            <tr style="background:rgba(201,58,58,0.08);"><td class="lsn">—</td><td>—</td><td>—</td><td colspan="2" style="color:#c93a3a; font-weight:600;">⚡ KRASJ ⚡</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Etter analysis: <strong>T4 er winner</strong> (commit på LSN 250), <strong>T5 er loser</strong> (ingen commit). T5 sin <code>lastLSN = 260</code>.</p>
+
+      <h4>Undo-fasen, steg for steg</h4>
+      <p>Vi følger PrevLSN-kjeden bakover fra T5.lastLSN, skriver en CLR for hver angring og oppdaterer PageLSN. <code>UndoNextLSN</code> i CLR-en sier «hvis vi krasjer igjen, fortsett herfra»:</p>
+
+      <div class="numlog">
+        <table>
+          <thead>
+            <tr><th>Steg</th><th>Angrer LSN</th><th>Page</th><th>Skriver CLR</th><th>UndoNextLSN i CLR</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>260</td><td>P3</td><td><strong>LSN 270</strong> (CLR for 260)</td><td>230 (= PrevLSN av 260)</td></tr>
+            <tr><td>2</td><td>230</td><td>P1</td><td><strong>LSN 280</strong> (CLR for 230)</td><td>210 (= PrevLSN av 230)</td></tr>
+            <tr><td>3</td><td>210</td><td>P2</td><td><strong>LSN 290</strong> (CLR for 210)</td><td>0 (= PrevLSN av 210 ⇒ ferdig)</td></tr>
+            <tr><td>4</td><td>—</td><td>—</td><td><strong>LSN 300</strong>: end_recovery</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Loggen etter recovery inneholder altså både de opprinnelige loggpostene <em>og</em> CLR-ene 270, 280, 290 + sluttmarkøren 300. Sidene P1, P2, P3 har nå PageLSN = 280, 290, 270 — pekende på CLR-ene, ikke de angrede recordene.</p>
+
+      <h4 style="margin-top:1.4rem;">Hva om vi krasjer <em>under</em> undo?</h4>
+      <p>Anta krasj rett etter at vi skrev CLR 270 (som angrer 260) og siden P3 ble flushed til disk. Vi starter recovery på nytt:</p>
+
+      <ol>
+        <li><strong>Analysis</strong> ser nå LSN 270 som siste record fra T5. CLR-en peker via <code>UndoNextLSN</code> til 230. T5 har fortsatt status «active» (ingen commit funnet), så T5 er fortsatt loser.</li>
+        <li><strong>Redo</strong> kjøres på vanlig vis. Når den treffer LSN 270 (CLR), redo-er den om <code>PageLSN(P3) &lt; 270</code> — men siden ble flushed, så <code>PageLSN(P3) = 270</code> ⇒ skip. Ingen dobbel-undo.</li>
+        <li><strong>Undo</strong> starter på T5.lastLSN = <strong>270</strong> (CLR-en, ikke 260!). Siden CLR-er <em>aldri</em> undoes, hopper vi rett til CLR-ens UndoNextLSN = <strong>230</strong>. Derfra fortsetter undo som før — vi angrer 230, så 210, og er ferdig. Vi har <em>ikke</em> forsøkt å angre 260 to ganger.</li>
+      </ol>
+
+      <p>Det er <em>nøyaktig</em> dette CLR + UndoNextLSN er bygd for: idempotens. Krasj når som helst — neste restart fortsetter herfra og produserer samme slutt-tilstand.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Vanlig feil</span>
+        <p>Studenter prøver å oppdatere LastLSN i TT under undo. Det skal man <em>ikke</em>. LastLSN settes i analysis-fasen og brukes som inngang til undo-kjeden. Det er <code>UndoNextLSN</code> i CLR-er som styrer undo-progresjonen, ikke TT.</p>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Undo-kjede</div>
+        <div class="q-text">Hva er PageLSN på P1 etter at undo-fasen er ferdig i det større eksempelet over?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>200 — den siste committed endringen</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>230 — den siste endringen før undo</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>280 — CLR-en som angret 230</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>0 — siden er nullstilt</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>280.</strong> Hver gang vi skriver en CLR, oppdateres PageLSN på den berørte siden til CLR-ens LSN. Det er nettopp denne mekanismen som gjør at vi vet «vi har allerede angret denne endringen» selv etter krasj. Verdien <em>på</em> siden er som etter T4 sin endring (LSN 200), men PageLSN-feltet peker på CLR-en.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -635,10 +746,21 @@
       <ol>
         <li>Skriv <code>begin_checkpoint</code>-loggpost.</li>
         <li>Skriv en <code>end_checkpoint</code>-loggpost som inneholder et øyeblikksbilde (snapshot) av TT og DPT akkurat nå.</li>
-        <li>Oppdater <strong>log anchor</strong> (et lite, fast sted på disk) til å peke på begin_checkpoint.</li>
+        <li>Oppdater <strong>log anchor</strong> (et lite, fast sted på disk — også kalt master record) til å peke på begin_checkpoint.</li>
         <li>Bakgrunnsprosess flusher dirty sider <em>uten å blokkere</em> drift.</li>
       </ol>
       <p>Recovery starter ved <code>begin_checkpoint</code>; den vet hva TT/DPT så ut da, og leser videre forover for å bygge nåværende tilstand.</p>
+
+      <h4 style="margin-top:1.2rem;">Hvorfor to records og ikke bare én?</h4>
+      <p>Mens vi skriver TT og DPT (som kan være store), kjører resten av databasen videre — nye transaksjoner kommer til, andre committer. Snapshotet i <code>end_checkpoint</code> reflekterer altså tilstanden ved et punkt et sted <em>mellom</em> begin og end. Recovery må derfor <em>begynne</em> ved <code>begin_checkpoint</code> for å garantert fange alle endringer som ikke er reflektert i snapshotet.</p>
+
+      <h4 style="margin-top:1rem;">Hva om vi krasjer mellom begin og end?</h4>
+      <p>Log anchor pekes <em>først</em> oppdatert <em>etter</em> at <code>end_checkpoint</code> er på disk. Krasj mellom begin og end ⇒ log anchor peker fortsatt på <em>forrige</em> sjekkpunkt. Det fuzzy-sjekkpunktet vi var i ferd med å skrive eksisterer som «ufullstendig» i loggen, men recovery ignorerer det og bruker det forrige. Litt mer logg å skanne, men korrekt.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Vanlig feil</span>
+        <p>Studenter forveksler <em>fuzzy</em> med «inkonsistent». Fuzzy betyr at TT/DPT-snapshotet i <code>end_checkpoint</code> er tatt mens systemet kjørte — det er <em>ikke</em> et perfekt øyeblikksbilde, men recovery-algoritmen er designet for å rekonstruere riktig tilstand fra <code>begin_checkpoint</code> og fremover. Stop-the-world ville gitt et perfekt snapshot, men til prisen av lammelse.</p>
+      </div>
 
       <h3>Penultimate checkpointing (nest siste sjekkpunkt)</h3>
       <p>En annen variant pensum nevner: skriv data ved sjekkpunkting, men bruk <em>nest siste</em> sjekkpunkt som startpunkt for recovery. Garanterer at all data referert i loggen før det punktet er på disk, så Analysis/REDO trenger ikke gå lenger tilbake. Ikke ARIES — ARIES bruker fuzzy checkpoint og DPT i stedet.</p>

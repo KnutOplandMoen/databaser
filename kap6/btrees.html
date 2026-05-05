@@ -73,6 +73,7 @@
       <div class="eyebrow">Kapittel 6 · 6B · Forelesning 12</div>
       <h1>B+-<em>trær</em> og indekser</h1>
       <p class="lede">Bratsbergs notater kap 9–11. Hvorfor B+-treet er det udiskutable valget for sekundærlagring (alt som ligger på disk, ikke i RAM) — og hvordan å regne kostnader på det.</p>
+      <p style="font-family: var(--mono); font-size: 0.82rem; color: var(--ink-faded); margin-top: 0.4rem;">Notatmapping → §01–06 = Bratsberg-kap 9 · §07–09 = kap 10 (tyngst på eksamen) · §10 = kap 11.&nbsp; <a href="./#notatmapping">Full mapping &rarr;</a></p>
       <nav class="toc">
         <a href="#hvorfor-bplus"><span>01</span> Hvorfor B+ over B</a>
         <a href="#struktur"><span>02</span> Struktur</a>
@@ -84,6 +85,8 @@
         <a href="#kompositt"><span>08</span> Komposittnøkler</a>
         <a href="#kostnad"><span>09</span> Kostnadsregning</a>
         <a href="#lsm"><span>10</span> LSM-trær</a>
+        <a href="#feller-6b"><span>11</span> Vanlige feller</a>
+        <a href="#mcq-6b"><span>12</span> Flervalg-trening</a>
       </nav>
     </div>
   </header>
@@ -819,6 +822,165 @@
           <button class="reveal-btn">Se svar</button>
           <div class="answer">Skriveytelse. Inserts/updates havner først i RAM (memtable), og disk-skrivinger skjer i store, sekvensielle bolker (SST-filer på 2 MB+ kontra 4–32 KiB B+-blokker). Det gir lav write amplification og bedre komprimering. Prisen er at lookups kan kreve oppslag i flere SST-filer.</div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 11 · Vanlige feller (6B) ============= -->
+  <section id="feller-6b">
+    <div class="container">
+      <div class="section-badge">11 · Vanlige feller</div>
+      <h2>Det studenter <em>blander sammen</em> i B+-tre-kapittelet</h2>
+      <p>Disse feilene koster nesten alltid 5 % på eksamen. Les listen <em>etter</em> du har lest 01–10 over; hver punkt nedenfor svarer til ett konkret eksamen-traff fra de siste fem år.</p>
+
+      <ol class="num-bullet" style="counter-reset: nb;">
+        <li><strong>2/3 fyllgrad gjelder også interne noder.</strong> Mange bruker 2/3 på blader men 100 % på interne. Riktig: <code>fanout = floor(blokkstr · 2/3 / indekspost-størrelse)</code>. Bruk samme regel på alle nivåer.</li>
+
+        <li><strong>Indekspost-størrelse: nøkkel + RID i unclustered, nøkkel + BlockId i interne noder.</strong> Bladene i en unclustered B+ inneholder <code>(nøkkel, RID)</code>. Interne noder (clustered eller unclustered) inneholder <code>(nøkkel, BlockId)</code> — pekere til underliggende blokker, ikke til records. RID er typisk 12 byte; BlockId 8. Bruk feil og du svarer 5 % feil.</li>
+
+        <li><strong>Clustered er ikke raskere på <code>SELECT *</code>.</strong> Et clustered B+-tre har 2/3 fyllgrad og treet legger overhead på topp; <em>flere</em> blokker enn et heap-fil. Clustered shines på <code>WHERE</code>-, <code>BETWEEN</code>- og <code>ORDER BY</code>-spørringer, ikke på fullt scan.</li>
+
+        <li><strong>Unclustered + range = potensiell katastrofe.</strong> Hvert indeks-treff peker til en <em>tilfeldig</em> blokk i heapen. Hvis 20 % av radene matcher → 20 % × N random aksesser. Ofte er full scan billigere — DBMS-en velger derfor å ignorere indeksen. Husk: clustered koster <code>høyde + ⌈treff/leafcap⌉</code>, unclustered koster <code>høyde + treff</code>.</li>
+
+        <li><strong>Index-only scan: når kolonnen <em>er</em> indeksnøkkelen.</strong> <code>SELECT navn ... ORDER BY navn</code> med unclustered B+ på navn: optimal er å skanne <em>kun</em> bladnivået i indeksen (data ligger der). <code>SELECT epost ... ORDER BY navn</code>: må også til heapen for hver record. Denne distinksjonen er ren eksamenkruttkjegle.</li>
+
+        <li><strong>Antall nivåer = antall blokker for likhetsoppslag i clustered.</strong> Hvis treet har 3 nivåer, koster ett likhetsoppslag i clustered B+ <em>3</em> blokker (ikke 4). Bladet inneholder selve recorden. I unclustered koster det <em>3 + 1 = 4</em> (en ekstra heap-aksess).</li>
+
+        <li><strong>Komposittnøkkel-rekkefølge er prefiks-stiv.</strong> Indeks <code>(A, B)</code> støtter <code>WHERE A=?</code>, <code>WHERE A=? AND B=?</code>, og <code>ORDER BY A, B</code> — men <strong>ikke</strong> <code>WHERE B=?</code> alene. Det er som ordboka: sortert på første bokstav først.</li>
+
+        <li><strong>Range-spørring: hvilken kolonne skal komme sist?</strong> For <code>WHERE customerId = ? AND date BETWEEN ? AND ?</code>, bygg indeksen som <code>(customerId, date)</code> — likhets-attributtet først, range-attributtet sist. Da kan B+-treet finne kunden (et punkt i treet) og scanne sidelengs i bladet for date-rangen. Bytt om → må scanne alle datoer.</li>
+
+        <li><strong>Splitt forplanter seg oppover.</strong> Når en bladblokk splittes ved insert, oppdateres foreldrenoden med en ny separator + ny barn-peker. Hvis foreldrenoden også blir full, splittes den, og det forplanter seg helt opp til rota i verste fall. Dette er hvorfor en insert <em>kan</em> være dyr (men sjeldent er det).</li>
+
+        <li><strong>Bladlenker er encrypted to leaf level only.</strong> Range-scan etter tre-traversering går sidelengs via leaf-link-pekere. Vi går <em>ikke</em> opp i treet igjen mellom blader. Dette er en kjernegrunn til at B+ slår vanlig B-tre på range — i et B-tre må du gå opp og ned for hver blad-overgang.</li>
+      </ol>
+
+      <div class="callout callout-blue">
+        <span class="label">Sjekkliste før eksamen</span>
+        <p>For hver av de ti — kan du regne et lite eksempel uten å se på løsningen? Hvis ja, du er trygg på 6B-delen. Hvis nei, bruk 09 · Kostnadsregning som drilløvelse: prøv å reprodusere alle utregningene fra hukommelsen.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============= 12 · MCQ-trening (6B) ============= -->
+  <section id="mcq-6b">
+    <div class="container">
+      <div class="section-badge">12 · Flervalg-trening</div>
+      <h2>MCQ — i samme stil som <em>vår 2025</em></h2>
+      <p>Eksamen i 2026 er kun flervalg, og oppgavene rundt B+-trær og access paths utgjør den største regnedelen av eksamen. Disse 8 spørsmålene har distraktorer som matcher de vanligste regnefeilene fra Bratsberg-eksamenene. Svar — og bli en sikker B+-regner.</p>
+
+      <div class="key-card" style="margin: 1.4rem 0;">
+        <h4 style="margin-top:0">Felles scenario for spørsmål 1–6</h4>
+        <p style="margin-bottom:0">Tabellen <code>Ansatt(AnsattId, ForNavn, EtterNavn, Lønn)</code> har ansattposter på <strong>120 byte</strong>. <code>AnsattId</code> er <strong>4 byte</strong>. <strong>RID = 12 byte</strong>, <strong>BlockId = 8 byte</strong>. Blokk = <strong>4096 byte</strong>. Det finnes en clustered B+ på <code>AnsattId</code> med <strong>1000 bladblokker og 3 nivåer</strong>, og en unclustered B+ på <code>EtterNavn</code> med <strong>500 bladblokker og 3 nivåer</strong>. 2/3 fyllgrad antas overalt.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Lett · 6B § 09</div>
+        <div class="q-text">Hvor mange records får plass i én bladblokk i clustered B+ (med 2/3 fyllgrad)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">34</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">22</button></li>
+          <li><button class="mcq-opt" data-letter="C">227</button></li>
+          <li><button class="mcq-opt" data-letter="D">170</button></li>
+          <li><button class="mcq-opt" data-letter="E">Ingen av de andre alternativene</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>floor(4096 · 2/3 / 120) = floor(22.76) = 22</code>. Distraktor 34 er svaret hvis du glemmer 2/3 (floor(4096/120)). 227 er fanout for interne noder med 12-byte indeksposter.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Lett · 6B § 09</div>
+        <div class="q-text"><code>SELECT * FROM Ansatt WHERE AnsattId = 12001;</code> — hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">2</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">3</button></li>
+          <li><button class="mcq-opt" data-letter="C">4</button></li>
+          <li><button class="mcq-opt" data-letter="D">1003</button></li>
+          <li><button class="mcq-opt" data-letter="E">1000</button></li>
+        </ul>
+        <div class="mcq-feedback">Clustered B+ har 3 nivåer; bladet inneholder selve recorden — ingen +1 heap-aksess. <strong>3.</strong> Distraktor 4 er svaret for unclustered (med +1 heap-aksess); 1000 er antall bladblokker (full scan).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels · 6B § 09</div>
+        <div class="q-text"><code>SELECT ForNavn FROM Ansatt WHERE EtterNavn = 'Hansen';</code> — anta én treff. Hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">4</button></li>
+          <li><button class="mcq-opt" data-letter="C">5</button></li>
+          <li><button class="mcq-opt" data-letter="D">503</button></li>
+          <li><button class="mcq-opt" data-letter="E">6</button></li>
+        </ul>
+        <div class="mcq-feedback">Unclustered B+ på EtterNavn: 3 (tre-traversering ned til bladet med RID-en) + 1 (følg RID til datablokken). <strong>4.</strong> Distraktor 6 er svaret hvis du dobbelteller (3+3). 503 er svar for full bladscan.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6B § 09</div>
+        <div class="q-text"><code>SELECT EtterNavn FROM Ansatt ORDER BY EtterNavn DESC;</code> — hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3</button></li>
+          <li><button class="mcq-opt" data-letter="B">1003</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">500</button></li>
+          <li><button class="mcq-opt" data-letter="D">1000</button></li>
+          <li><button class="mcq-opt" data-letter="E">503</button></li>
+        </ul>
+        <div class="mcq-feedback">Index-only scan: vi henter bare EtterNavn, som <em>er</em> indeksnøkkelen. Skann bare bladnivået i unclustered B+ (sidelengs via leaf-links, baklengs siden DESC). 500 bladblokker. Distraktor 503 = 3 + 500 (men de 3 tre-traverserings-blokkene er ikke nødvendige — vi går rett til ene enden). Distraktor 1000 = bladblokker i clustered B+ (feil tre).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6B § 09</div>
+        <div class="q-text"><code>SELECT * FROM Ansatt WHERE AnsattId BETWEEN 5000 AND 7000;</code> — anta dette gir ~2200 treff. Hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3</button></li>
+          <li><button class="mcq-opt" data-letter="B">2200</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">3 + 100 = 103</button></li>
+          <li><button class="mcq-opt" data-letter="D">3 + 2200 = 2203</button></li>
+          <li><button class="mcq-opt" data-letter="E">1000</button></li>
+        </ul>
+        <div class="mcq-feedback">Clustered B+: 3 (traversering til første matchende blad) + ⌈2200/22⌉ = 100 (sekvensielle bladblokker via leaf-link). Vi går ikke opp i treet igjen. <strong>103.</strong> Distraktor 2203 er svaret hvis indeksen var unclustered (random-aksess per record); 1000 er full scan.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6B § 09</div>
+        <div class="q-text"><code>SELECT * FROM Ansatt WHERE EtterNavn BETWEEN 'A' AND 'E';</code> — anta 4000 treff. Hvor mange blokker aksesseres optimalt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">3 + 100 = 103</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">3 + 60 + 4000 = 4063</button></li>
+          <li><button class="mcq-opt" data-letter="C">4000</button></li>
+          <li><button class="mcq-opt" data-letter="D">1003</button></li>
+          <li><button class="mcq-opt" data-letter="E">Full scan ville være billigere — 1000 blokker</button></li>
+        </ul>
+        <div class="mcq-feedback">Unclustered B+ på EtterNavn: 3 (tre-traversering) + ⌈4000/68⌉ ≈ 60 (sekvensielle indeks-bladblokker for rangen) + 4000 (én random-aksess per record til heapen). Totalt 4063. <em>Merk:</em> i praksis ville optimizeren her trolig velge full scan (1000 blokker) — dette er nettopp hvorfor unclustered + range er katastrofe-mønsteret. Eksamen spør «optimal med indeks» eller «optimal totalt» — les nøye.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Vanskelig · 6B § 08</div>
+        <div class="q-text">Du designer en indeks for spørringen <code>WHERE customerId = ? AND date BETWEEN ? AND ?</code>. Hvilken sammensatt indeks gir best ytelse?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">(date, customerId)</button></li>
+          <li><button class="mcq-opt" data-letter="B" data-correct="1">(customerId, date)</button></li>
+          <li><button class="mcq-opt" data-letter="C">To separate indekser, én på hver kolonne</button></li>
+          <li><button class="mcq-opt" data-letter="D">(date) — customerId er ikke selektiv</button></li>
+          <li><button class="mcq-opt" data-letter="E">Rekkefølge spiller ingen rolle</button></li>
+        </ul>
+        <div class="mcq-feedback">Likhets-attributtet (customerId) først, range-attributtet (date) sist. Da går B+-treet rett til alle rader for kunden, og innenfor den gruppen er datoene sortert — vi skanner sidelengs til vi går ut av rangen. (date, customerId) tvinger oss til å skanne alle datoer i intervallet, mye mer arbeid. To separate indekser — DBMS-en kan ikke effektivt kombinere dem her.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Flervalg · Middels · 6B § 01</div>
+        <div class="q-text">Hva er hovedforskjellen mellom et B-tre og et B+-tre?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-letter="A">B-trær er balanserte, B+-trær er ikke</button></li>
+          <li><button class="mcq-opt" data-letter="B">B+-trær har høyere fanout enn B-trær</button></li>
+          <li><button class="mcq-opt" data-letter="C" data-correct="1">I B+-trær ligger alle data i bladene; i B-trær kan data ligge i interne noder også</button></li>
+          <li><button class="mcq-opt" data-letter="D">B+-trær støtter ikke duplikater</button></li>
+          <li><button class="mcq-opt" data-letter="E">Det er bare et navn — strukturene er identiske</button></li>
+        </ul>
+        <div class="mcq-feedback">B+: data <em>kun</em> i blader, interne noder er rene veivisere. To bonuser: (1) interne noder blir mindre → høyere fanout → kortere tre; (2) bladene kan lenkes for raske range-scans. Begge er balanserte; B+ har høyere fanout som <em>konsekvens</em>, ikke som definisjon.</div>
+      </div>
+
+      <div class="callout">
+        <span class="label">Etter 6B</span>
+        <p>Denne MCQ-banken er kalibrert mot vår 2024 og vår 2025-eksamen. Hvis du klarer alle åtte uten å snuble — du er klar for del 2 av eksamen i lagring og indekser.</p>
       </div>
     </div>
   </section>
