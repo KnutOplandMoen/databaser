@@ -6,6 +6,7 @@
 <link rel="icon" href="../favicon.png" type="image/png">
 <title>Samtidighet og låser — Kap 8B</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../flashcards.css">
 <link rel="stylesheet" href="kap8.css">
 <style>
   /* 2PL "mountain" animated draw */
@@ -319,20 +320,6 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
 
       <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør <em>recovery</em> (gjenoppretting etter krasj — kapittel 8C) enkel (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
 
-      <div class="mcq" data-mcq>
-        <div class="q-label">Sjekk · 2PL-varianter</div>
-        <div class="q-text">Hva er forskjellen mellom <em>strict</em> og <em>rigorous</em> 2PL?</div>
-        <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Strict tar låser én og én; rigorous tar alt på forhånd</span></div>
-          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Strict slipper S-låser tidlig men holder X-låser til commit; rigorous holder alle låser til commit</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Strict bruker bare X-låser; rigorous bruker både S og X</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>De er identiske — ulike navn for samme konsept</span></div>
-        </div>
-        <div class="mcq-feedback">
-          <strong>Riktig.</strong> Begge holder X-låser til commit/abort (gir strict schedule + cascadeless), men strict 2PL kan slippe S-låser tidligere mens rigorous holder alt. Rigorous er enklere å implementere; strict gir litt mer samtidighet.
-        </div>
-      </div>
-
       <h3 id="rigorous-eksempel" style="margin-top:1.8rem;">Gjennomgått eksempel — rigorous 2PL i sekvens</h3>
       <p>Vi setter låser med <strong>rigorous 2PL</strong> for følgende sekvens som kommer inn til databasen, og finner ut <em>i hvilken rekkefølge</em> transaksjonene committer:</p>
       <pre style="background:var(--paper-darker);padding:0.7rem 1rem;border-radius:4px;font-family:var(--mono);font-size:0.94rem;overflow-x:auto;">r1(A); r2(A); w1(A); r3(B); c1; w2(B); c2; r3(C); c3;</pre>
@@ -366,18 +353,136 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
         <p>1) Tegn en kolonne per dataelement og før «Holdes av» løpende. 2) For hver operasjon: er låsen kompatibel? Hvis nei — sett operasjonen og <em>alle</em> påfølgende fra samme transaksjon på vent. 3) Etter siste eksplisitte operasjon: simulér frigjøringene i den rekkefølgen blokkerte transaksjoner kan rulle videre. 4) Hvis to transaksjoner gjensidig venter — vranglås.</p>
       </div>
 
-      <div class="mcq" data-mcq>
-        <div class="q-label">Sjekk · Commit-rekkefølge</div>
-        <div class="q-text">Sett rigorous 2PL for sekvensen <code>r1(X); w2(X); w3(Y); r1(Y); c1; c2; c3;</code>. I hvilken rekkefølge committer T1, T2, T3?</div>
-        <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>T1; T2; T3</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>T1; T3; T2</span></div>
-          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>T3; T1; T2</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Vranglås mellom T1 og T2</span></div>
+      <p style="margin-top:1.6rem;font-style:italic;color:var(--ink-soft);">Bla gjennom kortene under for å sjekke at du skiller variantene fra hverandre — og at du kan lese rigorous-2PL-eksempler.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu kort</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
         </div>
-        <div class="mcq-feedback">
-          <strong>T3, T1, T2.</strong> r1(X): T1 tar S(X). w2(X): T2 ber om X(X), blokkert av T1. w3(Y): T3 tar X(Y). r1(Y): T1 ber om S(Y), blokkert av T3. c1, c2: begge på vent. c3: T3 committer, slipper X(Y). T1 får S(Y), kjører r1(Y), commiter c1 — slipper S(X), S(Y). T2 får X(X), commiter c2.
-        </div>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">2PL-varianter · strict vs rigorous</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen mellom <em>strict</em> og <em>rigorous</em> 2PL?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Strict tar låser én og én; rigorous tar alt på forhånd</li>
+                <li><span class="opt-label">B</span> Strict slipper S-låser tidlig men holder X-låser til commit; rigorous holder alle låser til commit</li>
+                <li><span class="opt-label">C</span> Strict bruker bare X-låser; rigorous bruker både S og X</li>
+                <li><span class="opt-label">D</span> De er identiske — ulike navn for samme konsept</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B.</strong></p>
+              <p>Begge holder X-låser til commit/abort (gir <em>strict schedule</em> + cascadeless), men strict 2PL kan slippe S-låser tidligere mens rigorous holder <em>alle</em> låser til commit. Rigorous er enklere å implementere; strict gir litt mer samtidighet på lese-tunge arbeidsmengder.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">2PL-varianter · deadlock-fri</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken 2PL-variant kan <em>aldri</em> havne i deadlock?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Basic 2PL</li>
+                <li><span class="opt-label">B</span> Strict 2PL</li>
+                <li><span class="opt-label">C</span> Conservative 2PL</li>
+                <li><span class="opt-label">D</span> Rigorous 2PL</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — Conservative 2PL.</strong></p>
+              <p>Conservative 2PL ber om <em>alle</em> låser før transaksjonen begynner. Hvis noen er opptatt, venter T-en før den har tatt noen lås selv — derfor kan ingen sirkulær venting oppstå.</p>
+              <p>Prisen er dårlig samtidighet og at man må vite alle låser på forhånd. De andre variantene tar låser etterhvert og kan derfor havne i sykel i wait-for-grafen.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">2PL-varianter · cascading aborts</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken 2PL-variant er teoretisk korrekt, men kan likevel gi <em>cascading aborts</em>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Basic 2PL</li>
+                <li><span class="opt-label">B</span> Strict 2PL</li>
+                <li><span class="opt-label">C</span> Rigorous 2PL</li>
+                <li><span class="opt-label">D</span> Ingen — 2PL hindrer alltid cascading aborts</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — Basic 2PL.</strong></p>
+              <p>Basic 2PL gir conflict-serializability, men kan slippe X-låser <em>før</em> commit. Det betyr at en annen transaksjon kan lese den uncommitted verdien — og hvis den første aborter, må alle som leste fra den også abortes (cascade).</p>
+              <p>Strict og rigorous holder X-låser til commit/abort, så ingen kan lese uncommitted verdier ⇒ ingen cascading aborts.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Rigorous 2PL · commit-rekkefølge</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Sett rigorous 2PL for sekvensen <code>r1(X); w2(X); w3(Y); r1(Y); c1; c2; c3;</code>. I hvilken rekkefølge committer T1, T2, T3?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> T1; T2; T3</li>
+                <li><span class="opt-label">B</span> T1; T3; T2</li>
+                <li><span class="opt-label">C</span> T3; T1; T2</li>
+                <li><span class="opt-label">D</span> Vranglås mellom T1 og T2</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — T3; T1; T2.</strong></p>
+              <p>r1(X): T1 tar S(X). w2(X): T2 ber om X(X), blokkert av T1. w3(Y): T3 tar X(Y). r1(Y): T1 ber om S(Y), blokkert av T3. c1, c2: begge på vent.</p>
+              <p>c3: T3 committer, slipper X(Y). T1 får S(Y), kjører r1(Y), commiter c1 — slipper S(X), S(Y). T2 får X(X), commiter c2.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Rigorous 2PL · uten kjede</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Sekvens med rigorous 2PL: <code>r1(A); r2(B); w1(A); c1; w2(B); c2;</code>. I hvilken rekkefølge committer T1 og T2?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> T2; T1 — fordi T2 starter sist</li>
+                <li><span class="opt-label">B</span> T1; T2 — ingen blokkeringer</li>
+                <li><span class="opt-label">C</span> Begge venter — vranglås</li>
+                <li><span class="opt-label">D</span> Avhenger av scheduler-rekkefølgen</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — T1; T2.</strong></p>
+              <p>T1 og T2 jobber på <em>ulike</em> dataelementer (A og B), så ingen blokkerer. r1(A) → S(A); r2(B) → S(B); w1(A) → T1 kan oppgradere til X(A) fordi den er eneste S-holder. c1: T1 commiter, slipper låser. w2(B) → T2 oppgraderer til X(B). c2: T2 commiter.</p>
+              <p>Hovedpoenget: rigorous 2PL stenger <em>bare</em> ute samtidige tilganger til samme element.</p>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -685,6 +790,7 @@ T2: ......... read_lock(X) . write_lock(X)  ← venter på T1
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="../flashcards.js"></script>
 <script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
