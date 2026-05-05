@@ -174,6 +174,20 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
           <strong>Phantom.</strong> Phantoms oppstår når et <em>nytt</em> rad-sett dukker opp på grunn av en INSERT (eller forsvinner pga. DELETE) som matcher T1 sitt predikat. Unrepeatable read handler om at en eksisterende rad endrer verdi mellom to <code>SELECT</code>-er. Forskjellen er hva slags låsing som trengs: phantoms krever <em>predikat-/range-låser</em> (låser som dekker «alle rader som matcher en WHERE» — vi kommer tilbake til dette), ikke bare radlåser.
         </div>
       </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Anomalier 2</div>
+        <div class="q-text">T1 starter, leser X = 100. T2 oppdaterer X til 150 og <em>committer</em>. T1 leser X igjen og får 150. Hvilken anomali er dette?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Dirty read — T1 leste en uncommitted verdi</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Lost update — T1 sin oppdatering forsvant</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>Unrepeatable read — samme rad gir to ulike verdier i samme transaksjon</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Phantom read — en ny rad dukket opp</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Unrepeatable read.</strong> T1 leser <em>samme eksisterende rad</em> to ganger og får ulik verdi fordi T2 oppdaterte committed mellom. Det er <em>ikke</em> dirty read — T2 hadde committed før T1 leste på nytt. Det er heller ikke phantom — phantoms handler om <em>nye</em> rader som matcher et predikat (INSERT/DELETE), ikke endrede verdier av eksisterende rader. Lost update krever at T1 selv skriver basert på den utdaterte lesningen.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -279,6 +293,20 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
         </div>
         <div class="mcq-feedback">
           <strong>Brudd på 2PL.</strong> Vokse/krympe-regelen sier: <em>så snart en lås er sluppet, kan ingen ny lås tas</em>. Det betyr ikke noe at det er ulike data eller ulike låstyper. (Strict 2PL er enda strengere: X-låser må holdes til commit/abort.)
+        </div>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · 2PL-teoremet</div>
+        <div class="q-text">Hva er det <em>2PL-hovedteoremet</em> egentlig garanterer?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Schedulen blir <em>seriell</em> (transaksjonene kjører én og én)</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Schedulen er <em>conflict-serializable</em></span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Schedulen er <em>strict</em> og dermed cascadeless</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Ingen deadlocks kan oppstå</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Conflict-serializability.</strong> 2PL gir presedensgrafer uten sykler — derfor er resultatet ekvivalent med en eller annen seriell ordning. Men operasjonene kan fortsatt være interleavet (ikke (A) seriell). Kun <em>strict</em> 2PL gir strict-egenskapen (C) — basic 2PL gjør ikke det. Og 2PL kan absolutt ende i deadlock (D) — det er hele §05.
         </div>
       </div>
     </div>
@@ -572,6 +600,20 @@ T2: ......... read_lock(X) . write_lock(X)  ← venter på T1
         </div>
         <div class="mcq-feedback">
           <strong>Conservative.</strong> Ved at <em>alle</em> låser tas før transaksjonen begynner — om noen er opptatt, venter T-en før den i det hele tatt har startet, uten å holde noe selv. Dermed kan ikke en sirkulær venting oppstå. Prisen er at samtidigheten lider og at det er vanskelig å vite hvilke låser som trengs på forhånd.
+        </div>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Lock upgrade</div>
+        <div class="q-text">T1 og T2 holder begge S-lås på X. T1 ber om oppgradering til X-lås på X. Like etter ber T2 også om oppgradering til X-lås på X. Hva skjer?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>T1 får X-låsen først fordi den ba først; T2 venter til T1 er ferdig</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Begge får X-låsen — S-låser er kompatible, så oppgraderingen er trygg</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>Deadlock — begge venter på at den andre slipper sin S-lås</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det er et brudd på 2PL, så låsmanageren avviser begge forespørslene</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Deadlock.</strong> En oppgradering S→X krever at <em>alle andre</em> S-holdere har sluppet. T1 venter på T2; T2 venter på T1 — sykel i wait-for-grafen. Begge fulgte 2PL korrekt (ingen slipp før peak), men «stille» konkurrerende oppgraderinger er en klassisk deadlock-felle. (B) glemmer at <em>X</em> er eksklusiv. (D) er feil — oppgradering er en gyldig 2PL-operasjon i vokse-fasen.
         </div>
       </div>
     </div>
