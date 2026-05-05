@@ -293,6 +293,20 @@
           <strong>Riktig.</strong> PrevLSN lager en kjede gjennom alle loggposter fra samme transaksjon. Ved abort starter vi på LastLSN i transaksjonstabellen og følger PrevLSN bakover for å undoe alle endringene transaksjonen har gjort. Lenken er essensiell — uten den måtte undo skanne hele loggen.
         </div>
       </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · PageLSN</div>
+        <div class="q-text">Hva betyr det at en datasides <code>PageLSN = 250</code>?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Siden ble flushet til disk på det tidspunkt LSN 250 ble skrevet</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Den siste loggposten som er anvendt på siden, hadde LSN 250</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Side-id-en er 250</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Det er 250 endringer ventende på siden</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Siste anvendte LSN.</strong> PageLSN er stempelet «hvor langt har vi anvendt logg på <em>denne</em> siden». Redo bruker det til å hoppe over endringer som allerede er reflektert: hvis log-record har LSN <em>L</em> og PageLSN ≥ L, er endringen allerede der. (A) blander sammen med <code>FlushedLSN</code> (siste loggpost på disk), som er en separat verdi for selve loggen. (C) og (D) misforstår hva LSN er.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -899,6 +913,20 @@
         </div>
         <div class="mcq-feedback">
           <strong>Ingen blokkering.</strong> Begge typer gir kort recovery — det er hovedhensikten med <em>alle</em> sjekkpunkter. Forskjellen er at fuzzy lar databasen fortsette å betjene transaksjoner mens sjekkpunktet skrives, så systemet aldri stopper synlig for brukeren.
+        </div>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Krasj under sjekkpunkt</div>
+        <div class="q-text">Systemet krasjer etter at <code>begin_checkpoint</code> er på disk, men <em>før</em> <code>end_checkpoint</code> er det. Hva gjør recovery ved restart?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Recovery feiler — sjekkpunktet er korrupt og må slettes manuelt</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>Recovery rekonstruerer TT/DPT fra det halvferdige sjekkpunktet</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>Recovery ignorerer det halvferdige sjekkpunktet og bruker forrige fullførte sjekkpunkt</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Recovery starter fra begynnelsen av hele loggen</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Forrige sjekkpunkt.</strong> Log anchor (master record) oppdateres <em>først</em> etter at <code>end_checkpoint</code> er flushet til disk. Krasj før det ⇒ log anchor peker fortsatt på forrige fullførte sjekkpunkt. Recovery skanner litt mer logg, men slutt-tilstanden er fortsatt korrekt. (B) ville vært feil — uten end_checkpoint er TT/DPT-snapshotet aldri skrevet. (D) ville fungert, men er unødvendig.
         </div>
       </div>
     </div>
