@@ -28,7 +28,7 @@
   .sr-body mark { background: rgba(31,78,121,0.2); color: var(--ink); padding: 0 2px; border-radius: 2px; }
   .sr-empty { padding: 18px; color: var(--ink-faded); font-style: italic; text-align: center; }
 
-  .banner-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 3rem 0 0; }
+  .banner-row { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 3rem 0 0; }
   .journey-banner { display: flex; align-items: center; gap: 16px; padding: 1.4rem 1.8rem; background: linear-gradient(135deg, rgba(31,78,121,0.08), rgba(122,74,45,0.06)); border: 1px solid var(--line-soft); border-radius: 8px; color: var(--ink); transition: transform .15s, border-color .15s; }
   .journey-banner:hover { border-color: var(--rust); transform: translateX(2px); }
   .journey-banner .jb-icon { font-size: 1.6rem; }
@@ -36,7 +36,6 @@
   .journey-banner .jb-title { font-family: var(--serif); font-size: 1.2rem; }
   .journey-banner .jb-desc { font-size: 0.92rem; color: var(--ink-faded); margin-top: 2px; }
   .journey-banner .jb-arrow { color: var(--rust); font-family: var(--mono); }
-  @media (max-width: 720px) { .banner-row { grid-template-columns: 1fr; } }
 
   .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin: 2.5rem 0; }
   .chapter-card { display: flex; align-items: center; gap: 14px; padding: 1.1rem 1.3rem; background: var(--paper-dark); border: 1px solid var(--line-soft); border-radius: 8px; color: var(--ink); transition: background .15s, border-color .15s, transform .15s; }
@@ -88,6 +87,15 @@
           <div class="jb-text">
             <div class="jb-title">Spørringens reise gjennom DBMS-en</div>
             <div class="jb-desc">Følg en SQL-query fra klient til disk — interaktivt</div>
+          </div>
+          <span class="jb-arrow">→</span>
+        </a>
+
+        <a href="eksamen/" class="journey-banner">
+          <span class="jb-icon">✎</span>
+          <div class="jb-text">
+            <div class="jb-title">Eksamen</div>
+            <div class="jb-desc">Øvingseksamener med klikkbare flervalgsoppgaver — og tidligere eksamener</div>
           </div>
           <span class="jb-arrow">→</span>
         </a>
