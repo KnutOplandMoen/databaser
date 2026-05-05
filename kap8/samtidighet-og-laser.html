@@ -322,6 +322,53 @@
           <strong>Riktig.</strong> Begge holder X-låser til commit/abort (gir strict schedule + cascadeless), men strict 2PL kan slippe S-låser tidligere mens rigorous holder alt. Rigorous er enklere å implementere; strict gir litt mer samtidighet.
         </div>
       </div>
+
+      <h3 id="rigorous-eksempel" style="margin-top:1.8rem;">Gjennomgått eksempel — rigorous 2PL i sekvens</h3>
+      <p>Vi setter låser med <strong>rigorous 2PL</strong> for følgende sekvens som kommer inn til databasen, og finner ut <em>i hvilken rekkefølge</em> transaksjonene committer:</p>
+      <pre style="background:var(--paper-darker);padding:0.7rem 1rem;border-radius:4px;font-family:var(--mono);font-size:0.94rem;overflow-x:auto;">r1(A); r2(A); w1(A); r3(B); c1; w2(B); c2; r3(C); c3;</pre>
+      <p style="font-size:0.94rem;color:var(--ink-soft);margin-bottom:1rem;"><strong>Regel ved blokkering:</strong> hvis en transaksjon blokkeres på en lås, settes <em>alle</em> dens videre operasjoner på vent — neste operasjon i sekvensen utføres som vanlig. (Dette er hva pensumnotatet kaller «de neste operasjonene i historien blir utført i sekvens».)</p>
+
+      <div class="numlog">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Op</th><th>Lås-handling</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lsn">1</td><td>r1(A)</td><td>T1 tar S(A)</td><td>OK</td></tr>
+            <tr><td class="lsn">2</td><td>r2(A)</td><td>T2 tar S(A)</td><td>OK — S+S kompatibelt</td></tr>
+            <tr class="highlight"><td class="lsn">3</td><td>w1(A)</td><td>T1 ber om X(A)</td><td>Blokkert — T2 holder S(A)</td></tr>
+            <tr><td class="lsn">4</td><td>r3(B)</td><td>T3 tar S(B)</td><td>OK</td></tr>
+            <tr><td class="lsn">5</td><td>c1</td><td>T1 vil committe</td><td>På vent — w1(A) henger</td></tr>
+            <tr class="highlight"><td class="lsn">6</td><td>w2(B)</td><td>T2 ber om X(B)</td><td>Blokkert — T3 holder S(B)</td></tr>
+            <tr><td class="lsn">7</td><td>c2</td><td>T2 vil committe</td><td>På vent — w2(B) henger</td></tr>
+            <tr><td class="lsn">8</td><td>r3(C)</td><td>T3 tar S(C)</td><td>OK</td></tr>
+            <tr class="highlight"><td class="lsn">9</td><td>c3</td><td><strong>T3 committer</strong></td><td>Slipper S(B), S(C). Kjeden ruller videre →</td></tr>
+            <tr><td class="lsn">→</td><td>—</td><td>T2 får X(B), kjører w2(B), så c2: <strong>T2 committer</strong></td><td>Slipper S(A), X(B)</td></tr>
+            <tr><td class="lsn">→</td><td>—</td><td>T1 får X(A), kjører w1(A), så c1: <strong>T1 committer</strong></td><td>Slipper S(A), X(A)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin-top:1rem;"><strong>Commit-rekkefølge: T3 → T2 → T1.</strong> Det er motsatt rekkefølge av hvordan de først dukket opp i sekvensen — typisk for kjeder av blokkeringer: den siste i kjeden er ikke blokkert av noen og frigjør de andre én etter én.</p>
+
+      <div class="callout">
+        <span class="label">Slik løser du oppgavetypen</span>
+        <p>1) Tegn en kolonne per dataelement og før «Holdes av» løpende. 2) For hver operasjon: er låsen kompatibel? Hvis nei — sett operasjonen og <em>alle</em> påfølgende fra samme transaksjon på vent. 3) Etter siste eksplisitte operasjon: simulér frigjøringene i den rekkefølgen blokkerte transaksjoner kan rulle videre. 4) Hvis to transaksjoner gjensidig venter — vranglås.</p>
+      </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · Commit-rekkefølge</div>
+        <div class="q-text">Sett rigorous 2PL for sekvensen <code>r1(X); w2(X); w3(Y); r1(Y); c1; c2; c3;</code>. I hvilken rekkefølge committer T1, T2, T3?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>T1; T2; T3</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span>T1; T3; T2</span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span>T3; T1; T2</span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Vranglås mellom T1 og T2</span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>T3, T1, T2.</strong> r1(X): T1 tar S(X). w2(X): T2 ber om X(X), blokkert av T1. w3(Y): T3 tar X(Y). r1(Y): T1 ber om S(Y), blokkert av T3. c1, c2: begge på vent. c3: T3 committer, slipper X(Y). T1 får S(Y), kjører r1(Y), commiter c1 — slipper S(X), S(Y). T2 får X(X), commiter c2.
+        </div>
+      </div>
     </div>
   </section>
 
