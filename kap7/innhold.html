@@ -1322,6 +1322,68 @@ ORDER BY e.name;</pre>
         </div>
       </div>
 
+      <div class="quiz" data-quiz>
+        <div class="q-label">13 · Vanskelig · J2-kostnad med formel</div>
+        <div class="q-text">R = 80 blokker (1500 rader), S = 600 blokker. Det finnes en clustered B+-tre på <code>S.pk</code> med høyde h_S = 2. n_B = 5. Hva koster J2 med R som ytre, og hvordan sammenlignes det med J1?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p><strong>J2:</strong> cost = b_R + |R|·(h_S + 1) = 80 + 1500·3 = <strong>4580 blokker</strong>.</p>
+            <p><strong>J1 (block NL):</strong> 80 + ⌈80/3⌉·600 = 80 + 27·600 = <strong>16 280 blokker</strong>.</p>
+            <p>J2 vinner med en faktor 3.5 — fordi 1500 indeks-oppslag à 3 blokker er mye billigere enn 27 fulle scans av en 600-blokkers tabell. Men hadde |R| vært 100 000 ville J2 kostet 80 + 300 000 — verre enn J1. <em>Kryssingspunktet</em> ligger der antall ytre rader (i tusener) møter antall passes over indre.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">14 · Middels · Selektivitet</div>
+        <div class="q-text">|R| = 1 000 000, V(land, R) = 200, low(alder) = 0, high(alder) = 100. Estimer antall rader som matcher <code>WHERE land = 'Norge' AND alder &gt; 60</code>.</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p>sf_land = 1/V(land, R) = 1/200 = 0.005.</p>
+            <p>sf_alder = (high − c)/(high − low) = (100 − 60)/(100 − 0) = 0.4.</p>
+            <p>AND ⇒ sf_total = sf_land · sf_alder = 0.005 · 0.4 = 0.002.</p>
+            <p>Estimat: <strong>0.002 · 1 000 000 = 2000 rader</strong>. Forutsetter at de to predikatene er uavhengige — i praksis kan korrelasjon mellom land og alder gjøre estimatet feil.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">15 · Vanskelig · J3 vs J4</div>
+        <div class="q-text">R = 300 blokker, S = 1500 blokker, n_B = 6. Hvilken vinner: J3 eller J4? Forklar hvorfor.</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p><strong>J3 (sort-merge):</strong> d_M = 5. sortkost(R): n_R = ⌈300/6⌉ = 50, passes = ⌈log₅(50)⌉ = 3, cost = 2·300·4 = 2400. sortkost(S): n_R = 250, passes = ⌈log₅(250)⌉ = 4, cost = 2·1500·5 = 15 000. Flettetrinn: 1800. Totalt: <strong>19 200 blokker</strong>.</p>
+            <p><strong>J4 (hash):</strong> 3·(300+1500) = <strong>5400 blokker</strong>.</p>
+            <p><strong>J4 vinner</strong> stort — sortering på 1500 blokker krever 4 merge-passes med så lite buffer, og hver pass leser+skriver hele datasettet. Hash join er robust mot lite buffer fordi det alltid er fast 3 passes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">16 · Middels · Range på unclustered</div>
+        <div class="q-text">|R| = 200 000 rader, b = 4000 blokker. Unclustered B+ på <code>alder</code> med h = 2, b_indeks = 500 bladblokker. Range-spørringen treffer 30 % av radene. Bør optimizeren bruke indeksen?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p><strong>Indeks-kost:</strong> h + ⌈sf·b_indeks⌉ + sf·|R| = 2 + 150 + 60 000 = <strong>60 152 blokker</strong>.</p>
+            <p><strong>Filscan:</strong> b = <strong>4000 blokker</strong>.</p>
+            <p>Filscan vinner med en faktor 15 — optimizeren ignorerer indeksen. Klassisk «brede range + unclustered = drop indeksen»-fellen, og en hovedgrunn til at unclustered indekser ofte må pares med filscan-fallback i query-planen.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz" data-quiz>
+        <div class="q-label">17 · Vanskelig · Plan-sammenligning (filter pushdown)</div>
+        <div class="q-text">Spørring: <code>SELECT * FROM Order o JOIN Customer c ON o.cid = c.cid WHERE c.country = 'NO'</code>. Customer = 100 blokker (10 000 rader, V(country)=50), Order = 5000 blokker. n_B = 10. Skal vi joine før eller etter filtreringen — og hvorfor er forskjellen så stor?</div>
+        <div class="quiz-reveal"><button class="reveal-btn">Se svar</button>
+          <div class="answer">
+            <p>sf for country='NO' = 1/50 = 0.02 ⇒ 200 Customer-rader = 2 blokker filtrert mellomresultat.</p>
+            <p><strong>Plan A (filtrer først, så join):</strong> filscan Customer (100) + materialiser 2 blokker. J1 med 2 blokker ytre, Order indre: 2 + ⌈2/8⌉·5000 = 5002. Totalt: <strong>5102 blokker</strong>.</p>
+            <p><strong>Plan B (join hele Customer, så filtrer):</strong> J1 med Customer (100) ytre, Order indre: 100 + ⌈100/8⌉·5000 = 100 + 13·5000 = <strong>65 100 blokker</strong>. <em>Faktor 13 forskjell.</em></p>
+            <p><strong>Vinner: Plan A.</strong> «Filter pushdown» (skyv filtreringen så tidlig som mulig) er en av de viktigste og enkleste optimaliseringsteknikkene — fordi antall passes over Order er <code>⌈|ytre|/(n_B−2)⌉</code>, og en mindre ytre nesten alltid betyr drastisk færre passes.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="callout">
         <span class="label">Videre lesning</span>
         <p>Nå er du klar for <a href="../kap8/">kapittel 8 — Transaksjoner</a>. Spørringer er bare halve historien; den andre halvparten er hvordan vi kjører <em>flere</em> spørringer samtidig uten å trampe på hverandre.</p>

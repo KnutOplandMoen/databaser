@@ -457,12 +457,16 @@
           <thead><tr><th>Begrep</th><th>Forklaring</th></tr></thead>
           <tbody>
             <tr><td>Aksessvei</td><td>Måten executoren henter rader på: filscan (les hele tabellen), indeksscan, range-scan, indeks-lookup.</td></tr>
+            <tr><td>Blocking factor (bf)</td><td>Antall rader som får plass i én blokk: <code>bf = ⌊B/R⌋</code> (B = blokkstørrelse, R = recordstørrelse). Bestemmer hvor mange blokker tabellen krever: <code>b = ⌈|R|/bf⌉</code>.</td></tr>
+            <tr><td>Selektivitetsfaktor (sf)</td><td>Andelen rader som overlever et predikat — mellom 0 og 1. Likhet: <code>sf = 1/V(A,R)</code>. Range: <code>sf = (high−c)/(high−low)</code>. AND multipliserer, OR summerer (med korreksjon).</td></tr>
+            <tr><td>V(A, R)</td><td>Antall distinkte verdier av attributt A i tabell R. Brukes til å estimere selektivitet for likhet og antall matcher pr. ytre rad i en join.</td></tr>
             <tr><td>Statistikk</td><td>Antall rader, antall blokker per tabell/indeks, B+-tre-høyde, lavest og høyest forekommende verdi (lowkey/highkey), histogrammer (verdifordelinger). Optimizeren bruker dette til kostnadsestimat.</td></tr>
             <tr><td>External merge sort</td><td>Sortering på disk når dataene ikke får plass i RAM. To faser: en initialfase og deretter merge-passes som flettes parvis. Variablene n_R, d_M og antall passes forklares på innholdssiden.</td></tr>
-            <tr><td>Nested loop join (J1)</td><td>For hver rad i ytre tabell: scan indre tabell. Block nested loop bruker bufferblokker for å laste flere rader om gangen.</td></tr>
-            <tr><td>Index nested loop (J2)</td><td>Ytre tabell scannes; for hver rad slås matchende rader i indre tabell opp via en indeks.</td></tr>
-            <tr><td>Sort-merge join (J3)</td><td>Sorter begge sider på join-attributtet (kolonnen vi joiner på), gå gjennom dem med to pekere som flytter seg parallelt.</td></tr>
-            <tr><td>Partition-hash join (J4)</td><td>Hash begge tabeller på join-attributtet; join hver partisjon for seg når dataene får plass i RAM.</td></tr>
+            <tr><td>Nested loop join (J1)</td><td>For hver rad i ytre tabell: scan indre tabell. Block nested loop bruker bufferblokker for å laste flere rader om gangen. Kost: <code>b_R + ⌈b_R/(n_B−2)⌉·b_S</code>.</td></tr>
+            <tr><td>Index nested loop (J2)</td><td>Ytre tabell scannes; for hver rad slås matchende rader i indre tabell opp via en indeks. Kost (clustered): <code>b_R + |R|·(h_S+1)</code>.</td></tr>
+            <tr><td>Sort-merge join (J3)</td><td>Sorter begge sider på join-attributtet (kolonnen vi joiner på), gå gjennom dem med to pekere som flytter seg parallelt. Kost: <code>sortkost(R) + sortkost(S) + b_R + b_S</code>.</td></tr>
+            <tr><td>Partition-hash join (J4)</td><td>Hash begge tabeller på join-attributtet; join hver partisjon for seg når dataene får plass i RAM. Kost: <code>3·(b_R + b_S)</code>.</td></tr>
+            <tr><td>Filter pushdown</td><td>Utfør WHERE-predikater så tidlig som mulig i planen — gjerne før join. Reduserer størrelsen på mellomresultater og dermed antall passes over indre tabell i nested loop joins.</td></tr>
             <tr><td>EXPLAIN</td><td>MySQL-kommando som viser planen optimizeren har valgt — kolonnene type, key, rows, Extra.</td></tr>
           </tbody>
         </table>
