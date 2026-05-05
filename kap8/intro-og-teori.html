@@ -299,6 +299,20 @@ Sammenflettet:  r1(A); r2(A); w1(A); w2(A); c1; c2;</code></pre>
           </div>
         </div>
       </div>
+
+      <div class="mcq" data-mcq>
+        <div class="q-label">Sjekk · De tre vilkårene</div>
+        <div class="q-text">Hvilket av disse parene er <em>ikke</em> i konflikt?</div>
+        <div class="mcq-options">
+          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span><code>r<sub>1</sub>(X)</code> og <code>w<sub>2</sub>(X)</code></span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">B</span><span><code>w<sub>1</sub>(Y)</code> og <code>w<sub>3</sub>(Y)</code></span></div>
+          <div class="mcq-option" data-correct="true"><span class="marker">C</span><span><code>r<sub>2</sub>(A)</code> og <code>w<sub>2</sub>(A)</code></span></div>
+          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span><code>w<sub>1</sub>(B)</code> og <code>r<sub>2</sub>(B)</code></span></div>
+        </div>
+        <div class="mcq-feedback">
+          <strong>Riktig — C.</strong> Begge operasjonene tilhører T<sub>2</sub>, og det første vilkåret («ulike transaksjoner») er ikke oppfylt. Internt i én transaksjon bestemmer programmet rekkefølgen — det er ikke en konflikt mellom transaksjoner. A, B og D oppfyller alle tre vilkårene: ulike Tx, samme element, minst én write.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -571,6 +585,115 @@ Ikke-recoverable: w1(A); w1(B); r2(A); c2; c1;     ← T2 har committed på T1's
             <strong>Strict:</strong> Nei. T2 skrev <em>over</em> en uncommitted verdi (w1(A)). Hvis T1 aborterer, kan vi ikke gjenopprette w1(A) ved bare å bruke before-image — T2 har allerede skrevet på toppen.
           </div>
         </div>
+      </div>
+
+      <p style="margin-top:1.8rem;font-style:italic;color:var(--ink-soft);">Bla gjennom kortene for å øve på å klassifisere schedules i hierarkiet <em>Strict ⊂ ACA ⊂ Recoverable</em>. Velg <em>sterkeste</em> klasse schedulen tilhører.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu kort</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
+        </div>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Klassifisering · disjunkte data</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>r1(A); r2(B); w1(A); w2(B); c1; c2;</code> — hva er den <em>sterkeste</em> klassen den tilhører?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Strict</li>
+                <li><span class="opt-label">B</span> ACA, men ikke strict</li>
+                <li><span class="opt-label">C</span> Recoverable, men ikke ACA</li>
+                <li><span class="opt-label">D</span> Ikke recoverable</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — Strict.</strong></p>
+              <p>T1 og T2 jobber på <em>ulike</em> dataelementer (A og B). Ingen leser eller skriver over en uncommitted verdi — det finnes ingen kryss-konflikt i det hele tatt. Dermed holder strict trivielt, og strict ⇒ ACA ⇒ recoverable.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Klassifisering · skriv over uncommitted</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>w1(A); w2(A); c1; r2(A); c2;</code> — hva er den <em>sterkeste</em> klassen?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Strict</li>
+                <li><span class="opt-label">B</span> ACA, men ikke strict</li>
+                <li><span class="opt-label">C</span> Recoverable, men ikke ACA</li>
+                <li><span class="opt-label">D</span> Ikke recoverable</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — ACA, men ikke strict.</strong></p>
+              <p><em>Ikke strict:</em> T2 skriver A mens T1 fortsatt er uncommitted (w2(A) før c1) — strict forbyr å skrive over uncommitted verdier.</p>
+              <p><em>ACA holder:</em> T2 leser A først <em>etter</em> at T1 har committed. T2 leser aldri en uncommitted verdi.</p>
+              <p><em>Recoverable:</em> trivielt, siden T2 ikke leser fra T1.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Klassifisering · les uncommitted</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>w1(A); r2(A); w2(B); c1; c2;</code> — hva er den <em>sterkeste</em> klassen?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Strict</li>
+                <li><span class="opt-label">B</span> ACA, men ikke strict</li>
+                <li><span class="opt-label">C</span> Recoverable, men ikke ACA</li>
+                <li><span class="opt-label">D</span> Ikke recoverable</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — Recoverable, men ikke ACA.</strong></p>
+              <p><em>Ikke ACA:</em> T2 leser A før T1 har committed (r2(A) etter w1(A), før c1). T2 leser en uncommitted verdi — hvis T1 aborterer, må T2 også abortes (cascading).</p>
+              <p><em>Recoverable holder:</em> T1 committer <em>før</em> T2. Da kan vi alltid rulle tilbake T1 sammen med T2 hvis T1 aborterer før c1.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Klassifisering · feil commit-rekkefølge</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>w1(A); r2(A); w2(B); c2; c1;</code> — hva er den <em>sterkeste</em> klassen?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Strict</li>
+                <li><span class="opt-label">B</span> ACA, men ikke strict</li>
+                <li><span class="opt-label">C</span> Recoverable, men ikke ACA</li>
+                <li><span class="opt-label">D</span> Ikke recoverable</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — ikke recoverable.</strong></p>
+              <p>T2 leser fra T1 (r2(A) etter w1(A), ingen annen Tx skriver A imellom), og T2 committer <em>før</em> T1. Hvis T1 nå aborterer, har T2 allerede committed på en verdi som ikke skulle eksistere — vi kan ikke rulle T2 tilbake.</p>
+              <p>Recoverable krever nettopp at den «leser-fra»-skrivende transaksjonen committer <em>først</em>.</p>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
