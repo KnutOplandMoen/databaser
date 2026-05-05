@@ -6,6 +6,7 @@
 <link rel="icon" href="../favicon.png" type="image/png">
 <title>Recovery — Kap 8C</title>
 <link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="../flashcards.css">
 <link rel="stylesheet" href="kap8.css">
 <style>
   /* Force/Steal matrix */
@@ -504,18 +505,136 @@
 
       <p style="font-size:0.92rem;color:var(--ink-soft);">CLR-er er redo-only. Ved krasj under undo: ny restart finner siste CLR fra loseren og fortsetter via PrevLSN av den loggposten CLR-en kompenserte for — derfor blir aldri samme operasjon angret to ganger.</p>
 
-      <div class="mcq" data-mcq>
-        <div class="q-label">Sjekk · ARIES-faser</div>
-        <div class="q-text">Hvorfor må Analysis kjøres før Redo?</div>
-        <div class="mcq-options">
-          <div class="mcq-option" data-correct="false"><span class="marker">A</span><span>Det må den ikke — rekkefølgen kan byttes</span></div>
-          <div class="mcq-option" data-correct="true"><span class="marker">B</span><span>Redo trenger DPT for å vite hvor langt tilbake i loggen den må starte (minste RecLSN)</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">C</span><span>Analysis bruker mindre minne enn Redo</span></div>
-          <div class="mcq-option" data-correct="false"><span class="marker">D</span><span>Analysis sletter loggen etter at den er ferdig</span></div>
+      <p style="margin-top:1.6rem;font-style:italic;color:var(--ink-soft);">Bla gjennom kortene under for å sjekke at du forstår fasene og hvorfor de er nødvendige.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu kort</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
         </div>
-        <div class="mcq-feedback">
-          <strong>DPT trengs først.</strong> Analysis rekonstruerer DPT og TT slik de var ved krasjet. Redo bruker DPT til å starte ved minste RecLSN — uten det måtte Redo skanne hele loggen fra start. Undo trenger TT til å vite hvilke transaksjoner som er løsere. Faserekkefølgen Analysis → Redo → Undo er fast.
-        </div>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">ARIES · faserekkefølge</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor må Analysis kjøres før Redo?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Det må den ikke — rekkefølgen kan byttes</li>
+                <li><span class="opt-label">B</span> Redo trenger DPT for å vite hvor langt tilbake i loggen den må starte (minste RecLSN)</li>
+                <li><span class="opt-label">C</span> Analysis bruker mindre minne enn Redo</li>
+                <li><span class="opt-label">D</span> Analysis sletter loggen etter at den er ferdig</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — DPT trengs først.</strong></p>
+              <p>Analysis rekonstruerer DPT og TT slik de var ved krasjet. Redo bruker DPT til å starte ved minste RecLSN — uten det måtte Redo skanne hele loggen fra start. Undo trenger TT for å vite hvilke transaksjoner som er løsere. Faserekkefølgen Analysis → Redo → Undo er fast.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">ARIES · repeating history</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Redo-fasen gjenspiller <em>også</em> endringer fra transaksjoner som aldri committet (losere). Hvorfor?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Det er en bug — Redo burde hoppet over losere</li>
+                <li><span class="opt-label">B</span> For å forenkle logikken: etter Redo er DB i nøyaktig krasj-tilstand, så Undo kan reverse log-recordene direkte</li>
+                <li><span class="opt-label">C</span> For å spare minne under recovery</li>
+                <li><span class="opt-label">D</span> For at lock manager skal kunne rekonstruere låstabellen</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — repeating history.</strong></p>
+              <p>Ved å gjenspille <em>alt</em> (også fra losere), bringes databasen tilbake til nøyaktig den tilstanden den hadde ved krasjet. Da kan Undo bare reverse log-recordene én etter én, uten å bekymre seg for hva som faktisk er på disk eller ikke.</p>
+              <p>PageLSN-sjekken (<code>if PageLSN ≥ LSN: skip</code>) sørger for at vi ikke gjør samme operasjon to ganger om en endring allerede er reflektert på siden.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">ARIES · Undo via PrevLSN</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Under Undo, hvordan finner ARIES neste loggpost å angre for en loser-transaksjon?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Skanner loggen sekvensielt fra slutten til en match på TransID</li>
+                <li><span class="opt-label">B</span> Bruker PrevLSN-feltet til å hoppe direkte bakover langs Tx-ens kjede</li>
+                <li><span class="opt-label">C</span> Slår opp i Dirty Page Table</li>
+                <li><span class="opt-label">D</span> Følger PageLSN på berørte sider</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — PrevLSN-kjeden.</strong></p>
+              <p>Hver loggpost peker bakover til forrige loggpost fra samme transaksjon via PrevLSN. Undo starter på Tx.LastLSN i TT og hopper direkte langs kjeden — O(antall log-records for Tx-en), ikke O(hele loggen).</p>
+              <p>Sekvensiell skanning ville vært katastrofalt for loggen, som typisk er gigabytes stor.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">ARIES · krasj under undo</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Restart kjører, halvveis i Undo-fasen krasjer maskinen igjen. Hva skjer ved neste restart?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Samme operasjon angres en gang til — derfor er det ikke trygt</li>
+                <li><span class="opt-label">B</span> Recovery er idempotent: CLR-er sier hva som er angret, og prosessen fortsetter trygt videre</li>
+                <li><span class="opt-label">C</span> Loggen må startes på nytt fra begin_checkpoint før forrige restart</li>
+                <li><span class="opt-label">D</span> Databasen er ødelagt og må gjenopprettes fra backup</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — idempotent.</strong></p>
+              <p>Hver gang Undo angrer en operasjon skrives en CLR med PageLSN på siden oppdatert til CLR-ens LSN. Etter krasjen finner Analysis disse CLR-ene, Redo gjenspiller dem (slik at PageLSN-er stemmer), og Undo fortsetter via PrevLSN av den loggposten CLR-en kompenserte for — aldri den samme operasjonen to ganger.</p>
+              <p>Du kan krasje, restarte, krasje, restarte — slutt-tilstanden er den samme.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">ARIES · winners</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva må gjøres med en transaksjon som er <em>committed</em> men hvis dirty sider aldri kom seg ut til disk før krasjet?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Ingenting — committed = på disk per definisjon</li>
+                <li><span class="opt-label">B</span> Redo gjenspiller alle endringene (Durability)</li>
+                <li><span class="opt-label">C</span> Undo angrer endringene siden tilstanden er usikker</li>
+                <li><span class="opt-label">D</span> Transaksjonen aborteres ved restart</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — Redo.</strong></p>
+              <p>WAL-regelen + force-log-at-commit garanterer at <em>loggposter</em> er på disk ved commit, men dataside-skrivinger kan henge i buffer. Redo leser loggen og påfører endringene på sidene — det gir Durability.</p>
+              <p>(A) er en vanlig misforståelse: «committed» betyr at <em>loggen</em> er på disk, ikke at dataene har nådd dit ennå.</p>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -816,6 +935,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="../flashcards.js"></script>
 <script src="kap8.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
