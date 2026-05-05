@@ -114,11 +114,20 @@ Det betyr at **fasitens innhold er det brukeren ser etter et svar** — det skal
 
 ---
 
-## 3. Del 1 — Theodoros (~40 %, ca. 11–13 oppgaver)
+## 3. Del 1 — Theodoros (~40 %, ca. 12–14 oppgaver)
 
-Stilen ligner [midterm_2026.md](../midterm_2026.md): korte konseptspørsmål + små tabeller man "kjører" SQL/RA mot i hodet. Hver eksamen skal dekke alle de seks blokkene under, med minst én oppgave per blokk.
+Stilen ligner [midterm_2026.md](../midterm_2026.md): korte konseptspørsmål + små tabeller man "kjører" SQL/RA mot i hodet. Hver eksamen skal dekke alle de syv blokkene under, med minst én oppgave per blokk.
 
-### 3.1 Relasjonsmodell og relasjonsalgebra (Kap. 2 + 3.2 + 4.1) — 2–3 oppgaver
+### 3.1 Introduksjon (Kap. 1) — 1 oppgave
+Kap. 1 er en oversiktsforelesning, men har konseptuelt MC-stoff som er lett å glemme:
+- **Tre-skjema-arkitekturen** (fysisk / logisk / view) og **datauavhengighet** (logisk vs fysisk).
+- **DDL vs DML** — hva uttrykker DDL (skjema, integritetskrav), hva uttrykker DML (innhold)?
+- **Database­motorens komponenter**: storage manager, query processor, transaction manager, buffer manager — hva gjør hver?
+- **2-tier vs 3-tier-arkitektur**, og forskjell på sentralisert / parallell / distribuert DB.
+- **DBMS vs filsystem**: hvorfor ikke bare bruke filer? (lost update, redundans, integritet, samtidighet, recovery).
+- **Skjema vs instans**: skjemaet endres sjelden, instansen ofte.
+
+### 3.2 Relasjonsmodell og relasjonsalgebra (Kap. 2 + 3.2 + 4.1) — 2 oppgaver
 Spørsmålstyper som **må** representeres over tid:
 - Hvilke operatorer er fundamentale i RA? (selection, projection, union, set difference, cross product, rename — *ikke* intersection, join, division)
 - Beregn antall tupler i resultatet av et RA-uttrykk (σ, π, ⋈, ⋈ₙ, ÷, ∪, ∩, −).
@@ -127,20 +136,20 @@ Spørsmålstyper som **må** representeres over tid:
 - Nøkkelbegreper: superkey vs candidate key vs primary key vs foreign key.
 - Domain, attributt, schema, instans.
 
-### 3.2 SQL — DDL, spørringer, aggregater (3.1–3.7, 3.9) — 2–3 oppgaver
+### 3.3 SQL — DDL, spørringer, aggregater (3.1–3.7, 3.9) — 2 oppgaver
 - Les en `CREATE TABLE`-setning: hvilken er gyldig? Hvilken constraint er brutt? Hva blir typen til en kolonne?
 - Resultat av en `SELECT` med `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`, `LIMIT` mot en gitt liten tabell — svaralternativer er konkrete tall eller verdier.
 - Rekkefølgen SQL-klausuler logisk evalueres i (FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY).
 - Aggregater (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`) og hva som skjer med NULL.
 - DISTINCT, set-operatorer (UNION, INTERSECT, EXCEPT).
 
-### 3.3 SQL — joins og subqueries (3.8, 4.1) — 2 oppgaver
+### 3.4 SQL — joins og subqueries (3.8, 4.1) — 2 oppgaver
 - Resultat av self-joins, inner/outer joins.
 - Korrelert vs ukorrelert subquery — hvilken gir samme resultat?
 - `IN`, `EXISTS`, `ANY`, `ALL`, `NOT EXISTS` — semantikk og ekvivalenser.
 - Omskriv en nøstet spørring til en flat join (eller motsatt) — "hvilken av disse er ekvivalent?".
 
-### 3.4 SQL — views, transaksjoner, integritet, indekser, autorisasjon, prosedyrer, triggere, rekursjon (4.2–4.7, 5.2–5.4, 16.5.1, 17.1) — 2–3 oppgaver
+### 3.5 SQL — views, transaksjoner, integritet, indekser, autorisasjon, prosedyrer, triggere, rekursjon (4.2–4.7, 5.2–5.4, 16.5.1, 17.1) — 2–3 oppgaver
 **Dette området ble underrepresentert i midterm — pass særlig på her.**
 - Hva er en view? Materialiserte views vs vanlige views. Updatable views.
 - `CHECK`, `NOT NULL`, `UNIQUE`, `FOREIGN KEY ... ON DELETE/UPDATE CASCADE/SET NULL/RESTRICT`.
@@ -150,14 +159,14 @@ Spørsmålstyper som **må** representeres over tid:
 - `GRANT`/`REVOKE`-syntaks.
 - `CREATE INDEX` — hva slags indeks lages, og hva betyr det for ytelse?
 
-### 3.5 ER-modellering og ER → relasjonsskjema (6.1–6.7, 6.9, 7.1) — 2 oppgaver
+### 3.6 ER-modellering og ER → relasjonsskjema (6.1–6.7, 6.9, 7.1) — 2 oppgaver
 - Tolk et lite ER-diagram (vist som SVG/bilde eller beskrivelse): hvor mange tabeller trengs?
 - Kardinaliteter (1:1, 1:N, M:N) og total/partial deltakelse.
 - Svake entiteter — hvordan mappes de?
 - Spesialisering/generalisering, ISA-hierarkier, kategorier (union types).
 - Hvilke utsagn om diagrammet er sanne? (à la midterm Q1.13)
 
-### 3.6 Funksjonelle avhengigheter og normalformer (7.1–7.3, 7.6) — 2 oppgaver
+### 3.7 Funksjonelle avhengigheter og normalformer (7.1–7.3, 7.6) — 2 oppgaver
 - Gitt FD-mengde: hva er kandidatnøklene?
 - Hvilken normalform er en gitt tabell på (1NF/2NF/3NF/BCNF)?
 - BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF — hvilke implikasjoner gjelder?
@@ -191,8 +200,12 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
 ### 4.3 Queries — aksessmetoder, sortering, query processing (kap. 12–14) — 2–3 oppgaver
 - "Hvor mange blokker aksesseres ved optimal utføring?" — gitt clustered/unclustered B+-tre + heap, beregn for `WHERE pk = c`, `WHERE secondary = c`, `WHERE pk > c`, `ORDER BY secondary` osv. Dette er kjernemønsteret i Problem 3–5 i vår_2025 — variér tallene.
 - Velg riktig aksess-plan: scan vs index seek vs index-scan + heap-aksess.
-- Merge-sort: gitt B blokker og nB buffere, beregn `nR = ceil(B/nB)`, `dM = min(nB-1, nR)`, antall passes = `ceil(log_dM(nR))`, totalt I/O = `2B * (1 + passes)`.
-- Nested-loop join: hvor mange blokker leses gitt buffer-spaces? Hvilken tabell skal være ytre løkke?
+- External merge sort: gitt B blokker og nB buffere, beregn `nR = ceil(B/nB)`, `dM = min(nB-1, nR)`, antall passes = `ceil(log_dM(nR))`, totalt I/O = `2B * (1 + passes)`.
+- **Join-algoritmer (J1–J4)** — kjenn navnene, hovedidéen, og når hver vinner:
+  - **J1 Block nested loop:** hvor mange blokker leses gitt buffer-spaces? Hvilken tabell skal være ytre løkke (typisk den minste)?
+  - **J2 Index nested loop:** raskere når det fins en indeks på indre tabells join-attributt — for hver rad i ytre, slå opp i indeksen.
+  - **J3 Sort-merge join:** sorter begge på join-attributtet og gå parallelt gjennom med to pekere. Lønner seg når begge inputs allerede er sortert, eller når resultatet uansett skal sorteres.
+  - **J4 Partition-hash join:** hash join-attributtet for å partisjonere begge tabellene; *build*-fase bygger hashtabell på den minste siden, *probe*-fase slår opp den andre. Krever at partisjonene får plass i RAM.
 - Query optimizer: logisk vs fysisk plan, statistikk fra katalog.
 
 ### 4.4 Transaksjoner del 1 — teori, schedules, serialiserbarhet (kap. 15–16) — 2–3 oppgaver
@@ -244,9 +257,9 @@ For alle slike: hold spørsmålet *konkret* (presis spec) og distraktorene *plau
 - [ ] Hver oppgave er en `<article class="exam-q">` med riktig HTML-struktur (se §2) — `.opt-label` per alternativ, `.fasit-correct` med `Riktig svar: X`, og en `<details class="fasit-details">` med forklaring.
 - [ ] Sett er testet i nettleser: klikk på et alternativ låser oppgaven, fargelegger riktig/feil, og åpner forklaringen automatisk.
 - [ ] Total poengsum = 100, og fordelingen er ≈ 40/60 mellom Del 1 og Del 2.
-- [ ] Hver av de seks Del 1-blokkene (§3.1–3.6) er representert med minst én oppgave.
+- [ ] Hver av de syv Del 1-blokkene (§3.1–3.7) er representert med minst én oppgave.
 - [ ] Hver av de seks Del 2-blokkene (§4.1–4.6) er representert med minst én oppgave.
-- [ ] Minst én oppgave dekker det "underrepresenterte" stoffet: views, triggere, rekursjon, hashing-detaljer, isolation levels, MVCC.
+- [ ] Minst én oppgave dekker det "underrepresenterte" stoffet: views, triggere, rekursjon, hashing-detaljer, join-algoritmer (J2–J4), isolation levels, MVCC.
 - [ ] Ingen oppgave er en direkte kopi av [midterm_2026.md](../midterm_2026.md) eller [vår_2025.md](../vår_2025.md). Tall, navn og scenario er endret.
 - [ ] Alle oppgaver har grundig forklaring som dekker både hvorfor riktig er riktig og hvorfor distraktorene er feil.
 - [ ] Distraktorene er plausible (typiske misforståelser), ikke "fyllalternativer", og er omtrent like lange som det riktige svaret.
