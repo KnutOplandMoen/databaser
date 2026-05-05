@@ -290,14 +290,21 @@
 
   // ─── Markdown + KaTeX render pipeline ──────────────────────────────────
   function preProcessMath(text) {
-    // Recover bare-bracket math blocks: `[ \cmd ... ]` → `\[ \cmd ... \]`.
+    // Recover bare-bracket display math: `[ \cmd ... ]` → `\[ \cmd ... \]`.
     // Handles single-line (`[ \frac{a}{b} ]`) and multi-line forms where the
-    // opening `[` starts a line and the closing `]` ends a line, with arbitrary
-    // content (incl. newlines) in between. Requires the body to begin with a
-    // TeX command (`\letter`) to avoid eating ordinary `[text]` brackets.
+    // opening `[` starts a line and the closing `]` ends a line. Body must
+    // begin with a TeX command (`\letter`) so we don't eat plain `[text]`.
     text = text.replace(
       /^[ \t]*\[([ \t]*\\[a-zA-Z][\s\S]*?)\][ \t]*$/gm,
       '\\[$1\\]'
+    );
+    // Recover bare-paren inline math: `( ... \cmd ... )` → `\( ... \cmd ... \)`.
+    // Body must contain at least one TeX command, must not contain nested
+    // parens or newlines, and the delimiters must not already be escaped
+    // (skip existing `\(...\)`).
+    text = text.replace(
+      /(?<!\\)\(([^()\n]*\\[a-zA-Z][^()\n]*)(?<!\\)\)/g,
+      '\\($1\\)'
     );
     return text;
   }
