@@ -301,10 +301,126 @@
     font-size: 1.2rem;
   }
 
+  /* Formula blocks med "hvorfor" */
+  .formula-block {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--ochre);
+    border-radius: 0 4px 4px 0;
+    padding: 0.7rem 0.95rem;
+    margin: 0.7rem 0;
+  }
+  .formula-block .formula-eq {
+    font-family: var(--mono);
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+  .formula-block .formula-eq code {
+    background: transparent;
+    padding: 0;
+    font-size: 1rem;
+    color: var(--rust-dark);
+    font-weight: 600;
+  }
+  .formula-block .formula-why {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.55;
+  }
+  .formula-block .formula-why strong { color: var(--ink); }
+  .ex-list { margin: 0.4rem 0; }
+  .ex-list li { margin-bottom: 0.2rem; }
+
+  /* External merge sort — utvidet visualisering */
+  .ems-io {
+    display: flex;
+    gap: 1.4rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--ink);
+    color: #e8e3d6;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .ems-io strong { color: #ffc97a; }
+  .ems-io .ems-io-total { margin-left: auto; }
+  .ems-io .ems-io-total strong { color: #9fd49a; }
+
+  .ems-section {
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+  .ems-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .ems-section-title {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faded);
+    margin-bottom: 0.4rem;
+  }
+
+  .ems-buffer {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .ems-slot {
+    border: 2px dashed var(--line);
+    border-radius: 4px;
+    padding: 5px 7px 7px;
+    background: var(--paper);
+    min-width: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ems-slot.empty { opacity: 0.55; }
+  .ems-slot.full   { border-color: var(--ochre); border-style: solid; }
+  .ems-slot.input  { border-color: var(--blue); border-style: solid; }
+  .ems-slot.output { border-color: var(--green); border-style: solid; background: #f3f7f1; }
+  .ems-slot-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-faded);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ems-slot-body {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    min-height: 26px;
+    flex-wrap: wrap;
+  }
+  .ems-empty {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faded);
+    font-style: italic;
+  }
+  .blk.slot-empty {
+    opacity: 0.4;
+    color: var(--ink-ghost);
+    font-style: italic;
+    border-style: dashed;
+  }
+
   @media (max-width: 720px) {
     .nl-scene, .sm-scene, .hash-scene { grid-template-columns: 1fr; }
     .pipe-arrow { display: none; }
     .block-row .lbl { width: 100%; }
+    .ems-io .ems-io-total { margin-left: 0; }
   }
 
   /* Embedded mini-quiz inline */
@@ -551,12 +667,19 @@
     <div class="container">
       <div class="section-badge">04 · External merge sort</div>
       <h2>Sortering når <em>RAM ikke holder</em></h2>
-      <p>Mange spørringer trenger sortert resultat: <code>ORDER BY</code>, <code>GROUP BY</code>, <code>DISTINCT</code>, og senere sort-merge join (se §6 nedenfor). Når tabellen er større enn RAM, bruker vi <em>external merge sort</em> («ekstern» fordi den må gå utenfor RAM, til disk). Idéen er to faser:</p>
+      <p>Mange spørringer trenger sortert resultat: <code>ORDER BY</code>, <code>GROUP BY</code>, <code>DISTINCT</code>, og senere sort-merge join (se §6 nedenfor). Vanlig sortering (quicksort, mergesort i RAM) forutsetter at hele lista er i minnet — men en stor tabell er per definisjon <em>ikke</em> det. Vi må sortere bit-for-bit og bruke disk som arbeidsplass, helst uten å lese samme blokk altfor mange ganger.</p>
+
+      <p><em>External merge sort</em> («ekstern» fordi den går utenfor RAM, til disk) løser dette i to faser:</p>
 
       <ol>
-        <li><strong>Initialfase:</strong> Les inn så mye som får plass i bufferet, sorter internt, skriv ut som en sortert «run».</li>
-        <li><strong>Mergefase:</strong> Merge flere runs om gangen til vi har én sortert fil.</li>
+        <li><strong>Initialfase:</strong> Les så mye som får plass i bufferet, sorter internt med vanlig sort, skriv ut som en sortert «run». Gjenta til hele tabellen er prosessert.</li>
+        <li><strong>Mergefase:</strong> Flett flere runs om gangen ved å sammenligne front-verdiene — siden inputene er sorterte, holder det med én peker per run. Gjenta inntil vi har én sortert fil.</li>
       </ol>
+
+      <div class="callout">
+        <span class="label">Hvorfor to faser?</span>
+        <p>Du kan tenke på det som «sortér det du klarer i RAM, så flett resten på disk». Fase 1 utnytter at intern sortering er gratis (ingen disk-I/O) — men den gir oss bare <em>biter</em> som er sortert. Fase 2 fletter bitene parvis (eller flere på én gang) — dét er billig, fordi når begge inputene er sortert trenger vi bare se på én verdi per input om gangen for å plukke neste-i-rekka. Hver fase «rører» hele tabellen én gang for lesning og én gang for skriving — og det er presist der formelen <code>2b · (1 + passes)</code> kommer fra.</p>
+      </div>
 
       <h3>Notasjon (les denne først)</h3>
       <ul>
@@ -566,30 +689,55 @@
         <li><code>d_M</code> = mergegrad — hvor mange runs vi kan flette sammen i ett pass</li>
       </ul>
 
-      <h3>Formler</h3>
-      <ul>
-        <li>Antall initialruns: <code>n_R = ⌈b / n_B⌉</code></li>
-        <li>Mergegrad: <code>d_M = n_B − 1</code> (én buffer reserveres til output-strømmen)</li>
-        <li>Antall mergepasser: <code>⌈log_(d_M)(n_R)⌉</code></li>
-        <li>Total I/O: <code>2b · (1 + antall mergepasser)</code></li>
-      </ul>
+      <h3>Formler — og hvorfor de stemmer</h3>
+
+      <div class="formula-block">
+        <div class="formula-eq">Antall initialruns &nbsp;<code>n_R = ⌈b / n_B⌉</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Bufferet rommer maks <code>n_B</code> blokker. For å sortere tabellen tar vi ett bufferet om gangen, sorterer det internt og skriver det ut. Tabellen er <code>b</code> blokker, så vi får akkurat <code>⌈b/n_B⌉</code> bufferets — derfor like mange runs. Avrunding opp fordi siste run kan være delvis fylt.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Mergegrad &nbsp;<code>d_M = n_B − 1</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> For å flette <code>k</code> runs samtidig trenger vi én slot per run (for å holde gjeldende blokk og se neste verdi i den runen) — pluss én slot for et output-buffer (der vi samler verdier til neste blokk skal skrives). Totalt <code>k + 1</code> slots, og det må være <code>≤ n_B</code>. Største <code>k</code> blir <code>n_B − 1</code>. Den ene «mistede» sloten er prisen for å samle output før vi går til disk.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Antall mergepasser &nbsp;<code>⌈log_(d_M)(n_R)⌉</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Hvert mergepass slår sammen <code>d_M</code> runs til én — så <em>antall runs deles på <code>d_M</code></em> hver runde. Vi er ferdige når det bare står 1 run igjen. Sekvensen blir <code>n_R → n_R/d_M → n_R/d_M² → … → 1</code>. Antall slike «d_M-eringer» er logaritmen i base <code>d_M</code>. Større buffer ⇒ større <code>d_M</code> ⇒ færre passer.</p>
+      </div>
+
+      <div class="formula-block">
+        <div class="formula-eq">Total I/O &nbsp;<code>2b · (1 + antall mergepasser)</code></div>
+        <p class="formula-why"><strong>Hvorfor:</strong> Hvert pass — initial eller merge — gjør samme ting på I/O-nivå: leser alle <code>b</code> blokker fra disk, og skriver alle <code>b</code> tilbake. Det gir <code>2b</code> per pass. Initialfasen teller som <em>ett</em> pass (det er der <code>1</code>-en kommer fra), pluss antall mergepasser. Sortering i RAM er gratis — det er disken vi betaler for, og hver blokk besøkes nøyaktig én gang per pass i hver retning.</p>
+      </div>
 
       <h3>Eksempel fra pensum</h3>
-      <p>n_B = 5, b = 1024. Da er n_R = ⌈1024/5⌉ = 205, og d_M = 4. Antall mergepasser = ⌈log₄(205)⌉ = 4. Total I/O = 2·1024·(1+4) = <strong>10 240 blokker</strong>.</p>
+      <p>Sett <code>n_B = 5</code>, <code>b = 1024</code> (en tabell på 1024 blokker, buffer på 5).</p>
+      <ul class="ex-list">
+        <li><code>n_R = ⌈1024/5⌉ = 205</code> initialruns (vi får 205 «bufferets» med data å sortere internt)</li>
+        <li><code>d_M = 5 − 1 = 4</code> (én slot reservert til output)</li>
+        <li>Antall mergepasser = <code>⌈log₄(205)⌉ = 4</code> (205 → 52 → 13 → 4 → 1)</li>
+        <li>Total I/O = <code>2·1024·(1+4) = </code><strong>10 240 blokker</strong> (initial + 4 merge = 5 passer, hver à 2·1024)</li>
+      </ul>
+      <p style="font-size:0.88rem; color:var(--ink-soft); margin-top:-0.4rem;">Merk hvor mye buffer-størrelsen betyr: med <code>n_B = 257</code> ville <code>d_M = 256</code> og vi hadde merget alt i <em>ett</em> pass — total I/O <code>2·1024·2 = 4096</code>. Det er én av grunnene til at databaser allokerer mest mulig RAM til sort-bufferne.</p>
+
+      <h3>Steg-for-steg-animasjon</h3>
+      <p>Et lite eksempel: <code>b = 6</code> blokker, hver med 2 verdier; <code>n_B = 3</code>. Da er <code>n_R = 2</code>, <code>d_M = 2</code>, og vi trenger akkurat ett mergepass. Total I/O = <code>2·6·(1+1) = 24</code> blokk-aksesser. Klikk «Neste steg» for å se hva som skjer i bufferet og hvordan I/O-telleren stiger — eller «Spill auto» for å la den gå selv.</p>
 
       <div class="viz" id="sort-viz">
-        <div class="viz-title">Animasjon: external merge sort, n_B = 3, 9 blokker</div>
+        <div class="viz-title">External merge sort — fra usortert input til sortert fil</div>
         <div class="viz-stage" id="sort-stage"></div>
         <div class="viz-controls">
           <button class="viz-btn" id="sort-step">Neste steg</button>
+          <button class="viz-btn ghost" id="sort-auto">Spill auto</button>
           <button class="viz-btn ghost" id="sort-reset">Nullstill</button>
-          <span class="viz-status" id="sort-status">Klar — 9 usorterte blokker, buffer = 3</span>
+          <span class="viz-status" id="sort-status">Klar — trykk «Neste steg»</span>
         </div>
       </div>
 
       <div class="callout">
-        <span class="label">Intuisjon</span>
-        <p>Hvert pass leser <em>og</em> skriver hele datasettet — derfor 2b. En større buffer gir høyere mergegrad, færre passer og mindre I/O. Det er <em>ikke</em> RAM-tregheten som dominerer, men antall ganger vi må røre disken.</p>
+        <span class="label">Hva animasjonen viser deg</span>
+        <p><strong>Phase 1</strong> kjører i tre takter per batch: les blokker inn → sorter i RAM (gratis) → skriv ut som sortert run. Etter to batcher er bufferet tomt og to runs ligger på disk. <strong>Phase 2</strong> har bufferet delt i 3 slots: én for nåværende blokk av Run A, én for Run B, og én som output-buffer. Hver merge-step sammenligner front-verdien i de to input-slotene, kopierer den minste til output-bufferet, og rykker pekeren fram. Når en input-slot er tom, leses neste blokk fra den runen. Når output-bufferet er fullt, skrives det til disk. Følg I/O-telleren — du ser tydelig at hver blokk krysser disk-grensen nøyaktig 4 ganger (én les + én skriv per pass × 2 passer).</p>
       </div>
 
       <div class="quiz inline" data-quiz>
@@ -879,67 +1027,311 @@
   var statusEl = document.getElementById('sort-status');
   if (!stage) return;
 
-  // 9 blokker, hver med 3 verdier. Buffer = 3 ⇒ 3 initialruns à 3 blokker.
-  var initialBlocks = [
-    [62, 31, 88], [44, 12, 77], [9, 53, 21],
-    [38, 71, 5],  [26, 60, 14], [82, 49, 33],
-    [17, 95, 4],  [58, 22, 86], [40, 11, 69]
+  // b = 6 blokker à 2 verdier, n_B = 3 ⇒ 2 initialruns, d_M = 2, 1 mergepass.
+  var BLOCK_SIZE = 2;
+  var N_B = 3;
+  var inputBlocks = [
+    [40, 12], [55, 9],  [21, 72],
+    [33, 8],  [88, 17], [44, 60]
   ];
-  // Initialruns etter intern sort (3 blokker hver, sortert):
-  var initialSorted = [
-    [9, 12, 21, 31, 44, 53, 62, 77, 88],
-    [5, 14, 26, 33, 38, 49, 60, 71, 82],
-    [4, 11, 17, 22, 40, 58, 69, 86, 95]
-  ];
-  // Pass 1 merge: alle 3 til én sortert run
-  var allSorted = [4,5,9,11,12,14,17,21,22,26,31,33,38,40,44,49,53,58,60,62,69,71,77,82,86,88,95];
 
-  var step = 0;
-  function render() {
-    var html = '';
-    if (step === 0) {
-      html += '<div class="merge-pass"><div class="merge-pass-label">Input — 9 usorterte blokker</div>';
-      html += '<div class="block-row"><span class="lbl">Disk</span>';
-      initialBlocks.forEach(function(b){
-        html += '<div class="run">';
-        b.forEach(function(v){ html += '<div class="blk">'+v+'</div>'; });
-        html += '</div>';
-      });
-      html += '</div></div>';
-    } else if (step === 1) {
-      html += '<div class="merge-pass"><div class="merge-pass-label">Pass 0 — initialfase: les 3 blokker, sorter i RAM, skriv som run</div>';
-      for (var i = 0; i < 3; i++) {
-        html += '<div class="block-row"><span class="lbl">Run '+(i+1)+'</span><div class="run sorted">';
-        initialSorted[i].forEach(function(v){ html += '<div class="blk sorted">'+v+'</div>'; });
-        html += '</div></div>';
-      }
-      html += '</div>';
-    } else if (step === 2) {
-      html += '<div class="merge-pass"><div class="merge-pass-label">Pass 1 — merge alle runs (d_M = n_B − 1 = 2, men her får alle 3 plass siden vi har 3 buffer + 1 = 4)</div>';
-      html += '<div class="block-row"><span class="lbl">Sortert</span><div class="run sorted">';
-      allSorted.forEach(function(v){ html += '<div class="blk merged">'+v+'</div>'; });
-      html += '</div></div>';
-      html += '<p style="font-family:var(--mono); font-size:0.82rem; color:var(--ink-faded); margin-top:0.6rem;">Total I/O for eksempelet: 2·9·(1+1) = 36 blokker</p>';
-      html += '</div>';
-    }
-    stage.innerHTML = html;
+  function sortBatch(blocks) {
+    var vals = [];
+    blocks.forEach(function(blk){ blk.forEach(function(v){ vals.push(v); }); });
+    vals.sort(function(a,b){ return a - b; });
+    var out = [];
+    for (var i = 0; i < vals.length; i += BLOCK_SIZE) out.push(vals.slice(i, i + BLOCK_SIZE));
+    return out;
+  }
+  var runA = sortBatch(inputBlocks.slice(0, 3)); // [[9,12],[21,40],[55,72]]
+  var runB = sortBatch(inputBlocks.slice(3, 6)); // [[8,17],[33,44],[60,88]]
+
+  var state, autoTimer = null;
+
+  function init() {
+    state = {
+      phase: 'init',
+      reads: 0, writes: 0,
+      aBlockIdx: 0, aValIdx: 0,
+      bBlockIdx: 0, bValIdx: 0,
+      outputBuf: [],
+      finalRun: [],
+      lastAction: 'Klar — 6 usorterte blokker à 2 verdier, n_B = 3.'
+    };
+    var btn = document.getElementById('sort-step');
+    if (btn) btn.disabled = false;
+    stopAuto();
+    render();
   }
 
-  document.getElementById('sort-step').addEventListener('click', function(){
-    step = Math.min(step + 1, 2);
-    var msgs = ['9 usorterte blokker, buffer = 3', 'Initialfase ferdig — 3 sorterte runs', 'Mergefase ferdig — én sortert sekvens'];
-    statusEl.textContent = msgs[step];
+  function step() {
+    var s = state;
+    switch (s.phase) {
+      case 'init':
+        s.phase = 'p1r1'; s.reads += 3;
+        s.lastAction = 'Phase 1, batch 1 — leser 3 blokker fra disk inn i bufferet (+3 reads).';
+        break;
+      case 'p1r1':
+        s.phase = 'p1s1';
+        s.lastAction = 'Sorterer 6 verdier i RAM med vanlig sort — gratis, ingen disk-I/O.';
+        break;
+      case 'p1s1':
+        s.phase = 'p1w1'; s.writes += 3;
+        s.lastAction = 'Skriver Run A = 3 sorterte blokker tilbake til disk (+3 writes).';
+        break;
+      case 'p1w1':
+        s.phase = 'p1r2'; s.reads += 3;
+        s.lastAction = 'Phase 1, batch 2 — leser de 3 siste blokkene (+3 reads).';
+        break;
+      case 'p1r2':
+        s.phase = 'p1s2';
+        s.lastAction = 'Sorterer i RAM.';
+        break;
+      case 'p1s2':
+        s.phase = 'p1w2'; s.writes += 3;
+        s.lastAction = 'Skriver Run B (+3 writes). Phase 1 ferdig: 6 reads + 6 writes = 12 I/O.';
+        break;
+      case 'p1w2':
+        s.phase = 'p2init'; s.reads += 2;
+        s.lastAction = 'Phase 2 starter — leser første blokk fra hver run inn i bufferet (+2 reads). Slot 3 er output-buffer.';
+        break;
+      case 'p2init':
+      case 'p2merge': {
+        s.phase = 'p2merge';
+        var aDone = s.aBlockIdx >= runA.length;
+        var bDone = s.bBlockIdx >= runB.length;
+        if (aDone && bDone) {
+          if (s.outputBuf.length > 0) {
+            s.finalRun.push(s.outputBuf.slice());
+            s.outputBuf = [];
+            s.writes++;
+            s.lastAction = 'Skriver siste output-blokk (+1 write).';
+          } else {
+            s.phase = 'done';
+            s.lastAction = 'Ferdig! Total I/O = ' + (s.reads + s.writes) + ' = 2·6·(1+1) = 2b·(1 + passes). Hver blokk krysset disk-grensen nøyaktig 4 ganger.';
+            var btn = document.getElementById('sort-step');
+            if (btn) btn.disabled = true;
+            stopAuto();
+          }
+          break;
+        }
+        var aVal = aDone ? Infinity : runA[s.aBlockIdx][s.aValIdx];
+        var bVal = bDone ? Infinity : runB[s.bBlockIdx][s.bValIdx];
+        var picked, src;
+        if (aVal <= bVal) {
+          picked = aVal; src = 'A';
+          s.aValIdx++;
+        } else {
+          picked = bVal; src = 'B';
+          s.bValIdx++;
+        }
+        s.outputBuf.push(picked);
+        var msg = 'Sammenlign front: A=' + (aDone?'∞':aVal) + ' vs B=' + (bDone?'∞':bVal) + ' → minste er ' + picked + ' (fra Run ' + src + ') → output-buffer.';
+
+        if (src === 'A' && s.aValIdx >= runA[s.aBlockIdx].length) {
+          s.aBlockIdx++; s.aValIdx = 0;
+          if (s.aBlockIdx < runA.length) {
+            s.reads++;
+            msg += ' Slot 1 tom → leser neste blokk av A (+1 read).';
+          } else {
+            msg += ' Run A er nå oppbrukt.';
+          }
+        }
+        if (src === 'B' && s.bValIdx >= runB[s.bBlockIdx].length) {
+          s.bBlockIdx++; s.bValIdx = 0;
+          if (s.bBlockIdx < runB.length) {
+            s.reads++;
+            msg += ' Slot 2 tom → leser neste blokk av B (+1 read).';
+          } else {
+            msg += ' Run B er nå oppbrukt.';
+          }
+        }
+        if (s.outputBuf.length >= BLOCK_SIZE) {
+          s.finalRun.push(s.outputBuf.slice());
+          s.outputBuf = [];
+          s.writes++;
+          msg += ' Output-buffer fullt → skriv blokk til disk (+1 write).';
+        }
+        s.lastAction = msg;
+        break;
+      }
+    }
     render();
-    if (step === 2) this.disabled = true;
-  });
-  document.getElementById('sort-reset').addEventListener('click', function(){
-    step = 0;
-    document.getElementById('sort-step').disabled = false;
-    statusEl.textContent = 'Klar — 9 usorterte blokker, buffer = 3';
-    render();
+  }
+
+  function blkHTML(v, cls) {
+    return '<div class="blk' + (cls ? ' ' + cls : '') + '">' + v + '</div>';
+  }
+
+  function render() {
+    var s = state;
+    var html = '';
+
+    // I/O counter (top, dark strip)
+    html += '<div class="ems-io">';
+    html +=   '<span>Reads: <strong>' + s.reads + '</strong></span>';
+    html +=   '<span>Writes: <strong>' + s.writes + '</strong></span>';
+    html +=   '<span class="ems-io-total">Total I/O: <strong>' + (s.reads + s.writes) + '</strong></span>';
+    html += '</div>';
+
+    var afterRun1 = ['p1r2','p1s2','p1w2','p2init','p2merge','done'].indexOf(s.phase) !== -1;
+    var afterRun2 = ['p2init','p2merge','done'].indexOf(s.phase) !== -1;
+
+    // Section 1: Input disk
+    html += '<div class="ems-section">';
+    html +=   '<div class="ems-section-title">Disk — usortert input (b = 6 blokker)</div>';
+    html +=   '<div class="block-row">';
+    inputBlocks.forEach(function(blk, i){
+      var beingRead = (i < 3 && s.phase === 'p1r1') || (i >= 3 && i < 6 && s.phase === 'p1r2');
+      var consumed = (i < 3 && afterRun1) || (i >= 3 && afterRun2);
+      var runCls = 'run' + (beingRead ? ' active' : '');
+      html += '<div class="' + runCls + '">';
+      blk.forEach(function(v){
+        var c = '';
+        if (beingRead) c = 'read';
+        else if (consumed) c = 'dim';
+        html += blkHTML(v, c);
+      });
+      html += '</div>';
+    });
+    html +=   '</div>';
+    html += '</div>';
+
+    // Section 2: RAM Buffer (always shown)
+    html += '<div class="ems-section">';
+    html +=   '<div class="ems-section-title">RAM — buffer (n_B = 3 slots)</div>';
+    html +=   '<div class="ems-buffer">';
+
+    if (s.phase === 'init' || s.phase === 'p1w1' || s.phase === 'p1w2') {
+      for (var k = 0; k < N_B; k++) {
+        html += '<div class="ems-slot empty"><span class="ems-slot-label">slot ' + (k+1) + '</span><div class="ems-slot-body"><span class="ems-empty">tom</span></div></div>';
+      }
+    } else if (s.phase === 'p1r1' || s.phase === 'p1s1') {
+      var sortedBatch1 = sortBatch(inputBlocks.slice(0, 3));
+      for (var k = 0; k < N_B; k++) {
+        var pair = (s.phase === 'p1s1') ? sortedBatch1[k] : inputBlocks[k];
+        html += '<div class="ems-slot full"><span class="ems-slot-label">slot ' + (k+1) + '</span><div class="ems-slot-body">';
+        pair.forEach(function(v){ html += blkHTML(v, s.phase === 'p1s1' ? 'sorted' : 'read'); });
+        html += '</div></div>';
+      }
+    } else if (s.phase === 'p1r2' || s.phase === 'p1s2') {
+      var sortedBatch2 = sortBatch(inputBlocks.slice(3, 6));
+      for (var k = 0; k < N_B; k++) {
+        var pair2 = (s.phase === 'p1s2') ? sortedBatch2[k] : inputBlocks[3 + k];
+        html += '<div class="ems-slot full"><span class="ems-slot-label">slot ' + (k+1) + '</span><div class="ems-slot-body">';
+        pair2.forEach(function(v){ html += blkHTML(v, s.phase === 'p1s2' ? 'sorted' : 'read'); });
+        html += '</div></div>';
+      }
+    } else {
+      // Phase 2
+      html += '<div class="ems-slot input"><span class="ems-slot-label">slot 1 — Run A</span><div class="ems-slot-body">';
+      if (s.aBlockIdx < runA.length) {
+        runA[s.aBlockIdx].forEach(function(v, vi){
+          html += blkHTML(v, vi === s.aValIdx ? 'match' : 'sorted');
+        });
+      } else {
+        html += '<span class="ems-empty">∅ tom</span>';
+      }
+      html += '</div></div>';
+
+      html += '<div class="ems-slot input"><span class="ems-slot-label">slot 2 — Run B</span><div class="ems-slot-body">';
+      if (s.bBlockIdx < runB.length) {
+        runB[s.bBlockIdx].forEach(function(v, vi){
+          html += blkHTML(v, vi === s.bValIdx ? 'match' : 'sorted');
+        });
+      } else {
+        html += '<span class="ems-empty">∅ tom</span>';
+      }
+      html += '</div></div>';
+
+      html += '<div class="ems-slot output"><span class="ems-slot-label">slot 3 — output</span><div class="ems-slot-body">';
+      for (var v = 0; v < BLOCK_SIZE; v++) {
+        if (v < s.outputBuf.length) {
+          html += blkHTML(s.outputBuf[v], 'merged');
+        } else {
+          html += '<div class="blk slot-empty">_</div>';
+        }
+      }
+      html += '</div></div>';
+    }
+
+    html +=   '</div>';
+    html += '</div>';
+
+    // Section 3: Sorted runs (Phase 1 output / Phase 2 input)
+    var showRunA = ['p1w1','p1r2','p1s2','p1w2','p2init','p2merge','done'].indexOf(s.phase) !== -1;
+    var showRunB = ['p1w2','p2init','p2merge','done'].indexOf(s.phase) !== -1;
+    if (showRunA) {
+      html += '<div class="ems-section">';
+      html +=   '<div class="ems-section-title">Disk — sorterte runs (output av Phase 1, input til Phase 2)</div>';
+      html +=   '<div class="block-row"><span class="lbl">Run A</span>';
+      runA.forEach(function(blk, bi){
+        var consumed = afterRun2 && bi < s.aBlockIdx;
+        var current  = afterRun2 && bi === s.aBlockIdx && s.aBlockIdx < runA.length;
+        var cls = 'run sorted' + (current ? ' active' : '');
+        html += '<div class="' + cls + '">';
+        blk.forEach(function(v){
+          html += blkHTML(v, consumed ? 'dim' : 'sorted');
+        });
+        html += '</div>';
+      });
+      html +=   '</div>';
+      if (showRunB) {
+        html += '<div class="block-row"><span class="lbl">Run B</span>';
+        runB.forEach(function(blk, bi){
+          var consumed = afterRun2 && bi < s.bBlockIdx;
+          var current  = afterRun2 && bi === s.bBlockIdx && s.bBlockIdx < runB.length;
+          var cls = 'run sorted' + (current ? ' active' : '');
+          html += '<div class="' + cls + '">';
+          blk.forEach(function(v){
+            html += blkHTML(v, consumed ? 'dim' : 'sorted');
+          });
+          html += '</div>';
+        });
+        html +=   '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Section 4: Final sorted output
+    if (['p2merge','done'].indexOf(s.phase) !== -1) {
+      html += '<div class="ems-section">';
+      html +=   '<div class="ems-section-title">Disk — endelig sortert fil</div>';
+      html +=   '<div class="block-row">';
+      if (s.finalRun.length === 0) {
+        html += '<span class="ems-empty">(tom — output-bufferet er enda ikke flushet)</span>';
+      }
+      s.finalRun.forEach(function(blk){
+        html += '<div class="run sorted">';
+        blk.forEach(function(v){ html += blkHTML(v, 'merged'); });
+        html += '</div>';
+      });
+      html +=   '</div>';
+      html += '</div>';
+    }
+
+    stage.innerHTML = html;
+    if (statusEl) statusEl.textContent = s.lastAction;
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    var btn = document.getElementById('sort-auto');
+    if (btn) btn.textContent = 'Spill auto';
+  }
+
+  document.getElementById('sort-step').addEventListener('click', step);
+  document.getElementById('sort-reset').addEventListener('click', init);
+  document.getElementById('sort-auto').addEventListener('click', function(){
+    if (autoTimer) { stopAuto(); return; }
+    this.textContent = 'Stopp';
+    autoTimer = setInterval(function(){
+      if (state.phase === 'done') { stopAuto(); return; }
+      step();
+    }, 700);
   });
 
-  render();
+  init();
 })();
 
 // ─────────── NESTED LOOP JOIN ANIMATION ───────────
