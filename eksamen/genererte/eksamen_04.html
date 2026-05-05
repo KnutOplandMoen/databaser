@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../../favicon.png" type="image/png">
+<title>Øvingseksamen 04 — TDT4145</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="stylesheet" href="exam.css">
+<style>
+  .exam-head { padding: 4rem 0 2rem; border-bottom: 1px solid var(--line-soft); }
+  .exam-head h1 { font-size: 3rem; margin: 0; }
+  .exam-head h1 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-head .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    padding: 5px 12px;
+    border-radius: 14px;
+    margin-bottom: 1.2rem;
+  }
+  .exam-head .meta {
+    color: var(--ink-faded);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    margin: 0.6rem 0 0;
+  }
+  .exam-part { padding: 2.5rem 0 1rem; }
+  .exam-part h2 {
+    font-size: 1.8rem;
+    margin: 0 0 0.4rem;
+    border-bottom: 2px solid var(--rust);
+    padding-bottom: 0.4rem;
+    display: inline-block;
+  }
+  .exam-part h2 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .exam-part .part-desc {
+    color: var(--ink-soft);
+    margin: 0.4rem 0 1.2rem;
+    font-style: italic;
+  }
+  .q-table {
+    border-collapse: collapse;
+    margin: 0.8rem 0 1rem;
+    font-family: var(--mono);
+    font-size: 0.9rem;
+  }
+  .q-table th, .q-table td {
+    border: 1px solid var(--line);
+    padding: 4px 12px;
+    text-align: left;
+  }
+  .q-table th { background: var(--paper-dark); font-weight: 600; }
+  .q-code {
+    font-family: var(--mono);
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    margin: 0.6rem 0 1rem;
+    white-space: pre;
+    overflow-x: auto;
+    font-size: 0.88rem;
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../../" class="brand">TDT4145</a>
+    <a href="../" class="nav-back" style="margin-left:auto">← Eksamener</a>
+  </div>
+</nav>
+
+<main data-chapter="Eksamen 04">
+  <header class="exam-head">
+    <div class="container">
+      <span class="tag">Øvingseksamen 04 · TDT4145</span>
+      <h1><em>Øvingseksamen 04</em></h1>
+      <p class="meta">Tidsramme: 3 timer · Hjelpemidler: Ingen · Total: 100 poeng</p>
+      <p class="meta">Hovedfokus: DBMS-komponenter, division, kategorier, sort-merge, hash join, MVCC, snapshot isolation, REDO-test.</p>
+    </div>
+  </header>
+
+  <section class="exam-part">
+    <div class="container">
+      <h2>Del 1 — <em>Theodoros</em> (~40 %)</h2>
+      <p class="part-desc">Introduksjon, relasjonsalgebra, SQL, ER-modellering, normalformer.</p>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 1</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 1 — DBMS-komponenter</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvilken komponent i et tradisjonelt RDBMS er hovedansvarlig for å oversette en SQL-tekst til en utførbar plan, gjennom parsing, omskriving (rewrite) og kostnadsbasert optimisering?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Query processor (parser + optimizer + executor).</li>
+            <li><span class="opt-label">B</span> Storage manager — den vet hvor blokkene ligger på disk.</li>
+            <li><span class="opt-label">C</span> Transaction manager — den koordinerer låser og logger.</li>
+            <li><span class="opt-label">D</span> Buffer manager — den styrer cachen og bestemmer hvilke blokker som ligger i RAM.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>Query processor er paraply-betegnelsen for parser, omskriver, planner/optimizer og executor — alle stegene fra SQL-tekst til en plan av fysiske operatorer. Storage manager håndterer fysisk lagring, transaction manager isolasjon og atomisitet, buffer manager hvilke blokker som er i RAM. Disse fire er ofte de som listes i en typisk arkitekturdiagram fra Kap. 1.</p>
+              <p>B, C, D er ekte komponenter med ekte oppgaver, men ingen av dem oversetter SQL — de aktiveres via callbacks fra query-processorens eksekusjonsfase.</p>
+              <p class="ref">Pensum: <a href="../../kap1/index.html">Kap. 1 — Introduksjon</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 2</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 2 — Outer join NULL</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">I en RIGHT OUTER JOIN mellom L og R på <code>L.k = R.k</code>, hva skjer med rader fra <em>høyre</em> tabell som ikke har match i venstre?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> De forsvinner — bare matchede rader returneres (samme som inner join).</li>
+            <li><span class="opt-label">B</span> De returneres, og L-kolonnene fylles med tomme strenger.</li>
+            <li><span class="opt-label">C</span> De returneres dupliserte med hver L-rad — kryssprodukt.</li>
+            <li><span class="opt-label">D</span> De returneres, og L-kolonnene fylles med NULL.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>RIGHT OUTER JOIN beholder alle rader fra høyre tabell, og fyller på NULL i L-kolonner der det ikke finnes match. (Symmetrisk for LEFT OUTER JOIN.)</p>
+              <p>A beskriver inner join. B forveksler NULL og tom streng — i SQL er disse forskjellige verdier, og NULL er det som brukes. C er kryssproduktet, ikke en outer join.</p>
+              <p class="ref">Pensum: <a href="../../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 3</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 2 — Naturlig join antall tupler</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellene:</p>
+          <table class="q-table">
+            <tr><th colspan="2">A</th></tr>
+            <tr><th>x</th><th>y</th></tr>
+            <tr><td>1</td><td>p</td></tr>
+            <tr><td>1</td><td>q</td></tr>
+            <tr><td>2</td><td>p</td></tr>
+            <tr><td>3</td><td>r</td></tr>
+          </table>
+          <table class="q-table">
+            <tr><th colspan="2">B</th></tr>
+            <tr><th>y</th><th>z</th></tr>
+            <tr><td>p</td><td>10</td></tr>
+            <tr><td>p</td><td>20</td></tr>
+            <tr><td>q</td><td>30</td></tr>
+          </table>
+          <p class="q-text">Hvor mange tupler returnerer <code>A ⋈ B</code> (naturlig join på y)?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 4</li>
+            <li><span class="opt-label">B</span> 6</li>
+            <li><span class="opt-label">C</span> 5</li>
+            <li><span class="opt-label">D</span> 12</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Match på y:</p>
+              <ul>
+                <li>(1, p) ⋈ {(p,10), (p,20)} → 2 tupler</li>
+                <li>(1, q) ⋈ {(q,30)} → 1 tuppel</li>
+                <li>(2, p) ⋈ {(p,10), (p,20)} → 2 tupler</li>
+                <li>(3, r) → ingen match → 0</li>
+              </ul>
+              <p>Sum: 2 + 1 + 2 = 5.</p>
+              <p>A glemmer at (1, p) og (2, p) hver gir 2 matcher. B inkluderer (3, r) feilaktig. D er kryssproduktet (4 × 3 = 12).</p>
+              <p class="ref">Pensum: <a href="../../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 4</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — SELECT-alias i WHERE</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Vurder spørringen:</p>
+          <pre class="q-code">SELECT lonn * 1.05 AS ny_lonn
+FROM Ansatt
+WHERE ny_lonn &gt; 800000;</pre>
+          <p class="q-text">Hva skjer ved utføring i et standard-konformt RDBMS?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Spørringen fungerer som forventet — aliaset <code>ny_lonn</code> er tilgjengelig overalt i spørringen.</li>
+            <li><span class="opt-label">B</span> En syntaks- eller kjøretidsfeil: <code>ny_lonn</code> finnes ikke i WHERE-fasen fordi WHERE evalueres før SELECT (og dermed før alias-tildeling).</li>
+            <li><span class="opt-label">C</span> Spørringen kjører, men returnerer alltid 0 rader fordi aliaset alltid er NULL i WHERE-fasen.</li>
+            <li><span class="opt-label">D</span> Spørringen optimeres bort av planneren og returnerer hele Ansatt-tabellen ufiltrert.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>SQL-evalueringsrekkefølgen er FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. Når WHERE evalueres er SELECT-listen ennå ikke beregnet, og aliaset <code>ny_lonn</code> finnes ikke som en navngitt kolonne. Standarden krever at aliaset bare er synlig fra og med SELECT-fasen (og videre i ORDER BY). Riktig formulering: <code>WHERE lonn * 1.05 &gt; 800000</code> eller pakke inn i en subquery / WITH.</p>
+              <p>A er feil i strict SQL — visse DBMS-er tillater det som en utvidelse, men ikke standarden. C er fri fantasi. D er en grov misforståelse av planneren.</p>
+              <p class="ref">Pensum: <a href="../../kap3/ddl-og-spoerringer.html">Kap. 3 — DDL og spørringer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 5</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — COUNT/GROUP med NULL</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>Anmeldelse</code>:</p>
+          <table class="q-table">
+            <tr><th>aid</th><th>kid</th><th>stjerner</th></tr>
+            <tr><td>1</td><td>10</td><td>5</td></tr>
+            <tr><td>2</td><td>10</td><td>NULL</td></tr>
+            <tr><td>3</td><td>11</td><td>4</td></tr>
+            <tr><td>4</td><td>NULL</td><td>3</td></tr>
+            <tr><td>5</td><td>NULL</td><td>NULL</td></tr>
+          </table>
+          <p class="q-text">Hva returnerer:</p>
+          <pre class="q-code">SELECT kid, COUNT(*), COUNT(stjerner)
+FROM Anmeldelse
+GROUP BY kid;</pre>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Tre grupper: (10, 2, 1), (11, 1, 1), (NULL, 2, 1).</li>
+            <li><span class="opt-label">B</span> To grupper: (10, 2, 1), (11, 1, 1) — NULL-grupper utelates.</li>
+            <li><span class="opt-label">C</span> Tre grupper: (10, 2, 2), (11, 1, 1), (NULL, 2, 2) — COUNT teller NULL.</li>
+            <li><span class="opt-label">D</span> En enkelt rad med samtlige tellet sammen — GROUP BY funker ikke når NULL er til stede.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>Standarden behandler NULL-er som en egen gruppe i GROUP BY. Vi får tre grupper: kid=10 (rader 1, 2), kid=11 (rad 3), kid=NULL (rader 4, 5). For hver gruppe: <code>COUNT(*)</code> teller alle rader; <code>COUNT(stjerner)</code> teller bare ikke-NULL stjerner.</p>
+              <ul>
+                <li>(10): 2 rader; én har stjerner ≠ NULL → (10, 2, 1)</li>
+                <li>(11): 1 rad med stjerner = 4 → (11, 1, 1)</li>
+                <li>(NULL): 2 rader; én med stjerner = 3 → (NULL, 2, 1)</li>
+              </ul>
+              <p>B feilaktig utelater NULL-gruppen. C teller NULL i COUNT(stjerner) — feil. D er grov misforståelse av GROUP BY.</p>
+              <p class="ref">Pensum: <a href="../../kap3/ddl-og-spoerringer.html">Kap. 3 — DDL og spørringer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 6</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — Ekvivalens nøstet/flat</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skjema:</p>
+          <pre class="q-code">Bestilling(bid, kid, total)
+Kunde(kid, navn, by)</pre>
+          <p class="q-text">Hvilken av disse spørringene er <em>ikke</em> ekvivalent med de andre? (Alle skal finne navn på kunder som har lagt inn minst én bestilling med total &gt; 1000.)</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> <code>SELECT DISTINCT k.navn FROM Kunde k JOIN Bestilling b ON k.kid = b.kid WHERE b.total &gt; 1000;</code></li>
+            <li><span class="opt-label">B</span> <code>SELECT navn FROM Kunde WHERE kid IN (SELECT kid FROM Bestilling WHERE total &gt; 1000);</code></li>
+            <li><span class="opt-label">C</span> <code>SELECT navn FROM Kunde k WHERE EXISTS (SELECT 1 FROM Bestilling b WHERE b.kid = k.kid AND b.total &gt; 1000);</code></li>
+            <li><span class="opt-label">D</span> <code>SELECT k.navn FROM Kunde k JOIN Bestilling b ON k.kid = b.kid WHERE b.total &gt; 1000;</code></li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>D mangler <code>DISTINCT</code>. Hvis en kunde har to bestillinger over 1000, returneres navnet to ganger — det er ikke ekvivalent med A/B/C som hver returnerer navnet maks én gang. A bruker <code>DISTINCT</code> på joinet, B bruker <code>IN</code> på en kid-mengde (per definisjon én rad per kunde), C bruker <code>EXISTS</code> som returnerer én rad per kunde uavhengig av antall matchende bestillinger.</p>
+              <p>Detalj: hvis det er garantert maks én bestilling per kunde over 1000 (f.eks. på grunn av en UNIQUE-constraint), ville D være ekvivalent — men generelt er den det ikke.</p>
+              <p class="ref">Pensum: <a href="../../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 7</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — Division via NOT EXISTS</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skjema:</p>
+          <pre class="q-code">Student(sid, navn)
+Kurs(kid, tittel)
+Tar(sid, kid)</pre>
+          <p class="q-text">Vi vil finne studenter som tar <em>alle</em> kurs (relasjonsalgebra-divisjon). Hvilken SQL-spørring oppnår dette?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> <code>SELECT navn FROM Student s JOIN Tar t ON s.sid = t.sid GROUP BY s.sid, s.navn HAVING COUNT(*) = (SELECT COUNT(*) FROM Tar);</code></li>
+            <li><span class="opt-label">B</span> <code>SELECT navn FROM Student WHERE sid IN (SELECT sid FROM Tar);</code></li>
+            <li><span class="opt-label">C</span> <code>SELECT navn FROM Student s WHERE NOT EXISTS (SELECT k.kid FROM Kurs k WHERE NOT EXISTS (SELECT 1 FROM Tar t WHERE t.sid = s.sid AND t.kid = k.kid));</code></li>
+            <li><span class="opt-label">D</span> <code>SELECT navn FROM Student s JOIN Kurs k ON 1 = 1;</code></li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Klassisk division-via-double-NOT-EXISTS: "studenter for hvilke det <em>ikke</em> finnes et kurs som studenten <em>ikke</em> tar". Det er nøyaktig spesifikasjonen for "tar alle kurs".</p>
+              <p>A bruker COUNT — men <code>COUNT(*) FROM Tar</code> teller <em>alle Tar-rader på tvers av alle studenter</em>, ikke antall distinkte kurs. En riktig COUNT-versjon ville brukt <code>(SELECT COUNT(*) FROM Kurs)</code> som referanse. B finner studenter som har tatt minst ett kurs. D produserer kryssproduktet — meningsløst som svar.</p>
+              <p class="ref">Pensum: <a href="../../kap3/joins-og-subqueries.html">Kap. 3 — Joins og subqueries</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 8</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — ON DELETE CASCADE</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Skjema:</p>
+          <pre class="q-code">CREATE TABLE Avdeling (
+    aid  INT PRIMARY KEY,
+    navn VARCHAR(50)
+);
+CREATE TABLE Prosjekt (
+    pid  INT PRIMARY KEY,
+    aid  INT NOT NULL,
+    FOREIGN KEY (aid) REFERENCES Avdeling(aid) ON DELETE CASCADE
+);
+CREATE TABLE Oppgave (
+    oid  INT PRIMARY KEY,
+    pid  INT NOT NULL,
+    FOREIGN KEY (pid) REFERENCES Prosjekt(pid) ON DELETE CASCADE
+);</pre>
+          <p class="q-text">Hva skjer hvis vi sletter en rad fra <code>Avdeling</code> som har 2 prosjekter, der hvert prosjekt har 5 oppgaver?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Slettingen avvises fordi <code>Prosjekt.aid</code> er NOT NULL.</li>
+            <li><span class="opt-label">B</span> Avdelingsraden, de 2 prosjektene og alle 10 oppgavene slettes — kaskaderingen følger FK-kjeden.</li>
+            <li><span class="opt-label">C</span> Bare avdelingen og de 2 prosjektene slettes; oppgavene blir foreldreløse fordi kaskadering ikke krysser to nivåer.</li>
+            <li><span class="opt-label">D</span> Bare avdelingen slettes; prosjektene får aid satt til NULL.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>ON DELETE CASCADE forplanter seg så langt FK-kjeden går. Slettingen av avdelingen utløser sletting av begge prosjektene; hver prosjekt-sletting utløser sletting av sine 5 oppgaver. Totalt slettes 1 + 2 + 10 = 13 rader.</p>
+              <p>A misforstår NOT NULL — den hindrer at vi setter inn en rad uten <code>aid</code>, men kaskadering tar bort hele raden. C er feil — kaskadering er rekursiv. D beskriver ON DELETE SET NULL, en annen handling, og ville uansett brutt NOT NULL-constraint på <code>Prosjekt.aid</code>.</p>
+              <p class="ref">Pensum: <a href="../../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views, transaksjoner, integritet</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 9</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — WITH RECURSIVE</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>Forelder(barn, foreldre)</code>:</p>
+          <table class="q-table">
+            <tr><th>barn</th><th>foreldre</th></tr>
+            <tr><td>Anna</td><td>Berit</td></tr>
+            <tr><td>Berit</td><td>Cathrine</td></tr>
+            <tr><td>Cathrine</td><td>Diana</td></tr>
+            <tr><td>Diana</td><td>Eva</td></tr>
+          </table>
+          <p class="q-text">Spørringen:</p>
+          <pre class="q-code">WITH RECURSIVE Aner(person, aner) AS (
+    SELECT barn, foreldre FROM Forelder WHERE barn = 'Anna'
+  UNION
+    SELECT a.person, f.foreldre FROM Aner a
+    JOIN Forelder f ON a.aner = f.barn
+)
+SELECT aner FROM Aner;</pre>
+          <p class="q-text">Hvor mange rader returnerer den?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 4 (Berit, Cathrine, Diana, Eva).</li>
+            <li><span class="opt-label">B</span> 1 (bare Berit).</li>
+            <li><span class="opt-label">C</span> 5 (Anna selv pluss alle aner).</li>
+            <li><span class="opt-label">D</span> Spørringen termimerer ikke (uendelig løkke).</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>Anker: (Anna, Berit). Iterasjon 1: join Aner(person='Anna', aner='Berit') med Forelder(barn='Berit', foreldre='Cathrine') → (Anna, Cathrine). Iterasjon 2: → (Anna, Diana). Iterasjon 3: → (Anna, Eva). Iterasjon 4: ingen ny rad — Eva har ingen forelder i tabellen → terminerer. Aner = {(Anna, Berit), (Anna, Cathrine), (Anna, Diana), (Anna, Eva)}. Resultat på <code>SELECT aner</code>: Berit, Cathrine, Diana, Eva — 4 rader.</p>
+              <p>B teller bare anker. C inkluderer Anna selv — men hun er <code>person</code>, ikke <code>aner</code>, så hun er ikke i SELECT-resultatet. D ignorerer at <code>UNION</code> termintaerer hierarkisk traversering så lenge grafen er endelig.</p>
+              <p class="ref">Pensum: <a href="../../kap3/prosedyrer-triggere-rekursjon.html">Kap. 3 — Prosedyrer, triggere, rekursjon</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 10</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 3 — Autorisasjons-kategorier</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">SQL definerer flere kategorier av rettigheter som kan tildeles via <code>GRANT</code>. Hvilken liste viser <em>kun</em> klassiske SQL-rettigheter på tabellnivå?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> CONNECT, DISCONNECT, AUTHENTICATE, AUTHORIZE.</li>
+            <li><span class="opt-label">B</span> ENCRYPT, DECRYPT, SIGN, VERIFY.</li>
+            <li><span class="opt-label">C</span> START_TX, COMMIT_TX, ROLLBACK_TX.</li>
+            <li><span class="opt-label">D</span> SELECT, INSERT, UPDATE, DELETE, REFERENCES, TRIGGER.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>SQL-standarden definerer rettigheter som SELECT, INSERT, UPDATE, DELETE (datamanipulering), REFERENCES (lov til å lage en FK som peker til en gitt tabell) og TRIGGER (lov til å definere triggere). I tillegg finnes USAGE og EXECUTE for andre objekttyper. <code>WITH GRANT OPTION</code> lar mottakeren videre-grante.</p>
+              <p>A og B er ikke SQL-rettigheter (skikkelig autentisering håndteres av roller / login-mekanisme). C er ikke en GRANT-able rettighet — alle bruker kan starte og committe transaksjoner per default.</p>
+              <p class="ref">Pensum: <a href="../../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views, transaksjoner, integritet</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 11</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 4 — Total/partial deltakelse</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">I et ER-diagram er relasjonen "leder" mellom <code>Avdeling</code> og <code>Ansatt</code> 1:1. Total deltakelse fra Avdeling og partial fra Ansatt. Hva betyr dette i den konkrete databasen?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Hver ansatt må lede én avdeling, men en avdeling trenger ikke ha en leder.</li>
+            <li><span class="opt-label">B</span> Hver avdeling må ha en leder, og hver ansatt må lede en avdeling.</li>
+            <li><span class="opt-label">C</span> Hver avdeling må ha nøyaktig én leder, men en ansatt trenger ikke å være leder for noen avdeling.</li>
+            <li><span class="opt-label">D</span> Verken avdeling eller ansatt har krav om å delta — relasjonen er rent valgfri.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Total deltakelse fra Avdeling betyr at hver avdelings-rad må delta i relasjonen → hver avdeling har en leder. Partial deltakelse fra Ansatt betyr at en ansatt kan, men ikke trenger, lede en avdeling. Sammen med 1:1: nøyaktig én leder per avdeling, og hver leder leder maksimalt én avdeling.</p>
+              <p>A bytter om totalisiteten. B krever at <em>alle</em> ansatte er ledere — det blir 1:N med total fra Ansatt. D ignorerer total fra Avdeling.</p>
+              <p class="ref">Pensum: <a href="../../kap4/er-modellen.html">Kap. 4 — ER-modellen</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 12</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 4 — Kategori (union type)</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">En <em>kategori</em> (også kalt union type) i utvidet ER er forskjellig fra en vanlig spesialisering (ISA). Hvordan?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> En kategori har én superklasse og flere subklasser; en spesialisering har omvendt struktur.</li>
+            <li><span class="opt-label">B</span> En kategori er en subklasse hvis instanser er en union av instanser fra <em>flere ulike</em> superklasser; en spesialisering har én superklasse.</li>
+            <li><span class="opt-label">C</span> En kategori er den samme som en svak entitet — bare en annen notasjon.</li>
+            <li><span class="opt-label">D</span> En kategori er en ISA-relasjon der alle subklassene er disjunkte; spesialisering tillater overlapp.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Eksempel: <code>EierAvKjøretøy</code> kan være enten <code>Person</code>, <code>Bedrift</code> eller <code>Bank</code>. Disse tre er <em>uavhengige</em> superklasser med ulik PK og attributter, men instanser av kategorien EierAvKjøretøy er unionen av instanser fra dem alle. En vanlig spesialisering har derimot kun én superklasse (f.eks. <code>Bil ISA Kjøretøy</code>), og subklassens instanser er en delmengde.</p>
+              <p>A snur strukturen. C blander begreper. D gjelder disjoint vs overlap-spesialiseringer, ikke kategorier.</p>
+              <p class="ref">Pensum: <a href="../../kap4/er-modellen.html">Kap. 4 — ER-modellen</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 13</span>
+          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__topic">Kap. 4 — 3NF brudd (transitiv)</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>Bestilling(bnr, kid, kby, totalpris)</code> har FDs:</p>
+          <pre class="q-code">F = { bnr → kid,   bnr → totalpris,   kid → kby }</pre>
+          <p class="q-text">Kandidatnøkkelen er {bnr}. Hvilken normalform er Bestilling brutt mot?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 3NF — <code>bnr → kid → kby</code> er en transitiv avhengighet av PK via en ikke-prim-attributt.</li>
+            <li><span class="opt-label">B</span> 2NF — <code>kid → kby</code> er en delvis avhengighet av PK.</li>
+            <li><span class="opt-label">C</span> 1NF — kby er ikke atomær.</li>
+            <li><span class="opt-label">D</span> Ingen — tabellen er på BCNF.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>Vi har kjeden bnr → kid (PK → ikke-prim) og kid → kby (ikke-prim → ikke-prim). Det er en klassisk transitiv avhengighet: kby avhenger av PK <em>via</em> kid. 3NF forbyr nettopp dette med mindre høyresiden er prim, og kby er ikke prim. Det er derfor et 3NF-brudd.</p>
+              <p>B er feil — PK er én attributt (bnr), så det finnes ingen "delvis avhengighet" å bryte. C er feil — kby er en atomær by-streng. D er feil — ja, tabellen bryter også BCNF, men det <em>spesifikke</em> bruddet er 3NF (transitiv avhengighet).</p>
+              <p class="ref">Pensum: <a href="../../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="exam-part">
+    <div class="container">
+      <h2>Del 2 — <em>Svein Erik</em> (~60 %)</h2>
+      <p class="part-desc">Lagring, indekser, queries, transaksjoner og recovery.</p>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 14</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — DB-buffer vs OS-cache</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvorfor implementerer DBMS-er sin egen buffer manager i stedet for å stole utelukkende på operativsystemets filcache?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> OS-er har ikke filcache — DBMS må implementere alt selv.</li>
+            <li><span class="opt-label">B</span> Bare for å spare RAM — DB-bufferen er alltid mindre enn OS-cachen.</li>
+            <li><span class="opt-label">C</span> DBMS-et trenger fin kontroll over evictions (LRU vs MRU vs hint), prefetching basert på spørringsplanen, og garantert tilstedeværelse av "pinned" sider — ting OS-cachen ikke kan tilby.</li>
+            <li><span class="opt-label">D</span> Fordi OS-cache lager kopier og dermed bryter ACID-egenskapen Atomicity.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>OS-cachen er generell og vet ingenting om spørringsplanen. DBMS-et derimot vet for eksempel at den skal scanne en stor tabell sekvensielt (MRU-eviction er bedre enn LRU) eller at en bestemt index-blokk vil bli aksessert mange ganger (pin den). DBMS-et trenger også å pinne sider mens en transaksjon holder en lås på dem, og må kunne flushe spesifikke sider deterministisk for å implementere WAL og force-log-at-commit.</p>
+              <p>A er feil — OS-er har filcache (Linux page cache osv.). B er en for snever forklaring. D er fri fantasi — atomicity opprettholdes av loggen, ikke ved å unngå caching.</p>
+              <p class="ref">Pensum: <a href="../../kap6/lagring.html">Kap. 6 — Lagring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 15</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — Lokal/global depth</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">I extendible hashing har en blokk lokal depth d. Hva betyr dette eksakt?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> d er antall poster som passer i blokken.</li>
+            <li><span class="opt-label">B</span> d er hvor mange splits blokken har vært gjennom siden filen ble opprettet.</li>
+            <li><span class="opt-label">C</span> d er antall directory-entries som peker på nettopp denne blokken.</li>
+            <li><span class="opt-label">D</span> d er antall hash-bits som er nødvendig for å skille denne blokken fra andre — alle nøkler i blokken har samme suffiks/prefiks av lengde d, og det finnes 2^(GD−d) directory-entries som peker på blokken.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>Lokal depth d betyr at blokken inneholder nøkler hvis hash-prefiks (eller -suffiks) av lengde d er det samme. Når GD &gt; d peker flere directory-entries (nøyaktig 2^(GD−d) av dem) på blokken — det er disse vi kan splitte uten directory-doubling. Når d = GD peker bare én entry på blokken; en splitt krever da doubling.</p>
+              <p>A er en helt annen ting (blokk-kapasitet). B er et historisk teller, ikke en lagret verdi. C er nesten korrekt for tilfellet d = GD, men generelt feil — antall pekere er 2^(GD−d), ikke d selv.</p>
+              <p class="ref">Pensum: <a href="../../kap6/lagring.html">Kap. 6 — Lagring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 16</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — Variable-length record</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">En post med flere variabel-lengde felter kan lagres med en delimiter mellom feltene (f.eks. NUL-byte). Hva er hovedulempen ved denne strategien sammenlignet med en offset-vektor?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Delimiter-strategien er treig fordi den krever zip-komprimering før skriving.</li>
+            <li><span class="opt-label">B</span> Vi må skanne posten lineært for å finne et bestemt felt — direkte aksess i konstant tid er ikke mulig uten ekstra arbeid.</li>
+            <li><span class="opt-label">C</span> Delimiter-strategien kan ikke representere felter med variabel lengde.</li>
+            <li><span class="opt-label">D</span> Posten må være padded til en fast størrelse — sløser plass.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Delimiter krever lineær søking gjennom posten for å finne start på det N-te feltet (skann fram til N delimiters er funnet). Med en offset-vektor i header har vi konstant-tids aksess: vektor[N] gir starten direkte. Tidskostnaden ved delimiter er typisk ikke betydelig per post, men kan dominere for breie tabeller med mange felter.</p>
+              <p>A er fri fantasi (ingen komprimering implisitt). C er motsatt av riktig — delimiter er nettopp <em>laget</em> for variabel lengde. D beskriver fast-lengde-strategi.</p>
+              <p class="ref">Pensum: <a href="../../kap6/lagring.html">Kap. 6 — Lagring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 17</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — B+-tre høyde</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Et clustered B+-tre lagrer 5 millioner poster på 200 byte. Blokker er 4 KiB med 2/3 fyllgrad. (key, BlockId)-poster på indre nivåer er 16 byte. Hvor mange nivåer (inkl. løv = level 0) har treet?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> 2</li>
+            <li><span class="opt-label">B</span> 4</li>
+            <li><span class="opt-label">C</span> 5</li>
+            <li><span class="opt-label">D</span> 3</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Tilgjengelig plass per blokk: <code>4096 · 2/3 ≈ 2730</code>. Poster per løvblokk: <code>floor(2730/200) = 13</code>. Antall løvblokker: <code>ceil(5 000 000 / 13) ≈ 384 616</code>. Fan-out på indre nivåer: <code>floor(2730/16) = 170</code>. Level 1: <code>ceil(384616 / 170) ≈ 2263</code>. Level 2: <code>ceil(2263/170) ≈ 14</code>. Level 3: <code>ceil(14/170) = 1</code> (rot). Treet har 4 nivåer (0, 1, 2, 3).</p>
+              <p>A er for grunt — ville krevd over 30 millioner poster passer i én blokk. C ville krevd at level 3 også hadde flere blokker. D undervurderer høyden ved 1.</p>
+              <p class="ref">Pensum: <a href="../../kap6/btrees.html">Kap. 6 — B+-trær</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 18</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — 2/3 fyllgrad</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvorfor regnes B+-tre-blokker ofte med en 2/3 fyllgrad, og ikke 100 %?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Fordi DBMS-et alltid reserverer 1/3 av blokken til logging.</li>
+            <li><span class="opt-label">B</span> Fordi en B+-tre-blokk har inntil 1/3 av plassen brukt opp til peker-hodet (parent, neste, prev).</li>
+            <li><span class="opt-label">C</span> Det er en empirisk gjennomsnittlig fyllgrad for B+-tre-blokker etter mange innsettinger og slettinger — splits gir typisk en 50/50-fordeling, men over tid jevner det seg ut til ca. 67 %.</li>
+            <li><span class="opt-label">D</span> Fordi 1/3 av blokken alltid reserveres til neste forventede splits, slik at innsettinger blir raskere.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Når en blokk splittes deler vi typisk innholdet 50/50 mellom de to nye blokkene — så de halvfylte blokkene fyller seg opp igjen ved nye innsettinger. Empirisk havner dynamisk vedlikeholdte B+-trær på rundt 65–70 % gjennomsnittlig fyllgrad, derav antagelsen 2/3. Det er ikke en fast reservert plass, men et gjennomsnittlig tall man bruker for å estimere størrelse.</p>
+              <p>A er fabrikert. B beskriver header-overhead, som er liten — ikke 1/3. D ville vært en explicit reserveringspolicy, men den brukes ikke i klassiske B+-trær.</p>
+              <p class="ref">Pensum: <a href="../../kap6/btrees.html">Kap. 6 — B+-trær</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 19</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 6 — LSM write amplification</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hvilken påstand om "write amplification" i LSM-trær er korrekt?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Write amplification er null i LSM-trær — det er en av de vesentlige fordelene.</li>
+            <li><span class="opt-label">B</span> Write amplification er nøyaktig 1: hver post skrives én gang når memtable flushes.</li>
+            <li><span class="opt-label">C</span> Write amplification i LSM er per definisjon høyere enn i B+-trær fordi compaction ikke eksisterer i B+-trær.</li>
+            <li><span class="opt-label">D</span> Write amplification er hvor mange ganger den samme posten skrives totalt — i en N-nivå LSM med leveled compaction skrives en post i gjennomsnitt N ganger (én per nivå-overgang).</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>Write amplification = totale bytes skrevet til disk / totale bytes som applikasjonen logisk skrev. I LSM-trær flyttes en post nedover nivåene gjennom compaction; med leveled compaction og en faktor-T-mellom-nivåer-ratio er WA ca. T × (antall nivåer). Dette er prisen for høy skrive-throughput. B+-trær har derimot lavere WA fordi skriv går direkte til riktig blokk (men flere små random skriv).</p>
+              <p>A og B er begge for optimistiske. C er feil — B+-trær har sin egen form for WA via blokkomskriving og buffer-flusher.</p>
+              <p class="ref">Pensum: <a href="../../kap6/btrees.html">Kap. 6 — B+-trær og LSM</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 20</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 7 — Range query access path</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Tabellen <code>Salg</code> har 200&nbsp;000 rader, lagret i en heap (4000 blokker). Det finnes et unclustered B+-tre på <code>belop</code> med 3 nivåer og 800 løvblokker. Vi kjører:</p>
+          <pre class="q-code">SELECT * FROM Salg WHERE belop &gt; 5000;</pre>
+          <p class="q-text">Anta at 70 % av radene oppfyller predikatet. Hvilken plan er optimal?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Full table scan av heapen — 4000 blokker.</li>
+            <li><span class="opt-label">B</span> Index range scan: traversér til riktig løv (3 blokker), skann 70 % av løvnivået (560 blokker), slå opp 140&nbsp;000 RID-er i heap (140&nbsp;000 blokker worst case).</li>
+            <li><span class="opt-label">C</span> Bitmap index scan med 70 % bitset, deretter 4000 heap-blokker — 4003 totalt.</li>
+            <li><span class="opt-label">D</span> Index seek til startposisjon (3 blokker) og deretter scan av 800 løvblokker.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>Når selektiviteten er høy (her 70 %) blir et unclustered indeks-oppslag dyrere enn en full table scan, fordi hver rad krever en separat heap-aksess (worst case én blokk per rad). Optimizer velger derfor full scan: 4000 blokker. Tommelregelen er at unclustered index-scan blir lønnsomt først når selektiviteten er svært lav (vanligvis &lt; 5–10 %).</p>
+              <p>B beskriver det optimizer ville fått hvis vi tvang indeks-bruk — 140&nbsp;000+ blokker, mye verre enn full scan. C miks-up bitmap (et avansert index-format ofte sett i analytiske DBMS-er) men endrer ikke konklusjonen for høy selektivitet. D leser hele indeksens løvnivå men hopper over heap-aksessene — feil hvis vi trenger <code>SELECT *</code>.</p>
+              <p class="ref">Pensum: <a href="../../kap7/innhold.html">Kap. 7 — Spørringsutføring</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 21</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 7 — J3 Sort-merge join</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Når lønner sort-merge join (J3) seg sammenlignet med hash join (J4) eller nested loop?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Når begge tabellene er små nok til å passe i RAM.</li>
+            <li><span class="opt-label">B</span> Når join-attributtet er en streng — sortering håndterer kollisjoner bedre enn hashing.</li>
+            <li><span class="opt-label">C</span> Når begge inputene allerede er sortert på join-attributtet (eller sorteringen kan utnyttes videre, f.eks. til ORDER BY) — da er kostnaden bare lineær merge, og ekstra sortering kan unngås helt.</li>
+            <li><span class="opt-label">D</span> Sort-merge er alltid raskere enn hash join for store tabeller.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Sort-merge er attraktivt når sorteringen kan brukes igjen — f.eks. når en av inputene er resultatet av en index-scan over en clustered index på join-attributtet, eller når det ytre spørringsplanen uansett trenger sortert output (ORDER BY, GROUP BY, DISTINCT). Da er J3 sin marginale ekstrakostnad bare merge-fasen.</p>
+              <p>A — for små tabeller velger man typisk hash join eller nested loop. B er fri fantasi. D er overgenerelt — hash join er ofte raskere når input er usortert og hashtabellen passer i RAM.</p>
+              <p class="ref">Pensum: <a href="../../kap7/innhold.html">Kap. 7 — Join-algoritmer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 22</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 7 — J4 Hash join</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hva er kjernemekanismen i partition-hash join (J4)?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Begge tabellene sorteres etter join-attributtet før de joines med en lineær merge.</li>
+            <li><span class="opt-label">B</span> Join-attributtet hashes for å partisjonere begge tabellene; deretter bygges en in-memory hashtabell på den minste sidens partisjon (build), og den større sidens partisjon "probes" mot den. Krever at hver build-partisjon får plass i RAM.</li>
+            <li><span class="opt-label">C</span> En hashtabell over join-attributtet vedlikeholdes på disk og oppdateres ved hver innsetting i en av tabellene.</li>
+            <li><span class="opt-label">D</span> Tabellene leses parallelt fra disk og kombineres i en hash-bitmap som indikerer matchede par.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Hash join går i to faser: (1) <em>partition</em> — begge tabellene hashes på join-attributtet og partisjoneres til disk; matchende rader havner i samme partisjons-bucket. (2) <em>build/probe</em> — for hver bucket bygges en hashtabell på den mindre sidens rader (build), og den større sidens rader probes mot den for matcher. Kravet er at en build-partisjon må passe i RAM; ellers må man rekursivt partisjonere.</p>
+              <p>A er sort-merge, ikke hash join. C er en separat indeksstruktur, ikke en algoritme. D er fri fantasi.</p>
+              <p class="ref">Pensum: <a href="../../kap7/innhold.html">Kap. 7 — Join-algoritmer</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 23</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — Recoverability hierarki</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Recoverability-hierarkiet rangerer schedule-klasser fra mest til minst restriktiv. Hva er den korrekte strikt-til-svak rekkefølgen?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> ACA ⊂ Strict ⊂ Recoverable ⊂ Alle.</li>
+            <li><span class="opt-label">B</span> Recoverable ⊂ ACA ⊂ Strict ⊂ Alle.</li>
+            <li><span class="opt-label">C</span> Strict ⊂ ACA ⊂ Alle ⊂ Recoverable.</li>
+            <li><span class="opt-label">D</span> Strict ⊂ ACA ⊂ Recoverable ⊂ Alle.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>Strict (S) er den mest restriktive: ingen lese eller skrive på et objekt som har en uncommitted skriv. ACA (Avoid Cascading Aborts) er bredere: ingen lese på en uncommitted skriv (men skriv-skriv-konflikter er tillatt). Recoverable er enda bredere: tillater dirty reads, men krever at en transaksjon committer <em>etter</em> alle den har lest fra. Alle schedules er supersettet.</p>
+              <p>A bytter Strict og ACA. B reverserer hierarkiet. C plasserer Recoverable utenfor Alle — umulig.</p>
+              <p class="ref">Pensum: <a href="../../kap8/intro-og-teori.html">Kap. 8 — Transaksjoner: teori</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 24</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — Dirty read</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Vurder schedulen:</p>
+          <pre class="q-code">w1(X, 200); r2(X); w2(Y); a1; c2;</pre>
+          <p class="q-text">(<code>a1</code> = T1 aborterer.) Hva er problemet?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> T2 har lest en verdi T1 skrev (dirty read), så committet sin egen state. Når T1 aborterer kan ikke T2 rulles tilbake — schedulen er ikke recoverable.</li>
+            <li><span class="opt-label">B</span> Lost update: T2 sin skriv overskriver T1 sin før T1 er committed.</li>
+            <li><span class="opt-label">C</span> Phantom: T2 ser en rad som T1 senere fjerner.</li>
+            <li><span class="opt-label">D</span> Ingen problem — schedulen er strict.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>r2(X) leser den verdien T1 har skrevet (men ikke committet) — dirty read. T2 committer (c2) før T1 er ferdig, og deretter aborterer T1. Vi kan ikke lenger rulle tilbake T2 (den er per definisjon irreversibel etter commit), så X-verdien T2 så har "lekket" ut til andre transaksjoner. Schedulen er ikke recoverable.</p>
+              <p>B krever to skriv på X uten å lese hverandres mellomstate. C er om range-spørringer og insertions. D er feil — strict ville forbudt r2(X) før c1.</p>
+              <p class="ref">Pensum: <a href="../../kap8/intro-og-teori.html">Kap. 8 — Transaksjoner: teori</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 25</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — MVCC vs 2PL</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Hva er den kjerneideen i MVCC (Multi-Version Concurrency Control) sammenlignet med 2PL?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> MVCC bruker både låser og versjoner samtidig — alt i 2PL pluss en versjonskjede per rad.</li>
+            <li><span class="opt-label">B</span> MVCC lagrer flere versjoner av hver rad — lesere ser en konsistent versjon (snapshot) uten å ta lås, og blokkerer ikke skrivere; bare skriv-skriv-konflikter krever låsing eller abort.</li>
+            <li><span class="opt-label">C</span> MVCC fjerner låsing helt; konflikter løses kun ved retry på applikasjonsnivå.</li>
+            <li><span class="opt-label">D</span> MVCC og 2PL er to navn på samme mekanisme i moderne DBMS-er.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>MVCC sin store gevinst er at <em>readers don't block writers, and writers don't block readers</em>. Hver skriv lager en ny versjon av raden; lesere ser den versjonen som var commit-et ved sin start (snapshot). Kun skriv-skriv-konflikter krever koordinering (typisk førstemann vinner / siste mann aborterer, eller en skrive-lås på selve raden).</p>
+              <p>A overdriver — moderne MVCC-systemer (PostgreSQL, Oracle) tar typisk ikke leselås. C overser at MVCC fortsatt bruker noe låsing for skrive-konflikter. D er falsk — 2PL gir SERIALIZABLE per default; MVCC gir snapshot isolation som ikke er fullt serializable.</p>
+              <p class="ref">Pensum: <a href="../../kap8/samtidighet-og-laser.html">Kap. 8 — Samtidighet og låser</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 26</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — Snapshot isolation write skew</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Under snapshot isolation kan en kjent anomali oppstå: <em>write skew</em>. Hva karakteriserer den?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> To transaksjoner overskriver hver sin sin verdi av samme rad uten å se hverandres skriv.</li>
+            <li><span class="opt-label">B</span> En transaksjon leser en rad to ganger og får forskjellige verdier.</li>
+            <li><span class="opt-label">C</span> To transaksjoner leser et felles datasett, hver oppdaterer en <em>annen</em> del av det basert på denne lesingen, og deres kombinerte effekt bryter en invariant som hver enkelt sjekket separat (f.eks. "minst én lege på vakt").</li>
+            <li><span class="opt-label">D</span> En transaksjon committer en skriv mens en annen er midt i en lengre lesing — tilsvarer dirty read.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: C</span>
+              <p>Det klassiske eksempelet: to leger T1 og T2 vil hver melde seg av vakt. Hver leser rader for begge legene og ser at den andre fortsatt er på vakt — så de oppdaterer kun sin egen status. Begge committer parallelt. Hver enkelt så lovlig invariant ("minst én på vakt"), men kombinasjonen bryter den. Snapshot isolation oppdager ikke dette fordi de oppdaterer <em>forskjellige</em> rader, så det er ingen skriv-skriv-konflikt.</p>
+              <p>A er lost update — fanges av MVCC sin write-write-deteksjon. B er unrepeatable read — ikke aktuell under snapshot. D er dirty read.</p>
+              <p class="ref">Pensum: <a href="../../kap8/samtidighet-og-laser.html">Kap. 8 — Samtidighet og låser</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 27</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — REDO-test</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Etter analyse-fasen i ARIES er DPT:</p>
+          <pre class="q-code">(P1, recLSN=80), (P2, recLSN=85), (P3, recLSN=90)</pre>
+          <p class="q-text">REDO-fasen vurderer loggpost LSN=82 som oppdaterer P2. På disk har P2 pageLSN=78. Skal loggposten redoes?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> Nei, fordi DPT.recLSN(P2) = 85 &gt; LSN = 82 — endringen er allerede kjent å være flushed til disk.</li>
+            <li><span class="opt-label">B</span> Ja, fordi T-en fortsatt er aktiv.</li>
+            <li><span class="opt-label">C</span> Ja, fordi pageLSN &lt; LSN.</li>
+            <li><span class="opt-label">D</span> Nei, fordi loggposten ligger før checkpointet.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: A</span>
+              <p>ARIES sin REDO-test: hopp over en loggpost dersom (i) PageID ikke er i DPT, (ii) DPT.recLSN &gt; LSN, eller (iii) blokkens pageLSN ≥ LSN. Her er DPT.recLSN(P2) = 85 og LSN = 82 → 85 &gt; 82, så vi vet at endringen ved LSN=82 ble flushed før blokken ble dirty igjen. Vi hopper over.</p>
+              <p>C er forvirret — pageLSN &lt; LSN ville faktisk antydet at vi <em>skulle</em> redoe, men kriterium (ii) overstyrer her. B forveksler analyse-fasens transaksjonsstatus med REDO-testen; ARIES gjentar historien for både winners og losers. D forveksler checkpoint-grensen med REDO-grensen.</p>
+              <p class="ref">Pensum: <a href="../../kap8/recovery.html">Kap. 8 — Recovery</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+      <article class="exam-q">
+        <header class="exam-q__head">
+          <span class="exam-q__num">Spørsmål 28</span>
+          <span class="exam-q__points">4 poeng</span>
+          <span class="exam-q__topic">Kap. 8 — Steal × Force</span>
+        </header>
+        <div class="exam-q__body">
+          <p class="q-text">Buffer-management policies for transaksjoner kombineres i en 2 × 2-matrise: steal/no-steal × force/no-force. Hvilken kombinasjon bruker ARIES, og hvorfor?</p>
+          <ul class="exam-q__opts">
+            <li><span class="opt-label">A</span> No-steal + force: enkleste å implementere, krever ingen logging.</li>
+            <li><span class="opt-label">B</span> No-steal + no-force: gir best ytelse for små transaksjoner.</li>
+            <li><span class="opt-label">C</span> Steal + force: kombinerer fleksibilitet med Durability uten REDO-logg.</li>
+            <li><span class="opt-label">D</span> Steal + no-force: maksimal fleksibilitet — buffer-manager kan flushe uncommitted endringer (steal) og trenger ikke flushe ved commit (no-force). Krever både UNDO-logg og REDO-logg.</li>
+          </ul>
+          <details class="fasit-details">
+            <summary>Vis fasit</summary>
+            <div class="fasit-body">
+              <span class="fasit-correct">Riktig svar: D</span>
+              <p>ARIES bruker steal + no-force. Steal lar buffer-managen evicte vilkårlige sider (selv uncommitted) når RAM-en blir trang — det krever UNDO-logg for å rulle tilbake. No-force betyr at vi <em>ikke</em> trenger å flushe alle dirty pages ved commit; bare loggen flushes (force-log-at-commit). Det krever REDO-logg for å gjenta committet skriving etter krasj. Kombinasjonen gir høy ytelse: korte commits (bare logg-flush), god buffer-utnyttelse (kan flushe uansett).</p>
+              <p>A er enkelt, men sløser med disk-I/O ved commit (force) og krever stor buffer (no-steal). B er fortsatt no-steal — fordrer mye RAM. C kombinerer steal med force, sjeldent brukt fordi force allerede koster det meste.</p>
+              <p class="ref">Pensum: <a href="../../kap8/recovery.html">Kap. 8 — Recovery</a></p>
+            </div>
+          </details>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="exam-part" style="padding-bottom:3rem">
+    <div class="container">
+      <p style="color:var(--ink-faded);font-style:italic;text-align:center;">Slutt på øvingseksamen 04.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="exam.js"></script>
+<script src="../../chat-widget.js"></script>
+</body>
+</html>
