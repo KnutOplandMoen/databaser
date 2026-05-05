@@ -467,23 +467,35 @@ SELECT mid FROM Boss;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 13</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 5 — Beyond Relational</span>
+          <span class="exam-q__topic">Kap. 3 — Fremmednøkler</span>
         </header>
         <div class="exam-q__body">
-          <p class="q-text">Hvilket utsagn beskriver best forskjellen mellom relasjonsdatabaser og dokumentdatabaser (f.eks. MongoDB)?</p>
+          <p class="q-text">Vi har følgende skjema:</p>
+          <pre class="q-code">CREATE TABLE Department (
+    dept_id INT PRIMARY KEY,
+    name    VARCHAR(50)
+);
+CREATE TABLE Employee (
+    emp_id  INT PRIMARY KEY,
+    name    VARCHAR(50),
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
+        ON DELETE SET NULL
+);</pre>
+          <p class="q-text">Hva skjer hvis vi sletter en rad fra Department som har relaterte Employee-rader?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Dokumentdatabaser har strengere skjema-validering enn relasjonsdatabaser og krever rigid normalisering.</li>
-            <li><span class="opt-label">B</span> Relasjonsdatabaser lagrer rader som JSON-dokumenter; dokumentdatabaser lagrer data i normaliserte tabeller med joins.</li>
-            <li><span class="opt-label">C</span> Dokumentdatabaser lagrer relaterte data sammen som hierarkiske dokumenter, mens relasjonsdatabaser normaliserer på tvers av flere tabeller med joins.</li>
-            <li><span class="opt-label">D</span> Relasjonsdatabaser støtter ikke ACID-transaksjoner; det er en egenskap som er forbeholdt dokumentdatabaser.</li>
+            <li><span class="opt-label">A</span> Slettingen avvises av DBMS-et på grunn av referensiell integritet.</li>
+            <li><span class="opt-label">B</span> Tilhørende Employee-rader slettes også, kaskaderende fra Department.</li>
+            <li><span class="opt-label">C</span> Tilhørende Employee-rader beholdes, og dept_id settes til NULL i hver av dem.</li>
+            <li><span class="opt-label">D</span> En feilmelding kastes, og hele transaksjonen rulles tilbake automatisk.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
             <div class="fasit-body">
               <span class="fasit-correct">Riktig svar: C</span>
-              <p>Dokumentdatabaser er ofte schema-on-read og lagrer relaterte data sammen i ett dokument (denormalisert). Relasjonsdatabaser bruker normalisering for å eliminere redundans og rekonstruerer relaterte data via joins. Det gir ulike avveininger: dokumenter er raskere for én-objekt-aksess, mens relasjoner er kraftigere for ad hoc-spørringer.</p>
-              <p>A er motsatt — relasjonsdatabaser har historisk hatt strengere skjema. B bytter rollene. D er rett og slett feil; relasjonsdatabaser var pioneren bak ACID.</p>
-              <p class="ref">Pensum: <a href="../../kap5/innhold.html">Kap. 5 — Utover relasjonsmodellen</a></p>
+              <p><code>ON DELETE SET NULL</code> betyr at FK-kolonnen i de avhengige radene settes til NULL når den refererte raden slettes. Slettingen i Department lykkes, og <code>Employee.dept_id</code> blir NULL der den pekte på den slettede avdelingen.</p>
+              <p>A beskriver standardoppførselen <code>ON DELETE NO ACTION</code> / <code>RESTRICT</code>. B beskriver <code>ON DELETE CASCADE</code>. D forveksler en applikasjonsfeil med en gyldig DDL-spesifisert handling.</p>
+              <p class="ref">Pensum: <a href="../../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views, transaksjoner, integritet</a></p>
             </div>
           </details>
         </div>
