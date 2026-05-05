@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../favicon.png" type="image/png">
+<title>Eksamen — TDT4145</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  .ex-hero { padding: 5rem 0 2.5rem; }
+  .ex-hero h1 { font-size: 4rem; line-height: 1.0; margin: 0; }
+  .ex-hero h1 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .ex-hero .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    background: rgba(31,78,121,0.08);
+    padding: 5px 12px;
+    border-radius: 14px;
+    margin-bottom: 1.6rem;
+  }
+  .ex-hero .lead {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--ink-soft);
+    max-width: 34em;
+    margin: 1.5rem 0 0;
+    line-height: 1.45;
+  }
+
+  .ex-section { padding: 2rem 0; }
+  .ex-section + .ex-section { border-top: 1px solid var(--line-soft); }
+  .ex-section h2 {
+    font-size: 1.7rem;
+    margin: 0 0 0.4rem;
+  }
+  .ex-section h2 em { color: var(--rust); font-style: italic; font-weight: 400; }
+  .ex-section .section-desc {
+    color: var(--ink-soft);
+    margin: 0 0 1.6rem;
+    max-width: 38em;
+  }
+
+  .ex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .ex-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.2rem 1.4rem;
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    color: var(--ink);
+    transition: background .15s, border-color .15s, transform .15s;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .ex-card:hover {
+    background: var(--paper);
+    border-color: var(--rust);
+    transform: translateY(-2px);
+  }
+  .ex-card .ex-meta {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .ex-card .ex-meta .ex-pill {
+    background: rgba(31,78,121,0.10);
+    padding: 4px 9px;
+    border-radius: 4px;
+  }
+  .ex-card .ex-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .ex-card .ex-desc {
+    font-size: 0.92rem;
+    color: var(--ink-faded);
+    line-height: 1.5;
+    flex: 1;
+  }
+  .ex-card .ex-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--ink-faded);
+    margin-top: 0.3rem;
+  }
+  .ex-card .ex-arrow { color: var(--rust); font-family: var(--mono); font-size: 1.1rem; }
+
+  .ex-empty {
+    padding: 1.4rem 1.6rem;
+    background: var(--paper-dark);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    color: var(--ink-faded);
+    font-style: italic;
+  }
+
+  .ex-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1rem 0 0;
+  }
+  .ex-info h3 {
+    font-size: 1.15rem;
+    margin: 0 0 0.5rem;
+  }
+  .ex-info p { color: var(--ink-soft); }
+  .ex-info ul { color: var(--ink-soft); margin: 0; }
+
+  @media (max-width: 720px) {
+    .ex-hero h1 { font-size: 2.8rem; }
+    .ex-info { grid-template-columns: 1fr; gap: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a href="../" class="brand">TDT4145</a>
+    <a href="../pensum.html" class="nav-back" style="margin-left:auto">Pensum</a>
+  </div>
+</nav>
+
+<main data-chapter="Eksamen">
+  <section class="ex-hero" style="border:none">
+    <div class="container">
+      <span class="tag">TDT4145 · Eksamen</span>
+      <h1><em>Eksamen</em></h1>
+      <p class="lead">
+        Øvingseksamener med klikkbare flervalgsoppgaver — og tidligere eksamener
+        som referanse for stilen. Kun multiple choice i år.
+      </p>
+    </div>
+  </section>
+
+  <section class="ex-section">
+    <div class="container">
+      <h2><em>Genererte</em> øvingseksamener</h2>
+      <p class="section-desc">
+        Interaktive sett som dekker hele pensum — Del 1 (relasjonsmodell, SQL, ER, normalformer)
+        og Del 2 (lagring, queries, transaksjoner). Klikk et alternativ for å låse svaret;
+        riktig blir grønt, feil blir rødt, og forklaringen åpnes automatisk.
+      </p>
+
+      <div class="ex-grid">
+        <div class="ex-empty">
+          Ingen genererte sett enda. Når vi lager første eksamen
+          (<code>eksamen_01.html</code>) dukker den opp her som et kort.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ex-section">
+    <div class="container">
+      <h2><em>Tidligere</em> eksamener</h2>
+      <p class="section-desc">
+        Bruk disse til å forstå <em>stilen</em>, vanskelighetsgraden og oppgavetypene —
+        ikke som fasit. De nye settene skal teste hele pensum, ikke bare gjenta gamle oppgaver.
+      </p>
+
+      <div class="ex-grid">
+        <a href="midterm_2026.md" class="ex-card">
+          <div class="ex-meta">
+            <span class="ex-pill">Midtveis 2026</span>
+            <span>Vår 2026</span>
+          </div>
+          <div class="ex-title">Midtveiseksamen — TDT4145</div>
+          <div class="ex-desc">
+            Del 1-stil: relasjonsalgebra, SQL, ER og normalformer.
+            14 flervalg + 5 langsvar (skriv SQL/DDL).
+          </div>
+          <div class="ex-foot">
+            <span>Markdown</span>
+            <span class="ex-arrow">→</span>
+          </div>
+        </a>
+
+        <a href="vår_2025.md" class="ex-card">
+          <div class="ex-meta">
+            <span class="ex-pill">Eksamen 2025</span>
+            <span>Vår 2025</span>
+          </div>
+          <div class="ex-title">Avsluttende eksamen — TDT4145</div>
+          <div class="ex-desc">
+            Del 2-tunge oppgaver: B+-trær, access paths, ARIES-recovery,
+            2PL, normalisering, ER-modellering, RA-graf.
+          </div>
+          <div class="ex-foot">
+            <span>Markdown</span>
+            <span class="ex-arrow">→</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="ex-section">
+    <div class="container">
+      <h2><em>For utviklere</em> av nye sett</h2>
+      <p class="section-desc">
+        Mal og delte ressurser ligger i <code>genererte/</code>.
+      </p>
+
+      <div class="ex-grid">
+        <a href="genererte/MAL.md" class="ex-card">
+          <div class="ex-meta">
+            <span class="ex-pill">Mal</span>
+          </div>
+          <div class="ex-title">Eksamensmal — struktur og pensumdekning</div>
+          <div class="ex-desc">
+            Hvordan en øvingseksamen bør se ut: HTML-struktur, vekting,
+            hvilke pensumblokker som må dekkes, sjekkliste.
+          </div>
+          <div class="ex-foot">
+            <span>genererte/MAL.md</span>
+            <span class="ex-arrow">→</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="ex-info">
+        <div>
+          <h3>Vekting</h3>
+          <ul>
+            <li><strong>Del 1 (~40 %)</strong> — Theodoros: lik stil som midtveis</li>
+            <li><strong>Del 2 (~60 %)</strong> — Svein Erik: lik stil som tidligere eksamen</li>
+            <li>Kun flervalgsspørsmål i år</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Format</h3>
+          <p>
+            Hvert sett er en frittstående HTML-side som lenker til delt
+            <a href="genererte/exam.css">exam.css</a> og
+            <a href="genererte/exam.js">exam.js</a>.
+            Klikkbare alternativer, automatisk fasit-åpning, grundig forklaring per oppgave.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="ornament">&#10043; &#10043; &#10043;</div>
+    <p>NTNU · TDT4145 · Vår 2026</p>
+  </div>
+</footer>
+
+<script src="../chat-widget.js"></script>
+</body>
+</html>
