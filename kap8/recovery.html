@@ -407,7 +407,7 @@
     <div class="container">
       <div class="section-badge">07 · Datastrukturer</div>
       <h2>Det ARIES holder rede på</h2>
-      <p>To tabeller i RAM (kopieres til logg ved sjekkpunkter — sjekkpunkter forklares i §10):</p>
+      <p>To tabeller i RAM. De kopieres periodisk til loggen via et <strong>sjekkpunkt</strong> — en loggpost som lagrer et øyeblikksbilde av TT og DPT, slik at recovery slipper å lese loggen fra start og kan begynne der. (Full mekanikk i §10.)</p>
 
       <h3>Transaction Table (TT)</h3>
       <p>Én rad per <em>aktiv</em> transaksjon. Inneholder:</p>
@@ -454,7 +454,7 @@
           <div class="aries-phase">
             <span class="phase-num">FASE 1</span>
             <h4>Analysis</h4>
-            <p>Skann logg fra siste <em>sjekkpunkt</em> (et merket startpunkt vi forklarer i §10) og fremover. Bygg opp <strong>Transaction Table</strong> og <strong>Dirty Page Table</strong> slik de var ved krasjet. Identifiser winners (committed) og losers (in-flight).</p>
+            <p>Skann logg fra siste <em>sjekkpunkt</em> og fremover. Bygg opp <strong>Transaction Table</strong> og <strong>Dirty Page Table</strong> slik de var ved krasjet (TT/DPT-snapshotet i sjekkpunktet er startpunktet — se §10). Identifiser winners (committed) og losers (in-flight).</p>
           </div>
           <div class="aries-phase">
             <span class="phase-num">FASE 2</span>
@@ -479,6 +479,7 @@
       </div>
 
       <h3 style="margin-top:1.6rem;">Restart-algoritmen i pseudokode</h3>
+      <p style="font-size:0.92rem;color:var(--ink-soft);">Et sjekkpunkt skrives som <em>to</em> loggposter — <code>begin_checkpoint</code> og <code>end_checkpoint</code> (med TT/DPT-snapshotet) — og en <em>log anchor</em> (master record på disk) peker til siste fullførte begin_checkpoint. Detaljer i §10.</p>
       <pre><code>function RESTART():
     # ── ANALYSIS ──
     finn siste begin_checkpoint i loggen via log anchor
