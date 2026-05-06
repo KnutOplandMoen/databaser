@@ -23,6 +23,14 @@
   .iso-table .none  { color: var(--green); font-weight: 600; }
   .iso-table .yes   { color: var(--rust); font-weight: 600; }
   .iso-table .maybe { color: var(--ochre); font-weight: 600; }
+
+  /* 2PL variant profile mini-graphs */
+  .variant-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4rem 1.6rem; margin: 1.2rem 0 0.4rem; }
+  .variant-grid figure { margin: 0; }
+  .variant-grid figure h4 { margin: 0 0 0.35rem 0; font-family: Newsreader, serif; font-style: italic; font-size: 1.05rem; color: var(--ink); }
+  .variant-grid figure svg { width: 100%; height: auto; display: block; }
+  .variant-grid figure figcaption { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.35rem; line-height: 1.45; }
+  @media (max-width: 640px) { .variant-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -347,6 +355,75 @@ T2: ......... r2(X=100) ; w2(X=130) ; c2 ............</code></pre>
       </div>
 
       <p>I praksis bruker de fleste databaser <strong>strict 2PL</strong> eller <strong>rigorous 2PL</strong> — fordi de gjør <em>recovery</em> (gjenoppretting etter krasj — kapittel 8C) enkel (undo via before-image fungerer). Basic 2PL er teoretisk korrekt, men gir cascading aborts.</p>
+
+      <h3 style="margin-top:1.6rem;">Profilene visualisert</h3>
+      <p>Hver variant har en distinkt form når man plotter <em>antall holdte låser</em> over tid. Den blå kurven er låstellet; den brune prikken merker <code>commit</code>:</p>
+
+      <div class="variant-grid">
+
+        <figure>
+          <h4>Basic 2PL</h4>
+          <svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Basic 2PL låsprofil — vanlig fjell, commit etter at låser allerede er sluppet">
+            <line x1="30" y1="130" x2="265" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <line x1="30" y1="25" x2="30" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <text x="148" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">tid →</text>
+            <text x="14" y="80" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257" transform="rotate(-90, 14, 80)">låser</text>
+            <path d="M 30 130 L 65 110 L 100 85 L 130 60 L 158 38 L 185 60 L 215 88 L 245 115 L 255 130" fill="none" stroke="#1f4e79" stroke-width="2"/>
+            <text x="158" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">peak</text>
+            <circle cx="215" cy="88" r="4" fill="#7a4a2d"/>
+            <text x="215" y="78" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">c</text>
+          </svg>
+          <figcaption>Klassisk fjell. Låser kan slippes når som helst etter peak — også <em>før</em> commit. Andre kan derfor lese uncommitted skrivinger ⇒ <em>cascading aborts</em> mulig.</figcaption>
+        </figure>
+
+        <figure>
+          <h4>Conservative 2PL</h4>
+          <svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Conservative 2PL låsprofil — alle låser tas på forhånd, rektangulært platå">
+            <line x1="30" y1="130" x2="265" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <line x1="30" y1="25" x2="30" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <text x="148" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">tid →</text>
+            <text x="14" y="80" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257" transform="rotate(-90, 14, 80)">låser</text>
+            <path d="M 30 130 L 55 130 L 55 38 L 170 38 L 200 70 L 230 100 L 250 130" fill="none" stroke="#1f4e79" stroke-width="2"/>
+            <text x="42" y="142" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#6b6257">vent</text>
+            <text x="112" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1f4e79">alle låser tatt på forhånd</text>
+            <circle cx="230" cy="100" r="4" fill="#7a4a2d"/>
+            <text x="230" y="90" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">c</text>
+          </svg>
+          <figcaption>Vertikalt sprang i starten: alle låser anskaffes <em>før</em> første operasjon. Ingen vokse-fase ⇒ ingen sirkulær venting ⇒ <strong>deadlock-fri</strong>. Pris: dårlig samtidighet.</figcaption>
+        </figure>
+
+        <figure>
+          <h4>Strict 2PL</h4>
+          <svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Strict 2PL låsprofil — S-låser slippes tidlig, X-låser holdes til commit">
+            <line x1="30" y1="130" x2="265" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <line x1="30" y1="25" x2="30" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <text x="148" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">tid →</text>
+            <text x="14" y="80" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257" transform="rotate(-90, 14, 80)">låser</text>
+            <path d="M 30 130 L 60 110 L 90 88 L 120 65 L 148 40 L 170 65 L 195 80 L 230 80 L 230 130" fill="none" stroke="#1f4e79" stroke-width="2"/>
+            <text x="170" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">S sluppet</text>
+            <text x="212" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">X til c</text>
+            <circle cx="230" cy="80" r="4" fill="#7a4a2d"/>
+            <text x="244" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">c</text>
+          </svg>
+          <figcaption>S-låser kan slippes gradvis etter peak; X-låser holdes på et platå helt til commit (vertikalt fall ved c). Ingen kan lese uncommitted ⇒ <em>cascadeless</em>. Standard i praksis.</figcaption>
+        </figure>
+
+        <figure>
+          <h4>Rigorous 2PL</h4>
+          <svg viewBox="0 0 280 165" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rigorous 2PL låsprofil — alle låser holdes til commit, trapes-form">
+            <line x1="30" y1="130" x2="265" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <line x1="30" y1="25" x2="30" y2="130" stroke="#3d3832" stroke-width="1"/>
+            <text x="148" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">tid →</text>
+            <text x="14" y="80" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257" transform="rotate(-90, 14, 80)">låser</text>
+            <path d="M 30 130 L 60 110 L 90 88 L 120 65 L 148 42 L 230 42 L 230 130" fill="none" stroke="#1f4e79" stroke-width="2"/>
+            <text x="190" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6b6257">alle låser holdes</text>
+            <circle cx="230" cy="42" r="4" fill="#7a4a2d"/>
+            <text x="244" y="46" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a4a2d">c</text>
+          </svg>
+          <figcaption>Trapesform: ingen lås slippes før commit. Hele «fjellet» raser ned vertikalt ved c. Enklest å implementere — litt mindre samtidighet enn strict på lese-tunge laster.</figcaption>
+        </figure>
+
+      </div>
 
       <h3 id="rigorous-eksempel" style="margin-top:1.8rem;">Gjennomgått eksempel — rigorous 2PL i sekvens</h3>
       <p>Vi setter låser med <strong>rigorous 2PL</strong> for følgende sekvens som kommer inn til databasen, og finner ut <em>i hvilken rekkefølge</em> transaksjonene committer:</p>
