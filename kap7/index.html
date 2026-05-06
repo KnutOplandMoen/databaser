@@ -573,6 +573,1563 @@
       </div>
     </div>
   </section>
+
+  <section id="pensum-eksamen">
+    <div class="container">
+      <div class="section-badge">07 · Pensumeksamen</div>
+      <h2>Flashcards — <em>hele pensum</em>, fra Kap 1 til Kap 8</h2>
+      <p class="section-intro">
+        Et bredt kortdekk som dekker både Del 1 (relasjonsmodellen, SQL, ER, normalformer) og
+        Del 2 (lagring, queries, transaksjoner). Tanken er enkel: <strong>kan du alle kortene,
+        har du skjønt absolutt alt i pensum</strong>. Klikk kortet for å snu det. Bruk
+        piltastene <kbd>←</kbd> <kbd>→</kbd> til å bla, <kbd>S</kbd> for å shuffle, eller
+        <kbd>R</kbd> for å resette rekkefølgen. Spørsmålene er i samme tone og vanskelighet som
+        <a href="../eksamen/">øvingseksamenene</a>, men ingen oppgave er kopiert direkte —
+        de tester samme begreper og regneferdigheter på ferske vinklinger.
+      </p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu · <kbd>S</kbd> shuffle · <kbd>R</kbd> reset</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-shuffle aria-label="Shuffle kortstokken">⤨ Shuffle</button>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
+        </div>
+
+        <!-- ============================================================
+             Kap. 1 — DBMS, arkitektur, ACID
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 1 — ACID</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva står hver bokstav i <em>ACID</em> for, og hvilken DBMS-mekanisme er hovedansvarlig for hver av dem?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>A — Atomicity:</strong> alt eller ingenting. Mekanisme: <em>UNDO-logging</em> + abort/rollback.</p>
+              <p><strong>C — Consistency:</strong> databasens integritetsregler holder før og etter. Mekanisme: <em>integritetssjekk</em> (constraints, triggere) + at hver transaksjon er korrekt skrevet.</p>
+              <p><strong>I — Isolation:</strong> samtidige transaksjoner ser ut til å kjøre etter hverandre. Mekanisme: <em>concurrency control</em> (2PL eller MVCC).</p>
+              <p><strong>D — Durability:</strong> committed effekter overlever krasj. Mekanisme: <em>WAL</em> (write-ahead log) + force-log-at-commit.</p>
+              <p>Merk at en kortvarig serialiserbar utførelse kan være «konsistent» selv om et enkelt mellomtilstand bryter constraints — viktig at C måles ved <em>commit</em>, ikke midt i en transaksjon.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — ACID</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 1 — Tre-skjema-arkitektur</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv ANSI/SPARC <em>tre-skjema-arkitekturen</em> og hva hvert nivå isolerer.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Tre lag mellom bruker og bits:</p>
+              <p><strong>Eksternt skjema (view):</strong> hva en bestemt brukergruppe ser. En tabell kan være delvis skjult, et JOIN-resultat kan være eksponert som «én tabell», kolonner kan renames.</p>
+              <p><strong>Konseptuelt skjema:</strong> den logiske, hele beskrivelsen — alle tabeller, kolonner, constraints, integritetsregler. Dette er det DDL-en din bygger.</p>
+              <p><strong>Internt skjema:</strong> hvordan dataene faktisk er lagret — heap eller B+-tre, hvilke indekser finnes, blokkstørrelse, partisjonering.</p>
+              <p>Poenget er <strong>data-uavhengighet</strong>:<br>
+              <em>Logisk uavhengighet</em> — endre konseptuelt skjema (legg til en kolonne) uten å bryte views.<br>
+              <em>Fysisk uavhengighet</em> — endre interne strukturer (legg til indeks, repartisjoner) uten å endre SQL-en.</p>
+              <p class="fc-ref">Pensum: <a href="../kap1/index.html">Kap. 1 — DBMS-arkitektur</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 1 — DBMS-komponenter</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Nevn de fire hovedkomponentene som behandler en SQL-spørring fra tekst til byter, i rekkefølge.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Parser:</strong> sjekker syntaks, slår opp tabeller og kolonner i SQL-katalogen, lager et logisk algebra-tre.</p>
+              <p><strong>2. Optimizer:</strong> genererer kandidatplaner, beregner forventet kostnad ved hjelp av statistikk, velger den billigste planen. Eier kap. 7.</p>
+              <p><strong>3. Executor:</strong> utfører den valgte planen — kaller aksessmetoder, kjører join-algoritmer, sorterer, projiserer.</p>
+              <p><strong>4. Storage manager:</strong> oversetter blokkforespørsler til faktiske disk-I/O, går via buffer pool. Eier kap. 6.</p>
+              <p>I tillegg: <em>concurrency control</em> og <em>recovery manager</em> jobber parallelt over alle disse (kap. 8). SQL-katalogen (data dictionary) leses av parser og optimizer.</p>
+              <p class="fc-ref">Pensum: <a href="../reisen/index.html">Reisen gjennom DBMS-en</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 2 — Relasjonsmodellen + relasjonsalgebra
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — Nøkler</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Skill mellom <em>supernøkkel</em>, <em>kandidatnøkkel</em> og <em>primærnøkkel</em>. Kan en relasjon ha flere kandidatnøkler?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Supernøkkel:</strong> en mengde attributter som unikt identifiserer hver tuppel. Kan inneholde overflødige attributter (f.eks. {SSN, navn} er supernøkkel hvis SSN er det).</p>
+              <p><strong>Kandidatnøkkel:</strong> en <em>minimal</em> supernøkkel — fjerner du ett attributt mister du unikheten. {SSN} er kandidatnøkkel, {SSN, navn} er ikke.</p>
+              <p><strong>Primærnøkkel:</strong> én valgt kandidatnøkkel. DBMS-en lager typisk en clustered B+-indeks på den, og NULL er forbudt.</p>
+              <p>En relasjon <strong>kan ha flere kandidatnøkler</strong> (f.eks. både SSN og e-post er unike). Alle kandidatnøkler har samme <em>egenskap</em> (minimal+unik), men bare én er primærnøkkel — de andre kalles ofte <em>alternate keys</em>.</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsmodellen.html">Kap. 2 — Relasjonsmodellen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — Fundamentale RA-operatorer</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke seks operatorer er <em>fundamentale</em> i relasjonsalgebra, og hvilke er avledede?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Fundamentale (6):</strong> σ (selection), π (projection), ∪ (union), − (set difference), × (cross product), ρ (rename).</p>
+              <p><strong>Avledede:</strong> ∩ (intersection) = R − (R − S). Theta-join og natural join (⋈) = σ over ×. Divisjon (÷) kan uttrykkes via ×, − og π.</p>
+              <p>Merk: outer joins (⟕, ⟖, ⟗) er heller ikke fundamentale — de utvider natural join med tupler som ikke matcher, fylt ut med NULL.</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — RA tuppeltelling</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellene <code>R(a, b)</code> har 4 tupler og <code>S(b, c)</code> har 5 tupler. Det er 3 tupler i R med en b-verdi som finnes i S, og hver av de 5 S-tuplene har én matchende R-tuppel. Hvor mange tupler er det i resultatet av <code>R ⋈ S</code> (natural join på <code>b</code>)?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 3</li>
+                <li><span class="opt-label">B</span> 5</li>
+                <li><span class="opt-label">C</span> 8</li>
+                <li><span class="opt-label">D</span> 20</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — 5 tupler.</strong></p>
+              <p>Natural join produserer én resultattuppel per (R, S)-par som matcher på <code>b</code>. Hver av de 5 S-tuplene har eksakt én matchende R-tuppel, så antallet par = 5.</p>
+              <p>(Hvis flere R-tupler hadde delt samme b-verdi som en S-tuppel, hadde tallet vært høyere — generelt: summer over hver delt b-verdi <code>v</code> antallet R-tupler med <code>b=v</code> ganget med antallet S-tupler med <code>b=v</code>.)</p>
+              <p><strong>A (3)</strong> teller antall R-tupler som <em>kan</em> matche, men ikke selve parene. <strong>C (8)</strong> er 3 + 5 — typisk hvis man tror join er en union. <strong>D (20)</strong> er |R| × |S|, kartesisk produkt uten matching — feil med mindre alle b-verdier samsvarer.</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Relasjonsalgebra</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — Set-operasjoner</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er kravet for at <code>R ∪ S</code> (union i RA) er definert?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>R og S må være union-kompatible</strong>: samme antall attributter, og de korresponderende attributtene må ha samme domene (datatype).</p>
+              <p>Dette er strengere enn SQL-ens <code>UNION</code>, som krever samme antall kolonner og kompatible typer (typeparing). I RA er kolonnenavnene ikke nødvendigvis like — det er <em>posisjonen</em> som teller.</p>
+              <p>Samme krav gjelder for <code>R − S</code> og <code>R ∩ S</code>. (Cross product <code>R × S</code> krever ikke union-kompatibilitet — den lager bare en bredere relasjon.)</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Set-operasjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — Outer join</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar <em>left outer join</em> (⟕) i RA, og hva som skjer med tupler uten match.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>R ⟕ S</strong> = alle resultater fra R ⋈ S, <em>pluss</em> hver tuppel fra R som ikke matchet noen tuppel i S — utvidet med NULL i alle S-attributter.</p>
+              <p>Symmetrisk: <strong>right outer join</strong> (⟖) bevarer alle S-tupler. <strong>Full outer join</strong> (⟗) bevarer alle fra begge sider.</p>
+              <p>Brukstilfelle: «vis alle ansatte og deres avdeling, også de uten avdeling». Ved natural join faller de uten match ut — outer join holder dem inne.</p>
+              <p>I SQL: <code>LEFT JOIN</code>, <code>RIGHT JOIN</code>, <code>FULL OUTER JOIN</code>. NULL fra outer join er <strong>ikke</strong> det samme som NULL i originaldataene — semantisk skille som av og til betyr noe i aggregatfunksjoner (f.eks. <code>COUNT(*)</code> teller NULL-rader, <code>COUNT(col)</code> ignorerer NULL).</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Outer join</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 2 — Divisjon</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva regner <em>divisjon</em> (R ÷ S) ut, og hva er det klassiske brukstilfellet?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>R ÷ S</strong> finner de verdiene i R som er paret med <em>alle</em> verdier i S.</p>
+              <p>Definisjon: La R(A, B) og S(B). Resultatet er en relasjon over A der hver a-verdi i resultatet oppfyller: for <em>hver</em> b i S finnes (a, b) i R.</p>
+              <p>Klassisk brukstilfelle: «finn studenter som har tatt <em>alle</em> kurs i en bestemt liste». R = (student, kurs) takings-tabellen, S = listen av påkrevde kurs. R ÷ S = studenter som har tatt alle.</p>
+              <p>I SQL uttrykkes dette typisk med dobbelt <code>NOT EXISTS</code>: «ingen kurs i S som studenten <em>ikke</em> har tatt». Det er den samme logikken — universell kvantor utrykt som dobbel negasjon av eksistens.</p>
+              <p class="fc-ref">Pensum: <a href="../kap2/relasjonsalgebra.html">Kap. 2 — Divisjon</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 3 — SQL
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — NULL-semantikk</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er resultatet av <code>NULL = NULL</code> i SQL, og hvordan håndteres NULL i <code>WHERE</code> versus i aggregatfunksjoner?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><code>NULL = NULL</code> evalueres til <strong>UNKNOWN</strong>, ikke TRUE. SQL bruker tre-verdig logikk (TRUE / FALSE / UNKNOWN). For å sjekke om en kolonne er NULL: <code>col IS NULL</code>.</p>
+              <p><strong>WHERE</strong> beholder bare rader der predikatet er TRUE. UNKNOWN-rader filtreres bort, akkurat som FALSE.</p>
+              <p><strong>Aggregatfunksjoner</strong> ignorerer NULL — bortsett fra <code>COUNT(*)</code> som teller alle rader. <code>COUNT(col)</code>, <code>SUM(col)</code>, <code>AVG(col)</code> hopper over NULL-verdier. Konsekvens: <code>SUM(x) / COUNT(x)</code> ≠ <code>AVG(x)</code> hvis det er NULL i <code>x</code>.</p>
+              <p>Ekstra felle: <code>NOT IN (subquery)</code> kan returnere ingen rader hvis subqueryen inneholder NULL — fordi <code>x NOT IN {a, NULL}</code> blir <code>x ≠ a AND x ≠ NULL</code>, og det siste er UNKNOWN. Bruk <code>NOT EXISTS</code> i stedet.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/ddl-og-spoerringer.html">Kap. 3 — NULL og 3-verdig logikk</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — GROUP BY + HAVING</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <code>WHERE</code> og <code>HAVING</code>, og i hvilken rekkefølge utføres de?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Logisk utføringsrekkefølge: <code>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT</code>.</p>
+              <p><strong>WHERE</strong> filtrerer <em>rader</em> før gruppering. Kan ikke referere til aggregatfunksjoner — de eksisterer ikke ennå.</p>
+              <p><strong>HAVING</strong> filtrerer <em>grupper</em> etter at <code>GROUP BY</code> har samlet dem. Får referere til aggregatfunksjoner: <code>HAVING SUM(salary) &gt; 1 000 000</code>.</p>
+              <p>Tommelfingerregel: hører predikatet til en enkeltrad, bruk <code>WHERE</code>; hører det til hele gruppa, bruk <code>HAVING</code>. Optimizeren kan flytte enkle ikke-aggregat-predikater fra HAVING til WHERE — men semantikken er definert i denne rekkefølgen.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/ddl-og-spoerringer.html">Kap. 3 — Gruppering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — Subqueries</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <code>IN</code>, <code>EXISTS</code> og <code>= ANY</code> i en subquery? Når er <code>NOT IN</code> farlig?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong><code>x IN (subq)</code></strong> = TRUE hvis x er lik <em>noen</em> verdi i subqueryen. Tilsvarer <code>x = ANY (subq)</code>.</p>
+              <p><strong><code>EXISTS (subq)</code></strong> = TRUE hvis subqueryen returnerer minst én rad. Bryr seg ikke om kolonneverdier — typisk korrelerte subqueries der vi sjekker «finnes det en match?».</p>
+              <p><strong><code>= ANY</code> / <code>= SOME</code></strong> = synonym for IN. <strong><code>= ALL</code></strong> = TRUE hvis x er lik <em>alle</em> verdier i subqueryen (inkludert tom subquery, der ALL er trivielt TRUE).</p>
+              <p><strong><code>NOT IN</code> er farlig med NULL:</strong> <code>x NOT IN (a, NULL)</code> blir alltid UNKNOWN → 0 rader. Bruk <code>NOT EXISTS</code> i stedet — det håndterer NULL korrekt og er ofte raskere.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/joins-og-subqueries.html">Kap. 3 — Subqueries</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — Views</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når er en view <em>updatable</em>, og hva gjør <code>WITH CHECK OPTION</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En view er updatable når DBMS-en utvetydig kan oversette en INSERT/UPDATE/DELETE på viewet til en operasjon på underliggende tabeller. Typiske krav:</p>
+              <p>• Bygges på <em>én</em> tabell.<br>
+              • Inneholder primærnøkkelen til den tabellen.<br>
+              • Ingen aggregat, GROUP BY, DISTINCT, eller utregnede uttrykk i SELECT.<br>
+              • Ingen subquery i WHERE som korrelerer med viewet selv.</p>
+              <p>Multi-tabell-views med JOIN er typisk <em>read-only</em>, eller krever <code>INSTEAD OF</code>-triggere.</p>
+              <p><strong><code>WITH CHECK OPTION</code></strong> sørger for at en INSERT eller UPDATE på viewet ikke produserer en rad som <em>ikke ville vært synlig</em> gjennom viewet. F.eks. view <code>HighEarners</code> = <code>SELECT * FROM Emp WHERE salary &gt; 1 000 000</code>; uten WITH CHECK OPTION kan jeg sette inn en rad med salary=500 000 (den havner i tabellen, men ikke i viewet); med WITH CHECK OPTION blir INSERT-en avvist.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/views-transaksjoner-integritet.html">Kap. 3 — Views</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — Triggere</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar forskjellen på <em>row-level</em> (FOR EACH ROW) og <em>statement-level</em> triggere. Hva er <code>NEW</code> og <code>OLD</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Row-level (FOR EACH ROW):</strong> trigger-koden kjøres én gang for <em>hver</em> rad som påvirkes. Pseudovariablene <code>NEW</code> og <code>OLD</code> refererer til den enkelte raden.</p>
+              <p>• <code>OLD</code>: gammel verdi (i UPDATE og DELETE).<br>
+              • <code>NEW</code>: ny verdi (i INSERT og UPDATE).<br>
+              • <code>BEFORE</code>-triggere kan endre <code>NEW</code>; <code>AFTER</code>-triggere kan ikke (raden er allerede skrevet).</p>
+              <p><strong>Statement-level:</strong> kjøres én gang per setning, uansett antall rader berørt. <code>NEW</code>/<code>OLD</code> finnes ikke direkte; man bruker <em>transition tables</em> (NEW TABLE / OLD TABLE) som inneholder alle endrede rader.</p>
+              <p>Typisk valg: row-level for fine-grained logging og kaskaderegler; statement-level for å oppdatere et aggregert mellomresultat (f.eks. en sum-tabell), der man bare vil ha én oppdatering pr. statement.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/prosedyrer-triggere-rekursjon.html">Kap. 3 — Triggere</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — GRANT/REVOKE CASCADE</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <code>GRANT … WITH GRANT OPTION</code>, og hvordan oppfører <code>REVOKE … CASCADE</code> seg?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>WITH GRANT OPTION:</strong> mottakeren får ikke bare privilegiet, men også retten til å videregi det. Hvis Alice får <code>SELECT</code> på Emp WITH GRANT OPTION, kan hun GRANTe SELECT videre til Bob.</p>
+              <p><strong>REVOKE … CASCADE:</strong> når et privilegium tilbakekalles, tilbakekalles <em>også</em> alle privilegier som er videregitt fra det. Hvis vi revoker SELECT fra Alice CASCADE, mister Bob det også (forutsatt at han ikke har SELECT fra en annen kilde).</p>
+              <p><strong>REVOKE … RESTRICT:</strong> motsatt — REVOKE feiler hvis privilegiet er videregitt. Du må først rydde opp manuelt.</p>
+              <p>DBMS-en holder en grant-graf for å vite hvem som har gitt hva til hvem. CASCADE traverserer grafen; et privilegium beholdes hvis brukeren har det fra en alternativ kilde.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/views-transaksjoner-integritet.html">Kap. 3 — Autorisasjon</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — Rekursive views</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er den generelle strukturen til en <code>WITH RECURSIVE</code>-spørring, og hvordan termineres rekursjonen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><pre><code>WITH RECURSIVE r(...) AS (
+  -- 1. base case: ikke-rekursiv start-spørring
+  SELECT ... FROM ...
+  UNION [ALL]
+  -- 2. recursive step: refererer til r selv
+  SELECT ... FROM r JOIN ...
+)
+SELECT ... FROM r;</code></pre></p>
+              <p>DBMS-en gjør <em>fixed-point iteration</em>: start med base case, kjør recursive step gjentatte ganger, akkumuler nye rader i r. Stopp når en iterasjon ikke produserer flere nye rader.</p>
+              <p><strong>UNION ALL</strong> beholder duplikater — vanlig hvis grafen er asyklisk. <strong>UNION</strong> de-dupliserer og fungerer som naturlig terminator i sykliske grafer (f.eks. forfedre i en familietre der en person ikke er sin egen forfar).</p>
+              <p>Klassisk brukstilfelle: transitive closure (alle forfedre, alle understående underavdelinger, korteste vei). Ofte mye penere enn pleie å gjøre flere selv-joiner manuelt.</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/prosedyrer-triggere-rekursjon.html">Kap. 3 — Rekursjon</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3 — Referanseintegritet</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <code>ON DELETE CASCADE</code>, <code>ON DELETE SET NULL</code> og <code>ON DELETE RESTRICT</code> på en fremmednøkkel?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Fremmednøkkelen B → A (B referer A) bestemmer hva som skjer i B når en referert rad i A slettes:</p>
+              <p><strong>CASCADE:</strong> slett alle rader i B som peker på den slettede A-raden. Kan utløse en kaskade videre hvis B også er referert.</p>
+              <p><strong>SET NULL:</strong> sett fremmednøkkelen i B til NULL. Krever at kolonnen er nullable.</p>
+              <p><strong>RESTRICT (eller NO ACTION):</strong> avvis slettingen av A hvis det finnes refererende rader i B. Sikreste valget; brukes når man vil hindre dataforringelse.</p>
+              <p>Tilsvarende <code>ON UPDATE</code>-varianter finnes for primærnøkkel-endringer. <em>RESTRICT</em> sjekker umiddelbart, <em>NO ACTION</em> er deferrable til commit (i full SQL-standard, men ikke alle DBMS-er støtter dette).</p>
+              <p class="fc-ref">Pensum: <a href="../kap3/views-transaksjoner-integritet.html">Kap. 3 — Integritet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 4 — Databasedesign: ER + normalformer
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Svake entiteter</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>svak entitet</em>, hva er en <em>identifying relationship</em>, og hvordan oversettes den til relasjonsskjema?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>svak entitet</strong> har ikke en unik identifikator i seg selv. Den må kombineres med en <em>eier-entitet</em> via en <em>identifying relationship</em> for å bli identifiserbar.</p>
+              <p>Eksempel: <code>Dependent</code> (forsørget familiemedlem) har attributt <code>name</code>, men to ansatte kan ha hver sitt barn med samme navn. Sammen med <code>Employee</code> via «is dependent of» blir (<code>SSN_emp</code>, <code>name</code>) unik. Det partielle nøkkelattributtet (<code>name</code>) kalles <em>discriminator</em>.</p>
+              <p><strong>Mapping til skjema:</strong> én relasjon med <em>kombinert primærnøkkel</em>: eierens primærnøkkel + svakens partielle nøkkel. Eierens nøkkel blir samtidig fremmednøkkel med <code>ON DELETE CASCADE</code> — sletter eieren, slettes også de avhengige.</p>
+              <p>I ER-diagram: dobbel rektangel for svak entitet, dobbel diamant for identifying relationship.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/er-modellen.html">Kap. 4 — ER-modellen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — ISA</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tre vanlige måter å mappe en <em>ISA-hierarki</em> (specialization) til relasjoner. Hva er trade-off-ene?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Én tabell per type, inkl. superklasse:</strong> <code>Person(id, navn)</code> + <code>Student(id, snitt)</code> + <code>Ansatt(id, lønn)</code>. Hver subklasse har FK til superklassen.<br>
+              <em>Fordeler:</em> ren modell, støtter overlapping og partial. <em>Ulemper:</em> mange joiner ved spørringer som krysser hierarkiet.</p>
+              <p><strong>2. Én tabell per subklasse (uten superklasse):</strong> <code>Student(id, navn, snitt)</code>, <code>Ansatt(id, navn, lønn)</code>. Krever disjoint+total: hver person er enten student eller ansatt, ikke begge.<br>
+              <em>Fordeler:</em> ingen joiner. <em>Ulemper:</em> duplisert kolonne (<code>navn</code>); UNION ved spørringer på alle personer.</p>
+              <p><strong>3. Én stor tabell med union types:</strong> <code>Person(id, navn, type, snitt, lønn)</code>. Bruker NULL i felt som ikke gjelder.<br>
+              <em>Fordeler:</em> ingen joiner. <em>Ulemper:</em> mange NULL, vanskelig å håndheve at student har snitt og ansatt har lønn.</p>
+              <p>Pensum bruker disjoint vs overlapping og total vs partial som constraints på spesialiseringa.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/er-til-relasjon.html">Kap. 4 — ER-mapping</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — FD-lukning</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan beregner du <em>attributt-lukningen</em> X⁺ over et sett funksjonelle avhengigheter F, og hva bruker vi den til?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Algoritme:</strong></p>
+              <p>1. Start med <code>X⁺ = X</code>.<br>
+              2. Gå gjennom alle FD-er i F. Hvis venstre side <code>Y ⊆ X⁺</code>, legg høyre side <code>Z</code> til X⁺.<br>
+              3. Repeter til X⁺ ikke vokser.</p>
+              <p><strong>Brukes til:</strong></p>
+              <p>• <strong>Sjekke om X er supernøkkel:</strong> X⁺ = R (alle attributter) ⇔ X er supernøkkel.<br>
+              • <strong>Finne alle kandidatnøkler:</strong> sjekk hver minimal mengde X med X⁺ = R.<br>
+              • <strong>Sjekke en FD <code>Y → Z</code>:</strong> Z ⊆ Y⁺ ⇔ FD-en holder.<br>
+              • <strong>Bestemme normalform:</strong> for BCNF, sjekk at hver ikke-triviell FD har en supernøkkel som venstre side.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — FD og lukning</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — 3NF vs BCNF</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når er en relasjon på <em>3NF</em>, når er den på <em>BCNF</em>, og hvorfor sikter vi noen ganger «kun» til 3NF?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>BCNF:</strong> for hver ikke-triviell FD <code>X → A</code>, må <code>X</code> være en supernøkkel.</p>
+              <p><strong>3NF:</strong> for hver ikke-triviell FD <code>X → A</code>, må <em>én</em> av disse holde:<br>
+              (a) <code>X</code> er supernøkkel, eller<br>
+              (b) <code>A</code> er en del av en kandidatnøkkel («prime attribute»).</p>
+              <p>3NF er altså <strong>strengere svakere</strong> enn BCNF — den tillater FD-er der venstresiden ikke er supernøkkel, så lenge høyresiden er prime.</p>
+              <p><strong>Hvorfor 3NF noen ganger?</strong> Det er ikke alltid mulig å dekomponere til BCNF samtidig som vi bevarer alle FD-er. 3NF kan <em>alltid</em> oppnås <em>tap-fritt OG dependency-bevarende</em>; BCNF garanterer bare tap-fritt. Den klassiske eksempel-relasjonen er <code>Address(by, postnummer, gate)</code> der <code>{by, gate} → postnummer</code> og <code>postnummer → by</code>: kan dekomponeres til BCNF, men da kan ikke FD-en {by, gate} → postnummer håndheves uten å rejoine.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Kandidatnøkler</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">R(A, B, C, D) med F = {A → B, B → C, CD → A}. Hvor mange kandidatnøkler har R?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1: {AD}</li>
+                <li><span class="opt-label">B</span> 2: {AD}, {BD}</li>
+                <li><span class="opt-label">C</span> 3: {AD}, {BD}, {CD}</li>
+                <li><span class="opt-label">D</span> 4: {AD}, {BD}, {CD}, {ABCD}</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — 3 kandidatnøkler.</strong></p>
+              <p>D er ikke i høyresiden av noen FD, så D må være med i hver kandidatnøkkel.</p>
+              <p>Sjekk hver kandidat:</p>
+              <p>• <code>{A,D}⁺</code>: A → B → C, så lukning = ABCD ✓<br>
+              • <code>{B,D}⁺</code>: B → C, og {C,D} → A, så lukning = ABCD ✓<br>
+              • <code>{C,D}⁺</code>: CD → A → B, så lukning = ABCD ✓<br>
+              • Bare D: lukning = D ✗</p>
+              <p>Alle tre er minimale (fjerner du D, eller den andre attributten, blir lukningen ufullstendig). Derfor 3 kandidatnøkler.</p>
+              <p><strong>D (4)</strong> teller med en ikke-minimal supernøkkel.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Kandidatnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Lossless decomposition</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er testen for at en dekomponering av R til R₁ og R₂ er <em>lossless join</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Dekomponeringen er <strong>lossless</strong> hvis fellesattributtene <code>R₁ ∩ R₂</code> er supernøkkel for <em>minst én</em> av delrelasjonene.</p>
+              <p>Formelt: <code>(R₁ ∩ R₂) → R₁</code> ELLER <code>(R₁ ∩ R₂) → R₂</code> må holde i F⁺.</p>
+              <p><strong>Hvorfor:</strong> hvis fellesattributtene unikt bestemmer den ene siden, finnes det bare én måte å koble en R₁-tuppel tilbake til R₂-tupler — vi taper ingen informasjon ved natural join. Hvis ingen av sidene er supernøkkel for fellesnøkkelen, kan vi få spurious tupler ved rejoin.</p>
+              <p><strong>Eksempel:</strong> R(SSN, navn, by) med {SSN → navn, SSN → by}. Splitt til R₁(SSN, navn) og R₂(SSN, by) — fellesnøkkel SSN er supernøkkel for begge → lossless. Splitt i stedet til R₁(SSN, navn) og R₂(navn, by) — felles er <code>navn</code>, som ikke er supernøkkel → potensielt tap (hvis to personer har samme navn).</p>
+              <p>For dekomponering i mer enn to relasjoner: bruk <em>chase-algoritmen</em>.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/normalformer.html">Kap. 4 — Lossless decomposition</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 6A — Lagring (blokker, heap, hashing, buffer)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — RID</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>RID</em>, og hvorfor består den av en blokk-id pluss en slot — ikke en absolutt byte-offset?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>RID = (BlockId, slot)</strong>, en peker fra en indeks ned til en konkret rad.</p>
+              <p>Hadde RID-en vært en absolutt byte-offset, ville hver kompaktering av blokken (etter sletting f.eks.) krevd at alle indekser ute i systemet ble oppdatert. Det er praktisk umulig.</p>
+              <p>Ved å bruke en logisk slot-indeks som indirekteringspunkt, kan radene flyttes inni blokken uten at indekspekerne blir ugyldige — bare blokkens slot directory må oppdateres.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — Block-format</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Buffer pool</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor har DBMS-er <em>egen</em> buffer pool fremfor å la OS-et håndtere caching?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>DBMS-en kjenner semantikken og kan derfor velge bedre policy enn et generisk OS:</p>
+              <p>• <strong>Pinning:</strong> hold en blokk i bufferet så lenge en B+-traversering eller transaksjon trenger den.<br>
+              • <strong>Smart prefetching:</strong> ved table scan kan flere blokker leses inn i forkant.<br>
+              • <strong>WAL-håndhevelse:</strong> sørg for at logg-blokker skrives før commit (force-log-at-commit).<br>
+              • <strong>Bedre replacement enn LRU</strong> ved store sekvensielle scans (LRU forurenses ellers).</p>
+              <p>OS-et ser bare anonyme sidefeil og kan ikke skille en B+-rotnode fra en sjelden brukt arkivblokk.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — Buffer pool</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Statisk hashing</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken hash-funksjon bruker pensum for statisk hashing, hva er <em>overflow chains</em>, og hvorfor er det et problem?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Pensums kanoniske funksjon: <code>h(K) = K mod N</code>, der N er antallet bøtter (faste, satt på forhånd).</p>
+              <p>Når en bøtte fylles opp, lenkes en <strong>overflow-blokk</strong> bak — fortsetter videre til en kjede hvis overflow-blokken også fylles.</p>
+              <p><strong>Problemet:</strong> et oppslag «skulle» være én blokk-aksess, men kan ende opp som en lineær traversering av kjeden — verste fall blir like dårlig som heap-scan.</p>
+              <p>Statisk hashing har derfor en <em>fastlåst kapasitet</em>: vokser dataene utover det N er dimensjonert for, kollapser ytelsen. Løsningen er <strong>extendible hashing</strong> som lar antall bøtter doble seg dynamisk.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — Statisk hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Extendible hashing</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">I extendible hashing — hva er forskjellen på <em>global depth</em> og <em>local depth</em>, og når må katalogen dobles?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Global depth (d):</strong> antall bits av hash-verdien som directoryen ser på. Directoryen har 2^d innslag.</p>
+              <p><strong>Local depth (d_b):</strong> antall bits som faktisk skiller bøttene fysisk — d_b ≤ d for hver bøtte.</p>
+              <p>Når en bøtte må splittes:</p>
+              <p>• <strong>Hvis d_b &lt; d:</strong> bøtta kan splittes uten å berøre directoryen. To eksisterende directory-innslag som tidligere pekte på samme bøtte, peker nå på hver sin nye bøtte. Local depth øker med 1.<br>
+              • <strong>Hvis d_b = d:</strong> directoryen må <strong>dobles</strong> først — alle innslag dupliseres, deretter splittes bøtta. Global depth øker med 1.</p>
+              <p>Slik vokser og krymper directoryen <em>dynamisk</em> uten å rehashe alle nøkler — bare den splittete bøtta og dens 2^(d - d_b) directory-pekere oppdateres.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — Extendible hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — Heap-fil-størrelse</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabell <code>Order</code> har 500 000 rader, 64 byte per rad, blokkstørrelse 4 KiB. Hvor mange blokker bruker en ren heapfil (uten fyllgrad)?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 7813 blokker</li>
+                <li><span class="opt-label">B</span> 11 719 blokker</li>
+                <li><span class="opt-label">C</span> 15 625 blokker</li>
+                <li><span class="opt-label">D</span> 500 000 blokker</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — 7813 blokker.</strong></p>
+              <p>Heapfilen pakker fullt uten fyllgrad-marg.</p>
+              <p><code>rec_per_blokk = ⌊4096 / 64⌋ = 64</code><br>
+              <code>antall_blokker = ⌈500 000 / 64⌉ = 7813</code></p>
+              <p><strong>B (11 719)</strong> bruker fyllgrad 2/3: 64 · 2/3 ≈ 42 rec/blokk. Det gjelder for B+-tre-blader, ikke for heap.<br>
+              <strong>C (15 625)</strong> deler 500 000 / 32 — som om hver blokk bare hadde halv kapasitet. <br>
+              <strong>D (500 000)</strong> antar én rad per blokk — glemmer pakking.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — Heap file</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6A — LSM-tre</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er hovedidéen i et <em>LSM-tre</em> (log-structured merge tree), og hvilket I/O-mønster optimaliserer det for?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>LSM-tre er optimalisert for <strong>tunge skrivelaster</strong>. Hovedidé: skriv aldri i tilfeldig rekkefølge — saml opp endringer i RAM, og skriv ut sekvensielt til disk.</p>
+              <p>• <strong>Memtable</strong>: en sortert struktur (ofte rød-svart-tre eller skip-list) i RAM. Alle writes går hit først.<br>
+              • <strong>SSTable</strong> (sorted string table): når memtable fylles, skrives den ut som én sortert, immutable disk-fil. Sekvensiell skriving — mye raskere enn random writes på en HDD.<br>
+              • <strong>Compaction</strong>: i bakgrunnen merges små SSTables til større, sorterte SSTables. Sletter overskrevne rader.</p>
+              <p><strong>Trade-off:</strong> writes er svært raske (write amplification lav), men reads kan måtte sjekke flere SSTables på flere nivåer (read amplification). B+-trær er motsatt: raske reads, dyrere random writes.</p>
+              <p>Brukes i Cassandra, RocksDB, LevelDB, HBase. Ikke MySQL/PostgreSQL — de bruker B+-trær.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/lagring.html">Kap. 6A — LSM</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 6B — B+-trær
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre fanout</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>fanout</em> i et B+-tre, og hvorfor er det så viktig at den er stor?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Fanout</strong> = maks antall barn per intern node = <code>⌊B · 2/3 / S⌋</code> der B er blokkstørrelse og S er størrelsen på (key, BlockId)-paret.</p>
+              <p>Høy fanout gir <strong>lavt tre</strong>. Med 4 KiB-blokker, 16 byte per indekspost og fyllgrad 2/3 får vi fanout = 170. Et 3-nivåers tre dekker da opp til 170³ ≈ 4,9 millioner blader.</p>
+              <p>Hvert nivå koster én blokk-aksess ved likhetsoppslag. Stor fanout = få nivåer = få diskaksesser = rask. B+-trær er typisk 3-4 nivåer dype selv med milliarder av rader.</p>
+              <p>Sammenligning: en binær søketre over samme data ville vært ~log₂(milliarder) = 30 nivåer. 30 diskaksesser per oppslag = uakseptabelt.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B — B+-trær</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Clustered vs unclustered</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Skill mellom <em>clustered</em> og <em>unclustered</em> indeks. Hvorfor kan en eksisterende indeks gjøre en spørring <em>tregere</em> enn en full scan?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Clustered:</strong> radene er fysisk sortert i nøkkelorden. Bladene <em>er</em> tabellen. Ett oppslag → ett blad → ferdig. Range-scans = sammenhengende blokker.</p>
+              <p><strong>Unclustered:</strong> radene er sortert annerledes (typisk innsettingsrekkefølge i en heap). Bladene inneholder (key, RID), ikke selve raden. Hvert oppslag følger RID-en til en (potensielt tilfeldig) heap-blokk.</p>
+              <p><strong>Hvorfor kan unclustered være verre enn full scan?</strong> Hvis spørringen treffer mange rader, blir det én tilfeldig heap-aksess <em>per treff</em>. 50 000 treff på en 1961-blokks heap kan bety 50 000 blokker (med duplikater). Full scan = 1961 blokker. Optimizeren ser dette via statistikk og velger full scan.</p>
+              <p>Tommelfingerregel: unclustered indeks lønner seg bare ved selektive predikater (få treff). Clustered er bra også ved range-spørringer.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B — Clustered vs unclustered</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-tre-høyde</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">En unclustered B+-indeks har 800 000 (key, RID)-poster. Indeksposter er 16 byte, blokk er 4 KiB, fyllgrad 2/3. Hvor mange nivåer (inkl. rota og bladene)?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 2 nivåer</li>
+                <li><span class="opt-label">B</span> 3 nivåer</li>
+                <li><span class="opt-label">C</span> 4 nivåer</li>
+                <li><span class="opt-label">D</span> 5 nivåer</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — 3 nivåer.</strong></p>
+              <p>Poster per blokk: <code>⌊4096 · 2/3 / 16⌋ = ⌊170.67⌋ = 170</code> (fanout og bladkapasitet).</p>
+              <p>• Bladnivå: <code>⌈800 000 / 170⌉ = 4706</code> blokker.<br>
+              • Nivå 1: <code>⌈4706 / 170⌉ = 28</code> blokker.<br>
+              • Rotnivå: <code>⌈28 / 170⌉ = 1</code> blokk.</p>
+              <p>Tre nivåer totalt. Likhetsoppslag = 3 indeks-aksesser + 1 heap-aksess for selve raden = 4 blokker.</p>
+              <p><strong>A</strong> er for få: 4706 blader passer ikke under én rot (maks 170 barn).<br>
+              <strong>C/D</strong> er for mange: fanouten på 170 er stor nok til at 4706 ruller seg ned til 1 rot på 2 hopp.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B — Tre-høyde</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — B+-insert + split</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv hva som skjer når en innsetting i et B+-tre fører til at en bladblokk er full og må splittes.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Anta blad har plass til 4 nøkler og fylles til 5 etter innsetting:</p>
+              <p><strong>1. Splitt bladet:</strong> de 5 nøklene fordeles på to blader. Vanlig pensumkonvensjon: ⌈5/2⌉ = 3 i venstre blad, 2 i høyre (eller motsatt — mindre viktig hva som velges, så lenge det er konsistent).</p>
+              <p><strong>2. Oppdater bladlenker:</strong> det nye høyre-bladet lenkes inn i den lenkede listen (venstre.next = nytt blad; nytt.next = gamle høyre).</p>
+              <p><strong>3. Send opp én nøkkel til foreldren:</strong> minste nøkkelen i det høyre nye bladet kopieres opp og settes inn som separator i forelderen — sammen med peker til det nye bladet.</p>
+              <p><strong>4. Hvis forelderen overskrider sin kapasitet,</strong> splittes også den — men der <em>flyttes</em> midt-nøkkelen oppover (ikke kopieres). Splitten kan kaskadere helt opp til rota; hvis rota må splittes, vokser treet med ett nivå.</p>
+              <p>Konsekvens: én innsetting kan i verste fall trigge log(n) blokk-skrivinger.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B — Innsetting</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 6B — Composite key</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke spørringer kan dra nytte av en sammensatt indeks <code>(land, by, postnr)</code>, og hvilke kan ikke?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Sammensatte indekser er sortert <em>leksikografisk</em> — først på <code>land</code>, så <code>by</code>, så <code>postnr</code>. Indeksen kan brukes når spørringen filtrerer på et <em>venstre prefiks</em>:</p>
+              <p>✓ <code>WHERE land = 'NO'</code> — kun første kolonne, OK.<br>
+              ✓ <code>WHERE land = 'NO' AND by = 'Trondheim'</code> — to første, OK.<br>
+              ✓ <code>WHERE land = 'NO' AND by = 'Trondheim' AND postnr = 7012</code> — alle tre, optimalt.<br>
+              ✓ Også range på siste leddet: <code>WHERE land='NO' AND by='Trondheim' AND postnr BETWEEN 7000 AND 7099</code>.</p>
+              <p>✗ <code>WHERE by = 'Trondheim'</code> alene — hopper over <code>land</code>, indeksen er ubrukelig.<br>
+              ✗ <code>WHERE postnr = 7012</code> — hopper over begge, ubrukelig.<br>
+              ✗ <code>WHERE land = 'NO' AND postnr = 7012</code> — bruker <code>land</code>, men kan ikke sno seg til <code>postnr</code> uten å gå gjennom hele <code>by</code>-rangen for NO.</p>
+              <p>Tommelfingerregel: kolonnerekkefølgen i indeksen avgjør hvilke spørringer den støtter.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B — Composite key</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 7 — Spørringsutføring (egen fokus)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Selektivitet</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan estimeres <em>selektivitetsfaktoren (sf)</em> for likhets- og range-predikater, og hvordan kombineres flere predikater?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Selektivitetsfaktoren = andelen rader som overlever predikatet (mellom 0 og 1).</p>
+              <p><strong>Likhet (col = c):</strong> antar uniform fordeling, sf = <code>1 / V(col, R)</code> der V er antallet distinkte verdier.</p>
+              <p><strong>Range (col &gt; c):</strong> sf = <code>(high − c) / (high − low)</code>.</p>
+              <p><strong>BETWEEN c1 AND c2:</strong> sf = <code>(c2 − c1) / (high − low)</code>.</p>
+              <p><strong>Kombinasjon:</strong></p>
+              <p>• <code>P1 AND P2</code> (uavhengige): sf = sf₁ · sf₂.<br>
+              • <code>P1 OR P2</code>: sf = sf₁ + sf₂ − sf₁·sf₂ (inklusjon-eksklusjon).<br>
+              • <code>NOT P</code>: sf = 1 − sf.</p>
+              <p>Forventet antall treff: <code>|R| · sf</code>. Bedre estimater fås med <em>histogrammer</em> — DBMS-en kan da slippe uniform-antagelsen.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#statistikk">Kap. 7 — Statistikk</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Kostnadsbasert optimizer</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>cost-based optimizer</em>, og hvilken statistikk leser den fra SQL-katalogen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En cost-based optimizer enumererer kandidatplaner og <em>regner</em> en forventet kostnad (typisk antall blokk-aksesser) for hver. Velger den billigste.</p>
+              <p><strong>Statistikk i SQL-katalogen:</strong></p>
+              <p>• <code>|R|</code>: antall rader i tabellen.<br>
+              • <code>b_R</code>: antall blokker tabellen bruker.<br>
+              • <code>V(A, R)</code>: antall distinkte verdier av attributt A.<br>
+              • <code>min(A)</code>, <code>max(A)</code>: lavest/høyest forekommende verdi (lowkey/highkey).<br>
+              • <code>h_R</code>: høyde av et eventuelt B+-tre på R.<br>
+              • Histogrammer: bredde- eller høydebalanserte buckets med radtellere — gir bedre selektivitetsestimater enn antagelsen om uniform fordeling.</p>
+              <p>Statistikken er <em>ikke</em> alltid fersk: <code>ANALYZE TABLE</code> i MySQL eller <code>VACUUM ANALYZE</code> i PostgreSQL oppdaterer den. Foreldet statistikk er en klassisk grunn til at optimizeren plutselig velger en dårlig plan.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#statistikk">Kap. 7 — SQL-katalog</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — External merge sort</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">b = 2000 blokker, n_B = 11 buffere. Total I/O for external merge sort?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 12 000 blokker</li>
+                <li><span class="opt-label">B</span> 16 000 blokker</li>
+                <li><span class="opt-label">C</span> 20 000 blokker</li>
+                <li><span class="opt-label">D</span> 8 000 blokker</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — 12 000 blokker.</strong></p>
+              <p>Initial-passet leser inn n_B blokker om gangen, sorterer i RAM, skriver ut som en run.<br>
+              <code>n_R = ⌈b / n_B⌉ = ⌈2000 / 11⌉ = 182</code> initial runs.</p>
+              <p>Merge-faktor: <code>d_M = n_B − 1 = 10</code> (én buffer brukes til output).<br>
+              Antall merge-passes: <code>⌈log_d_M(n_R)⌉ = ⌈log_10(182)⌉ = ⌈2.26⌉ = 3</code>.</p>
+              <p>Total I/O: <code>2b · (1 + passes) = 2·2000·(1+2) = 12 000</code> blokker.</p>
+              <p>Merk: «1 + passes» — initial-passet teller som ett pass; deretter kommer 2 ekte merge-passes (etter «log_10(182) ≈ 2.26» rundes opp til 3, men det er fordi vi tester med <code>log_d_M(n_R/n_B)</code> i noen kompendier — sjekk hvilken konvensjon kurset bruker. Pensum-formelen <code>⌈log_d_M(n_R)⌉</code> over n_R = 182 gir 3 passes; «1 + 2» merge-passes er en alternativ telling). Tommelregel: les fasiten i pensum-eksemplet og bruk samme telling konsekvent.</p>
+              <p>I dette tilfellet med 2 merge-passes: total = 2·2000·(1+2) = 12 000.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#sortering">Kap. 7 — External merge sort</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Aksessveier</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Nevn de fire aksessveiene en optimizer kan velge mellom, og når hver av dem vinner.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Filscan (full table scan):</strong> les alle blokker. Vinner hvis predikatet matcher mange rader, eller om det ikke finnes en passende indeks.</p>
+              <p><strong>2. Indeks-lookup (likhet på indekset attributt):</strong> traverser ned indeksen, finn én eller få rader. Vinner ved selektive likhetspredikater og clustered eller få-treff unclustered.</p>
+              <p><strong>3. Range-scan på indeks:</strong> traverser ned til startnøkkel, gå sekvensielt gjennom bladnoder til stoppnøkkel. Vinner ved range-predikater på en clustered indeks.</p>
+              <p><strong>4. Indeksscan (full indeks-scan):</strong> les alle blader uten å gå via heap. Vinner når spørringen kan besvares fra <em>kun</em> indeksen (covering index) — f.eks. <code>SELECT col FROM R</code> der col er indeksert, eller <code>COUNT(*)</code> som bare trenger antall.</p>
+              <p>Optimizeren regner kostnad for hver lovlige aksessvei og velger den billigste basert på selektivitet og statistikk.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#aksessveier">Kap. 7 — Aksessveier</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Block nested loop join</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Department har 8 blokker, Employee har 1200 blokker, n_B = 12 buffere. Hva er kostnaden av en block nested loop join (J1) med Department som ytre tabell?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1208 blokker</li>
+                <li><span class="opt-label">B</span> 9608 blokker</li>
+                <li><span class="opt-label">C</span> 2408 blokker</li>
+                <li><span class="opt-label">D</span> 9600 blokker</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — 1208 blokker.</strong></p>
+              <p>Formel: <code>b_ytre + ⌈b_ytre / (n_B − 2)⌉ · b_indre</code> (én buffer til indre, én til output, resten til ytre).</p>
+              <p><code>= 8 + ⌈8 / 10⌉ · 1200 = 8 + 1 · 1200 = 1208</code></p>
+              <p>Hele Department får plass i én «chunk» på 10 buffere, så Employee leses bare én gang.</p>
+              <p><strong>B (9608)</strong> tar Employee som ytre: 1200 + ⌈1200/10⌉ · 8 = 1200 + 120·8 = 2160 — eller med n_B=2 gir 1200 + 1200·8 = 10 800. Disse tallene matcher ikke nøyaktig — en typisk distraktor med feil ytre-tabell.<br>
+              <strong>C (2408)</strong> regner med 200 (n_B/2) i stedet for n_B−2.<br>
+              <strong>D (9600)</strong> = 1200 · 8: glemmer at ytre Department leses bare én gang.</p>
+              <p>Lærdom: <em>velg den minste tabellen som ytre</em> for å minimere antall passes over indre tabell.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#joins">Kap. 7 — J1 block nested loop</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — J2 index nested loop</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når er <em>index nested loop join (J2)</em> en god idé, og hva er den typiske kostnadsformelen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>J2 vinner når det finnes en indeks på <em>indre</em> tabells join-attributt, og <em>ytre</em> tabell er liten eller predikat-filtrert.</p>
+              <p><strong>Algoritme:</strong> for hver rad i ytre R, slå opp matchende rader i indre S via indeksen.</p>
+              <p><strong>Kostnad (clustered indeks på S):</strong><br>
+              <code>kost = b_R + |R| · (h_S + 1)</code><br>
+              der h_S = høyden på B+-treet på S og «+ 1» er heap-aksessen (eventuelt mer enn 1 hvis flere rader matcher per oppslag).</p>
+              <p><strong>Kostnad (unclustered indeks på S):</strong><br>
+              <code>kost = b_R + |R| · (h_S + matcher_per_R)</code><br>
+              der hver match koster én ekstra heap-blokk (med duplikater).</p>
+              <p>Sammenligning med J1: J2 sparer hele scan av S, men betaler én indekstraversering per ytre rad. Vinner når <code>|R|</code> er liten relativt til <code>b_S / (h_S + 1)</code>.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#joins">Kap. 7 — J2 index nested loop</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — J3 sort-merge</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv <em>sort-merge join (J3)</em>: når lønner den seg, og hva er totalformelen for I/O?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Algoritme:</strong></p>
+              <p>1. Sorter R på join-attributtet (hvis ikke allerede sortert).<br>
+              2. Sorter S på join-attributtet.<br>
+              3. Merge: to pekere som beveger seg parallelt gjennom de sorterte tabellene; emittér par når nøklene matcher.</p>
+              <p><strong>Kostnad:</strong> <code>sort(R) + sort(S) + b_R + b_S</code>.</p>
+              <p><strong>Sort-koster:</strong> <code>2·b · (1 + ⌈log_d_M(n_R)⌉)</code> for hver tabell (samme som external merge sort).</p>
+              <p>Sort-merge vinner når:<br>
+              • Begge tabeller er store og ingen indeks finnes.<br>
+              • Tabellene <em>allerede</em> er sortert på join-attributtet (fra et clustered indeks eller en tidligere ORDER BY) — da blir kosten bare <code>b_R + b_S</code>, dramatisk billig.<br>
+              • Output-en skal sorteres på join-attributtet uansett — sortering blir gratis.</p>
+              <p>Hvis bare én av tabellene er sortert, sorter den andre.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#joins">Kap. 7 — J3 sort-merge</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — J4 hash join</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan fungerer <em>partition hash join (J4)</em>, og hva er typisk total I/O-kostnad?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>To faser:</strong></p>
+              <p><strong>Build / partition:</strong> bruk en hash-funksjon h₁ på join-attributtet, partisjoner R og S i samme antall partisjoner. Hver partisjon havner i én bucket-fil — radene fra R og S med samme hash-verdi havner i samme bucket-par.</p>
+              <p><strong>Probe:</strong> for hvert par av partisjoner (R_i, S_i): bygg en hash-tabell på den minste i RAM, probe med den større. Bruk en <em>annen</em> hash-funksjon h₂ for å unngå kollisjoner som allerede ble brukt til partisjonering.</p>
+              <p><strong>Kostnad:</strong> <code>3 · (b_R + b_S)</code> — les begge én gang (partisjonere), skriv begge én gang, les begge én gang (probe). Antar at hver partisjon får plass i RAM.</p>
+              <p>Hvis en partisjon er for stor: rekursiv re-partisjonering (recursive hash join) eller hybrid hash join.</p>
+              <p>Vinner over sort-merge når det <em>ikke</em> finnes nyttig sortering, og over nested loop når begge tabeller er store.</p>
+              <p>Forutsetter ekvi-join (likhetsbetingelse). Theta-join som <code>R.a &lt; S.b</code> kan ikke gjøres med hash.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#joins">Kap. 7 — J4 hash join</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Plan-valg</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken join-algoritme vinner i hvilken situasjon? (Oppsummer J1–J4.)</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>J1 — Block nested loop:</strong> liten ytre tabell, indre uten indeks. Robust «fallback» når ingenting annet passer.</p>
+              <p><strong>J2 — Index nested loop:</strong> liten ytre tabell, og indeks finnes på indre tabells join-attributt. Klart raskest når ytre er svært selektiv (få rader).</p>
+              <p><strong>J3 — Sort-merge:</strong> begge tabeller er store og ingen indeks. Spesielt bra når tabellene <em>allerede</em> er sortert (f.eks. fra en clustered indeks eller en tidligere ORDER BY).</p>
+              <p><strong>J4 — Hash:</strong> begge tabeller store, ingen sortering, ingen indeks. Vinner over sort-merge ved store datamengder; forutsetter ekvi-join.</p>
+              <p>Optimizeren regner kostnaden for alle de aktuelle algoritmene (gitt aksessveier, indekser og sortering) og velger den billigste — det er hele jobben i kapittel 7.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#joins">Kap. 7 — Join-algoritmer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 8 — Transaksjoner
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Konfliktserialiserbarhet</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>konflikt</em> mellom to operasjoner i et schedule, og hvordan tester du om et schedule er konfliktserialiserbart?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>To operasjoner er i <strong>konflikt</strong> hvis:<br>
+              (a) de tilhører forskjellige transaksjoner,<br>
+              (b) de aksesserer samme dataobjekt, og<br>
+              (c) minst én av dem er en write.</p>
+              <p>Konflikttypene: <code>r-w</code>, <code>w-r</code>, <code>w-w</code>. To reads (<code>r-r</code>) er aldri i konflikt.</p>
+              <p><strong>Test for konfliktserialiserbarhet:</strong></p>
+              <p>1. Bygg <em>presedensgraf</em>: én node per transaksjon. Tegn kant T_i → T_j hvis det finnes en konflikt der T_i sin operasjon kommer <em>før</em> T_j sin.<br>
+              2. Schedule-en er konfliktserialiserbar ⇔ presedensgrafen er <strong>asyklisk</strong>.<br>
+              3. Hvis asyklisk: enhver topologisk sortering av grafen gir et serielt schedule som er konfliktekvivalent.</p>
+              <p>Konfliktserialiserbart ⊂ view-serialiserbart ⊂ serialiserbart. I praksis bruker DBMS-er konfliktserialiserbarhet, fordi det er polynomisk avgjørbart (mens view-serialiserbarhet er NP-komplett).</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Serialiserbarhet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Recoverability</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar hierarkiet <em>Strict ⊂ ACA ⊂ Recoverable ⊂ All</em>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Recoverable:</strong> en transaksjon T_j som leser fra T_i må commit'e <em>etter</em> T_i. Hvis ikke kan en abort av T_i etter T_j sin commit ikke rulles tilbake — vi har committed et resultat basert på data som ble fjernet.</p>
+              <p><strong>ACA (Avoids Cascading Aborts):</strong> stricter — T_j kan ikke i det hele tatt <em>lese</em> en write fra T_i før T_i har commit'et. Dermed kan en abort aldri kaskadere til andre transaksjoner.</p>
+              <p><strong>Strict:</strong> enda strictere — T_j kan verken lese eller <em>overskrive</em> en write fra T_i før T_i har commit'et. Dette gir også enkel before-image recovery (UNDO trenger bare den siste verdien).</p>
+              <p>Inklusjonen er ekte: alle Strict er ACA, alle ACA er Recoverable, alle Recoverable er gyldige schedules — men ikke omvendt.</p>
+              <p>Strict 2PL (rigorous 2PL) gir Strict schedules. Basic 2PL gir bare Recoverable.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Recoverability</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — 2PL-varianter</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar de fire 2PL-variantene: <em>basic, conservative, strict, rigorous</em>. Hvilke garanterer hva?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Basic 2PL:</strong> alle låser tas før den første låsen slippes (én vekstfase, så én skrumpefase). Garanterer konfliktserialiserbarhet, men ikke recoverable schedules. Kan ha kaskaderende abort.</p>
+              <p><strong>Conservative 2PL:</strong> alle låser tas <em>før</em> transaksjonen starter. Hvis en lås er opptatt, blokkerer transaksjonen helt før den begynner. <strong>Deadlock-fri</strong>, men krever at hele lock-settet er kjent på forhånd.</p>
+              <p><strong>Strict 2PL:</strong> alle <em>X-låser</em> beholdes til commit/abort. Garanterer Strict schedules + serialiserbarhet. Vanligst i praksis.</p>
+              <p><strong>Rigorous 2PL:</strong> alle låser (S og X) beholdes til commit/abort. Slipper at conflicts kan oppstå sent. Implementeringsmessig enklere enn strict; samme egenskaper.</p>
+              <p>Alle fire kan deadlocke (unntatt conservative). Strict og rigorous er de eneste som garanterer både serialiserbarhet OG strict schedules.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — 2PL</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Lock compatibility</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan ser lock-compatibility-matrisen ut for S- og X-låser? Og hva legger intent-låser (IS, IX, SIX) til?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Basic S/X-matrise:</strong></p>
+              <pre>          S      X
+   S      ✓      ✗
+   X      ✗      ✗</pre>
+              <p>To S kan eksistere samtidig (mange lesere). En X eksluderer alt.</p>
+              <p><strong>Intent-låser</strong> brukes ved hierarkisk låsing (database → tabell → blokk → rad):</p>
+              <p>• <strong>IS</strong> (Intent Shared): «jeg planlegger å ta en S-lås på en under-node».<br>
+              • <strong>IX</strong> (Intent Exclusive): «jeg planlegger en X-lås nedover».<br>
+              • <strong>SIX</strong> (Shared + Intent Exclusive): «leser hele tabellen, men vil oppdatere noen rader».</p>
+              <p>Utvidet matrise:</p>
+              <pre>         IS    IX    S    SIX    X
+   IS    ✓    ✓    ✓    ✓     ✗
+   IX    ✓    ✓    ✗    ✗     ✗
+   S     ✓    ✗    ✓    ✗     ✗
+   SIX   ✓    ✗    ✗    ✗     ✗
+   X     ✗    ✗    ✗    ✗     ✗</pre>
+              <p>Før T tar en S-lås på en rad, må den først ta IS på tabellen og databasen. Slik vet andre transaksjoner som vil ta X på hele tabellen at de må vente.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — Låser</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Deadlock</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>wait-for graph</em>, og forklar de to vanligste forebyggingsstrategiene <em>wait-die</em> og <em>wound-wait</em>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Wait-for graph:</strong> én node per aktiv transaksjon; kant T_i → T_j hvis T_i venter på en lås holdt av T_j. <strong>Sykel = deadlock.</strong> DBMS-en sjekker periodisk; ved sykel velges en <em>victim</em> (typisk yngst transaksjon, eller den som har gjort minst arbeid) og aborts.</p>
+              <p>Forebygging i stedet for deteksjon: gi hver transaksjon et <strong>tidsstempel</strong> ved start. Eldre tidsstempel = høyere prioritet.</p>
+              <p><strong>Wait-die (preemption-fri):</strong> hvis T_i ber om lås holdt av T_j:<br>
+              • T_i eldre: T_i venter (eldre prioriteres).<br>
+              • T_i yngre: T_i aborts og restartes med <em>samme</em> tidsstempel.</p>
+              <p><strong>Wound-wait (preemptiv):</strong> hvis T_i ber om lås holdt av T_j:<br>
+              • T_i eldre: T_j aborts (eldre «sårer» yngre).<br>
+              • T_i yngre: T_i venter.</p>
+              <p>Begge garanterer deadlock-frihet fordi venting kun skjer i én retning av tidsstempel-orden. Wound-wait færre restarts (eldre fullfører raskere); wait-die enklere implementasjon.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — Deadlock</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — MVCC</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan fungerer <em>snapshot isolation</em> (MVCC), og hva er <em>write skew</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>MVCC (multi-version concurrency control):</strong> hver write skaper en ny <em>versjon</em> av raden, merket med tidsstempel for transaksjonen som skrev den. Reads ser den versjonen som var nyest <em>ved transaksjonens start</em> (snapshot).</p>
+              <p>Konsekvens: <strong>readers blokkerer aldri writers</strong>, og writers blokkerer aldri readers. Bare write-write-konflikter krever koordinering — typisk via en sjekk ved commit (first-committer-wins).</p>
+              <p><strong>Snapshot isolation:</strong> isolasjonsnivå basert på MVCC. Forhindrer dirty read, non-repeatable read, lost update — men <em>ikke</em> alle anomalier.</p>
+              <p><strong>Write skew (klassisk anomali under SI):</strong> to transaksjoner leser overlappende data og skriver til <em>forskjellige</em> objekter, basert på et felles invariant. Eksempel: «minst én lege må være på vakt». T1 og T2 ser begge to leger på vakt; begge bestemmer at det er trygt å ta seg fri; begge oppdaterer sin egen status. Ingen konflikt på samme rad → begge committer → ingen lege på vakt. Invariant brutt.</p>
+              <p>Løsning: <em>serializable snapshot isolation</em> (SSI) — sjekker også r-w-konflikter via en SI-utvidet wait-for graph. PostgreSQL <code>SERIALIZABLE</code>.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — MVCC</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Anomalier</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar <em>dirty read</em>, <em>non-repeatable read</em>, <em>lost update</em> og <em>phantom read</em>. Hvilket isolasjonsnivå hindrer hver?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Dirty read:</strong> T_j leser en uncommitted write fra T_i. Hvis T_i abortes, så T_j leste data som aldri eksisterte. Hindret av <code>READ COMMITTED</code> og oppover.</p>
+              <p><strong>Non-repeatable read:</strong> T_i leser X, T_j endrer X og committer, T_i leser X igjen og får annen verdi. Hindret av <code>REPEATABLE READ</code> og oppover (typisk via S-låser holdt til commit).</p>
+              <p><strong>Lost update:</strong> T_i leser X = 100, T_j leser X = 100, begge øker med 1, begge skriver tilbake X = 101 — én oppdatering tapt. Hindret av <code>REPEATABLE READ</code> i mange DBMS-er, eller via <code>SELECT … FOR UPDATE</code>.</p>
+              <p><strong>Phantom read:</strong> T_i kjører <code>SELECT … WHERE p</code> og får 5 rader; T_j inserter en ny rad som matcher p og committer; T_i kjører samme SELECT og får 6 rader. Hindret av <code>SERIALIZABLE</code> (typisk via predicate locking eller index-range locking).</p>
+              <p>Anomalier som <em>ikke</em> hindres av <code>SERIALIZABLE</code> i SI: <strong>write skew</strong> (se MVCC-kortet) — kreves SSI eller eksplisitt SELECT FOR UPDATE.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Isolasjonsnivåer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Force/Steal-matrise</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar matrisen <em>Force vs No-force</em> × <em>Steal vs No-steal</em>. Hvilken kombinasjon bruker ARIES, og hvilken må kompenseres med UNDO/REDO?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Matrisen handler om <em>når dirty pages skrives til disk</em>.</p>
+              <p><strong>Force:</strong> alle endrede sider <em>må</em> være på disk før commit. Ingen REDO trengs (det er allerede skrevet) — men commit blir tregt.<br>
+              <strong>No-force:</strong> sider kan forbli i bufferet ved commit. Krever <em>REDO</em> ved krasj — vi må kunne reapply committed transaksjoner som ikke nådde disk.</p>
+              <p><strong>Steal:</strong> en uncommitted transaksjons sider kan kastes ut av bufferet og skrives til disk. Krever <em>UNDO</em> ved krasj — vi må kunne reverse skrivinger fra ikke-committed transaksjoner.<br>
+              <strong>No-steal:</strong> en sides side beholdes pinnet til commit. Trenger ikke UNDO.</p>
+              <pre>             Force         No-force
+Steal        UNDO          UNDO + REDO  ← ARIES
+No-steal     ingen recovery  REDO</pre>
+              <p><strong>ARIES = Steal + No-force</strong>: maksimal fleksibilitet for buffer manageren (kan kaste ut hva som helst, kan utsette skriving til etter commit), men krever full UNDO+REDO via WAL.</p>
+              <p>WAL-regelen sikrer at logg-postene som beskriver en endring er på disk før selve siden — det er det som gjør UNDO mulig selv ved en steal-eviction.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Recovery</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — ARIES tre faser</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv de tre fasene i ARIES recovery: <em>Analysis</em>, <em>Redo</em>, <em>Undo</em>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Analysis:</strong> les loggen fra siste checkpoint til slutten. Bygg opp:<br>
+              • <strong>Transaction Table (TT)</strong>: alle transaksjoner som var aktive ved krasjet (ingen commit/abort-post sett).<br>
+              • <strong>Dirty Page Table (DPT)</strong>: sider som var skitne (modifisert i bufferet, kanskje ikke skrevet til disk).<br>
+              Etter analyse: vi vet hvem som var winners (committed) og losers (aktive ved krasj).</p>
+              <p><strong>2. Redo:</strong> start fra <code>min(recLSN)</code> i DPT. For hver loggpost fremover:<br>
+              • Hvis side i DPT, recLSN ≤ LSN, og PageLSN &lt; LSN — utfør operasjonen på siden, sett PageLSN = LSN.<br>
+              • Ellers: hopp over (allerede på disk, eller ikke i DPT).<br>
+              Resultat: alle committed endringer er nå på disk.</p>
+              <p><strong>3. Undo:</strong> start fra slutten av loggen, gå bakover. For hver loser-transaksjon: utfør UNDO av hver av deres write-poster. Skriv en <strong>CLR</strong> (compensation log record) for hver UNDO — sikrer at en ny krasj midt i recovery kan fortsette. Ferdig når alle losers er UNDO-et.</p>
+              <p>Merk rekkefølgen: REDO først (selv losers), så UNDO. Slik blir disk konsistent med loggen før vi reverserer.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — ARIES</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — REDO-test</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Etter analyse-fasen står <code>P5</code> i DPT med <code>recLSN = 80</code>. På disk har <code>P5</code> <code>PageLSN = 70</code>. En loggpost har <code>LSN = 90</code> og endrer <code>P5</code>. Skal denne posten REDO-es?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Ja — alle krav er oppfylt.</li>
+                <li><span class="opt-label">B</span> Nei — siden står ikke i DPT.</li>
+                <li><span class="opt-label">C</span> Nei — recLSN er for høy.</li>
+                <li><span class="opt-label">D</span> Nei — PageLSN er for høy.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — REDO-es.</strong></p>
+              <p>ARIES REDO-test krever <em>alle</em> tre kriterier:</p>
+              <p>1. Side i DPT — ✓ (P5 er der).<br>
+              2. recLSN ≤ LSN: 80 ≤ 90 — ✓.<br>
+              3. PageLSN &lt; LSN: 70 &lt; 90 — ✓.</p>
+              <p>Alle tre kriterier matcher → utfør REDO, og oppdater PageLSN til 90.</p>
+              <p>Tolkning: P5 ble første gang skitnet av en loggpost ≥ recLSN (80). Endringen i LSN 90 er ikke ennå reflektert på disk (PageLSN = 70). Den må derfor reapplies.</p>
+              <p><strong>B</strong> sjekker første kriterium feil. <strong>C</strong>: recLSN = 80, LSN = 90 → 80 ≤ 90 OK. <strong>D</strong>: PageLSN = 70 &lt; LSN = 90, så test 3 bestås — vi <em>må</em> redo.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — REDO-fase</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — WAL og CLR</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>WAL</em>-regelen, og hvorfor skriver ARIES en <em>CLR</em> (compensation log record) for hver UNDO?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>WAL (write-ahead logging):</strong> før en endret side skrives til disk, må <em>alle</em> loggposter med LSN ≤ PageLSN være på disk. Konkret: før <code>P</code> kan flushes, må <code>log[i]</code> for alle <code>i ≤ P.PageLSN</code> være persistente.</p>
+              <p>Dette gir: hvis vi finner en endring på disk uten en korresponderende loggpost, er det en feil. Hvis vi ikke finner endringen på disk men har loggposten, kan vi REDO-e.</p>
+              <p>Ved commit: alle T_i sine loggposter — inkludert «commit T_i» — må være på disk. <strong>Force-log-at-commit.</strong> Selve datasidene kan ligge igjen i bufferet (no-force).</p>
+              <p><strong>CLR (compensation log record):</strong> ved UNDO i recovery skriver ARIES en CLR for hver inverterte handling. CLR har en <code>UndoNxtLSN</code>-peker til neste loggpost som skal UNDO-es.</p>
+              <p>Hvorfor: hvis det krasjer midt i recovery, kan neste recovery <em>se</em> hvor langt forrige UNDO var kommet (via CLR-pekerne) og fortsette derfra — uten å undo'e samme operasjon to ganger. CLR er <em>redo-only</em>, aldri undo-et.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — WAL + CLR</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — LSN-feltene</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar de fire LSN-feltene <code>LSN</code>, <code>PrevLSN</code>, <code>PageLSN</code> og <code>recLSN</code>. Hvor lever hver?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>LSN (Log Sequence Number):</strong> unikt nummer som hver loggpost får ved skriving. Monotont voksende. Lever <em>i loggposten</em>.</p>
+              <p><strong>PrevLSN:</strong> peker fra en loggpost til <em>forrige</em> loggpost for samme transaksjon. Tillater UNDO å traversere transaksjonens skrivinger bakover uten å skanne hele loggen. Lever <em>i loggposten</em>.</p>
+              <p><strong>PageLSN:</strong> LSN-en til den siste endringen som er reflektert på en disk-side. Lagres <em>i sidens header</em>. Brukes i REDO-testen: hvis PageLSN ≥ LSN av loggposten, er endringen allerede på disk — ikke gjør den igjen.</p>
+              <p><strong>recLSN:</strong> i Dirty Page Table. Den <em>første</em> loggposten som skitnet siden etter at den sist ble skrevet til disk. recLSN er nedre grense for REDO-fasen — hvis LSN &lt; recLSN, er endringen på disk allerede.</p>
+              <p>Til sammen lar disse feltene ARIES vite nøyaktig hva som er på disk, hva som mangler, og hva som må reapplies eller reverseres etter et krasj.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — LSN-feltene</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Checkpoints</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>fuzzy checkpoint</em> i ARIES, og hvorfor er den «fuzzy» — i kontrast til en sharp checkpoint?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Sharp checkpoint:</strong> stopp alle transaksjoner, flush hele bufferet til disk, skriv en checkpoint-post. Garantert konsistent disk-state, men <strong>blokkerer alt</strong> i mange sekunder for store buffere — uakseptabelt i produksjon.</p>
+              <p><strong>Fuzzy checkpoint (ARIES):</strong> ikke flushet, ikke konsistent — bare en <em>snapshot av metadata</em>:<br>
+              • Skriv <code>BEGIN_CHKPT</code>-loggpost.<br>
+              • Skriv <code>END_CHKPT</code> med kopi av aktuell <em>Transaction Table</em> + <em>Dirty Page Table</em>.<br>
+              • I master record (egen disk-lokasjon): peker til <code>BEGIN_CHKPT</code>.</p>
+              <p>Transaksjoner kjører videre under hele prosessen.</p>
+              <p>Recovery starter analyse-fasen fra denne <code>BEGIN_CHKPT</code>. Det er TT og DPT vi finner som er utgangspunktet — de sannsynligvis litt utdaterte, men oppdateres ved å lese loggen videre.</p>
+              <p>Trade-off: fuzzy checkpoints påvirker neppe ytelsen, men recovery må fortsatt prosessere alt fra begin-checkpoint og fremover.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Checkpoints</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Presedensgraf</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Schedule: <code>r1(A); r2(A); w1(B); w2(B); r1(C); w2(A)</code>. Er dette konfliktserialiserbart?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Ja, ekvivalent med T1 → T2.</li>
+                <li><span class="opt-label">B</span> Ja, ekvivalent med T2 → T1.</li>
+                <li><span class="opt-label">C</span> Nei, presedensgrafen har sykel.</li>
+                <li><span class="opt-label">D</span> Ja, kan velge enten rekkefølge.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — konfliktserialiserbart, ekvivalent med T1 → T2.</strong></p>
+              <p>Identifiser konflikter (ulike T, samme objekt, minst én write):</p>
+              <p>• <code>w1(B)</code> før <code>w2(B)</code> → kant T1 → T2 (w-w på B).<br>
+              • <code>r1(A)</code> før <code>w2(A)</code> → kant T1 → T2 (r-w på A).<br>
+              • <code>r2(A)</code> før <code>w2(A)</code> — samme transaksjon, ikke konflikt.<br>
+              • <code>r1(A)</code> og <code>r2(A)</code> — to reads, ikke konflikt.</p>
+              <p>Presedensgraf: T1 → T2. Asyklisk → konfliktserialiserbart. Eneste topologiske sortering: T1 før T2.</p>
+              <p><strong>B</strong> ville krevd kant T2 → T1, men det finnes ingen konflikt der T2 kommer først.<br>
+              <strong>C</strong>: ingen sykel.<br>
+              <strong>D</strong>: bare én sortering er gyldig.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/intro-og-teori.html">Kap. 8 — Presedensgraf</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Phantoms</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor kan ikke ren rad-låsing hindre <em>phantom reads</em>, og hvilke to mekanismer brukes typisk i stedet?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Rad-låser kan bare låse <em>eksisterende</em> rader. Et phantom-problem oppstår når en ny rad <em>insertes</em> som matcher et tidligere predikat — det fantes ingen rad å låse.</p>
+              <p>Eksempel: T1 kjører <code>SELECT COUNT(*) FROM Emp WHERE dept = 5</code> og får 3. T2 inserterer en ny ansatt med dept = 5 og committer. T1 kjører samme SELECT igjen, får 4. Selv med S-lås på de tre opprinnelige radene har ikke T1 hindret T2 fra å sette inn en ny.</p>
+              <p><strong>To løsninger:</strong></p>
+              <p><strong>1. Predicate locking:</strong> lås predikatet selv (<code>dept = 5</code>) — enhver INSERT/UPDATE som matcher predikatet må vente. Konseptuelt rent, men dyrt å sjekke (krever predikat-evaluering).</p>
+              <p><strong>2. Index-range locking:</strong> hvis spørringen bruker en B+-indeks på <code>dept</code>, lås intervallet <code>[5, 5]</code> i indeksen. INSERT med dept = 5 må navigere ned i indeksen, treffer låsen, blokkerer. Standard i MySQL InnoDB, PostgreSQL.</p>
+              <p>I praksis bruker DBMS-er index-range locking. Hvis ingen indeks finnes, faller man tilbake til tabell-lås — koster mer i samtidighet.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/samtidighet-og-laser.html">Kap. 8 — Phantoms</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 8 — Winners og losers</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Etter analyse-fasen i ARIES, hvordan klassifiseres transaksjoner som <em>winners</em> versus <em>losers</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Winner:</strong> transaksjon T som har en <code>commit</code>-post i loggen før krasjet. Endringene skal redo-es; T skal <em>ikke</em> reverseres.</p>
+              <p><strong>Loser:</strong> transaksjon T som var aktiv ved krasjet — har skrevet write-poster, men ingen commit-post. Endringene må <em>undo-es</em>.</p>
+              <p>Etter analyse: transaction table-en inneholder bare losers. Winners har allerede en commit-post og er fjernet fra TT i analyse-passet.</p>
+              <p>REDO-fasen redo-er <em>alle</em> loggposter som matcher kriteriene — også fra losers, fordi vi vil at disk-bildet skal samsvare med loggen før UNDO. UNDO-fasen reverserer så loser-postene fra slutten av loggen og bakover, og skriver CLR for hver.</p>
+              <p>Etter recovery: winners er reflektert på disk; losers er som om de aldri kjørte. Database er konsistent.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Analyse-fasen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kap. 7 — Ekstra: Kostnadsregning på tvers av planer
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Aksessveg-valg</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellen <code>Order</code> har 100 000 rader, 1500 blokker (heap), og en unclustered B+-indeks på <code>kundeId</code> med høyde 3. V(kundeId, Order) = 1000. Spørringen: <code>SELECT * FROM Order WHERE kundeId = 42</code>. Forventet kostnad?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1500 blokker (full scan)</li>
+                <li><span class="opt-label">B</span> 4 blokker (3 indeks + 1 heap)</li>
+                <li><span class="opt-label">C</span> ~103 blokker (3 indeks + 100 heap-treff)</li>
+                <li><span class="opt-label">D</span> 1 blokk (direkte hash)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — ~103 blokker.</strong></p>
+              <p>Selektivitet for likhet: <code>sf = 1/V = 1/1000 = 0.001</code>.<br>
+              Forventet antall treff: <code>100 000 · 0.001 = 100</code> rader.</p>
+              <p>Med <em>unclustered</em> indeks ligger de 100 radene på 100 forskjellige heap-blokker (worst case, men det er det som regnes i pensum).</p>
+              <p>Total: <code>3 (B+-traversering) + 100 (heap-aksesser) = 103</code> blokker.</p>
+              <p>Sammenligning: full scan = 1500 blokker. Indeksen vinner — knapt — fordi treffmengden er liten nok til at random heap-aksesser ikke koster mer enn full scan.</p>
+              <p><strong>A</strong>: full scan ville vært dyrere.<br>
+              <strong>B</strong>: ville stemt for clustered eller for et unikt predikat med ett treff. Her er det ~100 treff.<br>
+              <strong>D</strong>: forutsetter en hash-indeks med null kollisjon — vi har et B+-tre.</p>
+              <p>Hvis V hadde vært 10 (sf = 0.1, 10 000 treff), ville full scan vunnet med god margin.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#aksessveier">Kap. 7 — Aksessveger</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Pipelining</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <em>pipelined</em> og <em>materialized</em> evaluering av en plan, og når må optimizeren materialisere?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Pipelined:</strong> hver operator i plantreet sender rader videre til neste operator én om gangen, uten å lagre mellomresultatet. Ofte implementert som <em>iterator</em>-modellen (next()-kall). Lavt minneforbruk, lav latens for første rad.</p>
+              <p><strong>Materialized:</strong> en operator beregner hele mellomresultatet og lagrer det (i RAM eller på disk) før neste operator starter. Brukes når neste operator <em>må</em> ha hele input-en.</p>
+              <p><strong>Tvunget materialisering:</strong></p>
+              <p>• <strong>Sortering</strong> (ORDER BY, sort-merge join build) — må se alle rader før output.<br>
+              • <strong>Hash join build-fase</strong> — hele build-relasjonen partisjoneres før probe.<br>
+              • <strong>Aggregering med GROUP BY</strong> hvis output ikke er pre-sortert eller hashet.<br>
+              • <strong>DISTINCT</strong> uten sortert input.<br>
+              • <strong>Subquery uten korrelasjon</strong> som blir kjørt én gang.</p>
+              <p>Generelt: blokkerende operatorer materialiserer; ikke-blokkerende pipeliner. Plan-trær med mange blocking nodes har høy minne-/disk-bruk og høy latens for første rad.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#pipeline">Kap. 7 — Plan-utføring</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 7 — Filter pushdown</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <em>filter pushdown</em>, og hvorfor er det en av optimizers viktigste teknikker?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Filter pushdown</strong> = utfør WHERE-predikater så tidlig som mulig i plantreet, før joins og aggregering.</p>
+              <p>Eksempel: <code>SELECT * FROM A JOIN B ON A.id = B.aid WHERE A.year = 2020</code>.</p>
+              <p>• Naivt plantre: <code>σ_year=2020(A ⋈ B)</code> — joiner først, filtrerer etter. Dyrt hvis A og B er store.<br>
+              • Optimalisert: <code>σ_year=2020(A) ⋈ B</code> — filtrerer A først, joiner bare det som overlever.</p>
+              <p>Hvorfor virker det: |σ(A)| ≤ |A|. Mindre input til join → færre rader å sammenligne, mindre data å materialisere/sortere/hashe i join-algoritmen.</p>
+              <p>Optimalisatoren gjør dette via <strong>relasjonsalgebra-ekvivalenser</strong> (kommutativitet av σ med ⋈ når predikatet bare bruker attributter fra én side). Også <strong>projection pushdown</strong> — eliminer kolonner tidlig.</p>
+              <p>Push-down stoppes hvis predikatet bruker kolonner fra begge sider av join-en — da må joinen utføres først.</p>
+              <p class="fc-ref">Pensum: <a href="innhold.html#optimizer">Kap. 7 — Algebra-omskriving</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Tverrgående — knytter pensum sammen
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Tverrgående — Indeks-bivirkninger</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke tre kostnader betaler man for å legge til en indeks, og hvorfor er flere indekser ikke alltid bedre?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Lagringsplass:</strong> en B+-indeks på en kolonne lagrer 16 byte (eller mer for sammensatte) per rad — kan være 30-100 % av tabellens størrelse for store tabeller med flere indekser.</p>
+              <p><strong>2. Skrive-overhead:</strong> hver INSERT/UPDATE/DELETE må oppdatere alle relevante indekser. En tabell med 5 indekser har 5× skrive-amplifikasjon. INSERT som ville vært én blokk-skriving blir 5+1 = 6 (eller flere ved kaskaderende splitt).</p>
+              <p><strong>3. Optimizer-overhead og feilvalg:</strong> flere indekser betyr flere kandidatplaner. Optimizeren kan velge en suboptimal indeks hvis statistikken er dårlig — eller en spørring som ville matchet en av indeksene 100 % perfekt blir ikke valgt fordi en annen ser billigere ut.</p>
+              <p>Tommelfingerregel: indekser kolonner som brukes ofte i <code>WHERE</code> eller <code>JOIN</code> og som er selektive. Indekser ikke kolonner med få distinkte verdier (f.eks. <code>kjønn</code>, <code>status</code>) — selektiviteten er for lav.</p>
+              <p>Et OLTP-system med tunge skrivelaster bør ha få, gode indekser; et OLAP-system med sjeldne writes og mange spørringer kan ha mange.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B</a> + <a href="../kap7/innhold.html">Kap. 7</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Tverrgående — RA → SQL → plan</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Følg en spørring fra SQL-tekst til disk-blokker — hvilke kapitler eier hvilket steg?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. SQL-tekst (Kap. 3):</strong> brukeren skriver et SELECT.</p>
+              <p><strong>2. Parser → relasjonsalgebra-tre (Kap. 2):</strong> oversetter SQL til σ/π/⋈/etc., med tabeller og kolonner slått opp i SQL-katalogen.</p>
+              <p><strong>3. Algebra-ekvivalenser (Kap. 7):</strong> push-down filtere, omorganiser joins. Fortsatt et logisk tre.</p>
+              <p><strong>4. Cost-based optimizer (Kap. 7):</strong> generer fysiske planer med konkrete aksessveier (J1–J4, full scan, indeks-lookup, sort) og kostnadsregn dem mot statistikk i SQL-katalogen.</p>
+              <p><strong>5. Executor (Kap. 7):</strong> kjør valgt plan ved å kalle aksessmetoder.</p>
+              <p><strong>6. Buffer pool (Kap. 6A):</strong> oversett blokk-forespørsler til faktisk disk-I/O eller bufferhit.</p>
+              <p><strong>7. Disk (Kap. 6A/B):</strong> heapfil eller B+-tre returnerer blokker.</p>
+              <p>Parallelt: <strong>concurrency control (Kap. 8 §1–2)</strong> låser eller bruker MVCC; <strong>recovery manager (Kap. 8 §3)</strong> logger writes via WAL.</p>
+              <p>Schemaet for hele kurset er denne pipelinen — alle øvinger og eksamener er drilling på enkeltledd.</p>
+              <p class="fc-ref">Pensum: <a href="../reisen/index.html">Reisen gjennom DBMS-en</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Tverrgående — ACID i praksis</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke konkrete DBMS-mekanismer gir oss hver av A, C, I, D? Pek på modulene fra kap. 6–8.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>A — Atomicity:</strong> <em>UNDO-logging</em> (kap. 8). En aktiv transaksjon kan rulles tilbake fordi WAL har lagret før-bildene; recovery undo-er ufullførte transaksjoner.</p>
+              <p><strong>C — Consistency:</strong> <em>integritetsregler</em> (FK, CHECK, NOT NULL, UNIQUE — kap. 3) håndheves av executoren ved hver INSERT/UPDATE/DELETE. Triggere kan utvide. Selve transaksjonen må være korrekt skrevet.</p>
+              <p><strong>I — Isolation:</strong> <em>concurrency control</em> (kap. 8 §2). Strict 2PL eller MVCC (snapshot isolation) sikrer at samtidige transaksjoner ser ut som en serialiserbar utførelse.</p>
+              <p><strong>D — Durability:</strong> <em>WAL + force-log-at-commit</em> (kap. 8 §3). Selv om sider ligger i bufferet ved commit, vil REDO-fasen rekonstruere committed endringer fra loggen etter krasj.</p>
+              <p>Knytningen er ikke 1:1 — UNDO bidrar også til konsistens (rollback ved constraint-brudd), og MVCC bruker også versjonering for å hjelpe atomicity. Men de fire mekanismene over er hovedansvarlige for hver bokstav.</p>
+              <p class="fc-ref">Pensum: <a href="../kap8/">Kap. 8</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Tverrgående — Hvorfor få nivåer i et B+-tre?</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor er en B+-traversering med høyde 3 raskere enn en hash-tabell med stor overflow-kjede, selv om hash-en teoretisk er O(1)?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>O-notasjon ignorerer konstantfaktorer, men i praksis er <strong>antallet diskaksesser</strong> det som dominerer.</p>
+              <p>• <strong>B+ med høyde 3:</strong> 3 diskaksesser garantert. Rotnoden ligger ofte i bufferet (frequently accessed) — i praksis 2 reads.</p>
+              <p>• <strong>Hash med overflow-kjede på 5:</strong> 5 diskaksesser. «O(1)» er teoretisk gjennomsnitt over godt fordelt input, men når dataene har vokst forbi N, vokser kjeden lineært.</p>
+              <p>• <strong>Hash uten overflow:</strong> 1 diskaksess — vinner over B+. Det er derfor extendible hashing er attraktiv for likhetsoppslag når man kan dimensjonere godt.</p>
+              <p>Hash taper imidlertid på <strong>range-spørringer</strong>: hash-en mister ordning. <code>WHERE x BETWEEN 5 AND 10</code> krever full hashtabell-scan. B+-tre gjør dette i ett tre-traversal + linkliste-traversering på blader.</p>
+              <p>I et virkelig DBMS ser du derfor:<br>
+              • B+-trær for primær- og sekundærindekser (default).<br>
+              • Hash-indekser tilbudt som opsjon for ren-likhet (PostgreSQL har <code>USING HASH</code>; MySQL bruker B+ alltid på InnoDB).<br>
+              • Extendible hashing internt i page directory og partition hash join.</p>
+              <p class="fc-ref">Pensum: <a href="../kap6/btrees.html">Kap. 6B</a> + <a href="../kap6/lagring.html">Kap. 6A — Hashing</a></p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
