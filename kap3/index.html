@@ -421,6 +421,1192 @@
       <p style="margin-top:1.6rem; font-size:0.95rem; color: var(--ink-faded);">Klar for mer fordypning? Hopp til <a href="ddl-og-spoerringer.html">3A — DDL og spørringer</a>.</p>
     </div>
   </section>
+
+  <section id="kapittel-eksamen">
+    <div class="container">
+      <div class="section-badge">06 · Kapittel-eksamen</div>
+      <h2>Flashcards — <em>hele pensum i kortform</em></h2>
+      <p class="section-intro">49 kort som dekker alle de fire delene av kapittelet — DDL og spørringer, joins og subqueries, views/transaksjoner/integritet, og prosedyrer/triggere/rekursjon. Klikk kortet for å snu det. Bruk piltastene <kbd>←</kbd> <kbd>→</kbd> til å bla, <kbd>S</kbd> for å shuffle, eller <kbd>R</kbd> for å resette rekkefølgen. Samme tone og vanskelighetsgrad som <a href="../eksamen/">øvingseksamenene</a> — men i blafrende form, så du kan bruke det som repetisjonsdrill rett før eksamen.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu · <kbd>S</kbd> shuffle · <kbd>R</kbd> reset</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-shuffle aria-label="Shuffle kortstokken">⤨ Shuffle</button>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
+        </div>
+
+        <!-- ============================================================
+             3A · DDL og spørringer (12 kort)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — SQL-familien</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Plasser disse fire kommandoene i riktig SQL-underspråk: <code>CREATE INDEX</code>, <code>GRANT SELECT</code>, <code>UPDATE</code>, <code>COMMIT</code>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>DDL:</strong> <code>CREATE INDEX</code> — endrer skjemastrukturen (selv om indeksen er en separat datastruktur, hører den hjemme her).<br>
+              <strong>DCL:</strong> <code>GRANT SELECT</code> — gir et privilegium til en bruker eller rolle.<br>
+              <strong>DML:</strong> <code>UPDATE</code> — endrer rader, ikke skjemaet.<br>
+              <strong>TCL:</strong> <code>COMMIT</code> — avslutter en transaksjon ved å gjøre alle DML-endringene permanente.</p>
+              <p>Den klassiske huskeregelen: <em>D</em>DL endrer struktur, <em>D</em>ML endrer data, <em>D</em>CL endrer rettigheter, <em>T</em>CL grupperer DML i atomiske enheter.</p>
+              <p class="fc-ref">Pensum: <a href="#overblikk">Kap. 3 — SQL er flere språk i ett</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — DDL</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva implisitt deklareres når du skriver <code>id INT PRIMARY KEY</code> i en <code>CREATE TABLE</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Tre ting samtidig: <strong>(1)</strong> <code>UNIQUE</code> — ingen to rader kan ha samme id; <strong>(2)</strong> <code>NOT NULL</code> — kolonnen kan aldri være ukjent; <strong>(3)</strong> en B+-tre-indeks (i de fleste DBMS-er) for rask oppslag og unikhetssjekk.</p>
+              <p>Composite primary key skrives på egen linje: <code>PRIMARY KEY (a, b)</code>. Hvis du fjerner <code>PRIMARY KEY</code>-kvalifikatoren, mister du alle tre garantiene — du må eksplisitt skrive <code>UNIQUE NOT NULL</code> for å beholde to av dem, og legge til indeksen separat.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#ddl">3A — DDL og spørringer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — Skrive- vs evalueringsrekkefølge</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken klausul evalueres <em>sist</em> blant disse? <code>WHERE</code>, <code>SELECT</code>, <code>GROUP BY</code>, <code>HAVING</code>, <code>ORDER BY</code>.</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>ORDER BY</code> — den sorterer det ferdige resultatsettet</li>
+                <li><span class="opt-label">B</span> <code>SELECT</code> — listen av kolonner avgjør hva som returneres</li>
+                <li><span class="opt-label">C</span> <code>HAVING</code> — det er "WHERE for grupper"</li>
+                <li><span class="opt-label">D</span> <code>WHERE</code> — den filtrerer det endelige resultatet</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A.</strong> Logisk evalueringsrekkefølge: <code>FROM → WHERE → GROUP BY → HAVING → SELECT → DISTINCT → ORDER BY → LIMIT</code>.</p>
+              <p>Konsekvens: i <code>WHERE</code> kan du <em>ikke</em> referere til en kolonnealias laget i <code>SELECT</code>, men i <code>ORDER BY</code> kan du. Derfor er <code>SELECT salary*1.1 AS hike … WHERE hike > 80000</code> en feil, mens <code>… ORDER BY hike</code> er lovlig.</p>
+              <p>B er feil fordi <code>SELECT</code> evalueres etter <code>HAVING</code> men før <code>ORDER BY</code>. C er feil — <code>HAVING</code> evalueres etter <code>GROUP BY</code> men før <code>SELECT</code>. D er feil fordi <code>WHERE</code> evalueres allerede etter <code>FROM</code>, før både gruppering og <code>SELECT</code>.</p>
+              <p class="fc-ref">Pensum: <a href="#anatomi">Kap. 3 — Anatomi av en spørring</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — DISTINCT</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor er <code>SELECT DISTINCT</code> potensielt dyrt, og når er det <em>ikke</em> nødvendig å skrive det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>SQL er <strong>multiset-basert</strong> som default — duplikater beholdes. <code>DISTINCT</code> tvinger DBMS-en til å fjerne dubletter, og det krever enten <strong>sortering</strong> (O(N log N)) eller en <strong>hash-tabell</strong> (O(N) men med minne-overhead) over hele resultatsettet.</p>
+              <p>Du trenger <em>ikke</em> <code>DISTINCT</code> når:</p>
+              <p>• Du selecter en supernøkkel — utvalget er allerede unikt per definisjon.<br>
+              • Spørringen din inneholder <code>GROUP BY g</code> og du selecter bare gruppekolonnene + aggregater — én rad per gruppe.<br>
+              • Du bruker <code>UNION</code> (uten <code>ALL</code>) — den dedupliserer allerede.</p>
+              <p>Vanlig misbruk: legge til <code>DISTINCT</code> for å "skjule" en feilskreven JOIN som lager kartesiske dubletter. Da bør du heller fikse JOIN-en.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#dml-grunnform">3A — SELECT-grunnformer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — NULL</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellen <code>t(x)</code> har radene <code>1, 2, NULL, NULL, 3</code>. Hva returnerer <code>SUM(x)</code>, <code>AVG(x)</code>, <code>MAX(x)</code>, <code>COUNT(x)</code> og <code>COUNT(*)</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Aggregatfunksjoner (alle untatt <code>COUNT(*)</code>) <strong>ignorerer NULL</strong>:</p>
+              <p>• <code>SUM(x)</code> = <strong>6</strong> (1+2+3).<br>
+              • <code>AVG(x)</code> = <strong>2</strong> — gjennomsnitt over <em>3</em> rader, ikke 5! Dette er en klassisk eksamensfelle: AVG er SUM/COUNT, og COUNT teller ikke NULL.<br>
+              • <code>MAX(x)</code> = <strong>3</strong>.<br>
+              • <code>COUNT(x)</code> = <strong>3</strong> — antall ikke-NULL verdier i x.<br>
+              • <code>COUNT(*)</code> = <strong>5</strong> — antall rader uavhengig av innhold.</p>
+              <p>Spesialtilfelle: hvis <em>alle</em> rader er NULL, returnerer SUM/AVG/MAX/MIN <code>NULL</code>, mens <code>COUNT(*)</code> fortsatt teller radene og <code>COUNT(x)</code> blir 0.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#aggregat">3A — Aggregat og GROUP BY</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — GROUP BY</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er regelen for hvilke kolonner som er lovlige i <code>SELECT</code> når spørringen har <code>GROUP BY g1, g2</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Hver kolonne i <code>SELECT</code> må enten være: <strong>(1)</strong> en av gruppekolonnene <code>g1</code> eller <code>g2</code>, <strong>(2)</strong> et aggregat (<code>SUM</code>, <code>AVG</code>, <code>COUNT</code>, …), eller <strong>(3)</strong> en deterministisk funksjon av kolonner i (1) og (2).</p>
+              <p>Grunnen: en gruppe består av flere rader. <code>SELECT name, COUNT(*) FROM emp GROUP BY dept_id</code> er udefinert — hvilken <code>name</code> skulle vi velge? SQL-standarden krever at hver verdi i resultatet er entydig.</p>
+              <p>MySQL har historisk vært slapp her og returnerer en vilkårlig verdi — det er en kjent fallgruve som er rettet med <code>ONLY_FULL_GROUP_BY</code>-modusen i MySQL 5.7+.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#aggregat">3A — Aggregat og GROUP BY</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — HAVING</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når skal du bruke <code>WHERE</code> og når <code>HAVING</code>? Gi en huskeregel.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong><code>WHERE</code> filtrerer rader <em>før</em> gruppering. <code>HAVING</code> filtrerer grupper <em>etter</em> gruppering.</strong></p>
+              <p>Konkret: hvis predikatet er på en aggregert verdi (<code>COUNT(*) > 5</code>, <code>AVG(salary) >= 50000</code>) må det stå i <code>HAVING</code> — aggregatene finnes ikke før <code>GROUP BY</code> har kjørt. Hvis predikatet er på en rå kolonneverdi som ikke trenger aggregering (<code>dept_name = 'CS'</code>) hører det hjemme i <code>WHERE</code> — det filtrerer tidligere og reduserer arbeidet.</p>
+              <p>Hovedregel: <em>"Bruk WHERE hvis du kan, HAVING bare når du må."</em> WHERE er nesten alltid raskere fordi det reduserer antallet rader før gruppering.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#aggregat">3A — Aggregat og GROUP BY</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — Mengdeoperasjoner</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabell <code>r</code> har radene <code>{1, 1, 2, 3}</code>, tabell <code>s</code> har radene <code>{1, 2, 2, 4}</code>. Hva returnerer <code>r UNION ALL s</code>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>{1, 2, 3, 4}</code> — alle distinkte verdier én gang</li>
+                <li><span class="opt-label">B</span> <code>{1, 1, 2, 2, 3, 4}</code> — sum av multipliciteter, men dedupliserer innen hver tabell</li>
+                <li><span class="opt-label">C</span> <code>{1, 1, 1, 2, 2, 2, 3, 4}</code> — alle rader fra begge tabellene, ingen deduplisering</li>
+                <li><span class="opt-label">D</span> <code>{1, 2}</code> — kun verdier som finnes i begge tabellene</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — <code>{1, 1, 1, 2, 2, 2, 3, 4}</code> (8 rader).</strong></p>
+              <p><code>UNION ALL</code> er en ren konkatenasjon av multimengdene — tellinger summeres. <code>r</code> har 1 to ganger og <code>s</code> har 1 én gang, så resultatet har 1 tre ganger.</p>
+              <p>A er resultatet av <code>UNION</code> (uten <code>ALL</code>), som dedupliserer.<br>
+              B er ingen ekte SQL-operasjon — verken UNION eller UNION ALL gjør dette.<br>
+              D er <code>r INTERSECT s</code> (med dedup) eller <code>r INTERSECT ALL s</code> som ville gitt <code>{1, 2}</code> (min-multiplisitet).</p>
+              <p>Hvorfor velge UNION ALL fremfor UNION? <strong>Ytelse.</strong> UNION må sortere/hashe for å fjerne dubletter; UNION ALL slipper det. Hvis du <em>vet</em> at delspørringene ikke overlapper, er ALL gratis.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#mengde">3A — UNION/INTERSECT/EXCEPT</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — ORDER BY</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor er <code>SELECT salary*1.1 AS bump … ORDER BY bump DESC</code> lovlig, mens <code>… ORDER BY 1 DESC</code> også er lovlig — og hva er forskjellen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Begge er lovlige fordi <code>ORDER BY</code> evalueres <em>etter</em> <code>SELECT</code>. På det stadiet er aliaset <code>bump</code> tilgjengelig.</p>
+              <p>Forskjellen er stilistisk og praktisk:</p>
+              <p>• <strong><code>ORDER BY bump DESC</code></strong> — selvdokumenterende. Hvis kolonnerekkefølgen i <code>SELECT</code> endres senere, virker det fortsatt.<br>
+              • <strong><code>ORDER BY 1 DESC</code></strong> — refererer til kolonnen i <em>posisjon</em> 1 i <code>SELECT</code>-listen. Kompakt, men skjør: hvis du legger til en kolonne foran <code>salary*1.1</code>, sorterer du nå plutselig på en annen kolonne. SQL:2003 anbefaler å unngå posisjons-ORDER BY for produksjonsspørringer.</p>
+              <p>I begge tilfeller kan du legge til <code>ASC</code> (default) eller <code>DESC</code>, og NULL-håndtering med <code>NULLS FIRST</code> / <code>NULLS LAST</code> (DBMS-avhengig).</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#orderby">3A — ORDER BY/DISTINCT</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — Strenger</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva matcher mønsteret <code>'_a%n'</code> i en <code>WHERE name LIKE '_a%n'</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Mønsteret krever: <strong>(1)</strong> nøyaktig ett tegn (hva som helst), så <strong>(2)</strong> bokstaven <code>a</code>, så <strong>(3)</strong> null eller flere vilkårlige tegn, og til slutt <strong>(4)</strong> bokstaven <code>n</code>.</p>
+              <p>Eksempler som matcher: <code>'Dan'</code>, <code>'Sahn'</code>, <code>'Jan'</code>, <code>'Tarjan'</code>, <code>'San Joaquin'</code>.<br>
+              Eksempler som <em>ikke</em> matcher: <code>'Anna'</code> (starter med <code>A</code> uten foran-tegn), <code>'an'</code> (mangler første ukjente tegn), <code>'Dann'</code> (slutter på <code>nn</code> men siste tegn er <code>n</code> — vent, dette matcher faktisk), <code>'Adam'</code> (slutter ikke på n).</p>
+              <p>Spesial-tegn: <strong><code>_</code></strong> = nøyaktig ett tegn; <strong><code>%</code></strong> = null eller flere tegn. For å matche selve tegnene <code>_</code> eller <code>%</code> i strengen brukes <code>ESCAPE</code>: <code>name LIKE '50\%' ESCAPE '\'</code>.</p>
+              <p>For regulære uttrykk er <code>SIMILAR TO</code> (SQL-standard) eller dialekt-spesifikke som <code>~</code> (PostgreSQL) eller <code>REGEXP</code> (MySQL) sterkere alternativer.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#strenger">3A — Strenger</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — Aggregat med GROUP BY</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellen <code>sale(dept, amount)</code> har radene <code>('A', 100), ('A', 200), ('B', 50), ('B', NULL), ('C', 300)</code>. Hva returnerer <code>SELECT dept, AVG(amount) FROM sale GROUP BY dept HAVING SUM(amount) > 100</code>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>('A', 150), ('B', 25), ('C', 300)</code></li>
+                <li><span class="opt-label">B</span> <code>('A', 150), ('C', 300)</code></li>
+                <li><span class="opt-label">C</span> <code>('A', 150), ('B', 50), ('C', 300)</code></li>
+                <li><span class="opt-label">D</span> <code>('A', 100), ('C', 300)</code></li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — <code>('A', 150), ('C', 300)</code>.</strong></p>
+              <p>Steg for steg:</p>
+              <p>• <strong>Gruppe A:</strong> <code>SUM = 100+200 = 300</code>, <code>AVG = 300/2 = 150</code>. SUM &gt; 100 ✓ — beholdes.<br>
+              • <strong>Gruppe B:</strong> NULL ignoreres, så <code>SUM = 50</code>, <code>AVG = 50/1 = 50</code>. SUM (50) ikke &gt; 100 ✗ — fjernes av HAVING.<br>
+              • <strong>Gruppe C:</strong> <code>SUM = 300</code>, <code>AVG = 300</code>. SUM &gt; 100 ✓ — beholdes.</p>
+              <p>A er feil fordi den har gruppe B med — men den feiler HAVING. C gjør samme feil og bruker også feil AVG for B (25 = (50+0)/2 — som ville behandlet NULL som 0). D er feil fordi AVG av A er 150, ikke 100.</p>
+              <p>Vanligste fellen her er å tro at NULL behandles som 0 i AVG/SUM. Det gjør det ikke — den ignoreres helt, og divisoren i AVG er antall ikke-NULL verdier.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#aggregat">3A — Aggregat og GROUP BY</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3A — DML-endringer</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <code>INSERT INTO t VALUES (…)</code> og <code>INSERT INTO t SELECT … FROM s</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>VALUES-formen</strong> setter inn én eller flere konkrete rader spesifisert direkte i SQL-en: <code>INSERT INTO t (a, b) VALUES (1, 'foo'), (2, 'bar')</code>. Brukes for konstantverdier — typisk testdata, oppslagstabeller, manuell input.</p>
+              <p><strong>SELECT-formen</strong> setter inn rader hentet fra en spørring: <code>INSERT INTO archive SELECT * FROM orders WHERE created &lt; '2020-01-01'</code>. Antall rader er ikke kjent på forhånd; det avhenger av datagrunnlaget. Brukes typisk for ETL, arkivering, materialisering av delsett.</p>
+              <p>Begge støtter eksplisitt kolonneliste etter tabellnavnet — alt som ikke er listet, får <code>DEFAULT</code> eller <code>NULL</code>. Begge må respektere alle constraints (PK, FK, NOT NULL, CHECK) — ellers feiler hele setningen som én transaksjon.</p>
+              <p class="fc-ref">Pensum: <a href="ddl-og-spoerringer.html#dml-endringer">3A — DML-endringer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             3B · Joins og subqueries (12 kort)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Outer joins</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <code>LEFT</code>, <code>RIGHT</code> og <code>FULL OUTER JOIN</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Alle tre returnerer matchende par <em>pluss</em> umatchede rader fra én eller begge sider, med <code>NULL</code> der det mangler match:</p>
+              <p>• <strong><code>LEFT OUTER JOIN</code></strong> — alle rader fra venstre tabell beholdes; umatchede rader fra høyre side gir <code>NULL</code> i kolonnene fra høyre.<br>
+              • <strong><code>RIGHT OUTER JOIN</code></strong> — speilbildet: alle fra høyre, NULL i venstres kolonner ved umatch.<br>
+              • <strong><code>FULL OUTER JOIN</code></strong> — alle umatchede rader fra <em>begge</em> sider, NULL der den andre siden mangler.</p>
+              <p>Praktisk regel: <code>A LEFT JOIN B</code> ≡ <code>B RIGHT JOIN A</code> — bare svap rekkefølgen. Derfor brukes <code>LEFT JOIN</code> nesten alltid i praksis; <code>RIGHT JOIN</code> er sjelden naturlig å skrive.</p>
+              <p>MySQL støtter ikke <code>FULL OUTER JOIN</code>; man emulerer det med <code>LEFT JOIN UNION RIGHT JOIN</code>.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#inner-vs-outer">3B — Inner vs outer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — NATURAL JOIN</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva matcher <code>NATURAL JOIN</code>, og hvorfor advares mot å bruke den i produksjonskode?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><code>NATURAL JOIN</code> matcher automatisk på <strong>alle kolonner med samme navn</strong> i de to tabellene, og fjerner duplikatkolonnene fra resultatet (én kolonne per match).</p>
+              <p>Faren: <strong>resultatet endrer seg når skjemaet endres.</strong> Hvis noen senere legger til en kolonne <code>created_at</code> til begge tabellene, blir den med i match-betingelsen — og spørringen begynner plutselig å returnere færre rader, eller ingen, uten at SQL-en endres.</p>
+              <p>Eksempel som er sårbart:</p>
+              <p><code>SELECT student.name, course.title<br>FROM enrollment NATURAL JOIN student NATURAL JOIN course</code></p>
+              <p>Bedre — eksplisitt:</p>
+              <p><code>… enrollment e JOIN student s ON e.sid = s.sid JOIN course c ON e.cid = c.cid</code></p>
+              <p>NATURAL JOIN er praktisk for tavle-eksempler og hurtig prototyping, men <em>aldri</em> i kode som lever lenger enn én commit.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#on-using">3B — ON vs USING</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — ON vs USING</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellene <code>r(id, name)</code> og <code>s(id, dept)</code>. Hvilken forskjell er det på resultatkolonnene fra <code>r JOIN s ON r.id = s.id</code> vs <code>r JOIN s USING (id)</code>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Ingen forskjell — begge produserer samme kolonnesett</li>
+                <li><span class="opt-label">B</span> <code>ON</code> beholder begge id-kolonnene (fra r og s); <code>USING</code> beholder kun én id-kolonne</li>
+                <li><span class="opt-label">C</span> <code>USING</code> tillater bare numeriske felter; <code>ON</code> kan bruke vilkårlige uttrykk</li>
+                <li><span class="opt-label">D</span> <code>USING</code> kan bare brukes på primærnøkler; <code>ON</code> har ingen slik begrensning</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B.</strong></p>
+              <p><code>JOIN ... ON</code>: hvis du selecter <code>SELECT *</code>, får du <em>begge</em> id-kolonnene — <code>r.id</code> og <code>s.id</code> — selv om de inneholder identiske verdier (når match-betingelsen er likhet).</p>
+              <p><code>JOIN ... USING (id)</code>: <em>én</em> sammenslått id-kolonne i resultatet. Etterpå refererer du til den som bare <code>id</code>, ikke <code>r.id</code>. USING krever at kolonnenavnene er <strong>identiske</strong> i begge tabellene.</p>
+              <p>A er feil — kolonnesettet er forskjellig (en ekstra kolonne i ON-versjonen).<br>
+              C er feil — USING fungerer på alle datatyper så lenge navnene matcher.<br>
+              D er feil — USING er en navne-match, ikke en nøkkel-match. Den krever ingen PK/FK-relasjon.</p>
+              <p>Praktisk: USING er kompakt for like-navnede join-kolonner; ON er mer fleksibelt (ulike navn, ikke-likhet, sammensatte uttrykk).</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#on-using">3B — ON vs USING</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Self-join</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Tabellen <code>employee(id, name, manager_id)</code> der <code>manager_id</code> er en FK til <code>employee.id</code>. Skriv en spørring som henter hver ansatts navn sammen med sin sjefs navn.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Bruk en <strong>self-join</strong> med to alias for samme tabell:</p>
+              <p><code>SELECT e.name AS employee, m.name AS manager<br>FROM employee e<br>LEFT JOIN employee m ON e.manager_id = m.id;</code></p>
+              <p>Hvorfor alias? Tabellen forekommer to ganger — én gang som "den ansatte" (<code>e</code>) og én gang som "sjefen" (<code>m</code>). Uten alias kan ikke parseren skille mellom de to forekomstene; <code>employee.id</code> ville vært tvetydig.</p>
+              <p>Hvorfor LEFT JOIN? Fordi toppsjefen har <code>manager_id = NULL</code> — hen har ingen sjef. Med INNER JOIN ville toppsjefen forsvunnet fra resultatet; LEFT JOIN beholder hen og gir <code>manager = NULL</code>.</p>
+              <p>Self-join er også standardteknikken for å sammenligne rader i samme tabell (f.eks. "alle par av ansatte i samme avdeling med ulik lønn").</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#self-join">3B — Self-join</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Korrelert subquery</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er den definerende forskjellen på en <em>korrelert</em> og en <em>ukorrelert</em> subquery?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Korrelerte subqueries returnerer alltid skalar; ukorrelerte alltid en tabell</li>
+                <li><span class="opt-label">B</span> Korrelerte er raskere fordi de bruker indekser; ukorrelerte må gjøre full scan</li>
+                <li><span class="opt-label">C</span> Korrelerte må stå i <code>WHERE</code>-klausulen; ukorrelerte kan stå hvor som helst</li>
+                <li><span class="opt-label">D</span> En korrelert subquery refererer til kolonner fra den ytre spørringen, så den må evalueres på nytt for hver rad i den ytre</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D.</strong></p>
+              <p>En <strong>ukorrelert</strong> subquery er en selvstendig spørring — den kan kjøres alene og returnerer det samme uavhengig av den ytre. Optimizeren evaluerer den én gang og bruker resultatet videre.</p>
+              <p>Eksempel ukorrelert: <code>SELECT * FROM emp WHERE salary &gt; (SELECT AVG(salary) FROM emp)</code>. Den indre spørringen er konstant.</p>
+              <p>En <strong>korrelert</strong> subquery refererer til en kolonne fra den ytre spørringen, og må derfor logisk evalueres for hver rad i den ytre.</p>
+              <p>Eksempel korrelert: <code>SELECT * FROM emp e WHERE salary &gt; (SELECT AVG(salary) FROM emp WHERE dept = e.dept)</code>. Her endres subquery-resultatet for hver rad — gjennomsnittet er per avdeling.</p>
+              <p>A er feil — begge typer kan returnere skalar eller tabell. B er feil — korrelerte er ofte tregere (men optimizere kan transformere dem til joins). C er feil — korrelerte subqueries kan stå i SELECT, FROM, WHERE og HAVING.</p>
+              <p>Naivt evalueres korrelerte O(n²); en god optimizer omskriver ofte til en semi-join eller window function.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#korrelert">3B — Korrelerte subqueries</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — NOT IN-fellen</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor returnerer <code>SELECT name FROM emp WHERE dept_id NOT IN (SELECT id FROM dept)</code> ofte <em>ingen</em> rader, selv når det finnes <code>emp.dept_id</code>-verdier som ikke matcher noen <code>dept.id</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Fordi <strong>én eneste NULL i subquery-resultatet ødelegger hele <code>NOT IN</code>-uttrykket</strong>.</p>
+              <p>SQL bruker tre-verdi-logikk. Når subqueryen returnerer <code>{1, 2, NULL}</code>, blir <code>x NOT IN (1, 2, NULL)</code> til <code>x ≠ 1 AND x ≠ 2 AND x ≠ NULL</code>. Den siste sammenligningen gir <code>UNKNOWN</code>, og <code>TRUE AND TRUE AND UNKNOWN = UNKNOWN</code>. WHERE filtrerer bort alt som ikke er TRUE → ingen rader.</p>
+              <p>Tre løsninger:</p>
+              <p>• <strong>Bruk EXISTS</strong>: <code>… WHERE NOT EXISTS (SELECT 1 FROM dept d WHERE d.id = e.dept_id)</code>. Robust mot NULL.<br>
+              • <strong>Filtrer NULL i subqueryen</strong>: <code>… NOT IN (SELECT id FROM dept WHERE id IS NOT NULL)</code>.<br>
+              • <strong>LEFT JOIN + IS NULL</strong>: <code>… FROM emp e LEFT JOIN dept d ON e.dept_id = d.id WHERE d.id IS NULL</code>.</p>
+              <p>Dette er én av SQLs mest beryktede stille feil — den kompilerer, kjører, og returnerer feil resultat uten advarsel.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#exists">3B — EXISTS/IN/ANY/ALL</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — ANY/ALL</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <code>x &gt; ALL (SELECT y FROM t)</code> og <code>x &gt; ANY (SELECT y FROM t)</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><code>x &gt; <strong>ALL</strong> (subquery)</code> er sant hvis x er større enn <em>hver eneste</em> verdi subqueryen returnerer. Tom subquery → TRUE (vakuumtilfellet).</p>
+              <p><code>x &gt; <strong>ANY</strong> (subquery)</code> er sant hvis x er større enn <em>minst én</em> verdi. <code>SOME</code> er synonymt med <code>ANY</code>. Tom subquery → FALSE.</p>
+              <p>Idiomatiske uttrykk:</p>
+              <p>• <code>x &gt; ALL (SELECT salary FROM emp)</code> ≡ <code>x &gt; (SELECT MAX(salary) FROM emp)</code> — "større enn alle" = "større enn maks".<br>
+              • <code>x &gt; ANY (SELECT salary FROM emp)</code> ≡ <code>x &gt; (SELECT MIN(salary) FROM emp)</code> — "større enn minst én" = "større enn min".<br>
+              • <code>x = ANY (subquery)</code> ≡ <code>x IN (subquery)</code>.<br>
+              • <code>x &lt;&gt; ALL (subquery)</code> ≡ <code>x NOT IN (subquery)</code> — og arver dessverre samme NULL-felle.</p>
+              <p>I praksis brukes <code>IN</code>/<code>NOT IN</code>/<code>EXISTS</code> oftere enn ANY/ALL fordi de leses tydeligere.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#exists">3B — EXISTS/IN/ANY/ALL</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — LEFT JOIN-resultat</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>r(a)</code> har radene <code>{1, 2, 3}</code>, <code>s(a, b)</code> har radene <code>{(1,'x'), (1,'y'), (4,'z')}</code>. Hvor mange rader returnerer <code>r LEFT JOIN s USING (a)</code>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 2 rader (kun matchene)</li>
+                <li><span class="opt-label">B</span> 3 rader (én per rad i r, med NULL der det ikke matcher)</li>
+                <li><span class="opt-label">C</span> 4 rader (begge matcher for a=1, pluss NULL-rader for a=2 og a=3)</li>
+                <li><span class="opt-label">D</span> 5 rader (alt fra både r og s)</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — 4 rader.</strong></p>
+              <p>Resultat:</p>
+              <p><code>(1, 'x')<br>(1, 'y')<br>(2, NULL)<br>(3, NULL)</code></p>
+              <p>Logisk gjennomgang: for hver rad i venstre (<code>r</code>), finn alle matcher i høyre (<code>s</code>). Hvis det er n matcher, gir det n rader; hvis 0 matcher, gir det 1 rad med NULL i høyre kolonner.</p>
+              <p>• <code>a=1</code> → 2 matcher i s → 2 rader.<br>
+              • <code>a=2</code> → 0 matcher → 1 rad (a=2, b=NULL).<br>
+              • <code>a=3</code> → 0 matcher → 1 rad (a=3, b=NULL).<br>
+              • Raden <code>(4, 'z')</code> i s er <em>ikke</em> med — LEFT JOIN beholder bare ekstra rader fra venstre side.</p>
+              <p>A er INNER JOIN. B glemmer at a=1 matcher to ganger. D er FULL OUTER JOIN.</p>
+              <p>Generell formel: <code>|r LEFT JOIN s| = sum over r-rader av max(1, antall match)</code>.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#inner-vs-outer">3B — Inner vs outer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — CTE</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <code>WITH</code>-klausul (CTE), og hva er to gode grunner til å bruke den fremfor en inline subquery?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>Common Table Expression</strong> (CTE) er en navngitt midlertidig spørring i begynnelsen av en <code>SELECT</code>:</p>
+              <p><code>WITH high_earners AS (<br>&nbsp;&nbsp;SELECT * FROM emp WHERE salary &gt; 100000<br>)<br>SELECT name FROM high_earners WHERE dept = 'CS';</code></p>
+              <p><strong>Grunn 1 — lesbarhet.</strong> Komplekse spørringer kan brytes ned i navngitte steg som leses ovenfra og ned, akkurat som programkode. Sammenlign med å pakke samme logikk inn i nestede subqueries med fire nivåer parenteser.</p>
+              <p><strong>Grunn 2 — gjenbruk.</strong> En CTE kan refereres flere ganger i samme spørring (selv om DBMS ofte re-evaluerer den). Ekstra: <code>WITH RECURSIVE</code> tillater rekursive spørringer (transitive lukninger, hierarkier) — en kapabilitet som inline subqueries <em>ikke</em> har.</p>
+              <p>Bonus: CTE-er fungerer som en kompromiss mellom views (persistente, deles) og subqueries (kun innenfor en spørring).</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#cte">3B — WITH/CTE</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Cross join</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva returnerer <code>r CROSS JOIN s</code>, og når er det faktisk det du ønsker?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Det <strong>kartesiske produktet</strong>: hver rad i r kombinert med hver rad i s. Hvis r har n rader og s har m rader, har resultatet n × m rader.</p>
+              <p>Som SQL-syntaks er <code>r CROSS JOIN s</code> ekvivalent med <code>r, s</code> (komma) i FROM-klausulen.</p>
+              <p>Når er det ønsket?</p>
+              <p>• <strong>Generere alle kombinasjoner</strong> — f.eks. en pivot-tabell med alle (måned, region)-par, der noen kombinasjoner kanskje ikke har faktiske rader, og du vil LEFT JOIN-e fakta etterpå.<br>
+              • <strong>Lage testdata eller serier</strong> — kombinere tall-tabeller for å produsere kalendere, tidsserier osv.<br>
+              • <strong>Tom høyre side</strong> brukes med en konstant: <code>SELECT * FROM emp CROSS JOIN (VALUES (1.10)) AS f(rate)</code> for å feste en konstant til hver rad.</p>
+              <p>Vanlig feil: glemme JOIN-betingelsen i en gammeldags <code>FROM r, s</code>-skriving — da får du et utilsiktet kartesisk produkt med eksplosivt resultatsett.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#hvorfor-join">3B — Hvorfor join</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Skalar subquery</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>skalar subquery</em>, hvilke krav stilles, og hvor er den lovlig brukt?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>skalar subquery</strong> er en SELECT som returnerer <em>nøyaktig én rad og én kolonne</em> — altså én verdi. SQL-runtime sjekker dette: returneres flere rader (uten LIMIT 1), gir det runtime-feil; returneres null rader, blir verdien <code>NULL</code>.</p>
+              <p>Skalar subqueries kan stå nesten hvor som helst en konstant kan stå:</p>
+              <p>• <strong>I SELECT-listen:</strong> <code>SELECT name, (SELECT AVG(s) FROM x) FROM emp</code>.<br>
+              • <strong>I WHERE-betingelsen:</strong> <code>WHERE salary &gt; (SELECT AVG(salary) FROM emp)</code>.<br>
+              • <strong>I HAVING:</strong> <code>HAVING SUM(amount) &gt; (SELECT threshold FROM cfg)</code>.<br>
+              • <strong>I VALUES eller assignments i UPDATE:</strong> <code>SET rank = (SELECT MAX(s) FROM x)</code>.</p>
+              <p>Idiomet er kraftig fordi det lar deg interpolere én verdi (et aggregat, en oppslagsverdi) inn i en spørring uten en eksplisitt JOIN. Men hvis subqueryen er korrelert eller tung, og brukes i SELECT-listen over en stor tabell, blir den evaluert per rad — pass på.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#subquery">3B — Subqueries</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3B — Anti-join</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>anti-join</em>, og hvilke tre SQL-konstruksjoner uttrykker den?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>anti-join</strong> returnerer rader fra venstre tabell som <em>ikke</em> har noen matchende rad i høyre tabell. Det er negasjonen av en semi-join (som returnerer rader som <em>har</em> en match).</p>
+              <p>Tre måter å uttrykke "alle ansatte uten et prosjekt" (<code>emp</code>, <code>assigns(emp_id)</code>):</p>
+              <p>• <strong>NOT EXISTS</strong> — den kanoniske og NULL-trygge formen:<br>
+              <code>SELECT * FROM emp e WHERE NOT EXISTS (SELECT 1 FROM assigns a WHERE a.emp_id = e.id)</code></p>
+              <p>• <strong>NOT IN</strong> — kompakt, men sårbar for NULL i subqueryen (se egen flashcard):<br>
+              <code>SELECT * FROM emp WHERE id NOT IN (SELECT emp_id FROM assigns)</code></p>
+              <p>• <strong>LEFT JOIN ... WHERE høyre IS NULL</strong> — rederlig form, ofte raskest:<br>
+              <code>SELECT e.* FROM emp e LEFT JOIN assigns a ON e.id = a.emp_id WHERE a.emp_id IS NULL</code></p>
+              <p>Optimizere transformerer ofte mellom disse tre formene; for mennesker er <code>NOT EXISTS</code> robust og lesbar — den foretrukne formen i pensum.</p>
+              <p class="fc-ref">Pensum: <a href="joins-og-subqueries.html#exists">3B — EXISTS/IN/ANY/ALL</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             3C · Views, transaksjoner, integritet (13 kort)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — Views</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er et <em>view</em>, og hva er tre hovedmotivasjoner for å bruke det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Et <strong>view</strong> er en navngitt, lagret SELECT-spørring som kan brukes som om den var en tabell. <code>CREATE VIEW v AS SELECT …</code> registrerer den; deretter spør du <code>SELECT * FROM v</code> som mot en vanlig tabell.</p>
+              <p><strong>Tre motivasjoner:</strong></p>
+              <p>• <strong>Abstraksjon.</strong> Skjermer applikasjonskoden fra tabell-skjemaet. Når underliggende tabeller endres, kan view-et omskrives og applikasjonen kjører uendret.<br>
+              • <strong>Sikkerhet.</strong> Gi brukere SELECT-tilgang til et view i stedet for tabellen — view-et kan ekskludere sensitive kolonner (<code>salary</code>, <code>ssn</code>) eller filtrere rader (<code>WHERE owner = current_user</code>).<br>
+              • <strong>Forenkling.</strong> Komplekse spørringer (multi-join, aggregater) kan navngis og gjenbrukes — særlig for dashboards og rapporter.</p>
+              <p>Default er virtuelt: viewets innhold beregnes ved hver bruk. Et <strong>materialized view</strong> derimot lagrer resultatet på disk og må refreshes — ekvivalent med en cache.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#views">3C — Views</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — Materialized views</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>materialized view</em>, og hva er tradeoff-en mot en virtuell view?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>materialized view</strong> er en view der resultatet er <strong>fysisk lagret</strong> (materialisert) på disk. Når brukeren spør view-et, leses det forhåndsberegnede resultatet — ingen re-eksekvering av den underliggende SELECT-en.</p>
+              <p><strong>Fordeler:</strong></p>
+              <p>• Rask lesning, særlig for tunge aggregater (millioner av rader → noen tusen).<br>
+              • Stabilt utgangspunkt for rapporter (selv om underliggende tabeller endres).<br>
+              • Kan indekseres som en vanlig tabell.</p>
+              <p><strong>Ulemper:</strong></p>
+              <p>• <strong>Stale data.</strong> Når underliggende tabeller endres, blir view-et utdatert til neste refresh.<br>
+              • <strong>Diskplass</strong> — view-et tar fysisk plass.<br>
+              • <strong>Refresh-strategi må velges</strong> — ON COMMIT (umiddelbart, gir overhead på alle DML), periodisk (planlagt cron), eller manuell (<code>REFRESH MATERIALIZED VIEW</code>).</p>
+              <p>Praktisk regel: bruk virtuelt view som default; bytt til materialized når lesning blir flaskehalsen <em>og</em> stale data i noen minutter er akseptabelt.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#views">3C — Materialized vs virtual</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — Oppdaterbare views</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilket av disse viewene er <em>ikke</em> trygt å gjøre <code>UPDATE</code> mot?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>CREATE VIEW v AS SELECT dept, AVG(salary) FROM emp GROUP BY dept</code></li>
+                <li><span class="opt-label">B</span> <code>CREATE VIEW v AS SELECT id, name FROM emp WHERE dept = 'CS'</code></li>
+                <li><span class="opt-label">C</span> <code>CREATE VIEW v AS SELECT id, name, salary FROM emp</code></li>
+                <li><span class="opt-label">D</span> <code>CREATE VIEW v AS SELECT id, name FROM emp WHERE active = TRUE</code></li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A.</strong></p>
+              <p>SQL-standarden krever at et view er <em>entydig invertibelt</em> for at det skal være oppdaterbart: gitt en endring på view-radene, skal DBMS-en kunne mappe det tilbake til en entydig endring på basistabellen.</p>
+              <p>A bryter dette på flere måter:</p>
+              <p>• Bruker <code>GROUP BY</code> — én rad i view-et representerer mange rader i emp.<br>
+              • Bruker <code>AVG</code> — det finnes ingen invers ("hva betyr det å sette AVG til 50000?").</p>
+              <p>B, C og D er alle direkte projeksjoner/seleksjoner over én tabell, uten aggregat eller DISTINCT — alle er oppdaterbare. (Caveat: en INSERT i B eller D må sette de uoppgitte kolonnene til DEFAULT eller NULL, og hvis de er NOT NULL uten default, feiler INSERT.)</p>
+              <p>Generelle regler for oppdaterbarhet (SQL-92): én tabell i FROM, ingen DISTINCT, ingen GROUP BY/HAVING, ingen aggregater, ingen UNION, og hver utvalgt kolonne må være en direkte basistabellkolonne (ikke et uttrykk).</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#oppdaterbare">3C — Oppdaterbare views</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — WITH CHECK OPTION</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva gjør <code>WITH CHECK OPTION</code> i en view-deklarasjon, og hvorfor trenger man det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><code>WITH CHECK OPTION</code> sørger for at en INSERT eller UPDATE gjennom view-et <strong>fortsatt produserer en rad som er synlig gjennom view-et</strong>. Hvis ikke, avvises operasjonen.</p>
+              <p>Konkret eksempel:</p>
+              <p><code>CREATE VIEW cs_emp AS<br>SELECT * FROM emp WHERE dept = 'CS'<br>WITH CHECK OPTION;</code></p>
+              <p>Uten CHECK OPTION kunne en bruker skrive <code>INSERT INTO cs_emp VALUES (…, dept='HR', …)</code> — raden ville havne i tabellen, men ikke være synlig gjennom view-et. Det er forvirrende ("hvorfor er ikke raden jeg nettopp insertet der?") og potensielt et sikkerhetsproblem.</p>
+              <p>Med CHECK OPTION blir samme INSERT avvist med en feilmelding: "row violates check option for view".</p>
+              <p>To varianter: <code>LOCAL</code> (sjekker bare predikatet i denne view-en) og <code>CASCADED</code> (sjekker også alle underliggende views' predikater). Default er <code>CASCADED</code> i SQL-standarden.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#oppdaterbare">3C — Oppdaterbare views</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — PK vs UNIQUE</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på <code>PRIMARY KEY</code> og <code>UNIQUE</code> i SQL? Begge garanterer unikhet.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Tre forskjeller:</p>
+              <p><strong>1. Antall.</strong> En tabell kan ha <em>én</em> PRIMARY KEY, men <em>flere</em> UNIQUE constraints. PK er den semantiske "hovednøkkelen"; UNIQUE er bare et unikhetskrav.</p>
+              <p><strong>2. NULL.</strong> PRIMARY KEY impliserer NOT NULL automatisk. UNIQUE tillater NULL — og i SQL-standarden tillater den <em>flere</em> NULL-verdier (siden <code>NULL ≠ NULL</code> i 3VL). MySQL og PostgreSQL følger standarden; SQL Server tillater bare én NULL per UNIQUE.</p>
+              <p><strong>3. FK-mål.</strong> En foreign key kan referere til både PK og UNIQUE constraints. PK er det vanlige målet, men <code>REFERENCES tab(unique_col)</code> er gyldig.</p>
+              <p>Praktisk: bruk PK for "den naturlige radidentifikatoren" (ofte en surrogat-id), og UNIQUE for andre felter som må være unike (e-post, brukernavn, naturnøkler).</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#integritet">3C — Integritet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — Composite key</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan deklareres en sammensatt (composite) primary key, og når er det riktig valg fremfor en surrogat-id?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Syntaks — som tabell-constraint, ikke kolonne-constraint:</p>
+              <p><code>CREATE TABLE enrollment (<br>&nbsp;&nbsp;student_id INT NOT NULL,<br>&nbsp;&nbsp;course_id  INT NOT NULL,<br>&nbsp;&nbsp;grade      CHAR(1),<br>&nbsp;&nbsp;PRIMARY KEY (student_id, course_id),<br>&nbsp;&nbsp;FOREIGN KEY (student_id) REFERENCES student(id),<br>&nbsp;&nbsp;FOREIGN KEY (course_id)  REFERENCES course(id)<br>);</code></p>
+              <p>Composite PK passer for <strong>koblings­tabeller</strong> i mange-til-mange-relasjoner: kombinasjonen <em>er</em> raden, og det finnes ingen naturlig grunn til å ha en egen <code>id</code> (alternativt er det greit å ha en surrogat-id <em>i tillegg</em> for ergonomi, men da bør (student_id, course_id) ha UNIQUE).</p>
+              <p>Argumentet for surrogat-id i stedet: hvis composite PK må refereres fra en tredje tabell, blir foreign key-deklarasjonen klumpete (to kolonner). Surrogat gir én pen FK.</p>
+              <p>Argumentet mot surrogat: ekstra kolonne, ekstra indeks, ekstra navngivning. For en pur kobling-tabell er composite ofte renest.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#integritet">3C — Integritet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — ON DELETE-actions</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>order(id, customer_id)</code> har FK til <code>customer(id)</code> deklarert <code>ON DELETE SET NULL</code>. Du sletter en kunde med åpne ordrer. Hva skjer?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Slettingen blokkeres — det finnes ordrer som refererer til kunden</li>
+                <li><span class="opt-label">B</span> Alle ordre tilhørende kunden slettes også</li>
+                <li><span class="opt-label">C</span> Slettingen skjer, men ordrene blir foreldreløse — referansene blir hengende uten target</li>
+                <li><span class="opt-label">D</span> Slettingen skjer, og <code>customer_id</code> i de berørte ordrene settes til NULL</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D.</strong></p>
+              <p>De fire vanligste alternativene for <code>ON DELETE</code>:</p>
+              <p>• <strong>RESTRICT</strong> (default i mange DBMS) — sletting blokkeres umiddelbart hvis det finnes refererende rader. Det er det A beskriver.<br>
+              • <strong>NO ACTION</strong> — som RESTRICT, men sjekken utsettes til slutten av setningen (eller transaksjonen i deferred mode). I praksis nesten alltid samme observable oppførsel.<br>
+              • <strong>CASCADE</strong> — slett også de refererende radene. Det er det B beskriver.<br>
+              • <strong>SET NULL</strong> — sett FK-kolonnen til NULL i de refererende radene. Krever at kolonnen tillater NULL. Det er det D beskriver — riktig svar.<br>
+              • <strong>SET DEFAULT</strong> — sett FK-kolonnen til kolonnens DEFAULT-verdi.</p>
+              <p>C er ikke et faktisk alternativ — referensiell integritet håndheves alltid; "foreldreløse" pekere er per definisjon ikke tillatt i et relasjonelt skjema.</p>
+              <p>Tilsvarende finnes <code>ON UPDATE</code> som styrer hva som skjer hvis PK-en oppdateres (sjelden — typisk ikke aktuelt for surrogat-PK).</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#fk-actions">3C — FK-actions</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — CHECK</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Kan en <code>CHECK</code>-constraint involvere flere kolonner i samme tabell, og kan den involvere kolonner i andre tabeller?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Flere kolonner i samme tabell: ja.</strong> En CHECK kan referere til en hvilken som helst kombinasjon av kolonner i raden den evalueres på:</p>
+              <p><code>CREATE TABLE rectangle (<br>&nbsp;&nbsp;w NUMERIC, h NUMERIC,<br>&nbsp;&nbsp;CHECK (w &gt; 0 AND h &gt; 0 AND w &gt;= h)<br>);</code></p>
+              <p><strong>Kolonner i andre tabeller: nei (i SQL-standarden).</strong> CHECK evalueres lokalt på <em>én rad</em> ved hver insert/update på den tabellen. Subqueries i CHECK er forbudt i SQL-standard og avvises av de fleste DBMS-er, fordi det gjør semantikken hårete: "hva skjer hvis den andre tabellen endres?".</p>
+              <p>Hvis du trenger en cross-tabell-regel, har du tre alternativer:</p>
+              <p>• <strong>ASSERTION</strong> — SQL-standardens svar, men nesten ingen DBMS implementerer det.<br>
+              • <strong>Trigger</strong> — kjør en sjekk i en BEFORE INSERT/UPDATE-trigger, kast feil med <code>RAISE</code> hvis brutt.<br>
+              • <strong>Materialized view + CHECK</strong> — DB2-trikset: oppretthold et materialized view som aggregerer det tverrgående tilstandet, legg en CHECK på det.</p>
+              <p>For den klassiske eksamensfellen "total budsjett ≤ X" — det er ikke en CHECK; det krever en trigger eller assertion.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#integritet">3C — Integritet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — ASSERTION</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <code>ASSERTION</code> i SQL-standarden, og hvorfor møter du den knapt i praksis?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En ASSERTION er en SQL-standard-konstruksjon for å håndheve en <strong>vilkårlig boolean-betingelse over hele databasen</strong>:</p>
+              <p><code>CREATE ASSERTION budget_ok<br>CHECK ((SELECT SUM(amount) FROM grants) &lt;= 1000000);</code></p>
+              <p>Den minner om en CHECK, men er <em>frittstående</em> — ikke knyttet til en bestemt tabell — og kan inneholde subqueries over flere tabeller.</p>
+              <p><strong>Hvorfor sjelden brukt:</strong> Implementeringen er en pinligheten av SQL-standarden. Hver gang <em>en hvilken som helst</em> involvert tabell endres, må DBMS-en revurdere assertionen — eller bruke avansert inkrementell vedlikehold for ikke å sliten ned ytelsen. Effektiv inkrementell evaluering for vilkårlige assertions er et åpent forskningsspørsmål.</p>
+              <p>Resultat: <em>ingen</em> av de store DBMS-ene (PostgreSQL, MySQL, Oracle, SQL Server, DB2) implementerer ASSERTION i praksis. Pensumet nevner det for fullstendighetens skyld; i virkeligheten skriver man triggere i stedet.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#assertion">3C — Assertion</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — Transaksjoner</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva atomisitet betyr i transaksjons-sammenheng, og hvilke SQL-kommandoer styrer det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Atomisitet = "alt eller ingenting".</strong> En transaksjon er en logisk enhet av arbeid; enten gjennomføres alle dens DML-endringer permanent (commit), eller ingen (rollback). Det skal aldri være mulig å observere et partielt resultat.</p>
+              <p>SQL-kommandoene:</p>
+              <p>• <code>BEGIN</code> (eller <code>START TRANSACTION</code>) — markerer starten på en transaksjon. Mange DBMS-er starter en implisitt transaksjon ved første DML hvis ingen er aktiv.<br>
+              • <code>COMMIT</code> — gjør alle endringer permanent. Etter dette punkt er endringene synlige for andre transaksjoner og overlever krasj.<br>
+              • <code>ROLLBACK</code> — kast alle endringene siden BEGIN. Tabellen ser ut som før transaksjonen startet.</p>
+              <p>Klassisk eksempel: penger overføres fra konto A til B i to UPDATE-er. Krasj mellom dem uten transaksjon ville etterlatt penger som forsvinner. Med BEGIN ... COMMIT er enten begge eller ingen utført.</p>
+              <p>De andre ACID-egenskapene — Consistency, Isolation, Durability — handler om korrekthet, samtidighet og holdbarhet etter krasj. De læres dypere i kap. 8.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#tx-syntax">3C — Transaksjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — SAVEPOINT</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <code>SAVEPOINT</code>, og når er det nyttig fremfor en full <code>ROLLBACK</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Et <strong>SAVEPOINT</strong> er et navngitt punkt inni en transaksjon. <code>ROLLBACK TO sp_name</code> ruller tilbake bare endringer gjort <em>etter</em> savepointet — alt før savepointet beholdes, og transaksjonen fortsetter åpen.</p>
+              <p>Syntaks:</p>
+              <p><code>BEGIN;<br>UPDATE … ;<br>SAVEPOINT before_risky;<br>UPDATE … ; -- noe risikabelt<br>-- hvis feiler:<br>ROLLBACK TO before_risky;<br>-- fortsett med andre operasjoner ...<br>COMMIT;</code></p>
+              <p><strong>Bruksområder:</strong></p>
+              <p>• Lange batch-jobber der noen mindre feilbare delsteg kan ignoreres uten å miste hele transaksjonens arbeid.<br>
+              • ORM-er bruker savepoints internt for å implementere "nestede transaksjoner" (SQL-standarden støtter ikke ekte nestede transaksjoner).<br>
+              • Sikkerhetsnett ved interaktiv testing.</p>
+              <p>Trade-off: hvert savepoint koster minne i transaction log og kan låses lengre. Bruk dem når flyten faktisk krever delvis tilbakerulling, ikke som en generell forsiktighet.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#tx-syntax">3C — Transaksjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — CREATE INDEX</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Du skriver <code>CREATE INDEX idx_email ON user(email)</code>. Hvilken type indeks blir det typisk i en SQL-standard DBMS, og hva krever det av kolonnen?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> En hash-indeks; krever at kolonnen er numerisk</li>
+                <li><span class="opt-label">B</span> En B+-tre-indeks; ingen krav til kolonnen utover at den er sammenlignbar (ORDER BY-bar)</li>
+                <li><span class="opt-label">C</span> En clustered indeks som omorganiserer hele tabellen fysisk</li>
+                <li><span class="opt-label">D</span> En unique constraint — INSERT av to like e-poster vil feile</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B.</strong></p>
+              <p>Default for <code>CREATE INDEX</code> i de fleste DBMS-er er en <strong>B+-tre-indeks</strong> (ikke clustered, ikke unik). Det fungerer for alle datatyper som har en ordensrelasjon — INT, VARCHAR, DATE, osv. — som er bredeste mulige støtte.</p>
+              <p>A er feil — hash-indeks er ofte tilgjengelig (<code>USING HASH</code>) men ikke default; den krever ikke numerisk type, men gir ikke range-støtte.<br>
+              C er feil — clustered må eksplisitt bes om, ofte gjennom PK eller spesiell syntaks (Oracle <code>ORGANIZATION INDEX</code>, SQL Server <code>CLUSTERED</code>). Default er secondary.<br>
+              D er feil — vanlig <code>CREATE INDEX</code> tillater dubletter. Du må skrive <code>CREATE UNIQUE INDEX</code> for å håndheve unikhet (eller bruke en UNIQUE constraint).</p>
+              <p>Hvorfor B+-tre? Den kombinerer rask point-lookup (O(log n)) med rask range-scan (sortert blader). Indekser læres dypere i kap. 6.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#index">3C — CREATE INDEX</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3C — GRANT/REVOKE</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Alice gir Bob <code>GRANT SELECT ON t TO bob WITH GRANT OPTION</code>. Bob gir Carol samme privilegium. Hva skjer hvis Alice nå gjør <code>REVOKE SELECT ON t FROM bob CASCADE</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Både Bob <em>og</em> Carol mister SELECT-privilegiet. Dette kalles <strong>cascading revoke</strong>.</p>
+              <p>Logikken: når et privilegium revokes med CASCADE, fjernes alle nedstrøms-privilegier som <em>kun</em> kan spores tilbake til denne kjeden. Carol fikk SELECT fra Bob, og Bob hadde det fra Alice; når Alices grant til Bob fjernes, blir Bobs grant til Carol også ugyldig.</p>
+              <p>Caveat: hvis Carol også fikk SELECT fra en annen kilde (f.eks. en annen rolle eller direkte fra Alice), beholder hun privilegiet. SQL sporer <strong>grant chains</strong> som en graf, og REVOKE CASCADE fjerner bare grenene som blir foreldreløse.</p>
+              <p>Alternativet er <code>REVOKE … FROM bob RESTRICT</code> — det feiler hvis Bob har videre-grantet privilegiet. Det tvinger Alice til å gjøre seg klart om hun vil rydde opp i hele kjeden eller ikke.</p>
+              <p>Standarden krever CASCADE eller RESTRICT; mange DBMS-er antar CASCADE som default, men dialekt varierer.</p>
+              <p class="fc-ref">Pensum: <a href="views-transaksjoner-integritet.html#auth">3C — Autorisasjon</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             3D · Prosedyrer, triggere, rekursjon (12 kort)
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Funksjon vs prosedyre</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er den viktigste forskjellen på en SQL-<em>funksjon</em> og en SQL-<em>prosedyre</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Funksjon:</strong> returnerer en verdi (eller en tabell), <em>kalles inni en SELECT/uttrykk</em>, har vanligvis ikke side-effekter:<br>
+              <code>SELECT name, calc_bonus(salary) FROM emp;</code></p>
+              <p><strong>Prosedyre:</strong> returnerer ingenting (eller via OUT-parametre), <em>kalles med CALL-syntaks</em>, kan ha side-effekter (INSERT, UPDATE, COMMIT, …):<br>
+              <code>CALL transfer_funds(123, 456, 100.00);</code></p>
+              <p>Konsekvenser:</p>
+              <p>• Funksjoner brukes typisk som beregninger som er deterministiske og lesbare i en SQL-kontekst.<br>
+              • Prosedyrer brukes for forretningsprosesser med flere DML-steg ("registrer en bestilling": insert order, update lager, send notifikasjon).<br>
+              • DBMS-er som tillater funksjoner å gjøre DML (PostgreSQL, MySQL) blir "uren" — pass på ytelse og sideeffekter.</p>
+              <p>Stored procedures gir også servervidd kapsling og kan ha eksplisitte transaksjonsgrenser (BEGIN/COMMIT) som funksjoner ikke har.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#funksjoner">3D — Funksjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Parametermoduser</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <code>IN</code>, <code>OUT</code> og <code>INOUT</code> for prosedyre-parametre, og hvordan kalles en prosedyre med en OUT-parameter?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>• <code>IN</code> (default) — innparameter: prosedyren leser verdien, men endringer er ikke synlige for kalleren. Som value-parameter i C.<br>
+              • <code>OUT</code> — utparameter: prosedyren tilordner en verdi som returneres til kalleren. Innverdien ignoreres.<br>
+              • <code>INOUT</code> — begge deler: prosedyren leser inn og kan skrive en oppdatert verdi tilbake.</p>
+              <p>Eksempel:</p>
+              <p><code>CREATE PROCEDURE get_balance(<br>&nbsp;&nbsp;IN  account_id INT,<br>&nbsp;&nbsp;OUT balance    DECIMAL(10,2)<br>) AS $$<br>BEGIN<br>&nbsp;&nbsp;SELECT amount INTO balance FROM account WHERE id = account_id;<br>END;<br>$$;</code></p>
+              <p>Kall (PostgreSQL):</p>
+              <p><code>CALL get_balance(123, NULL);</code> — <code>NULL</code> som plassholder; resultatet returneres som "result row" og kan konsumeres av klienten.</p>
+              <p>Kall (MySQL/standard):</p>
+              <p><code>SET @b = 0;<br>CALL get_balance(123, @b);<br>SELECT @b;</code></p>
+              <p>Bruk OUT-parametre når en prosedyre må returnere mer enn ett resultat — eller bruk en TABLE-returnerende funksjon i stedet.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#prosedyrer">3D — Prosedyrer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Trigger-tidspunkt</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når brukes <code>BEFORE</code>-trigger og når <code>AFTER</code>-trigger? Gi et typisk eksempel på hver.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>BEFORE:</strong> kjører <em>før</em> raden faktisk skrives til tabellen. Brukes når triggeren skal:</p>
+              <p>• <strong>Validere data</strong> og avbryte operasjonen (<code>RAISE EXCEPTION</code>) hvis ugyldig.<br>
+              • <strong>Endre verdier</strong> i den nye raden — sett en <code>updated_at</code>-tidsstempel, normaliser e-post til lowercase, fyll inn beregnede kolonner.</p>
+              <p>I BEFORE er <code>NEW</code>-recorden mutbar: <code>NEW.email := lower(NEW.email)</code> påvirker det som faktisk lagres.</p>
+              <p><strong>AFTER:</strong> kjører <em>etter</em> raden er skrevet og constraints sjekket. Brukes når triggeren skal:</p>
+              <p>• <strong>Logge endringen</strong> i en audit-tabell (<code>INSERT INTO audit VALUES (OLD, NEW, now())</code>).<br>
+              • <strong>Oppdatere et derivert aggregat</strong> i en annen tabell (<code>UPDATE summary SET total = total + NEW.amount</code>).<br>
+              • <strong>Sende en notifikasjon</strong> (LISTEN/NOTIFY i PostgreSQL).</p>
+              <p>I AFTER er <code>NEW</code> read-only — endringen er allerede lagret. Hvis du prøver å modifisere NEW i AFTER, får du feil.</p>
+              <p>Tommelfinger: BEFORE for "endre eller avbryt", AFTER for "reager på fakta".</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#triggere">3D — Triggere</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — ROW vs STATEMENT triggere</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Du vil logge én rad i en audit-tabell <em>per oppdatert rad</em> i en <code>UPDATE</code>-setning som potensielt rammer mange rader. Hvilken trigger-variant velger du?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>FOR EACH STATEMENT</code> — den blir kjørt nøyaktig én gang og kan iterere internt</li>
+                <li><span class="opt-label">B</span> Ingen — bruk en CHECK-constraint i stedet</li>
+                <li><span class="opt-label">C</span> <code>FOR EACH ROW</code> — den fyrer per rad, så jeg får én logging per rad uten ekstra arbeid</li>
+                <li><span class="opt-label">D</span> En BEFORE-prosedyre kalt manuelt fra applikasjonskoden</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — <code>FOR EACH ROW</code>.</strong></p>
+              <p>Den fyrer én gang for hver rad som rammes av setningen, og inni triggerkroppen er <code>NEW</code> og <code>OLD</code> tilgjengelige som "denne radens nye/gamle verdier". Idiomet:</p>
+              <p><code>CREATE TRIGGER log_emp_changes<br>AFTER UPDATE ON emp<br>FOR EACH ROW<br>EXECUTE FUNCTION log_change();</code></p>
+              <p>Inne i <code>log_change()</code>: <code>INSERT INTO audit VALUES (OLD.id, OLD.salary, NEW.salary, now())</code>.</p>
+              <p>A er feil — STATEMENT-trigger fyrer én gang per setning, og NEW/OLD som enkeltrader er <em>ikke</em> tilgjengelig der. Du må bruke transition tables (<code>REFERENCING NEW TABLE AS new_rows</code>), som er en mer avansert konstruksjon. Det er også overdesignet hvis du faktisk bare vil ha "én log per rad".<br>
+              B er feil — CHECK constraints kan ikke skrive til andre tabeller; de er pure rad-validering.<br>
+              D er feil — du kan ikke stole på at applikasjonskoden alltid kaller en prosedyre. Triggere er DBMSet sin garanti at logikken kjøres.</p>
+              <p>Når STATEMENT er riktig: hvis du vil oppdatere én aggregert verdi (f.eks. <code>UPDATE summary SET row_count = row_count + N</code>), er det dumt å gjøre det per rad.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#triggere">3D — Triggere</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — NEW og OLD</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke av <code>NEW</code> og <code>OLD</code> er tilgjengelige for hver av disse trigger-eventene: <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Logikken: NEW representerer "raden etter operasjonen", OLD representerer "raden før operasjonen". Det som ikke gir mening, finnes ikke.</p>
+              <p>• <strong><code>INSERT</code></strong>: kun <code>NEW</code> — det finnes ingen "før"-rad. <code>OLD</code> er <code>NULL</code>/utilgjengelig.<br>
+              • <strong><code>UPDATE</code></strong>: <em>begge</em>. <code>OLD</code> = raden slik den var, <code>NEW</code> = raden slik den blir/ble.<br>
+              • <strong><code>DELETE</code></strong>: kun <code>OLD</code> — etter sletting finnes ingen rad. <code>NEW</code> er utilgjengelig.</p>
+              <p>I en BEFORE UPDATE kan du sammenligne: <code>IF NEW.salary &gt; OLD.salary * 2 THEN RAISE EXCEPTION 'Ulovlig lønnshopp'</code>.</p>
+              <p>I en BEFORE INSERT kan du fylle defaults: <code>NEW.created_at := now()</code>.</p>
+              <p>I AFTER DELETE skriver du audit fra OLD: <code>INSERT INTO trash VALUES (OLD.id, OLD.name, now())</code>.</p>
+              <p>Spesialtilfelle: i FOR EACH STATEMENT-triggere finnes verken NEW eller OLD som enkeltrader; bruk transition tables.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#triggere">3D — Triggere</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Trigger-kaskader</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor er kaskader av triggere farlige, og hva slags problemer kan oppstå?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>kaskade</strong> oppstår når en trigger på tabell A gjør en endring i tabell B, som har sin egen trigger som endrer C, og så videre.</p>
+              <p>Tre konkrete problemer:</p>
+              <p><strong>1. Uoverskuelig kontrollflyt.</strong> En enkel <code>UPDATE emp SET salary = …</code> kan utløse 5–10 trigger-eksekveringer som rører ved tabeller du ikke engang visste eksisterte. Debugging blir et mareritt.</p>
+              <p><strong>2. Sykler og uendelige løkker.</strong> Trigger på A oppdaterer B; trigger på B oppdaterer A; → uendelig rekursjon. Mange DBMS-er har en max-rekursjonsgrense (typisk 16–64) som stopper det med en feil — men det stopper også <em>din</em> transaksjon.</p>
+              <p><strong>3. Ytelseskollaps.</strong> En BATCH-UPDATE av 1 million rader, hvor hver trigger kjører en subquery, blir en N²-katastrofe.</p>
+              <p><strong>4. Vanskelige race conditions / låsing.</strong> Triggere kan låse rader i andre tabeller, og hvis to samtidige operasjoner triggerer kryssende lås-rekkefølger, oppstår deadlock.</p>
+              <p>Beste praksis: hold triggere idempotente, kortvarige og uten ko-modifikasjoner som kunne vært i en eksplisitt prosedyre. Bruk DEFERRABLE constraints og statement-level triggere fremfor row-level når mulig.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#trigger-fellene">3D — Trigger-fellene</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — WITH RECURSIVE</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilken syntaks er korrekt for en <code>WITH RECURSIVE</code>-CTE som finner alle forfedre i en <code>parent(child, parent)</code>-tabell, gitt en startperson 'Anna'?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>WITH RECURSIVE anc(p) AS (SELECT parent FROM par WHERE child='Anna' UNION ALL SELECT p.parent FROM par p, anc a WHERE p.child = a.p) SELECT * FROM anc;</code></li>
+                <li><span class="opt-label">B</span> <code>WITH RECURSIVE anc AS (SELECT * FROM par UNION SELECT * FROM par CROSS JOIN anc) SELECT * FROM anc WHERE child='Anna';</code></li>
+                <li><span class="opt-label">C</span> <code>WITH anc(p) AS (SELECT parent FROM par WHERE child='Anna') SELECT * FROM anc;</code></li>
+                <li><span class="opt-label">D</span> <code>SELECT parent FROM par RECURSIVE WHERE child='Anna';</code></li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A.</strong></p>
+              <p>En rekursiv CTE har to ledd kombinert med <code>UNION ALL</code>:</p>
+              <p>• <strong>Anker</strong> (basistilfelle): <code>SELECT parent FROM par WHERE child='Anna'</code> — Annas direkte foreldre.<br>
+              • <strong>Rekursivt ledd</strong>: <code>SELECT p.parent FROM par p, anc a WHERE p.child = a.p</code> — for hver forfader vi har funnet hittil, finn deres foreldre. Refererer til CTE-navnet (<code>anc</code>) inne i seg selv.</p>
+              <p>Iterasjon stopper automatisk når et ny iterasjon ikke produserer flere rader (fixpoint).</p>
+              <p>B er feil — den definerer ingen anker, og <code>UNION</code> uten <code>ALL</code> kan i teorien fungere men er ikke garantert avslutning og er semantisk feil her (CROSS JOIN er ikke det vi vil).<br>
+              C er feil — uten <code>RECURSIVE</code>-nøkkelordet er CTE-en ikke-rekursiv og kan ikke referere til seg selv. Dette gir bare direkte foreldre, ikke besteforeldre.<br>
+              D er feil — det finnes ingen <code>RECURSIVE</code>-modifikator på et enkelt SELECT. Rekursjon krever WITH-strukturen.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#rekursiv">3D — WITH RECURSIVE</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Transitive lukninger</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>edge(a, b)</code> har radene <code>(1,2), (2,3), (3,4), (4,5)</code>. Du kjører en rekursiv CTE som starter på <code>a=1</code> og følger kanter fremover. Hvor mange iterasjoner gjør motoren før fixpoint?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1 iterasjon — anker er nok</li>
+                <li><span class="opt-label">B</span> 2 iterasjoner — anker pluss én ekspansjon</li>
+                <li><span class="opt-label">C</span> 4 iterasjoner — anker + 3 ekspansjoner som hver legger til én rad</li>
+                <li><span class="opt-label">D</span> 5 iterasjoner — anker + 4 ekspansjoner; den siste produserer ingen nye rader og stopper rekursjonen</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — 5 iterasjoner.</strong></p>
+              <p>Steg-for-steg:</p>
+              <p>• <strong>Iterasjon 1 (anker):</strong> startsett = {1}. Returnerer 1 ny rad.<br>
+              • <strong>Iterasjon 2:</strong> from {1}, follow edge → {2}. 1 ny rad.<br>
+              • <strong>Iterasjon 3:</strong> from {2}, follow edge → {3}. 1 ny rad.<br>
+              • <strong>Iterasjon 4:</strong> from {3}, follow edge → {4}. 1 ny rad.<br>
+              • <strong>Iterasjon 5:</strong> from {4}, follow edge → {5}. 1 ny rad.<br>
+              • <strong>Iterasjon 6:</strong> from {5}, ingen kanter → 0 nye rader. <strong>Fixpoint nådd; stopper.</strong></p>
+              <p>De fleste DBMS-er teller "iterasjon 6" som "rekursjonen avsluttes" og inkluderer ikke den i antall produktive iterasjoner. Hvis spørsmålet teller alle iterasjoner inkl. den siste tomme, er svaret 6; hvis det teller produktive iterasjoner (de som faktisk genererte minst én rad), er svaret 5.</p>
+              <p>Generell regel: for en kjede av lengde n krever rekursiv lukning n produktive iterasjoner (anker + n−1 ekspansjoner) pluss 1 stopp-iterasjon.</p>
+              <p>A og B er for få — de gir oss bare {1} og {1,2}, ikke hele transitive lukningen. C glemmer den finale tomme iterasjonen som stopper rekursjonen.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#tc-eksempel">3D — Transitive lukninger</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — UNION ALL i rekursjon</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor brukes <code>UNION ALL</code> (ikke <code>UNION</code>) mellom anker og rekursivt ledd i de fleste lærebøker, selv når dataene har sykler?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>To grunner — én for ytelse, én for korrekthet.</p>
+              <p><strong>Ytelse.</strong> <code>UNION ALL</code> har ingen deduplisering. <code>UNION</code> ville måttet sortere/hashe hele det akkumulerte resultatet etter hver iterasjon for å fjerne duplikater — det skalerer dårlig på store grafer.</p>
+              <p><strong>Korrekthet.</strong> SQL-standarden definerer <code>WITH RECURSIVE</code>-semantikken med <code>UNION ALL</code>. Med <code>UNION</code> ville fixpoint-iterasjonen vært semi-naïv på en annen måte og kunne ikke garantere terminering i alle dialekt — det er rett og slett ikke standardformen.</p>
+              <p>Men hva med sykler? Hvis grafen har en syklus 1 → 2 → 3 → 1, vil <code>UNION ALL</code> faktisk produsere infinitt mange duplikater og <em>aldri</em> nå fixpoint. Løsningen er ikke å bytte til UNION — det er å <strong>holde besøkt-mengde manuelt</strong>:</p>
+              <p><code>WITH RECURSIVE walk(node, path) AS (<br>&nbsp;&nbsp;SELECT 1, ARRAY[1]<br>&nbsp;&nbsp;UNION ALL<br>&nbsp;&nbsp;SELECT e.b, path || e.b<br>&nbsp;&nbsp;FROM edge e, walk w<br>&nbsp;&nbsp;WHERE e.a = w.node AND e.b &lt;&gt; ALL(path)<br>) SELECT * FROM walk;</code></p>
+              <p>Path-arrayet hindrer å besøke samme node to ganger. Det er studentens ansvar — DBMSet beskytter deg ikke mot syklisk infinitt rekursjon utover en max-iterasjonsgrense (PostgreSQL: 100, kan endres).</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#rekursiv">3D — WITH RECURSIVE</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Determinisme</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr at en SQL-funksjon er <code>DETERMINISTIC</code> (eller <code>IMMUTABLE</code> i PostgreSQL), og hvorfor bryr DBMS-en seg?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>deterministisk</strong> funksjon returnerer alltid samme verdi for samme input — ingen sideeffekter, ingen referanser til klokka, tilfeldighet eller tabellinnhold.</p>
+              <p>Eksempler:</p>
+              <p>• Deterministisk: <code>square(x) = x*x</code>, <code>upper('foo')</code>.<br>
+              • Ikke-deterministisk: <code>now()</code>, <code>random()</code>, en funksjon som leser fra en tabell som kan endres.</p>
+              <p><strong>Hvorfor bryr DBMS-en seg?</strong></p>
+              <p>• <strong>Funksjons-baserte indekser.</strong> En indeks på <code>UPPER(name)</code> krever at <code>UPPER</code> er deterministisk; ellers kan indeksen bli usynkronisert med tabellen.<br>
+              • <strong>Materialized views</strong> stoler på at deterministiske funksjoner kan rekalkuleres ved refresh.<br>
+              • <strong>Optimizer-friheter.</strong> DBMS-en kan cache resultater, fjerne kall, eller flytte funksjonskall ut av løkker — men bare hvis den er deterministisk.<br>
+              • <strong>Replikering.</strong> Statement-based replikering krever determinisme; en NOW() ville gitt forskjellige verdier på master og slave.</p>
+              <p>SQL-standarden bruker også <code>STRICT</code> (returnerer NULL hvis et argument er NULL) som en separat egenskap; PostgreSQL har <code>VOLATILE</code> (default), <code>STABLE</code> og <code>IMMUTABLE</code> som tre nivåer.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#funksjoner">3D — Funksjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Kontrollflyt</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">SQL/PSM (eller PL/pgSQL, T-SQL, …) gir kontrollflyt-konstruksjoner inni prosedyrer og funksjoner. Hva tilsvarer <code>IF</code>, <code>WHILE</code> og <code>RETURN</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Standard SQL/PSM-syntaks:</p>
+              <p><code>IF condition THEN<br>&nbsp;&nbsp;-- ...<br>ELSEIF other_condition THEN<br>&nbsp;&nbsp;-- ...<br>ELSE<br>&nbsp;&nbsp;-- ...<br>END IF;</code></p>
+              <p><code>WHILE condition DO<br>&nbsp;&nbsp;-- ...<br>END WHILE;</code></p>
+              <p>Også <code>LOOP … END LOOP</code> (uendelig løkke, exit med <code>LEAVE label</code>) og <code>FOR var IN cursor DO … END FOR</code> for cursor-iterasjon.</p>
+              <p><code>RETURN value;</code> avslutter en funksjon og returnerer en verdi. I prosedyrer brukes <code>RETURN;</code> uten verdi for å avslutte tidlig.</p>
+              <p>Hver dialekt har sin egen variant: PL/pgSQL bruker <code>$$</code>-blokker og <code>RAISE EXCEPTION</code>; T-SQL bruker <code>BEGIN…END</code>-blokker uten <code>$$</code>; Oracle PL/SQL bruker <code>BEGIN…END;</code> og <code>EXCEPTION WHEN…</code>. Pensumet fokuserer på SQL/PSM-standardformen, men eksamen kan godta små variasjoner.</p>
+              <p>Hovedpoenget: stored procedures er <em>turing-komplette</em> programmeringsspråk — du kan skrive løkker, betingelser, lokale variabler og feilhåndtering, alt utført på serveren uten å sende data frem og tilbake til klienten.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#kontrollflyt">3D — Kontrollflyt</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 3D — Funksjon vs prosedyre i bruk</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når bør "samme logikk" implementeres som en funksjon vs en prosedyre? Gi en konkret regel.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Hovedregel:</strong> Hvis logikken returnerer <em>én verdi (eller en relasjon) som skal komponeres inn i en SQL-spørring</em>, skriv den som funksjon. Hvis den utfører <em>flere tabellendringer</em>, skriv den som prosedyre.</p>
+              <p>Tabellen sammenligner:</p>
+              <p>• <strong>Returnerer skalar/tabell?</strong> Funksjon ✓ — du kan skrive <code>SELECT name, calc_bonus(salary) FROM emp</code>. Prosedyre ✗.<br>
+              • <strong>Endrer flere tabeller?</strong> Prosedyre ✓ — det er hva CALL og OUT-parametre er til for. Funksjon kan ofte tekniskt sett (PostgreSQL), men det bryter konvensjonen og gir uventede ytelseskonsekvenser.<br>
+              • <strong>Skal kalles fra applikasjonskode?</strong> Begge fungerer; prosedyrer er litt enklere å transaksjonsstyre.<br>
+              • <strong>Kalles inne i indekser eller views?</strong> Bare funksjoner — og bare hvis de er DETERMINISTIC.<br>
+              • <strong>Atomicitet?</strong> Funksjoner kjører innenfor den ytre transaksjonen. Prosedyrer kan eksplisitt COMMIT/ROLLBACK i mange dialekter.</p>
+              <p>Konkret eksempel: <code>calc_tax(amount, region)</code> → funksjon. <code>register_order(customer, items[])</code> → prosedyre.</p>
+              <p>Fellen: programmerere fra prosedurale språk lager altfor lett alt som prosedyrer fordi det føles imperativt. Resultatet blir et N+1-mønster der applikasjonskoden iterativt kaller en prosedyre per rad. Riktig svar er ofte å skrive logikken som en funksjon og bruke den i ett enkelt SET-basert SQL-uttrykk.</p>
+              <p class="fc-ref">Pensum: <a href="prosedyrer-triggere-rekursjon.html#prosedyrer">3D — Funksjon vs prosedyre i bruk</a></p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -433,6 +1619,7 @@
 <script src="../chat-widget.js"></script>
 <script src="../nav-search.js"></script>
 <script src="../quiz.js"></script>
+<script src="../flashcards.js"></script>
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>

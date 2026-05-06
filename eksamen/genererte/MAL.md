@@ -10,7 +10,7 @@ Dette dokumentet beskriver hvordan en øvingseksamen bør se ut når vi lager ny
 - **Interaktivt:** Hvert sett er en HTML-side. Brukeren klikker på et alternativ; siden fargelegger riktig svar grønt og feil svar rødt, og åpner automatisk en `<details>`-blokk med grundig forklaring (fasit + hvorfor de andre er feil + lenke til pensum). Bruk [exam.js](exam.js) og [exam.css](exam.css) — de håndterer denne logikken så lenge HTML-strukturen i §2 følges.
 - **Vekting:** Del 1 ≈ 40 %, Del 2 ≈ 60 %.
 - **Lengde per oppgavesett:** **40–50 oppgaver totalt** (ca. 16–20 i Del 1, ca. 24–30 i Del 2). Hver oppgave har et poengtall som summerer til 100. Den lengre formen tvinger oss til å gå *bredere* (alle delkapitler dekkes) og *dypere* (flere edge cases, flere ledd i hver utregning) enn et 25-oppgavesett klarer.
-- **Vanskelighetsgrad:** Settene skal *utfordre* en student som har lest pensum. Unngå å bare ha "definisjonsspørsmål" der svaret er en bokstavelig setning fra boken, selv om det går fint å ha noen slike oppgaver, men bruk helst *anvendelse*: gi et konkret scenario, en log, en tabell, et schema, og krev at studenten *resonnerer*. Se på tidligere eksamener for å få et intrykk av dette og hvordan oppgavene b
+- **Vanskelighetsgrad:** Settene skal *utfordre* en student som har lest pensum. Unngå å bare ha "definisjonsspørsmål" der svaret er en bokstavelig setning fra boken, selv om det går fint å ha noen slike oppgaver, men bruk helst *anvendelse*: gi et konkret scenario, en log, en tabell, et schema, og krev at studenten *resonnerer*. Se på tidligere eksamener for å få et intrykk av dette og hvordan oppgavene bør se ut
 - **Tidsramme (anbefalt):** 4 timer for et komplett sett — speiler en lengre, breiere eksamen.
 
 > **Viktig om gamle eksamener:** [vår_2025.md](../vår_2025.md) og [midterm_2026.md](../midterm_2026.md) ligger som referanse for *stilen*, ikke fasit. Bruk dem til å forstå tonen, vanskelighetsgraden og oppgavetypene — men **ikke replikér oppgaver**. I tillegg må vi teste deler av pensum som ikke ble berørt der (særlig Del 1 sine kapitler om views/triggere/funksjoner/rekursjon, og deler av Del 2 som hashing, sortering og isolation levels). Variér tall, skjemaer og scenarier hver gang.
@@ -174,20 +174,21 @@ Spørsmålstyper som **må** representeres over tid:
 - Spesialisering/generalisering, ISA-hierarkier, kategorier (union types).
 - Hvilke utsagn om diagrammet er sanne? (à la midterm Q1.13)
 
-### 3.7 Funksjonelle avhengigheter og normalformer (7.1–7.3, 7.6) — 2 oppgaver
-- Gitt FD-mengde: hva er kandidatnøklene?
-- Hvilken normalform er en gitt tabell på (1NF/2NF/3NF/BCNF)?
+### 3.7 Funksjonelle avhengigheter og normalformer (7.1–7.3, 7.6) — 2–3 oppgaver
+- Gitt FD-mengde: hva er kandidatnøklene? (Bruk attributtlukninger; konstruer FD-mengder med flere kandidatnøkler.)
+- Hvilken normalform er en gitt tabell på (1NF/2NF/3NF/BCNF)? Pass på at *minst én* oppgave krever at studenten skiller 3NF fra BCNF (typisk overlappende kandidatnøkler).
 - BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF — hvilke implikasjoner gjelder?
-- Lossless-join og dependency preservation ved dekomponering — hvilken dekomponering bevarer hva?
+- Lossless-join og dependency preservation ved dekomponering — hvilken dekomponering bevarer hva? (Tving studenten til å sjekke begge: en dekomponering kan ha det ene uten det andre.)
 - Identifiser brudd på 2NF (delvis avhengighet av PK) og 3NF (transitiv avhengighet).
+- Test minimum cover / kanonisk dekkmengde — hvilken FD-mengde er ekvivalent og minimal?
 
 ---
 
-## 4. Del 2 — Svein Erik (~60 %, ca. 14–18 oppgaver)
+## 4. Del 2 — Svein Erik (~60 %, ca. 24–30 oppgaver)
 
-Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, små logger, schedules og lock-tabeller. Den store endringen i år er at *alle* svar er flervalg — også der man tidligere skulle skrive RA-grafer eller dekomponere tabeller. Disse må omformes (se §5).
+Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, små logger, schedules og lock-tabeller. Den store endringen i år er at *alle* svar er flervalg — også der man tidligere skulle skrive RA-grafer eller dekomponere tabeller. Disse må omformes (se §5). Med 24–30 oppgaver i Del 2 må vi *ikke* bare gjøre flere kopier av samme regneoppgave — vi må variere *type spørsmål* per blokk: konseptuell ("hva betyr WAL?"), regneoppgave ("hvor mange blokker?"), feilanalyse ("hvilken plan er feil?"), og *sammenligning* ("hvilken plan er raskest når X?").
 
-### 4.1 Lagring del 1 — poster, blokker, heapfiler, hashing (kap. 1–8) — 2–3 oppgaver
+### 4.1 Lagring del 1 — poster, blokker, heapfiler, hashing (kap. 1–8) — 4–5 oppgaver
 - Beregn antall blokker i en heapfil gitt postgrøttese, blokkstørrelse og fyllgrad.
 - Record-format (fixed vs variable length, record vector, delimiter).
 - Statisk hashing — formel `h(K) = K mod N`, plassér gitte nøkler i blokker, tell overflow.
@@ -195,7 +196,7 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
 - Heap file: linked list med fulle vs ledige blokker, RID-format, scan-kostnad.
 - DB-buffer: hva styrer DBMS vs OS, prefetching.
 
-### 4.2 Lagring del 2 — B+-trær, LSM-trær (kap. 9–11) — 3–4 oppgaver
+### 4.2 Lagring del 2 — B+-trær, LSM-trær (kap. 9–11) — 4–5 oppgaver
 **Nesten alltid representert. Variér scenarier — ikke kopiér tallene fra vår_2025.**
 - Beregn antall blokker på løvnivå (level=0) gitt N poster, postgrøttese, blokkstørrelse, 2/3 fyllgrad — `floor(blokk*2/3 / postgrøttese)` poster per blokk.
 - Beregn antall blokker på level=1, 2, 3 ... gitt fan-out (basert på (key, BlockId)-størrelser).
@@ -205,7 +206,7 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
 - Composite keys — leksikografisk sortering, valg av nøkkel-rekkefølge ved selektivitet.
 - LSM-trær: memtable → SST, write amplification, compaction — sammenlign med B+-trær (write- vs read-ytelse).
 
-### 4.3 Queries — aksessmetoder, sortering, query processing (kap. 12–14) — 2–3 oppgaver
+### 4.3 Queries — aksessmetoder, sortering, query processing (kap. 12–14) — 4–5 oppgaver
 - "Hvor mange blokker aksesseres ved optimal utføring?" — gitt clustered/unclustered B+-tre + heap, beregn for `WHERE pk = c`, `WHERE secondary = c`, `WHERE pk > c`, `ORDER BY secondary` osv. Dette er kjernemønsteret i Problem 3–5 i vår_2025 — variér tallene.
 - Velg riktig aksess-plan: scan vs index seek vs index-scan + heap-aksess.
 - External merge sort: gitt B blokker og nB buffere, beregn `nR = ceil(B/nB)`, `dM = min(nB-1, nR)`, antall passes = `ceil(log_dM(nR))`, totalt I/O = `2B * (1 + passes)`.
