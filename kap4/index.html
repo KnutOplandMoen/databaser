@@ -326,6 +326,1017 @@
       </div>
     </div>
   </section>
+
+  <section id="kapittel-eksamen">
+    <div class="container">
+      <div class="section-badge">06 · Kapittel-eksamen</div>
+      <h2>Flashcards — <em>hele kapittelet i kortform</em></h2>
+      <p class="section-intro">44 kort som tester ER-modellering, oversettelse til relasjonsskjema, anomalier, funksjonelle avhengigheter, lukning, kandidatnøkler og normalformer (1NF–BCNF). Klikk kortet for å snu det. Bruk piltastene <kbd>←</kbd> <kbd>→</kbd> til å bla, <kbd>S</kbd> for å shuffle, eller <kbd>R</kbd> for å resette rekkefølgen. Mestrer du alle disse, har du forstått kapittel 4 fra første til siste linje — og er klar for den delen av eksamen.</p>
+
+      <span class="flashcard-hint">Tastatur: <kbd>←</kbd> forrige · <kbd>→</kbd> neste · <kbd>Enter</kbd>/<kbd>Space</kbd> snu · <kbd>S</kbd> shuffle · <kbd>R</kbd> reset</span>
+
+      <div class="flashcard-deck" data-flashcards tabindex="0">
+        <div class="flashcard-toolbar">
+          <button class="fc-btn" data-fc-prev aria-label="Forrige kort">&larr; Forrige</button>
+          <button class="fc-btn" data-fc-next aria-label="Neste kort">Neste &rarr;</button>
+          <span class="fc-counter"><span data-fc-current>1</span> / <span data-fc-total>0</span></span>
+          <button class="fc-btn fc-btn--alt" data-fc-shuffle aria-label="Shuffle kortstokken">⤨ Shuffle</button>
+          <button class="fc-btn fc-btn--alt" data-fc-reset aria-label="Tilbakestill rekkefølgen">↺ Reset</button>
+        </div>
+
+        <!-- ============================================================
+             Kort 1–10 · ER-modellen
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — ER-modellen</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er forskjellen på en <em>entitet</em> og en <em>entitetstype</em>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>entitet</strong> er et konkret objekt vi vil lagre data om — f.eks. studenten "Knut Moen" med fnr 17059812345.</p>
+              <p>En <strong>entitetstype</strong> er klassen eller skjemaet for like entiteter — f.eks. <code>Student</code> som mal for alle studenter.</p>
+              <p>I ER-diagrammer tegner vi <em>typer</em>, ikke individuelle entiteter — rektangler representerer entitetstyper, og hver tabell i relasjonsskjemaet svarer til én entitetstype. Tilsvarende: i SQL er <code>CREATE TABLE Student</code> typen, hver rad er en entitet.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#entitet">Kap. 4A — Entiteter og attributter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Attributter</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar forskjellen mellom <em>enkle</em>, <em>komposite</em>, <em>flerverdi-</em> og <em>deriverte</em> attributter — og hvordan hver tegnes.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Enkelt:</strong> én atomær verdi (alder, fnr). Tegnes som ovalt med enkel ramme.</p>
+              <p><strong>Komposit:</strong> består av flere subattributter — Adresse → (gate, postnr, by). Tegnes som ovalt med subovaler hengende på.</p>
+              <p><strong>Flerverdi:</strong> kan ha flere verdier per entitet (en person har flere telefonnumre). Tegnes med <em>dobbel</em> ramme. Kan ikke ligge direkte i tabellen — krever egen tabell ved oversettelse.</p>
+              <p><strong>Derivert:</strong> kan beregnes ut fra annet (Alder fra Fødselsdato). Tegnes med <em>stiplet</em> ramme. Lagres typisk ikke — beregnes ved spørring for å unngå redundans.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#entitet">Kap. 4A — Attributter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Nøkler</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar forskjellen på <em>supernøkkel</em>, <em>kandidatnøkkel</em> og <em>primærnøkkel</em>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Supernøkkel:</strong> en attributtmengde som unikt identifiserer en entitet. Trenger ikke være minimal.</p>
+              <p><strong>Kandidatnøkkel:</strong> en <em>minimal</em> supernøkkel — fjerner du en attributt, mister du unikheten.</p>
+              <p><strong>Primærnøkkel:</strong> den kandidatnøkkelen designeren velger. Får <code>PRIMARY KEY</code> i DDL og blir mål for fremmednøkler. Ofte basert på praktiske kriterier (kortest, mest stabil).</p>
+              <p>Eksempel: i <code>Bruker(fnr, epost, brukerid, navn)</code> der alle tre første er unike — supernøkler inkluderer {fnr}, {epost}, {fnr, navn}, {fnr, epost, brukerid}; kandidatnøkler er {fnr}, {epost}, {brukerid}; primærnøkkel velger man én av disse tre.</p>
+              <p>Forhold: PK ⊂ kandidatnøkler ⊂ supernøkler.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#nokkel">Kap. 4A — Nøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Kardinalitet</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr 1:1, 1:N og M:N kardinalitet, og hvorfor er dette avgjørende for tabellstrukturen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1:1:</strong> Hver entitet på én side er knyttet til høyst én på den andre. (En person ↔ ett pass.)</p>
+              <p><strong>1:N:</strong> En 1-side kan være knyttet til mange N-er, men hver N kobles til høyst én 1-er. (En avdeling har mange ansatte; hver ansatt har én avdeling.)</p>
+              <p><strong>M:N:</strong> Begge sider kan ha mange. (Studenter ↔ Emner.)</p>
+              <p>Hvorfor det betyr noe ved oversettelse: 1:1 og 1:N kan løses med en fremmednøkkel-kolonne. M:N <em>krever</em> en mellomtabell — det er ingen "én side" å plassere FK-en på.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#relasjon">Kap. 4A — Relasjoner og kardinalitet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Deltakelse</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>total</em> versus <em>partiell</em> deltakelse, og hvordan tegnes hver?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Total deltakelse</strong> (obligatorisk): hver entitet i settet <em>må</em> delta i relasjonen. Tegnes med <strong>dobbel linje</strong> mellom entitet og relasjon.</p>
+              <p><strong>Partiell deltakelse</strong> (valgfri): noen entiteter kan stå utenfor relasjonen. Tegnes med enkel linje.</p>
+              <p>Eksempel: Hvis hver Ansatt MÅ jobbe i en Avdeling, er Ansatt-siden total. Hvis en Avdeling KAN være tom, er Avdeling-siden partiell.</p>
+              <p>Konsekvens for skjema: total deltakelse oversettes til <code>NOT NULL</code> på fremmednøkkelen. Partiell tillater null-verdier.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#deltakelse">Kap. 4A — Deltakelse</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Svake entiteter</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva kjennetegner en <em>svak entitet</em>, og hvordan identifiseres dens instanser?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En <strong>svak entitet</strong> har ingen egen primærnøkkel — den kan ikke identifiseres alene. Den «låner» nøkkelen fra en eier-entitet (sterk entitet) gjennom en <strong>identifiserende relasjon</strong> (tegnet med dobbel diamant).</p>
+              <p>For å skille svake entiteter med samme eier brukes en <strong>diskriminator</strong> (delnøkkel). Primærnøkkelen blir <code>{eierens PK, diskriminator}</code>.</p>
+              <p>Eksempel: <code>Avhengig(navn)</code> er en svak entitet eid av <code>Ansatt</code>. Avhengighetens identitet er (Ansatt.fnr, navn) — to ansatte kan ha avhengige med samme navn, men ingen ansatt har to avhengige med samme navn.</p>
+              <p>I ER-diagrammet: dobbel ramme rundt entiteten, og deltakelsen mot eieren er alltid total.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#svak">Kap. 4A — Svake entiteter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Min/max-notasjon</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">I et ER-diagram er kanten fra <code>Ansatt</code> til <code>JobberI</code> merket <code>(1,1)</code>, og kanten fra <code>Avdeling</code> til <code>JobberI</code> merket <code>(0, *)</code>. Hva betyr dette?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Hver ansatt jobber i nøyaktig én avdeling; en avdeling kan ha 0 eller flere ansatte.</li>
+                <li><span class="opt-label">B</span> Hver ansatt jobber i ingen eller én avdeling; hver avdeling har minst én ansatt.</li>
+                <li><span class="opt-label">C</span> Hver ansatt har minst én avdeling, og hver avdeling minst én ansatt.</li>
+                <li><span class="opt-label">D</span> JobberI er en M:N-relasjon.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A.</strong></p>
+              <p><code>(min, max)</code>-notasjonen leses som: hver entitet på <em>denne siden</em> må delta i mellom <code>min</code> og <code>max</code> instanser av relasjonen.</p>
+              <p><code>(1,1)</code> på Ansatt-siden = total deltakelse + maks 1 → hver ansatt jobber i nøyaktig én avdeling. <code>(0, *)</code> på Avdeling-siden = partiell deltakelse + ubegrenset → en avdeling kan ha 0 eller mange ansatte. Sum: 1:N med total deltakelse fra Ansatt-siden.</p>
+              <p>B snur betydningen av (1,1) og (0,*). C antar total fra begge sider — feil siden Avdeling har min=0. D er feil — siden Ansatt har max=1, kan dette ikke være M:N.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#deltakelse">Kap. 4A — Notasjon for kardinalitet</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — ISA-hierarki</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar <em>ISA-hierarki</em> (specialization/generalization) i ER, og de tre strategiene for å oversette det til relasjonsskjema.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>ISA = "is-a"-relasjon mellom <strong>supertype</strong> (Person) og <strong>subtyper</strong> (Student, Ansatt). Kan være <em>disjoint</em> (en person er kun én subtype) eller <em>overlapping</em>; <em>total</em> (alle Person må være en subtype) eller <em>partiell</em>.</p>
+              <p><strong>Strategi 1 — én tabell per type:</strong> én tabell for supertypen og en for hver subtype med kun subtype-spesifikke attributter + FK til supertype. 3NF-vennlig, krever join.</p>
+              <p><strong>Strategi 2 — én tabell per subtype</strong> (ingen supertype-tabell). Hver subtype duplikerer supertype-attributtene. Funker kun for <em>disjoint og total</em>.</p>
+              <p><strong>Strategi 3 — én bred tabell</strong> med alle attributter pluss en typeangiver-kolonne. Mange null-verdier, men ingen joins.</p>
+              <p>Valget avhenger av spørringsmønstre, totalitet og overlapping.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#oppsummering">Kap. 4A — Oppsummering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Identifiserende relasjon</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>identifiserende relasjon</em>, og hvor i ER-diagrammet tegnes den?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En identifiserende relasjon kobler en svak entitet til sin eier. Den er nødvendig fordi den svake entiteten henter halvparten av primærnøkkelen sin (eierens nøkkel) gjennom relasjonen.</p>
+              <p>I ER-diagrammet tegnes den som en <strong>dobbel diamant</strong>. Deltakelsen fra svak side er alltid <strong>total</strong> — hadde det ikke vært en eier, kunne den svake entiteten heller ikke eksistert (eksistens-avhengighet).</p>
+              <p>Ved oversettelse blir den identifiserende relasjonen <em>ikke</em> en egen tabell — den er allerede uttrykt gjennom FK-en i den svake entitetens tabell.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#svak">Kap. 4A — Svake entiteter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4A — Designmotivasjon</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor bruker man tid på ER-modellering før man skriver SQL DDL?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>(1) Kommunikasjon.</strong> ER-diagram er et språk stakeholders forstår uten å være DBA. Det er enklere å validere modellens regler ("én ansatt jobber alltid i én avdeling, ja?") enn DDL.</p>
+              <p><strong>(2) Strukturell tenkning.</strong> Du tvinges til å skille entitet (eget identitetsobjekt) fra attributt (egenskap) fra relasjon (kobling). Hopper man over, ender man ofte med en bred tabell som blander.</p>
+              <p><strong>(3) Mekanisk oversettelse.</strong> Når ER er ferdig og normalisert, er DDL nesten avskrivning — hvert valg om svake entiteter, kardinalitet og deltakelse er allerede gjort.</p>
+              <p>Resultatet: færre iterasjoner og bedre normalisert resultat.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/#hvorfor">Kap. 4 — Hvorfor design</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 11–16 · ER → relasjonsskjema
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Map sterk entitet</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan oversettes en sterk entitet med atomære attributter til en tabell?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Lag én tabell med samme navn som entiteten. Én kolonne per atomært attributt. Primærnøkkelen blir entitetens primærnøkkel.</p>
+              <p>Eksempel: <code>Student</code> med fnr (PK), navn, fødselsdato → <code>Student(<u>fnr</u>, navn, fødselsdato)</code>.</p>
+              <p>Komposite attributter «flatpakkes» — Person med Adresse(gate, postnr, by) gir kolonnene gate, postnr, by direkte i Person-tabellen, ikke en samletekst.</p>
+              <p>Flerverdi-attributter må bli en egen tabell (se eget kort) — de kan ikke ligge inni hovedtabellen uten å bryte 1NF.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#sterke">Kap. 4B — Sterke entiteter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Map flerverdi-attributt</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan oversettes et <em>flerverdi-attributt</em>, og hvorfor kan det ikke ligge direkte i hovedtabellen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Et flerverdi-attributt blir en <strong>egen tabell</strong> med to kolonner: FK til eier-entiteten + selve verdien. PK = kombinasjonen.</p>
+              <p>Eksempel: Student(fnr, navn) med flerverdi-attributtet <code>Telefon</code>:</p>
+              <p>• <code>Student(<u>fnr</u>, navn)</code><br>
+              • <code>StudentTelefon(<u>fnr</u> [FK→Student], <u>telefon</u>)</code></p>
+              <p><strong>Hvorfor:</strong> 1NF tillater ingen multi-set-celler. En kolonne med <code>{tlf1, tlf2, tlf3}</code> bryter atomaritet. Å duplisere studentraden per telefon ville gitt redundans i navn/fnr og åpnet for oppdateringsanomali.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#attributter">Kap. 4B — Attributter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Map M:N relasjon</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvorfor MÅ en M:N-relasjon mellom A og B representeres som en egen mellomtabell — hvorfor kan vi ikke bare legge en FK i A-tabellen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>I M:N kan en A peke på flere B-er, og en B peke på flere A-er. En enkelt FK-kolonne kan kun lagre én verdi per rad — det dekker bare 1:N.</p>
+              <p>Den eneste lossless representasjonen er en <strong>junction table</strong> (mellomtabell) med to FK-kolonner og kombinasjonen som primærnøkkel:</p>
+              <p>Student M:N Emne → <code>StudentTarEmne(<u>fnr</u> [FK→Student], <u>emnekode</u> [FK→Emne], semester, karakter)</code></p>
+              <p>Eventuelle attributter på selve relasjonen (semester, karakter) plasseres i mellomtabellen — de hører ikke hjemme i Student eller Emne alene.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#relasjoner">Kap. 4B — Relasjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Map 1:1 relasjon</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Du har en 1:1-relasjon <strong>Eier</strong> mellom Person og Pass. Total fra Pass-siden (hvert pass tilhører nøyaktig én person), partiell fra Person-siden (en person har 0 eller 1 pass). Hvordan bør relasjonen oversettes?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Lag en mellomtabell <code>PersonHarPass(fnr, passnr)</code>.</li>
+                <li><span class="opt-label">B</span> Slå sammen Person og Pass til én tabell.</li>
+                <li><span class="opt-label">C</span> Legg <code>fnr</code> som <code>NOT NULL</code> FK i Pass-tabellen, med <code>UNIQUE</code> constraint.</li>
+                <li><span class="opt-label">D</span> Legg <code>passnr</code> som FK i Person-tabellen.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C.</strong></p>
+              <p>Tommelfingerregel: i 1:1 plasseres FK-en på siden som har <em>total</em> deltakelse. Da garanterer NOT NULL at FK-en faktisk peker, og UNIQUE sikrer at ingen person har flere pass.</p>
+              <p>A er overkill — ingen redundans å unngå, og en mellomtabell kompliserer joins. B fjerner skillet og bryter 3NF hvis Person har attributter som ikke hører til Pass. D ville krevd at FK-en kan være null (siden ikke alle personer har pass), og er konseptuelt mer rotete enn C — men ville fungere teknisk hvis vi godtok null + UNIQUE-på-not-null.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#relasjoner">Kap. 4B — Relasjoner</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Map svak entitet</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan oversettes en <em>svak entitet</em> til en tabell?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Tabellen får:</p>
+              <p>• Eierens primærnøkkel (FK + del av PK).<br>
+              • Diskriminatoren (også del av PK).<br>
+              • Alle attributter på den svake entiteten.</p>
+              <p>PK = <code>{eierens PK, diskriminator}</code>. FK-en mot eieren markeres typisk <code>ON DELETE CASCADE</code> for å reflektere eksistens-avhengigheten.</p>
+              <p>Eksempel: <code>Avhengig(<u>ansatt_fnr</u> [FK→Ansatt], <u>navn</u>, fødselsdato, relasjon)</code>.</p>
+              <p>Den identifiserende relasjonen blir <strong>ikke</strong> en egen tabell — den er allerede uttrykt gjennom FK-en i den svake entitetens tabell.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#svake">Kap. 4B — Svake entiteter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Helhetlig modellering</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Du modellerer biblioteket. En <strong>Bok</strong> har ISBN, tittel, forfatter. Et <strong>Eksemplar</strong> har et hyllenummer; et eksemplar kan ikke eksistere uten en bok det er et eksemplar av. Hvilket tabelldesign er korrekt?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> <code>Bok(ISBN, tittel, forfatter, hyllenr)</code></li>
+                <li><span class="opt-label">B</span> <code>Bok(ISBN, tittel, forfatter)</code>; <code>Eksemplar(eks_id, hyllenr)</code></li>
+                <li><span class="opt-label">C</span> <code>Bok(ISBN, tittel, forfatter)</code>; <code>Eksemplar(<u>ISBN</u> [FK→Bok], <u>kopinr</u>, hyllenr)</code> med PK <code>(ISBN, kopinr)</code></li>
+                <li><span class="opt-label">D</span> <code>Bok(<u>ISBN</u>, hyllenr)</code>; <code>Eksemplar(<u>ISBN</u>, tittel, forfatter)</code></li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C.</strong></p>
+              <p>Eksemplar er en <em>svak entitet</em> — eier=Bok, diskriminator=kopinr. Mappes til en tabell med eierens nøkkel (ISBN) + diskriminator (kopinr) som sammensatt PK + svake attributter (hyllenr). FK på ISBN bør ha ON DELETE CASCADE.</p>
+              <p>A: kollapser alt til én tabell — bryter 1NF/3NF (én bok kan ha mange eksemplarer; hyllenr blir flerverdi). B: gjør Eksemplar til sterk entitet med kunstig nøkkel og taper eksistens-avhengigheten — eks_id sier ingenting om koblingen til Bok. D: blander attributter feil — tittel/forfatter hører til Bok, hyllenr til Eksemplar.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#svake">Kap. 4B — Svake entiteter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 17–18 · Anomalier
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Anomalier</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv de tre klassiske anomaliene (innsetting, sletting, oppdatering) med ett eksempel hver.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>I et dårlig skjema <code>Ansatt(fnr, navn, avd_navn, avd_budsjett)</code>:</p>
+              <p><strong>Innsettingsanomali:</strong> Vil legge inn ny avdeling som ennå ikke har ansatte → kan ikke uten falsk Ansatt-rad eller null på fnr (som er PK).</p>
+              <p><strong>Sletteanomali:</strong> Sletter siste ansatt i en avdeling → informasjonen om avdelingens budsjett forsvinner med raden.</p>
+              <p><strong>Oppdateringsanomali:</strong> Endrer du budsjettet, må alle ansatte-rader oppdateres samtidig. Glemmer du én, blir tabellen inkonsistent.</p>
+              <p>Løsning: del i <code>Ansatt(fnr, navn, avd_id)</code> + <code>Avdeling(avd_id, navn, budsjett)</code>. Hvert faktum lagres nøyaktig ett sted.</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#anomali">Kap. 4B — Anomalier</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4B — Redundans</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Å lagre samme faktum flere steder er ikke ulovlig — så hvorfor regnes det som en designfeil?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>(1) Konsistensbyrde:</strong> Du må sørge for at alle kopier oppdateres samtidig. SQL gir ingen automatisk garanti — hver UPDATE må eksplisitt oppdatere alle kopiene.</p>
+              <p><strong>(2) Anomalier:</strong> Innsetting krever dummy-data, sletting taper informasjon, oppdatering kan glemme rader.</p>
+              <p><strong>(3) Plass:</strong> Sekundært. Disk er billig, men store, repetisjonstunge tabeller laster bufferet og senker spørringer.</p>
+              <p>Normalisering eliminerer redundans ved å spalte tabeller slik at hvert ikke-key-faktum lagres bare én gang. Resultatet: integritet håndheves <em>strukturelt</em> (av skjemaet) i stedet for <em>prosedyralt</em> (av applikasjonskoden).</p>
+              <p class="fc-ref">Pensum: <a href="er-til-relasjon.html#motivasjon">Kap. 4B — Motivasjon for normalisering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 19–25 · FD-er, Armstrong, lukning, kandidatnøkler
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Funksjonell avhengighet</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <strong><code>X → Y</code></strong> (funksjonell avhengighet) på et relasjonsskjema?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>For ethvert lovlig forekomst av relasjonen: hvis to rader er like på X-attributtene, er de også like på Y-attributtene. Det er en <em>constraint</em> på dataene — uavhengig av aktuelle innstanser.</p>
+              <p>FD-er stammer fra reglene i den modellerte verden, ikke fra konkrete data. Du kan ikke lese dem ut av en eksempeltabell — du må vite hva som <em>må</em> holde.</p>
+              <p>Eksempel: I <code>Bil(regnr, modell, eierfnr, eier_navn)</code> holder:<br>
+              • <code>regnr → modell, eierfnr</code> (regnr identifiserer bilen unikt)<br>
+              • <code>eierfnr → eier_navn</code> (personnummer er unikt per person)</p>
+              <p>Men <em>ikke</em> <code>eier_navn → eierfnr</code> — flere personer kan hete det samme.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#fd">Kap. 4C — Funksjonelle avhengigheter</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Trivielle FD-er</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når er en FD <em>triviell</em>, og hvorfor er det viktig å skille triviell fra ikke-triviell?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En FD <code>X → Y</code> er <strong>triviell</strong> hvis <code>Y ⊆ X</code>. Den følger automatisk av definisjonen og gir ingen informasjon om relasjonen.</p>
+              <p>Eksempel: <code>AB → A</code> er triviell. <code>AB → AC</code> er delvis triviell (delen <code>AB → A</code>) men ikke fullstendig triviell.</p>
+              <p>En <strong>ikke-triviell</strong> FD er <code>X → Y</code> der minst én attributt i Y ikke er med i X — f.eks. <code>AB → C</code> der C ikke er i AB.</p>
+              <p>Hvorfor det betyr noe: alle definisjoner av normalformer (3NF, BCNF) krever bare at <em>ikke-trivielle</em> FD-er tilfredsstilles. Hvis vi krevde alle FD-er, ville BCNF være umulig — trivielle FD-er finnes overalt.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#fd">Kap. 4C — FD-er</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Armstrongs aksiomer</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">List opp Armstrongs tre <em>grunnaksiomer</em> for FD-er, og forklar hva hver av dem sier.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Tre regler som er <strong>fullstendige</strong> (kan utlede alle gyldige FD-er) og <strong>sunne</strong> (utleder bare gyldige):</p>
+              <p><strong>1. Refleksivitet:</strong> Hvis <code>Y ⊆ X</code>, så <code>X → Y</code>. (Trivielle FD-er holder alltid.)</p>
+              <p><strong>2. Augmentasjon:</strong> Hvis <code>X → Y</code>, så <code>XZ → YZ</code>. (Begge sider kan utvides med samme attributter.)</p>
+              <p><strong>3. Transitivitet:</strong> Hvis <code>X → Y</code> og <code>Y → Z</code>, så <code>X → Z</code>. (FD-er kan kjedes.)</p>
+              <p>Avledede regler (utledet fra aksiomene, men praktiske):</p>
+              <p>• <strong>Union:</strong> <code>X→Y, X→Z ⊢ X→YZ</code><br>
+              • <strong>Dekomposisjon:</strong> <code>X→YZ ⊢ X→Y, X→Z</code><br>
+              • <strong>Pseudotransitivitet:</strong> <code>X→Y, WY→Z ⊢ WX→Z</code></p>
+              <p>Aksiomene danner basis for lukningsalgoritmen <code>{X}⁺</code>.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#armstrong">Kap. 4C — Armstrongs aksiomer</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Lukning</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Gitt <code>R(A,B,C,D,E)</code> og FD-mengden <code>F = {A→B, BC→D, D→E}</code>. Hva er <strong><code>{A,C}⁺</code></strong>?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> {A, C}</li>
+                <li><span class="opt-label">B</span> {A, B, C}</li>
+                <li><span class="opt-label">C</span> {A, C, D, E}</li>
+                <li><span class="opt-label">D</span> {A, B, C, D, E}</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: D</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: D — {A, B, C, D, E}.</strong></p>
+              <p>Iterativ algoritme: start med X⁺ = {A, C}, anvend FD-er til fix-punkt.</p>
+              <p>1. Start: <code>{A, C}</code>.<br>
+              2. <code>A → B</code>: A er i settet → legg til B. Nå <code>{A, B, C}</code>.<br>
+              3. <code>BC → D</code>: BC er i settet → legg til D. Nå <code>{A, B, C, D}</code>.<br>
+              4. <code>D → E</code>: D er i settet → legg til E. Nå <code>{A, B, C, D, E}</code>.<br>
+              5. Ingen flere FD-er kan utvides — fix-punkt nådd.</p>
+              <p>Siden lukningen er hele R, er <strong>{A, C} en supernøkkel</strong>.</p>
+              <p>A: glemmer å bruke FD-er. B: stopper etter A→B og overser at BC→D nå er bruksbar. C: hopper over A→B og prøver å bruke BC→D før vi har B.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#lukning">Kap. 4C — Lukning</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Kandidatnøkkel-test</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvordan tester du om en attributtmengde X er en <em>kandidatnøkkel</em> for relasjonen R med FD-mengde F?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>To krav som begge må gjelde:</p>
+              <p><strong>1. Supernøkkel:</strong> <code>{X}⁺ = R</code> (hele attributtmengden). X bestemmer alt.</p>
+              <p><strong>2. Minimal:</strong> for hver delmengde <code>Y ⊊ X</code>, <code>{Y}⁺ ≠ R</code>. Du kan ikke fjerne noen attributt fra X uten å miste supernøkkel-egenskapen.</p>
+              <p>Algoritme:<br>
+              • Beregn <code>{X}⁺</code>. Hvis ikke = R → ikke engang supernøkkel, ferdig.<br>
+              • Ellers, prøv å fjerne hver attributt fra X i tur. Hvis lukningen fortsatt = R, var den attributten redundant — kandidatnøkkelen er mindre.</p>
+              <p>For å finne <em>alle</em> kandidatnøkler: identifiser attributter som aldri står på høyre side av en FD — de må være med i hver kandidatnøkkel.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#supernokkel">Kap. 4C — Supernøkler og kandidatnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Finn kandidatnøkler</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(A,B,C,D)</code> med FD-er <code>{A→B, B→C, C→D}</code>. Hvor mange kandidatnøkler finnes?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 0 — det finnes ingen supernøkkel.</li>
+                <li><span class="opt-label">B</span> 1 — bare {A}.</li>
+                <li><span class="opt-label">C</span> 2 — {A} og {B}.</li>
+                <li><span class="opt-label">D</span> 4 — alle enkelt-attributter.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — bare {A}.</strong></p>
+              <p>Beregn <code>{A}⁺ = {A,B,C,D}</code> via A→B→C→D. A er supernøkkel, og siden den bare har én attributt er den minimal — altså kandidatnøkkel.</p>
+              <p>Sjekk de andre: <code>{B}⁺ = {B, C, D}</code> (mangler A); <code>{C}⁺ = {C, D}</code>; <code>{D}⁺ = {D}</code>. Ingen er supernøkkel.</p>
+              <p>Triks: A står aldri på høyresiden av en FD — derfor må A være med i enhver kandidatnøkkel. Siden {A} alene er supernøkkel, kan ingen større mengde være kandidatnøkkel (de blir ikke-minimale).</p>
+              <p>A: feil — {A} er supernøkkel. C: feil — {B} er ikke supernøkkel. D: feil av samme grunn.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#supernokkel">Kap. 4C — Kandidatnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Minimal cover</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er en <em>minimal cover</em> (kanonisk dekning) av en FD-mengde, og hvorfor regner man den ut?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En minimal cover <code>F_c</code> er en FD-mengde <strong>ekvivalent</strong> med F (samme lukning av enhver attributtmengde) men strippet:</p>
+              <p>1. <strong>Hver høyreside er én attributt</strong> (X → A, ikke X → AB).<br>
+              2. <strong>Ingen FD i F_c er redundant</strong> (kan fjernes uten å endre lukningen).<br>
+              3. <strong>Ingen attributt på venstresiden er overflødig</strong> (kan fjernes fra X uten å miste FD-en).</p>
+              <p><strong>Hvorfor:</strong> 3NF-syntese-algoritmen krever en minimal cover som input. Den lager én tabell per FD i F_c og garanterer da dependency preservation. Uten minimering ville man fått overflødige tabeller.</p>
+              <p>Algoritmens trinn: (1) splitt høyresider, (2) fjern overflødige LHS-attributter, (3) fjern redundante FD-er. Rekkefølgen betyr noe — annen rekkefølge kan gi en annen, men ekvivalent, minimal cover.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#dekomp">Kap. 4C — Dekomponering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 26–35 · Normalformer
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — 1NF</span>
+            <span class="flashcard__diff">Lett</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr at et skjema er i <strong>1NF</strong>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Alle attributter i hver rad inneholder <strong>atomære (udelelige) verdier</strong> — ingen lister, sett eller nestede strukturer.</p>
+              <p>Eksempel på 1NF-brudd: en kolonne <code>telefoner = "12345, 67890"</code> (kommaseparert liste) eller <code>kompetanse = ['SQL', 'Python']</code> (array). Hvert datum må stå i egen rad eller egen kolonne med atomær verdi.</p>
+              <p>I praksis: hvis du må parse innholdet i en celle for å få ut den faktiske verdien, er du <em>ikke</em> i 1NF.</p>
+              <p>1NF er fundamentet — alle høyere normalformer forutsetter 1NF. Relasjonsmodellen <em>som sådan</em> bygger på 1NF; multiset-kolonner finnes ikke i den.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#stigen">Kap. 4C — Normalstigen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — 2NF</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <strong>2NF</strong>, og hvilket problem løser det som 1NF ikke gjør?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>2NF: 1NF + ingen <strong>partiell avhengighet</strong> av et ikke-prime attributt på <em>en del</em> av en sammensatt kandidatnøkkel.</p>
+              <p>Konkret: hvis kandidatnøkkelen er sammensatt (f.eks. {A, B}) og det finnes en FD <code>A → C</code> der C er ikke-prime, så er C partielt avhengig av nøkkelen — det bryter 2NF.</p>
+              <p>Problem som 2NF løser: hvis <code>(StudentID, EmneKode)</code> er nøkkel og StudentNavn avhenger bare av StudentID, gjentas StudentNavn for hver emneregistrering — redundans og oppdateringsanomali.</p>
+              <p><strong>Spesialtilfelle:</strong> hvis alle kandidatnøkler er enkle (én attributt), er skjemaet automatisk i 2NF — det finnes ingen "del av nøkkelen" å være partiell mot.</p>
+              <p>I praksis: vi går oftest direkte fra 1NF til 3NF/BCNF. 2NF er en pedagogisk mellomstasjon.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#stigen">Kap. 4C — Normalstigen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — 3NF</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Definer <strong>3NF</strong>. Hvilket problem fanger 3NF som 2NF ikke fanger?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>For hver ikke-triviell FD <code>X → A</code> i F gjelder <em>minst ett</em> av:</p>
+              <p>1. X er en supernøkkel, <strong>ELLER</strong><br>
+              2. A er medlem av en kandidatnøkkel (et "prime attribute").</p>
+              <p>3NF stopper det 2NF ikke fanger: <strong>transitive avhengigheter</strong> mellom ikke-nøkkel-attributter, selv når kandidatnøkkelen er enkel.</p>
+              <p>Eksempel: <code>Ansatt(fnr, navn, avd_id, avd_navn)</code> med FD-er <code>fnr → avd_id, avd_id → avd_navn</code>. avd_id er ikke-supernøkkel og avd_navn er ikke-prime — så <code>fnr → avd_navn</code> er transitiv via avd_id, og det bryter 3NF (selv om kandidatnøkkelen {fnr} er enkel og 2NF er oppfylt).</p>
+              <p>Løsning: dele i <code>Ansatt(fnr, navn, avd_id)</code> + <code>Avdeling(avd_id, navn)</code>.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#stigen">Kap. 4C — Normalstigen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — BCNF</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Definer <strong>BCNF</strong>, og forklar hva som skiller den fra 3NF.</p>
+            </div>
+            <div class="flashcard__back">
+              <p>For hver ikke-triviell FD <code>X → Y</code> som holder, må <strong>X være en supernøkkel</strong>. Det er den eneste regelen — uten 3NFs unntak for prime-attributter.</p>
+              <p>Forskjellen: 3NF tillater <code>X → A</code> der A er en del av en kandidatnøkkel, selv om X ikke er supernøkkel. BCNF tillater det ikke.</p>
+              <p><strong>Klassisk eksempel</strong>: <code>R(student, emne, lærer)</code> med FD-er <code>{(student, emne) → lærer; lærer → emne}</code>. Kandidatnøkler: {student, emne} og {student, lærer}. <code>lærer → emne</code> bryter BCNF (lærer er ikke supernøkkel) men oppfyller 3NF (emne er prime).</p>
+              <p>Konsekvens: BCNF eliminerer mer redundans enn 3NF, men kan tape <em>dependency preservation</em> ved dekomponering.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#bcnf">Kap. 4C — BCNF</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Identifiser brudd</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(A,B,C,D)</code> med FD-er <code>{AB→C, AB→D, C→A}</code>. Kandidatnøkler: <code>{A,B}</code> og <code>{B,C}</code>. Hvilken normalform er R i?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Bare 1NF</li>
+                <li><span class="opt-label">B</span> 2NF, men ikke 3NF</li>
+                <li><span class="opt-label">C</span> 3NF, men ikke BCNF</li>
+                <li><span class="opt-label">D</span> BCNF</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: C</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: C — 3NF, men ikke BCNF.</strong></p>
+              <p>Sjekk hver FD:</p>
+              <p>• <code>AB → C</code>: AB er supernøkkel ✓ (BCNF OK)<br>
+              • <code>AB → D</code>: AB er supernøkkel ✓ (BCNF OK)<br>
+              • <code>C → A</code>: <code>{C}⁺ = {C, A}</code>, ikke = R. C er <em>ikke</em> supernøkkel → BCNF-brudd. For 3NF: A er prime (medlem av {A,B}) → 3NF tilfredsstilt.</p>
+              <p>Skjemaet er altså i 3NF (alle FD-er har enten supernøkkel-LHS eller prime-RHS) men ikke BCNF (C → A bryter). Dette er nettopp det klassiske 3NF/BCNF-gapet.</p>
+              <p>A: 1NF brytes ikke (alle attributter er atomære). B: krever ikke-prime LHS som er <em>del av sammensatt nøkkel</em> — ikke aktuelt her. D: feil pga C→A.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#bcnf">Kap. 4C — BCNF</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — BCNF-dekomponering</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(student, emne, lærer, lærer_kontor)</code> med FD-er <code>{(student, emne) → lærer; lærer → lærer_kontor}</code>. Hva er en lossless BCNF-dekomponering?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> R₁(student, emne, lærer), R₂(lærer, lærer_kontor)</li>
+                <li><span class="opt-label">B</span> R₁(student, emne), R₂(emne, lærer, lærer_kontor)</li>
+                <li><span class="opt-label">C</span> R₁(student, emne, lærer_kontor), R₂(lærer, lærer_kontor)</li>
+                <li><span class="opt-label">D</span> Skjemaet er allerede i BCNF.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A.</strong></p>
+              <p>Kandidatnøkkel: <code>{student, emne}</code>. <code>{student, emne}⁺ = {student, emne, lærer, lærer_kontor}</code>. FD <code>lærer → lærer_kontor</code>: lærer er ikke supernøkkel for R → BCNF-brudd.</p>
+              <p>Dekomp på lærer→lærer_kontor: skill ut <code>R₂(lærer, lærer_kontor)</code>. Igjen i <code>R₁(student, emne, lærer)</code>: <code>(student, emne) → lærer</code> holder, og (student, emne) er supernøkkel for R₁. R₁ er BCNF.</p>
+              <p>Lossless: <code>R₁ ∩ R₂ = {lærer}</code>; <code>{lærer}⁺ = {lærer, lærer_kontor} = R₂</code> → supernøkkel for R₂ ✓</p>
+              <p>B: dropper lærer fra R₁ — taper FD (student, emne)→lærer; ikke lossless. C: blander attributter feil — lærer mangler i R₁. D: feil, lærer→lærer_kontor bryter BCNF.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#dekomp">Kap. 4C — Dekomponering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Lossless join</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva er <em>lossless join</em>-vilkåret for en dekomposisjon <code>R = R₁ ∪ R₂</code>?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Dekomponeringen er lossless hvis FD-mengden inneholder minst én av:</p>
+              <p>• <code>(R₁ ∩ R₂) → (R₁ \ R₂)</code>, eller<br>
+              • <code>(R₁ ∩ R₂) → (R₂ \ R₁)</code></p>
+              <p>Med ord: <strong>skjæringen mellom de to skjemaene må være supernøkkel for minst ett av dem</strong>.</p>
+              <p>Test:<br>
+              1. Beregn <code>R₁ ∩ R₂</code> = mengden felles attributter.<br>
+              2. Beregn lukningen <code>(R₁ ∩ R₂)⁺</code> over hele FD-mengden.<br>
+              3. Hvis lukningen dekker R₁ eller R₂, er joinen lossless.</p>
+              <p>Hvorfor: hvis X = R₁ ∩ R₂ er supernøkkel for f.eks. R₂, så har hver rad i R₂ en unik X-verdi, og join på X kan rekonstruere R uten "spurious tuples" (falske rekombinasjoner).</p>
+              <p>For 3+ delskjemaer brukes <em>chase-algoritmen</em>.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#dekomp">Kap. 4C — Dekomponering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Lossless-test</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(A,B,C,D,E)</code> splittes i <code>R₁(A,B,C)</code>, <code>R₂(C,D,E)</code>. FD-er: <code>{A→B, C→D, D→E}</code>. Er dekomposisjonen lossless?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> Ja — fordi A → B er en FD vi kan bevare.</li>
+                <li><span class="opt-label">B</span> Ja — C er supernøkkel for R₂ siden C → D → E.</li>
+                <li><span class="opt-label">C</span> Nei — fordi A→B ikke involverer skjæringen.</li>
+                <li><span class="opt-label">D</span> Nei — vi har mistet attributtinformasjon.</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — Ja, lossless.</strong></p>
+              <p>Test: <code>R₁ ∩ R₂ = {C}</code>. Beregn <code>{C}⁺ = {C, D, E} = R₂</code>. C er supernøkkel for R₂ → lossless-vilkåret oppfylt.</p>
+              <p>Du trenger ikke at skjæringen er supernøkkel for <em>begge</em> — bare for én. Her er C ikke supernøkkel for R₁ (mangler A og B), men det spiller ingen rolle.</p>
+              <p>A: A→B er irrelevant for lossless-testen — kun skjæringen teller. C: korrekt at A→B ikke er relevant, men det medfører ikke nei. D: ingen attributter mistes; alle A,B,C,D,E finnes i R₁ ∪ R₂.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#dekomp">Kap. 4C — Lossless join</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Dependency preservation</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hva betyr <em>dependency preservation</em>, og hvorfor kan BCNF-dekomposisjon tape den?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>En dekomponering <em>bevarer FD-er</em> hvis hver FD i den opprinnelige FD-mengden kan håndheves <strong>lokalt</strong> på ett av delskjemaene — uten å joine tilbake til full R.</p>
+              <p>Formelt: <code>F₁ ∪ F₂ ∪ … ≡ F</code> (lukningene er ekvivalente), der F_i = projeksjonen av F på R_i.</p>
+              <p><strong>Hvorfor BCNF kan tape:</strong> når du dekomponerer for å fjerne et FD-brudd, kan du måtte splitte attributtene i en FD over to delskjemaer. Da kan FD-en ikke håndheves uten å rekonstruere R, og en INSERT på ett delskjema kan bryte den uten at noen tabell ser bruddet.</p>
+              <p>Klassisk eksempel: <code>Klasse(student, emne, lærer)</code> med F = <code>{(student, emne) → lærer; lærer → emne}</code>. BCNF-dekomp tvinger oss til å splitte slik at FD <code>(student, emne) → lærer</code> mistes som lokalt bevarbar.</p>
+              <p>3NF-syntese garanterer alltid <em>både</em> lossless OG dependency preservation. BCNF garanterer lossless, ikke alltid dependency preservation. Det er den klassiske trade-off-en.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#tradeoff">Kap. 4C — Trade-off</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — 3NF-syntese</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Beskriv 3NF-syntese-algoritmen i hovedtrekk og hva den garanterer.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Algoritme:</strong></p>
+              <p>1. Beregn en <em>minimal cover</em> F_c av F.<br>
+              2. For hver FD <code>X → A</code> i F_c, lag en tabell <code>{X, A}</code>. Slå sammen FD-er med samme venstreside i samme tabell.<br>
+              3. Hvis ingen tabell inneholder en kandidatnøkkel for R, legg til en tabell bestående av en kandidatnøkkel.<br>
+              4. (Valgfritt) Fjern tabeller som er strikte delmengder av andre.</p>
+              <p><strong>Garantier:</strong></p>
+              <p>• Alle delskjemaer er i <strong>3NF</strong>.<br>
+              • <strong>Lossless join</strong>.<br>
+              • <strong>Dependency preserving</strong> — alle FD-er i F kan håndheves lokalt.</p>
+              <p>Forskjellen fra BCNF-dekomp (som er en analyse-algoritme): 3NF-syntese gir alltid dependency preservation; BCNF gjør det ikke nødvendigvis.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#dekomp">Kap. 4C — Dekomponering</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Trade-off</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Når i praksis velger man 3NF over BCNF, og når går man for BCNF likevel?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Hvis et skjema er i 3NF men ikke BCNF, og BCNF-dekomp ville tape dependency preservation, så er valget:</p>
+              <p><strong>Beholde 3NF:</strong> akseptere noe potensiell redundans for å sikre at alle FD-er kan håndheves lokalt (med f.eks. CHECK-constraints eller triggere). Bra hvis FD-en bryter ofte uten dekomp og du ikke vil bruke triggere som ser flere tabeller.</p>
+              <p><strong>Gå til BCNF:</strong> eliminere redundans, men nå må FD-en som tapes håndheves med komplekse triggere som spenner over tabeller — ofte upraktisk og dyrt.</p>
+              <p>Læreboka anbefaler ofte BCNF i den grad SQL likevel ikke håndhever generelle FD-er effektivt — så «tapt dependency preservation» er mer en teoretisk ulempe enn en praktisk i mange tilfeller. Resultatet: BCNF-dekomp foretrekkes ofte i praksis.</p>
+              <p>3NF-syntese er likevel et trygt fallback når BCNF-bruddet er kostbart eller du har store triggerbyrder.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#tradeoff">Kap. 4C — 3NF vs BCNF</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Klassifiseringsprosedyre</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Du får et skjema R og en FD-mengde F. Hvilke trinn (i rekkefølge) tar du for å klassifisere normalformen?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. List opp alle attributter i R og FD-er i F.</strong> Skriv FD-er på enkleste form (én attributt på høyre side om mulig).</p>
+              <p><strong>2. Finn kandidatnøkler.</strong> Attributter som aldri står på høyre side må være med i hver kandidatnøkkel. Beregn lukninger og finn minimale supernøkler.</p>
+              <p><strong>3. Identifiser prime-attributter</strong> (attributter som er medlem av minst én kandidatnøkkel).</p>
+              <p><strong>4. Sjekk hver ikke-triviell FD <code>X → A</code>:</strong></p>
+              <p>• Er X en supernøkkel? → tilfredsstiller BCNF (og dermed alt under).<br>
+              • Hvis ikke, er A prime? → tilfredsstiller 3NF, men ikke BCNF.<br>
+              • Hvis A ikke er prime, sjekk om <code>X ⊊ K</code> for en kandidatnøkkel K → 2NF-brudd. Ellers er det 3NF-brudd via transitiv avhengighet.</p>
+              <p><strong>5. 1NF antas</strong> med mindre du ser tydelige multi-set-kolonner.</p>
+              <p>Konklusjonen er den <em>laveste</em> normalformen alle FD-er tilfredsstiller.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#stigen">Kap. 4C — Normalstigen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============================================================
+             Kort 36–42 · Tverrgående og helhetlig
+             ============================================================ -->
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Lossless vs preserving</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar forskjellen på <em>lossless join</em> og <em>dependency preservation</em>, og hvorfor begge er viktige.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Lossless join:</strong> garanterer at vi kan rekonstruere det opprinnelige skjemaet ved å joine delskjemaene — ingen rader oppfinnes, ingen tapes. Uten denne er dekomponeringen i praksis verdiløs: spørringer som krysser delskjemaer gir falske resultater.</p>
+              <p><strong>Dependency preserving:</strong> garanterer at hver opprinnelig FD kan håndheves uten å joine. Uten denne kan en INSERT i ett delskjema bryte en FD som spenner over flere delskjemaer, og databasen blir inkonsistent uten at SQL ser det.</p>
+              <p><strong>Lossless er obligatorisk.</strong> Dependency preservation er ønskelig, men kan ofres for BCNF.</p>
+              <p>3NF-syntese garanterer begge. BCNF-analyse garanterer lossless, ikke alltid dependency preservation.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#tradeoff">Kap. 4C — Trade-off</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Nøkler og fremmednøkler</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar forholdet mellom <em>supernøkkel</em>, <em>kandidatnøkkel</em>, <em>primærnøkkel</em> og <em>fremmednøkkel</em>.</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Supernøkkel:</strong> enhver attributtmengde som unikt identifiserer rader. Ikke nødvendigvis minimal.</p>
+              <p><strong>Kandidatnøkkel:</strong> minimal supernøkkel. Hver tabell kan ha flere.</p>
+              <p><strong>Primærnøkkel:</strong> den valgte kandidatnøkkelen. SQL-konstrukt: <code>PRIMARY KEY</code> (én per tabell). Markerer NOT NULL og UNIQUE.</p>
+              <p><strong>Fremmednøkkel (FK):</strong> en attributtmengde i tabell A som <em>refererer</em> til primærnøkkelen i tabell B. Sikrer referansiell integritet — verdien må enten være null eller matche en eksisterende rad i B.</p>
+              <p>Forhold: <code>PK ⊆ kandidatnøkler ⊆ supernøkler</code>. FK er <em>ikke</em> en nøkkel for sin egen tabell — den er en peker.</p>
+              <p>I ER → relasjon uttrykker FK relasjonen mellom entiteter.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#nokkel">Kap. 4A — Nøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Valg av primærnøkkel</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>Bruker</code> har kandidatnøklene <code>{fnr}</code>, <code>{epost}</code> og <code>{brukerid}</code>. Hva avgjør hvilken som velges som primærnøkkel?</p>
+            </div>
+            <div class="flashcard__back">
+              <p>Vurderingskriterier (i synkende viktighet):</p>
+              <p><strong>1. Stabilitet:</strong> Endrer verdien seg sjelden? Epost kan endres → dårlig kandidat. fnr og brukerid endres aldri → bedre.</p>
+              <p><strong>2. Kortsthet:</strong> En 4-byte heltallsnøkkel indekserer raskere enn en e-poststreng. Mindre cascade-trykk på FK-er.</p>
+              <p><strong>3. Personvern:</strong> fnr er sensitivt — å bruke det som FK i mange tabeller sprer det. Et generert brukerid er ofte tryggere.</p>
+              <p><strong>4. Garantert tilstedeværelse:</strong> PK må være NOT NULL. Hvis attributten kan være ukjent ved innsetting, kan den ikke være PK.</p>
+              <p>I praksis: ofte velges en <em>surrogat-nøkkel</em> (auto-økende heltall) som PK, og naturlige nøkler (fnr, epost) merkes som UNIQUE NOT NULL. Da har du fleksibilitet uten å miste integriteten.</p>
+              <p class="fc-ref">Pensum: <a href="er-modellen.html#nokkel">Kap. 4A — Nøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — ER + FD = full design</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Hvilke FD-er er <em>garantert</em> å holde i et relasjonsskjema utledet fra ER, og hvilke må modelløren oppgi separat?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Automatisk (fra ER-strukturen):</strong></p>
+              <p>• Primærnøkkelen til hver entitet bestemmer alle attributter på den entiteten.<br>
+              • I et 1:N-relasjonsskjema (FK på N-siden) bestemmer N-sidens PK relasjonens attributter.</p>
+              <p><strong>Modellører må oppgi (utenfor ER):</strong></p>
+              <p>• FD-er mellom <em>ikke-nøkkel-attributter</em> — f.eks. <code>postnr → by</code>. ER-diagrammet sier ingenting om dette.<br>
+              • FD-er som spenner over flere entiteter modellert som én tabell.<br>
+              • Implisitte regler i domenet: "samme prosjekt har én leder", "samme avdeling har ett budsjett".</p>
+              <p>Disse «ekstra» FD-ene driver normaliseringsanalysen i 4C. Skriver du dem ikke ned, vil 3NF/BCNF-sjekken si "alt OK" — selv om skjemaet har redundans.</p>
+              <p>Lærdom: <strong>ER + FD-er sammen</strong> er det fullstendige bildet. ER alene er ikke nok.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#fd">Kap. 4C — FD-er</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Praktisk normalisering</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(prosjekt, ansatt, timer, prosjektleder)</code> med FD-er <code>{(prosjekt, ansatt) → timer; prosjekt → prosjektleder}</code>. Hvilken normalform er R i?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> 1NF, men ikke 2NF</li>
+                <li><span class="opt-label">B</span> 2NF, men ikke 3NF</li>
+                <li><span class="opt-label">C</span> 3NF, men ikke BCNF</li>
+                <li><span class="opt-label">D</span> BCNF</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: A</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: A — 1NF, men ikke 2NF.</strong></p>
+              <p>Kandidatnøkkel: <code>{prosjekt, ansatt}</code>. <code>{prosjekt, ansatt}⁺ = R</code>.</p>
+              <p>Sjekk FD-en <code>prosjekt → prosjektleder</code>: prosjekt er en <em>del</em> av kandidatnøkkelen {prosjekt, ansatt}, og prosjektleder er ikke-prime. Dette er en <strong>partiell avhengighet</strong> — bryter 2NF.</p>
+              <p>Konsekvens: prosjektleder gjentas for hver ansatt på samme prosjekt → oppdateringsanomali.</p>
+              <p>Løsning (3NF/BCNF-dekomp): <code>R₁(<u>prosjekt</u>, <u>ansatt</u>, timer)</code> + <code>R₂(<u>prosjekt</u>, prosjektleder)</code>.</p>
+              <p>B/C/D: alle krever 2NF, som ikke er oppfylt.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#stigen">Kap. 4C — Normalstigen</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="regning">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4C — Lukning til kandidatnøkkel</span>
+            <span class="flashcard__diff">Vanskelig</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question"><code>R(A,B,C,D,E)</code> med FD-er <code>{AB→C, C→D, D→E}</code>. Hvilken er en kandidatnøkkel?</p>
+              <ul class="fc-opts">
+                <li><span class="opt-label">A</span> {A}</li>
+                <li><span class="opt-label">B</span> {A, B}</li>
+                <li><span class="opt-label">C</span> {A, B, C}</li>
+                <li><span class="opt-label">D</span> {C, D}</li>
+              </ul>
+              <span class="fc-correct" hidden>Riktig svar: B</span>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>Riktig: B — {A, B}.</strong></p>
+              <p>Beregn <code>{A,B}⁺</code>: start {A,B} → AB→C gir C → {A,B,C} → C→D gir D → {A,B,C,D} → D→E gir E → {A,B,C,D,E} = R. Supernøkkel ✓.</p>
+              <p>Minimalitet: {A}⁺ = {A} (ingen FD med kun A på venstre side); {B}⁺ = {B}. Ingen kan fjernes → {A,B} er minimal → kandidatnøkkel.</p>
+              <p>A: {A} alene er ikke supernøkkel. C: {A,B,C} er supernøkkel, men ikke minimal — C kan fjernes. D: {C,D}⁺ = {C,D,E}, mangler A og B, så ikke supernøkkel.</p>
+              <p>Triks: A og B står aldri på høyresiden av en FD — så de må være med i enhver kandidatnøkkel. Da er {A,B} det minste som har sjanse til å være supernøkkel.</p>
+              <p class="fc-ref">Pensum: <a href="normalformer.html#supernokkel">Kap. 4C — Supernøkler og kandidatnøkler</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article class="flashcard" data-fc-type="begrep">
+          <header class="flashcard__head">
+            <span class="flashcard__topic">Kap. 4 — Helhetsbilde</span>
+            <span class="flashcard__diff">Middels</span>
+          </header>
+          <div class="flashcard__inner">
+            <div class="flashcard__front">
+              <p class="fc-question">Forklar designreisen i fire trinn: fra virkelighet til BCNF. Hva gjør hvert trinn, og hvor i pensum ligger det?</p>
+            </div>
+            <div class="flashcard__back">
+              <p><strong>1. Virkelighet → ER-diagram</strong> (4A, lærebok 6.1–6.6). Tegn entiteter, attributter, relasjoner, kardinalitet, deltakelse, svake entiteter. Kommunikasjon med stakeholder.</p>
+              <p><strong>2. ER-diagram → relasjonsskjema</strong> (4B, 6.7+6.9). Mekaniske regler: én tabell per sterk entitet; FK-er for 1:1 og 1:N; mellomtabell for M:N; eierens PK + diskriminator for svake. Komposite "flatpakkes", flerverdi blir egne tabeller.</p>
+              <p><strong>3. Skjema + FD-mengde → FD-analyse</strong> (4C, 7.1–7.2). List FD-er som holder i domenet. Beregn lukninger, finn kandidatnøkler. Identifiser prime/ikke-prime attributter.</p>
+              <p><strong>4. FD-analyse → normalisert skjema</strong> (4C, 7.3+7.6). Sjekk 1NF/2NF/3NF/BCNF. Dekomponer der det finnes brudd — pass på lossless og dependency preservation.</p>
+              <p>Hvert hopp er <em>mekanisk</em>. Fallgruver kommer av å hoppe over et trinn.</p>
+              <p class="fc-ref">Pensum: <a href="../kap4/#reise">Kap. 4 — Designreisen</a></p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>

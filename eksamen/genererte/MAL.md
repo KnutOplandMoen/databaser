@@ -15,6 +15,10 @@ Dette dokumentet beskriver hvordan en øvingseksamen bør se ut når vi lager ny
 
 > **Viktig om gamle eksamener:** [vår_2025.md](../vår_2025.md) og [midterm_2026.md](../midterm_2026.md) ligger som referanse for *stilen*, ikke fasit. Bruk dem til å forstå tonen, vanskelighetsgraden og oppgavetypene — men **ikke replikér oppgaver**. I tillegg må vi teste deler av pensum som ikke ble berørt der (særlig Del 1 sine kapitler om views/triggere/funksjoner/rekursjon, og deler av Del 2 som hashing, sortering og isolation levels). Variér tall, skjemaer og scenarier hver gang.
 
+> **Variasjon på tvers av eksamener:** Før du lager et nytt sett, *les gjennom de eksisterende sett i denne mappen* og noter hvilke spørsmålstyper som allerede dominerer. Eksisterende sett (eksamen_01–08) har en tendens til å gjenta samme mønster: "COUNT(*) vs COUNT(kolonne) med NULL", "B+-tre løvnivå med 4 KB blokk og 2/3 fyllgrad", "ARIES-logg med samme oppsett". Det er greit at *noen* spørsmål overlapper — slike kjernemønstre er sentrale i pensum — men det er ikke greit at hvert nytt sett er en omformulering av det forrige. Velg bevisst *andre* vinklinger: i stedet for COUNT/NULL, prøv DISTINCT-traps eller NULL i `IN (...)`; i stedet for løvnivå-utregning, prøv et splitt-scenario; i stedet for klassisk ARIES analyse-fase, prøv en CLR/UNDO-spørsmål eller en idempotens-resonnement.
+
+> **"Idé-bank, ikke mal":** Listene under hver pensumblokk (§3 og §4) er forslag til *temaer som har vært sentrale*, ikke en oppskrift som skal følges hver gang. Velg ut 1–2 temaer per blokk for *dette* settet, og varier valget mellom sett. Et eksamen-sett som dekker alle de syv blokkene i Del 1 og alle de seks blokkene i Del 2 er allerede svært bredt — det trenger ikke i tillegg dekke hvert eneste underpunkt i listene.
+
 ---
 
 ## 2. Filstruktur for en eksamensfil
@@ -197,7 +201,7 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
 - DB-buffer: hva styrer DBMS vs OS, prefetching.
 
 ### 4.2 Lagring del 2 — B+-trær, LSM-trær (kap. 9–11) — 4–5 oppgaver
-**Nesten alltid representert. Variér scenarier — ikke kopiér tallene fra vår_2025.**
+B+-trær er kjernestoff og *skal* være tungt representert, men ikke som fire varianter av samme regneoppgave. Bland: én løvnivå-utregning, én internnivå/fan-out-spørsmål, én splitt/overflyt-mekanikkspørsmål, én sammenligning (clustered vs unclustered, eller B+-tre vs LSM). Tallene må være nye hver gang.
 - Beregn antall blokker på løvnivå (level=0) gitt N poster, postgrøttese, blokkstørrelse, 2/3 fyllgrad — `floor(blokk*2/3 / postgrøttese)` poster per blokk.
 - Beregn antall blokker på level=1, 2, 3 ... gitt fan-out (basert på (key, BlockId)-størrelser).
 - Antall nivåer i et clustered/unclustered B+-tre.
@@ -207,7 +211,7 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
 - LSM-trær: memtable → SST, write amplification, compaction — sammenlign med B+-trær (write- vs read-ytelse).
 
 ### 4.3 Queries — aksessmetoder, sortering, query processing (kap. 12–14) — 4–5 oppgaver
-- "Hvor mange blokker aksesseres ved optimal utføring?" — gitt clustered/unclustered B+-tre + heap, beregn for `WHERE pk = c`, `WHERE secondary = c`, `WHERE pk > c`, `ORDER BY secondary` osv. Dette er kjernemønsteret i Problem 3–5 i vår_2025 — variér tallene.
+- "Hvor mange blokker aksesseres ved optimal utføring?" — gitt clustered/unclustered B+-tre + heap, beregn for `WHERE pk = c`, `WHERE secondary = c`, `WHERE pk > c`, `ORDER BY secondary` osv. [vår_2025.md](../vår_2025.md) Problem 3–5 er én vinkling — bruk dem som idé-bank, men varier *også* spørsmålstypen: noen ganger be om I/O-tellingen, andre ganger om hvilken plan optimizeren *velger*, eller hvilken er raskest under en gitt selektivitet.
 - Velg riktig aksess-plan: scan vs index seek vs index-scan + heap-aksess.
 - External merge sort: gitt B blokker og nB buffere, beregn `nR = ceil(B/nB)`, `dM = min(nB-1, nR)`, antall passes = `ceil(log_dM(nR))`, totalt I/O = `2B * (1 + passes)`.
 - **Join-algoritmer (J1–J4)** — kjenn navnene, hovedidéen, og når hver vinner:
@@ -217,22 +221,22 @@ Stilen ligner [vår_2025.md](../vår_2025.md): regneoppgaver med konkrete tall, 
   - **J4 Partition-hash join:** hash join-attributtet for å partisjonere begge tabellene; *build*-fase bygger hashtabell på den minste siden, *probe*-fase slår opp den andre. Krever at partisjonene får plass i RAM.
 - Query optimizer: logisk vs fysisk plan, statistikk fra katalog.
 
-### 4.4 Transaksjoner del 1 — teori, schedules, serialiserbarhet (kap. 15–16) — 2–3 oppgaver
+### 4.4 Transaksjoner del 1 — teori, schedules, serialiserbarhet (kap. 15–16) — 4–5 oppgaver
 - ACID — hva betyr hver bokstav? Hvilken løses av hva (logging, locking, constraints)?
-- Avgjør om en gitt schedule er **konfliktserialiserbar** ved å bygge presedensgraf — flere schedules som alternativer, "hvilke er konfliktserialiserbare?". Mønster fra vår_2025 Problem 6.
+- Avgjør om en gitt schedule er **konfliktserialiserbar** ved å bygge presedensgraf — flere schedules som alternativer, "hvilke er konfliktserialiserbare?". [vår_2025.md](../vår_2025.md) Problem 6 er én vinkling; alternativer er view-serialiserbarhet, å gi en serialiseringsrekkefølge når én eksisterer, eller å peke ut hvilken konflikt som skaper en syklus.
 - Anomalier: dirty read, dirty write, unrepeatable read, lost update, phantom — match anomali til scenario.
 - Recoverability-hierarki: Strict ⊂ ACA ⊂ Recoverable ⊂ All — hvilken klasse hører schedule X til?
 - SQL isolation levels: READ UNCOMMITTED / READ COMMITTED / REPEATABLE READ / SERIALIZABLE — hvilke anomalier hindres av hva?
 
-### 4.5 Transaksjoner del 2 — låser og samtidighet (kap. 16–17) — 2–3 oppgaver
-- Gitt en sekvens av operasjoner, sett 2PL-låser (rigorous/strict). I hvilken rekkefølge committer transaksjonene? Mønster fra vår_2025 Problem 9–10.
+### 4.5 Transaksjoner del 2 — låser og samtidighet (kap. 16–17) — 4–5 oppgaver
+- Gitt en sekvens av operasjoner, sett 2PL-låser (rigorous/strict). I hvilken rekkefølge committer transaksjonene? [vår_2025.md](../vår_2025.md) Problem 9–10 viser én vinkling — varier mellom: hvilken transaksjon må vente, hvor oppstår deadlock, hvilke låser holdes på et gitt tidspunkt, hva er forskjellen på basic vs strict 2PL i et konkret scenario.
 - Match en låse-tilstand (has-locks/wants-locks-graf) til riktig operasjonssekvens.
 - Deadlock — gitt en sekvens, oppstår deadlock? Hvilke transaksjoner er involvert?
 - 2PL-varianter: basic, conservative, strict, rigorous — hvilken egenskap har hver?
 - MVCC / snapshot isolation — hva leser en read-transaksjon hvis en write committer underveis?
 
-### 4.6 Transaksjoner del 3 — recovery (ARIES) (kap. 18) — 2–3 oppgaver
-**Mønster fra vår_2025 Problem 7–8 — varier loggen hver gang.**
+### 4.6 Transaksjoner del 3 — recovery (ARIES) (kap. 18) — 4–5 oppgaver
+[vår_2025.md](../vår_2025.md) Problem 7–8 er én ARIES-vinkling — *bruk dem som referanse, ikke mal*. Hver eksamen bør teste *forskjellige aspekter*: én kan ha analyse-fasen i fokus (DPT, ATT), en annen REDO-fasen (hvilke poster anvendes), en tredje en CLR-kjede gjennom UNDO, en fjerde et konseptuelt spørsmål om WAL/force-log-at-commit. Ikke bare "samme log-tabell med endrede tall".
 - Gitt en logg + checkpoint-state (transaksjonstabell, DPT): hva er DPT etter analyse-fasen?
 - Hvilke pages kan vi med sikkerhet si ble skrevet til disk før krasj? (Forutsetter forståelse av PageLSN, recLSN, "stjålne" buffer-slots.)
 - Hvilke loggposter trenger REDO? (Sjekk DPT-medlemskap, recLSN ≥ LSN, PageLSN ≥ LSN.)
@@ -265,10 +269,13 @@ For alle slike: hold spørsmålet *konkret* (presis spec) og distraktorene *plau
 - [ ] Filen er en HTML-side med `<link rel="stylesheet" href="exam.css">` og `<script src="exam.js"></script>`.
 - [ ] Hver oppgave er en `<article class="exam-q">` med riktig HTML-struktur (se §2) — `.opt-label` per alternativ, `.fasit-correct` med `Riktig svar: X`, og en `<details class="fasit-details">` med forklaring.
 - [ ] Sett er testet i nettleser: klikk på et alternativ låser oppgaven, fargelegger riktig/feil, og åpner forklaringen automatisk.
+- [ ] **Antall oppgaver: 40–50 totalt** (ca. 16–20 i Del 1, 24–30 i Del 2).
 - [ ] Total poengsum = 100, og fordelingen er ≈ 40/60 mellom Del 1 og Del 2.
 - [ ] Hver av de syv Del 1-blokkene (§3.1–3.7) er representert med minst én oppgave.
 - [ ] Hver av de seks Del 2-blokkene (§4.1–4.6) er representert med minst én oppgave.
 - [ ] Minst én oppgave dekker det "underrepresenterte" stoffet: views, triggere, rekursjon, hashing-detaljer, join-algoritmer (J2–J4), isolation levels, MVCC.
+- [ ] **Variasjonssjekk på tvers av sett:** scrollet gjennom eksisterende sett og sjekket at dette settet ikke er en omformulering av de samme spørsmålstypene. Minst 1/3 av oppgavene tester en *vinkling* eller *spørsmålstype* som ikke er brukt i de siste sett.
+- [ ] **Vanskelighetsgradssjekk:** minst halvparten av oppgavene krever resonnement (regning, sporing, sammenligning) — ikke bare gjenkjenning av definisjon. Triviell-test: les hver oppgave og spør "kunne en student som bare har lest pensum-overskriftene svart riktig?" Hvis ja for mer enn ~25 %, gjør dem hardere.
 - [ ] Ingen oppgave er en direkte kopi av [midterm_2026.md](../midterm_2026.md) eller [vår_2025.md](../vår_2025.md). Tall, navn og scenario er endret.
 - [ ] Alle oppgaver har grundig forklaring som dekker både hvorfor riktig er riktig og hvorfor distraktorene er feil.
 - [ ] Distraktorene er plausible (typiske misforståelser), ikke "fyllalternativer", og er omtrent like lange som det riktige svaret.
@@ -276,7 +283,7 @@ For alle slike: hold spørsmålet *konkret* (presis spec) og distraktorene *plau
 - [ ] **Posisjonssjekk:** riktig svar (A/B/C/D) er fordelt jevnt over settet, ikke konsentrert på én bokstav.
 - [ ] **Form-test:** for hver oppgave, prøv å gjette riktig svar uten å lese spørsmålet. Hvis du klarer det fra formuleringen alene, må alternativene skrives om.
 - [ ] Hver oppgave har en pensum-lenke i `.ref` som peker til riktig kapittelside.
-- [ ] For hver Del 2-regnearts-oppgave (B+-tre, ARIES, 2PL, merge-sort): tallene er nye, ikke gjenbruk av tidligere oppgavers oppsett.
+- [ ] For hver Del 2-regneartsoppgave (B+-tre, ARIES, 2PL, merge-sort): tallene er nye, ikke gjenbruk av tidligere oppgavers oppsett.
 
 ---
 
