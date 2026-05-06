@@ -941,7 +941,7 @@ T2:           r2(A); A=A+5; w2(A); r2(B); B=B+5; w2(B); c2;</pre>
             <tr><td>110</td><td>0</td><td>T3</td><td>Update</td><td>E</td></tr>
             <tr><td>111</td><td>109</td><td>T2</td><td>Commit</td><td></td></tr>
           </table>
-          <p class="q-text">I sjekkpunktloggposten med LSN=107 ble TT funnet: <strong>(T1, LastLSN=105, Active), (T2, LastLSN=104, Active)</strong>. DPT funnet: <strong>(A, recLSN=102), (C, recLSN=105)</strong>. I tillegg vet vi at ved kjøring av loggpost LSN=105 ble plassen til <code>PageID=B</code> "stjålet" fra bufferet. Hvilken datablokk (Page) kan vi <em>med sikkerhet</em> si ble skrevet ut til disken før krasjen?</p>
+          <p class="q-text">I sjekkpunktloggposten med LSN=107 ble TT funnet: <strong>(T1, LastLSN=105, Active), (T2, LastLSN=104, Active)</strong>. DPT funnet: <strong>(A, recLSN=102), (C, recLSN=105)</strong>. I tillegg vet vi at ved kjøring av loggpost LSN=105 ble plassen til <code>PageID=B</code> «stjålet» fra bufferet — en skitten side som kastes ut må skrives til disk først (steal-policy + WAL). <strong>Hvilken datablokk ble, som direkte følge av denne hendelsen, skrevet ut til disken?</strong></p>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span> A</li>
             <li><span class="opt-label">B</span> B</li>
@@ -954,15 +954,8 @@ T2:           r2(A); A=A+5; w2(A); r2(B); B=B+5; w2(B); c2;</pre>
             <summary>Vis fasit</summary>
             <div class="fasit-body">
               <span class="fasit-correct">Riktig svar: B</span>
-              <p>Vi resonnerer per page:</p>
-              <ul>
-                <li><strong>A</strong>: i DPT med recLSN=102 → A er fortsatt skitten i bufferet ved sjekkpunktet. <em>Ikke garantert flushet.</em></li>
-                <li><strong>B</strong>: ble "stjålet" fra bufferet ved LSN 105. I steal-policy må en stjålet skitten side først skrives til disk (WAL-regelen sørger for at loggen er der). Så B <em>må</em> ha blitt flushet på det tidspunktet. ✓</li>
-                <li><strong>C</strong>: i DPT med recLSN=105 → ikke flushet siden den ble skitten.</li>
-                <li><strong>D</strong>: oppdatert ved LSN 109 (etter sjekkpunkt). Ingen info → kan være flushet eller ikke.</li>
-                <li><strong>E</strong>: oppdatert ved LSN 110 (etter sjekkpunkt). Samme situasjon — ukjent.</li>
-              </ul>
-              <p>Bare B er garantert flushet. A og C: i DPT, så ikke flushet. D og E: ukjent. F er ikke aktuelt — B er sikkert.</p>
+              <p>Oppgaven spør om hvilken blokk som <em>måtte</em> skrives ut <em>i den konkrete buffer-hendelsen</em> der plassen til B ble stjålet. Da er svaret entydig <strong>B</strong>: det er nettopp den skitne siden som ble kastet ut av bufferet, og med steal må den skrives til disk før RAM-plassen gjenbrukes.</p>
+              <p>TT/DPT forteller hva som var skittent ved sjekkpunktet, men sier ikke hvilke andre sider som tilfeldigvis ble flushet tidligere. En side kan stå i DPT og likevel ha eldre endringer på disk (f.eks. gir <code>(A, recLSN=102)</code> sammen med oppdatering LSN 101 på A at endringen ved 101 sannsynligvis allerede er på disk — men det følger ikke av steal-hendelsen). <strong>C</strong> er per DPT fortsatt i en «skitten periode» fra 105; <strong>D</strong> og <strong>E</strong> oppdateres først etter sjekkpunktet. <strong>F</strong> er feil fordi <strong>B</strong> er riktig.</p>
               <p class="ref">Pensum: <a href="../../kap8/recovery.html">Kap. 8 — Recovery</a></p>
             </div>
           </details>

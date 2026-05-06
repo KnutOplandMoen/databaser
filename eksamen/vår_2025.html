@@ -363,7 +363,7 @@
           <span class="exam-q__topic">Kap. 8 — Steal/no-force</span>
         </header>
         <div class="exam-q__body">
-          <p class="q-text">Sjekkpunkt LSN=107: tx-tabell <code>(T1, lastLSN=105, Active), (T2, lastLSN=104, Active)</code>, DPT <code>(A, recLSN=102), (C, recLSN=105)</code>. I tillegg: ved kjøring av loggpost LSN=105 ble plassen til Page B «stjålet» fra bufferet. Hvilke pages kan vi <em>med sikkerhet</em> si ble skrevet til disk før krasjen? (<em>multi-select</em>)</p>
+          <p class="q-text">Sjekkpunkt LSN=107: tx-tabell <code>(T1, lastLSN=105, Active), (T2, lastLSN=104, Active)</code>, DPT <code>(A, recLSN=102), (C, recLSN=105)</code>. Ved kjøring av loggpost LSN=105 ble plassen til Page B «stjålet» fra bufferet (skitten side som kastes ut skrives først til disk ved steal-policy + WAL). <strong>Hvilken page ble, som direkte følge av denne hendelsen, skrevet ut til disk?</strong> (<em>multi-select</em> — kun ett riktig blant sidene)</p>
           <div class="note-missing">Loggen er en figur i papireksamen. Fasiten følger standard ARIES-resonnement.</div>
           <ol class="multi-list">
             <li><span class="opt-label">A</span> A</li>
@@ -377,9 +377,9 @@
           <details class="fasit-details">
             <summary>Vis fasit</summary>
             <div class="fasit-body">
-              <span class="fasit-correct">Riktig svar: E (kun B med sikkerhet)</span>
-              <p>«Stjålet fra bufferet» betyr i steal-policyen at sidens innhold ble skrevet ut til disk før plassen ble overtatt av en annen side. Dermed vet vi <strong>med sikkerhet</strong> at B nådde disken før krasjen.</p>
-              <p>Pages som er i DPT etter analysen (A, C, og evt. D/E hvis i loggen) er per definisjon <em>dirty</em> — de har ennå ikke blitt skrevet til disk. Vi kan derfor ikke garantere at A, C, D eller E er på disk. Bare B kvalifiserer.</p>
+              <span class="fasit-correct">Riktig svar: E (B)</span>
+              <p>Oppgaven spør hvilken blokk som <em>måtte</em> skrives ut i akkurat den buffer-hendelsen der plassen til B ble stjålet. Da er svaret entydig <strong>B</strong>: det er siden som evikteres, og steal krever flush før RAM-plassen kan gjenbrukes.</p>
+              <p>At en side står i DPT betyr at den fortsatt regnes som <em>skitten</em> ved sjekkpunktet — ikke «aldri skrevet til disk»: eldre endringer kan allerede være på disk (f.eks. kan <code>(A, recLSN=102)</code> oppstå ved flush mellom oppdatering LSN 101 og 102 på A). DPT alene binder ikke ett entydig svar om «som følge av steal». For C, D og E finnes ingen tilsvarende tvangsmulighet beskrevet. Derfor matcher alternativ <strong>E</strong> på lista.</p>
               <p class="ref">Pensum: <a href="../kap8/recovery.html">Kap. 8 — Recovery</a></p>
             </div>
           </details>
