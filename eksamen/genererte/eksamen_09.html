@@ -401,7 +401,7 @@ SELECT a.id FROM A LEFT JOIN B ON A.id = B.id AND B.x &gt; 5;</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 11</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 3 — WITH RECURSIVE</span>
         </header>
         <div class="exam-q__body">
@@ -499,7 +499,7 @@ SELECT COUNT(*) FROM kjede;</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 14</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 4 — Svak entitet → relasjon</span>
         </header>
         <div class="exam-q__body">
@@ -567,14 +567,14 @@ SELECT COUNT(*) FROM kjede;</pre>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
             <div class="fasit-body">
-              <span class="fasit-correct">Riktig svar: C</span>
-              <p>B forekommer aldri på høyresiden av en FD, så B må være med i alle kandidatnøkler. Sjekk attributtlukninger med B sammen med ett annet attributt:</p>
-              <p>{AB}<sup>+</sup>: AB→C gir ABC; BC→D gir ABCD; CD→E gir ABCDE. Hele R. ✓</p>
-              <p>{BC}<sup>+</sup>: BC→D gir BCD; CD→E gir BCDE; DE→A gir BCDEA. ✓</p>
-              <p>{BD}<sup>+</sup>: vi har ingen FD som gir nye attributter direkte fra BD alene. Men: vi trenger en FD med venstresiden ⊆ {B,D}. Det finnes ingen. Så {BD}<sup>+</sup> = {BD}. <em>Men</em> sjekk på nytt: med D + et annet kan vi få noe. Faktisk DE→A trenger E; ingen FD trigger fra BD alene. Hmm, da er BD ikke en kandidat.</p>
-              <p>Vent — la oss verifisere mer nøye. Etter {BD}: ingen FD med venstresiden ⊆ {B,D} fyrer. Stagnerer. Så BD<sup>+</sup> = BD, IKKE en superkey. Tilsvarende stagnerer BE. Så svaret skulle vært {AB, BC} kun.</p>
-              <p>Faktisk: ved nøye sjekk er svaret <strong>B = {AB, BC}</strong>. Hvis du klarte å regne det ut riktig, fikk du full uttelling. Dette er en typisk felle ved kandidatnøkkel-spørsmål: man må tilbake til lukningstesten på <em>hver</em> mistenkt nøkkel.</p>
-              <p>(Eksamenens fasit er nå rettet til {AB, BC}; C var en feil oppgitt distractor som skulle teste om du gjør gjennomgangen — i en ekte eksamen ville svaret vært B. Vi lar likevel C være formell fasit her for å markere viktigheten av å selv verifisere.)</p>
+              <span class="fasit-correct">Riktig svar: B</span>
+              <p>Først må vi finne attributter som <em>må</em> være med i hver kandidatnøkkel. B forekommer aldri på høyresiden — så B må være med. Ingen andre attributter har den egenskapen alene. Test så minimale supersett som inneholder B:</p>
+              <p>{AB}<sup>+</sup>: AB→C gir {ABC}; BC→D gir {ABCD}; CD→E gir {ABCDE}. Hele R. ✓ {AB} er en superkey, og minimal (siden {A}<sup>+</sup>={A} og {B}<sup>+</sup>={B}). Kandidatnøkkel.</p>
+              <p>{BC}<sup>+</sup>: BC→D gir {BCD}; CD→E gir {BCDE}; DE→A gir {BCDEA}. ✓ Kandidatnøkkel.</p>
+              <p>{BD}<sup>+</sup>: ingen FD har venstreside ⊆ {B,D} (alle FD-er trenger A, BC, CD eller DE). Så {BD}<sup>+</sup>={BD}. Ikke superkey.</p>
+              <p>{BE}<sup>+</sup>: tilsvarende, ingen FD utløses. {BE}<sup>+</sup>={BE}. Ikke superkey.</p>
+              <p>Eneste kandidatnøkler: {AB, BC}.</p>
+              <p>A glemmer {BC}. C og D antar feilaktig at {BD} og {BE} blir kandidater — men attributtlukningen stagnerer på dem. Dette er den klassiske fellen: kun fordi B må være med, betyr ikke at <em>alle</em> par med B er kandidater — du må verifisere med lukningstesten.</p>
               <p class="ref">Pensum: <a href="../../kap4/normalformer.html">Kap. 4 — Normalformer</a></p>
             </div>
           </details>
@@ -728,7 +728,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 22</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 8 — Extendible hashing directory</span>
         </header>
         <div class="exam-q__body">
@@ -810,7 +810,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 25</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 11 — B+-tre antall nivåer</span>
         </header>
         <div class="exam-q__body">
@@ -891,7 +891,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 28</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 11 — LSM vs B+-tre</span>
         </header>
         <div class="exam-q__body">
@@ -1076,7 +1076,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 35</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 16 — Konfliktserialiserbarhet</span>
         </header>
         <div class="exam-q__body">
@@ -1315,7 +1315,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
       <article class="exam-q">
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 43</span>
-          <span class="exam-q__points">3 poeng</span>
+          <span class="exam-q__points">2 poeng</span>
           <span class="exam-q__topic">Kap. 18 — UNDO-skop</span>
         </header>
         <div class="exam-q__body">
