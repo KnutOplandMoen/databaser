@@ -683,22 +683,22 @@ F = { saleId → productId, productName, custName, custCity;
         <div class="exam-q__body">
           <p class="q-text">Vi har en database som lagrer bomringpasseringer:</p>
           <pre class="q-code">Passering(passId, passTime, regNo, turnpikeNo, cost)</pre>
-          <p class="q-text">Tabellen er lagret i et clustered B+-tre med <code>passId</code> som søkenøkkel — 1500 løvblokker, 3 nivåer. I tillegg finnes et unclustered B+-tre på <code>regNo</code> med 800 løvblokker og 3 nivåer. Anta at det er nøyaktig 100 passeringer per <code>regNo</code>, og at de 100 RID-ene fordeler seg på 100 distinkte løvblokker i det clustered treet.</p>
+          <p class="q-text">Tabellen er lagret i et clustered B+-tre med <code>passId</code> som søkenøkkel — 1500 løvblokker, 3 nivåer. I tillegg finnes et unclustered B+-tre på <code>regNo</code> med 800 løvblokker og 3 nivåer. Løvnodene i det unclustered treet inneholder søkenøkkelen (<code>regNo</code>) og tabellens primærnøkkel (<code>passId</code>). Anta at det er nøyaktig 100 passeringer per <code>regNo</code>.</p>
           <p class="q-text">Hvor mange blokker aksesseres ved optimal utføring av:</p>
           <pre class="q-code">SELECT passTime FROM Passering WHERE regNo = 'XY12345';</pre>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span> 1500</li>
-            <li><span class="opt-label">B</span> 103</li>
+            <li><span class="opt-label">B</span> 303</li>
             <li><span class="opt-label">C</span> 100</li>
             <li><span class="opt-label">D</span> 4</li>
-            <li><span class="opt-label">E</span> 803</li>
+            <li><span class="opt-label">E</span> 103</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
             <div class="fasit-body">
               <span class="fasit-correct">Riktig svar: B</span>
-              <p>Optimal plan: bruk det unclustered B+-treet på <code>regNo</code>. Traverser fra rot til løvblokken som inneholder regNo='XY12345' = 3 blokker. Derfra får vi 100 RID-er. For å hente <code>passTime</code> må vi besøke hver av de 100 distinkte løvblokkene i clustered treet = 100 blokker. Sum: <code>3 + 100 = 103</code>.</p>
-              <p>A (1500) er full scan av clustered tree. C (100) glemmer kostnaden ved å traversere indeksen. D (4) ville vært riktig hvis det bare var 1 match (3 + 1). E (803) er full scan av Kunde-indeks pluss noe — overflødig.</p>
+              <p>Optimal plan: bruk det unclustered B+-treet på <code>regNo</code> for å finne alle primærnøklene for <code>regNo = 'XY12345'</code>. Traversering rot → løv = 3 blokker. For hver av 100 <code>passId</code>-verdier må raden slås opp i det clustered B+-treet på <code>passId</code>; hvert oppslag er 3 blokker (3 nivåer). Sum: <code>3 + 100 · 3 = 303</code>.</p>
+              <p>A (1500) er full scan av clustered treets løvnivå. C (100) glemmer indekstraversering og clustered oppslag. D (4) ville tilsvart ett treff (3 + 1·3). E (103) hadde passet dersom løvnodene i <code>regNo</code>-indeksen hadde hatt RID-er og hvert treff bare krevde én ekstra løvblokk i clustered treet.</p>
               <p class="ref">Pensum: <a href="../../kap7/innhold.html">Kap. 7 — Spørringsutføring</a></p>
             </div>
           </details>
