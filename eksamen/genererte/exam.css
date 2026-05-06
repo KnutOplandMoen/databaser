@@ -207,25 +207,197 @@
   color: #6b7280;
 }
 
-/* --- Poeng-tracer (sticky widget) --- */
+/* --- Poeng-tracker: FAB + collapsible panel (under chat z-index) --- */
 
 .exam-tracker {
   position: fixed;
   bottom: 1.25rem;
   left: 1.25rem;
-  z-index: 50;
-  width: 220px;
-  padding: 0.7rem 0.9rem;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+  z-index: 9998;
+  width: 56px;
+  height: 56px;
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: 0.82rem;
   color: #111827;
   user-select: none;
+  pointer-events: none;
+}
+
+.exam-tracker__fab,
+.exam-tracker__panel {
+  pointer-events: auto;
+}
+
+/* Rund knapp (som chat-widget) */
+.exam-tracker__fab {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  line-height: 1.05;
+  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  color: #fff;
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.exam-tracker__fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+}
+
+.exam-tracker__fab:focus-visible {
+  outline: 2px solid #4338ca;
+  outline-offset: 3px;
+}
+
+.exam-tracker__fab-grade {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.exam-tracker__fab-pct {
+  font-size: 0.58rem;
+  font-weight: 600;
+  opacity: 0.92;
+  margin-top: 2px;
+}
+
+.exam-tracker__fab--f { background: linear-gradient(145deg, #6b7280, #4b5563); }
+.exam-tracker__fab--e { background: linear-gradient(145deg, #78716c, #57534e); }
+.exam-tracker__fab--d { background: linear-gradient(145deg, #ca8a04, #a16207); }
+.exam-tracker__fab--c { background: linear-gradient(145deg, #2563eb, #1d4ed8); }
+.exam-tracker__fab--b { background: linear-gradient(145deg, #059669, #047857); }
+.exam-tracker__fab--a { background: linear-gradient(145deg, #d97706, #b45309); }
+
+/* Panel over FAB */
+.exam-tracker__panel {
+  position: absolute;
+  left: 0;
+  bottom: calc(56px + 0.75rem);
+  width: 248px;
+  padding: 0.55rem 0.75rem 0.65rem;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+}
+
+.exam-tracker.is-collapsed .exam-tracker__panel {
+  display: none;
+}
+
+.exam-tracker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.exam-tracker__title {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.exam-tracker__close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.exam-tracker__close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.exam-tracker__close:focus-visible {
+  outline: 2px solid #4338ca;
+  outline-offset: 2px;
+}
+
+.exam-tracker__grade-line {
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  color: #374151;
+}
+
+.exam-tracker__grade-readout strong {
+  font-size: 1.05rem;
+  margin-left: 0.25rem;
+  color: #111827;
+}
+
+.exam-tracker__pct-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.exam-tracker__ladder {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.2rem;
+  margin-bottom: 0.45rem;
+  padding: 0.35rem 0.25rem;
+  background: linear-gradient(90deg,
+    rgba(107, 114, 128, 0.12) 0%,
+    rgba(16, 185, 129, 0.08) 50%,
+    rgba(217, 119, 6, 0.12) 100%);
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.exam-tracker__step {
+  flex: 1;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.25rem 0;
+  border-radius: 4px;
+  color: #9ca3af;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.exam-tracker__step.is-current {
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #d1d5db;
+}
+
+.exam-tracker__next {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #4b5563;
+  min-height: 1.35em;
 }
 
 .exam-tracker__row {
@@ -277,17 +449,26 @@
   color: #6b7280;
 }
 
-.exam-tracker.is-complete {
+.exam-tracker.is-complete .exam-tracker__panel {
   border-color: #10b981;
   box-shadow: 0 4px 18px rgba(16, 185, 129, 0.18);
 }
 
+.exam-tracker.is-complete .exam-tracker__fab {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
 @media (max-width: 720px) {
   .exam-tracker {
-    width: 180px;
     bottom: 0.75rem;
     left: 0.75rem;
-    padding: 0.55rem 0.75rem;
   }
+
+  .exam-tracker__panel {
+    width: calc(100vw - 1.5rem);
+    max-width: 260px;
+    bottom: calc(56px + 0.5rem);
+  }
+
   .exam-tracker__score { font-size: 0.92rem; }
 }

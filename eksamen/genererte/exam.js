@@ -1,17 +1,29 @@
 (function () {
   'use strict';
 
+  const STORAGE_COLLAPSED = 'exam_tracker_collapsed';
+  const NEXT_THRESHOLDS = [41, 53, 65, 77, 89];
+  const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
+
   const score = {
     earned: 0,
     totalPoints: 0,
     answered: 0,
     totalQuestions: 0,
-    el: null,
+    rootEl: null,
+    panelEl: null,
+    fabEl: null,
+    fabGradeEl: null,
+    fabPctEl: null,
     earnedEl: null,
     totalEl: null,
     answeredEl: null,
     qTotalEl: null,
     barFillEl: null,
+    gradeValueEl: null,
+    pctLabelEl: null,
+    nextEl: null,
+    ladderStepEls: null,
   };
 
   function init() {
@@ -47,50 +59,183 @@
     return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
   }
 
+  function fmtPercent(p) {
+    const rounded = Math.round(p * 10) / 10;
+    return (Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)) + ' %';
+  }
+
+  function gradeFromPercent(p) {
+    if (p >= 89) return 'A';
+    if (p >= 77) return 'B';
+    if (p >= 65) return 'C';
+    if (p >= 53) return 'D';
+    if (p >= 41) return 'E';
+    return 'F';
+  }
+
+  function nextThresholdPercent(pct) {
+    for (let i = 0; i < NEXT_THRESHOLDS.length; i++) {
+      if (pct < NEXT_THRESHOLDS[i]) return NEXT_THRESHOLDS[i];
+    }
+    return null;
+  }
+
+  function loadCollapsedPref() {
+    try {
+      return localStorage.getItem(STORAGE_COLLAPSED) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function saveCollapsedPref(collapsed) {
+    try {
+      localStorage.setItem(STORAGE_COLLAPSED, collapsed ? '1' : '0');
+    } catch (e) {}
+  }
+
+  function setCollapsed(collapsed) {
+    if (!score.rootEl) return;
+    score.rootEl.classList.toggle('is-collapsed', collapsed);
+    if (score.fabEl) {
+      score.fabEl.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    }
+    saveCollapsedPref(collapsed);
+  }
+
   function buildTracker() {
-    const wrap = document.createElement('aside');
-    wrap.className = 'exam-tracker';
-    wrap.setAttribute('aria-label', 'Poengoversikt');
-    wrap.innerHTML = [
-      '<div class="exam-tracker__row">',
-      '  <span class="exam-tracker__label">Poeng</span>',
-      '  <span class="exam-tracker__score">',
-      '    <span class="exam-tracker__earned">0</span>',
-      '    <span class="exam-tracker__sep">/</span>',
-      '    <span class="exam-tracker__total">0</span>',
-      '  </span>',
-      '</div>',
-      '<div class="exam-tracker__bar"><div class="exam-tracker__bar-fill"></div></div>',
-      '<div class="exam-tracker__row exam-tracker__sub">',
-      '  <span>Besvart</span>',
-      '  <span><span class="exam-tracker__answered">0</span> / <span class="exam-tracker__qtotal">0</span></span>',
-      '</div>',
+    const root = document.createElement('div');
+    root.className = 'exam-tracker';
+
+    const ladderSpans = GRADE_ORDER.map(
+      (g) => `<span class="exam-tracker__step" data-grade="${g}">${g}</span>`
+    ).join('');
+
+    root.innerHTML = [
+      '<button type="button" class="exam-tracker__fab" aria-label="Åpne poengoversikt">',
+      '  <span class="exam-tracker__fab-grade">F</span>',
+      '  <span class="exam-tracker__fab-pct">0 %</span>',
+      '</button>',
+      '<aside class="exam-tracker__panel" role="region" aria-label="Poengoversikt">',
+      '  <div class="exam-tracker__header">',
+      '    <span class="exam-tracker__title">Poengoversikt</span>',
+      '    <button type="button" class="exam-tracker__close" aria-label="Lukk poengoversikt">×</button>',
+      '  </div>',
+      '  <div class="exam-tracker__grade-line">',
+      '    <span class="exam-tracker__grade-readout">',
+      '      Karakter <strong class="exam-tracker__grade-value">F</strong>',
+      '      <span class="exam-tracker__pct-label"></span>',
+      '    </span>',
+      '  </div>',
+      '  <div class="exam-tracker__ladder" aria-hidden="true">' + ladderSpans + '</div>',
+      '  <p class="exam-tracker__next"></p>',
+      '  <div class="exam-tracker__row">',
+      '    <span class="exam-tracker__label">Poeng</span>',
+      '    <span class="exam-tracker__score">',
+      '      <span class="exam-tracker__earned">0</span>',
+      '      <span class="exam-tracker__sep">/</span>',
+      '      <span class="exam-tracker__total">0</span>',
+      '    </span>',
+      '  </div>',
+      '  <div class="exam-tracker__bar"><div class="exam-tracker__bar-fill"></div></div>',
+      '  <div class="exam-tracker__row exam-tracker__sub">',
+      '    <span>Besvart</span>',
+      '    <span><span class="exam-tracker__answered">0</span> / <span class="exam-tracker__qtotal">0</span></span>',
+      '  </div>',
+      '</aside>',
     ].join('');
 
-    document.body.appendChild(wrap);
+    document.body.appendChild(root);
 
-    score.el = wrap;
-    score.earnedEl = wrap.querySelector('.exam-tracker__earned');
-    score.totalEl = wrap.querySelector('.exam-tracker__total');
-    score.answeredEl = wrap.querySelector('.exam-tracker__answered');
-    score.qTotalEl = wrap.querySelector('.exam-tracker__qtotal');
-    score.barFillEl = wrap.querySelector('.exam-tracker__bar-fill');
+    score.rootEl = root;
+    score.panelEl = root.querySelector('.exam-tracker__panel');
+    score.fabEl = root.querySelector('.exam-tracker__fab');
+    score.fabGradeEl = root.querySelector('.exam-tracker__fab-grade');
+    score.fabPctEl = root.querySelector('.exam-tracker__fab-pct');
+    score.earnedEl = root.querySelector('.exam-tracker__earned');
+    score.totalEl = root.querySelector('.exam-tracker__total');
+    score.answeredEl = root.querySelector('.exam-tracker__answered');
+    score.qTotalEl = root.querySelector('.exam-tracker__qtotal');
+    score.barFillEl = root.querySelector('.exam-tracker__bar-fill');
+    score.gradeValueEl = root.querySelector('.exam-tracker__grade-value');
+    score.pctLabelEl = root.querySelector('.exam-tracker__pct-label');
+    score.nextEl = root.querySelector('.exam-tracker__next');
+    score.ladderStepEls = Array.from(root.querySelectorAll('.exam-tracker__step'));
 
     score.totalEl.textContent = fmtPoints(score.totalPoints);
     score.qTotalEl.textContent = String(score.totalQuestions);
+
+    score.fabEl.addEventListener('click', () => {
+      setCollapsed(!score.rootEl.classList.contains('is-collapsed'));
+    });
+    root.querySelector('.exam-tracker__close').addEventListener('click', () => setCollapsed(true));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!score.rootEl || score.rootEl.classList.contains('is-collapsed')) return;
+      const ae = document.activeElement;
+      if (score.panelEl && score.panelEl.contains(ae)) setCollapsed(true);
+    });
+
+    setCollapsed(loadCollapsedPref());
+
     updateTracker();
   }
 
   function updateTracker() {
-    if (!score.el) return;
+    if (!score.rootEl) return;
+
     score.earnedEl.textContent = fmtPoints(score.earned);
     score.answeredEl.textContent = String(score.answered);
+
     const pct = score.totalPoints > 0
       ? Math.max(0, Math.min(100, (score.earned / score.totalPoints) * 100))
       : 0;
+
     score.barFillEl.style.width = pct.toFixed(1) + '%';
+
+    const letter = gradeFromPercent(pct);
+    score.gradeValueEl.textContent = letter;
+    score.fabGradeEl.textContent = letter;
+    score.fabPctEl.textContent = fmtPercent(pct);
+    score.pctLabelEl.textContent = ' · ' + fmtPercent(pct);
+
+    score.fabEl.classList.remove(
+      'exam-tracker__fab--f', 'exam-tracker__fab--e', 'exam-tracker__fab--d',
+      'exam-tracker__fab--c', 'exam-tracker__fab--b', 'exam-tracker__fab--a'
+    );
+    score.fabEl.classList.add('exam-tracker__fab--' + letter.toLowerCase());
+
+    score.ladderStepEls.forEach((el) => {
+      el.classList.toggle('is-current', el.getAttribute('data-grade') === letter);
+    });
+
+    if (score.totalPoints <= 0) {
+      score.nextEl.textContent = '';
+    } else {
+      const nextT = nextThresholdPercent(pct);
+      if (nextT === null) {
+        score.nextEl.textContent = 'Du ligger an til karakter A.';
+      } else {
+        const targetEarned = (nextT / 100) * score.totalPoints;
+        const need = Math.max(0, Math.round((targetEarned - score.earned) * 10) / 10);
+        const nextLetter = gradeFromPercent(nextT);
+        score.nextEl.textContent = need > 0
+          ? `${fmtPoints(need)} poeng til karakter ${nextLetter} (${nextT} %).`
+          : '';
+      }
+    }
+
+    const collapsed = score.rootEl.classList.contains('is-collapsed');
+    score.fabEl.setAttribute(
+      'aria-label',
+      collapsed
+        ? `Åpne poengoversikt. Karakter ${letter}, ${fmtPercent(pct)}`
+        : 'Lukk poengoversikt'
+    );
+
     if (score.answered >= score.totalQuestions && score.totalQuestions > 0) {
-      score.el.classList.add('is-complete');
+      score.rootEl.classList.add('is-complete');
     }
   }
 
