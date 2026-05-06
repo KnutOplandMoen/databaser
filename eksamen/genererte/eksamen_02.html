@@ -327,10 +327,10 @@ Stryk(sid)         = { (2), (NULL) }</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedforskjellen mellom en <em>vanlig view</em> og en <em>materialisert view</em>?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> En materialisert view lagrer resultatet fysisk på disk og må refreshes når underliggende data endres; en vanlig view eksisterer kun som en lagret spørringsdefinisjon som re-evalueres ved hver bruk.</li>
+            <li><span class="opt-label">A</span> En materialisert view lagrer resultatet fysisk på disk og må refreshes; en vanlig view re-evalueres ved hver bruk.</li>
             <li><span class="opt-label">B</span> En materialisert view kan oppdateres med <code>UPDATE</code>/<code>INSERT</code>/<code>DELETE</code>, mens en vanlig view alltid er read-only.</li>
-            <li><span class="opt-label">C</span> En materialisert view fungerer kun mot heap-filer, mens en vanlig view kan brukes mot indekserte tabeller.</li>
-            <li><span class="opt-label">D</span> En materialisert view kan kun inneholde en SELECT på én tabell; en vanlig view kan inneholde joins.</li>
+            <li><span class="opt-label">C</span> En materialisert view fungerer kun mot heap-filer, mens en vanlig view kan brukes mot tabeller med indekser.</li>
+            <li><span class="opt-label">D</span> En materialisert view kan kun inneholde en SELECT på én tabell, mens en vanlig view kan inneholde joins.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -637,10 +637,10 @@ Stryk(sid)         = { (2), (NULL) }</pre>
         <div class="exam-q__body">
           <p class="q-text">Når en blokk på <em>løvnivået</em> i et B+-tre splittes ved innsetting, hva skjer med den nøkkelen som ligger i midten?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Den <em>kopieres</em> opp til foreldernoden — kopien blir en ny separator i indre nivå, og originalen blir værende i en av de to løvblokkene.</li>
-            <li><span class="opt-label">B</span> Den <em>flyttes</em> opp til foreldernoden, og finnes etterpå kun i indre nivå.</li>
-            <li><span class="opt-label">C</span> Den slettes fra løvnivået og erstattes av en pekertabell.</li>
-            <li><span class="opt-label">D</span> Den dupliseres i begge nye løvblokker, slik at begge har den.</li>
+            <li><span class="opt-label">A</span> Den <em>kopieres</em> opp som ny separator i indre nivå, og originalen blir værende i en av løvblokkene.</li>
+            <li><span class="opt-label">B</span> Den <em>flyttes</em> opp til foreldernoden, og finnes etterpå kun i indre nivå og ikke i løvene.</li>
+            <li><span class="opt-label">C</span> Den slettes fra løvnivået og erstattes av en pekertabell på indre nivå over de to nye blokkene.</li>
+            <li><span class="opt-label">D</span> Den dupliseres i begge de nye løvblokkene, slik at begge løvblokkene har separatorverdien.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -743,10 +743,10 @@ Stryk(sid)         = { (2), (NULL) }</pre>
         <div class="exam-q__body">
           <p class="q-text">Hvilken sammenstilling kobler ACID-egenskapen riktig til mekanismen som hovedsakelig opprettholder den i et tradisjonelt RDBMS?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Atomicity → integritetsbegrensninger; Consistency → låser; Isolation → logging; Durability → tx-loggen.</li>
-            <li><span class="opt-label">B</span> Atomicity → UNDO-loggen; Consistency → integritetsbegrensninger; Isolation → låser/MVCC; Durability → REDO-loggen og force-log-at-commit.</li>
-            <li><span class="opt-label">C</span> Atomicity → låser; Consistency → REDO-loggen; Isolation → MVCC; Durability → checkpoints.</li>
-            <li><span class="opt-label">D</span> Atomicity → triggere; Consistency → CHECK; Isolation → views; Durability → backup.</li>
+            <li><span class="opt-label">A</span> Atomicity → integritetsbegrensninger; Consistency → låser; Isolation → logging; Durability → tx-loggen og buffer-pool.</li>
+            <li><span class="opt-label">B</span> Atomicity → UNDO-loggen; Consistency → integritetsbegrensninger; Isolation → låser/MVCC; Durability → REDO-loggen.</li>
+            <li><span class="opt-label">C</span> Atomicity → låser; Consistency → REDO-loggen; Isolation → MVCC-snapshots; Durability → periodiske checkpoints.</li>
+            <li><span class="opt-label">D</span> Atomicity → triggere; Consistency → CHECK-constraints; Isolation → views; Durability → backups på disk.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -799,10 +799,10 @@ Stryk(sid)         = { (2), (NULL) }</pre>
           <pre class="q-code">r1(A); r2(B); w1(B); w2(A);</pre>
           <p class="q-text">Hva skjer?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Deadlock: T1 holder S(A), T2 holder S(B); T1 trenger X(B) som T2 holder, T2 trenger X(A) som T1 holder.</li>
-            <li><span class="opt-label">B</span> Sekvensen utføres uten venting fordi alle leselåser er kompatible.</li>
-            <li><span class="opt-label">C</span> T1 må vente til T2 committer; deretter kjører T1 ferdig.</li>
-            <li><span class="opt-label">D</span> Bare en av transaksjonene aborterer — T1 fordi den startet først.</li>
+            <li><span class="opt-label">A</span> Deadlock: T1 holder S(A), T2 holder S(B); T1 trenger X(B) som T2 holder, og T2 trenger X(A).</li>
+            <li><span class="opt-label">B</span> Sekvensen utføres uten venting fordi alle leselåser er gjensidig kompatible mellom transaksjonene.</li>
+            <li><span class="opt-label">C</span> T1 må vente til T2 committer og frigir alle sine låser, og deretter kjører T1 ferdig.</li>
+            <li><span class="opt-label">D</span> Bare en av transaksjonene aborterer — T1 aborterer fordi den startet først i sekvensen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -827,10 +827,10 @@ Stryk(sid)         = { (2), (NULL) }</pre>
           <pre class="q-code">r1(X); w2(Y); r2(X); w1(X); c1; c2;</pre>
           <p class="q-text">Hvilket utsagn beskriver kjøringen mest presist?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> T2 må vente på T1 sin X-lås på X; ingen lock-konflikt på Y; ingen deadlock.</li>
-            <li><span class="opt-label">B</span> r2(X) er forenlig med r1(X) (begge S-låser), men w1(X) må vente på T2 sin S(X). Etter c2 frigis S(X), T1 får X(X), skriver, og committer. Ingen deadlock.</li>
-            <li><span class="opt-label">C</span> Deadlock oppstår mellom T1 og T2 på X.</li>
-            <li><span class="opt-label">D</span> T1 aborterer fordi w1(X) skjer etter at T2 har lest X.</li>
+            <li><span class="opt-label">A</span> T2 må vente på T1 sin X-lås på X; ingen lock-konflikt finnes på Y, og det blir ingen deadlock i scenariet.</li>
+            <li><span class="opt-label">B</span> r2(X) er kompatibel med r1(X) (begge S-låser), men w1(X) må vente på T2 sin S(X). Etter c2 får T1 X(X) og fullfører.</li>
+            <li><span class="opt-label">C</span> Deadlock oppstår mellom T1 og T2 på objekt X siden begge venter på den andres lås på X.</li>
+            <li><span class="opt-label">D</span> T1 aborterer fordi w1(X) skjer etter at T2 allerede har lest X, noe schedulen ikke tillater.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

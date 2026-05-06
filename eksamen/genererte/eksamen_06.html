@@ -246,9 +246,9 @@ WHERE bar.bid = serves.bid
   AND drink.did = serves.did
   AND price &gt; 20;</pre>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> π_{bar.name, drink.name}(σ_{price &gt; 20}(bar ⋈_{bar.bid=serves.bid} serves ⋈_{drink.did=serves.did} drink))</li>
+            <li><span class="opt-label">A</span> π_{bar.name, drink.name}(σ_{price &gt; 20}(bar ⋈ serves ⋈ drink))</li>
             <li><span class="opt-label">B</span> σ_{price &gt; 20}(π_{bar.name, drink.name}(bar ⋈ serves ⋈ drink))</li>
-            <li><span class="opt-label">C</span> π_{bar.name}(σ_{price &gt; 20}(bar ⋈ serves))</li>
+            <li><span class="opt-label">C</span> π_{bar.name}(σ_{price &gt; 20}(bar ⋈ serves ⋈ drink))</li>
             <li><span class="opt-label">D</span> π_{bar.name, drink.name, price}(σ_{price &gt; 20}(bar ⋈ serves ⋈ drink))</li>
           </ul>
           <details class="fasit-details">
@@ -362,10 +362,10 @@ CREATE TABLE Enrollment (
         <div class="exam-q__body">
           <p class="q-text">Vurder følgende ER-fragment: Entiteten <code>Movie</code> har en M:N-relasjon "Reviews" til entiteten <code>Person</code>, med relasjonsattributtet <code>rating</code>. Hvilken av påstandene under er <em>sann</em>?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> En person kan ikke gi mer enn én review per film.</li>
-            <li><span class="opt-label">B</span> En film kan reviews av flere personer; en person kan reviewe flere filmer.</li>
-            <li><span class="opt-label">C</span> En film må ha minst én review for å eksistere.</li>
-            <li><span class="opt-label">D</span> To reviews kan ikke ha samme rating-verdi.</li>
+            <li><span class="opt-label">A</span> En person kan ikke gi mer enn én review per film de har sett.</li>
+            <li><span class="opt-label">B</span> En film kan ha reviews av flere personer; en person kan reviewe flere filmer.</li>
+            <li><span class="opt-label">C</span> En film må ha minst én review for å kunne eksistere i databasen.</li>
+            <li><span class="opt-label">D</span> To reviews kan ikke ha samme rating-verdi for samme film i databasen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

@@ -206,10 +206,10 @@ FROM Ansatt
 WHERE ny_lonn &gt; 800000;</pre>
           <p class="q-text">Hva skjer ved utføring i et standard-konformt RDBMS?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Spørringen fungerer som forventet — aliaset <code>ny_lonn</code> er tilgjengelig overalt i spørringen.</li>
-            <li><span class="opt-label">B</span> En syntaks- eller kjøretidsfeil: <code>ny_lonn</code> finnes ikke i WHERE-fasen fordi WHERE evalueres før SELECT (og dermed før alias-tildeling).</li>
-            <li><span class="opt-label">C</span> Spørringen kjører, men returnerer alltid 0 rader fordi aliaset alltid er NULL i WHERE-fasen.</li>
-            <li><span class="opt-label">D</span> Spørringen optimeres bort av planneren og returnerer hele Ansatt-tabellen ufiltrert.</li>
+            <li><span class="opt-label">A</span> Spørringen fungerer som forventet — aliaset <code>ny_lonn</code> er tilgjengelig overalt ellers i spørringen.</li>
+            <li><span class="opt-label">B</span> Syntaks- eller kjøretidsfeil: <code>ny_lonn</code> finnes ikke i WHERE-fasen siden WHERE evalueres før SELECT.</li>
+            <li><span class="opt-label">C</span> Spørringen kjører, men returnerer alltid 0 rader fordi aliaset alltid er NULL ved evaluering av WHERE.</li>
+            <li><span class="opt-label">D</span> Spørringen optimeres helt bort av planneren og returnerer hele Ansatt-tabellen ufiltrert som resultat.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -309,9 +309,9 @@ Tar(sid, kid)</pre>
           <p class="q-text">Vi vil finne studenter som tar <em>alle</em> kurs (relasjonsalgebra-divisjon). Hvilken SQL-spørring oppnår dette?</p>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span> <code>SELECT navn FROM Student s JOIN Tar t ON s.sid = t.sid GROUP BY s.sid, s.navn HAVING COUNT(*) = (SELECT COUNT(*) FROM Tar);</code></li>
-            <li><span class="opt-label">B</span> <code>SELECT navn FROM Student WHERE sid IN (SELECT sid FROM Tar);</code></li>
-            <li><span class="opt-label">C</span> <code>SELECT navn FROM Student s WHERE NOT EXISTS (SELECT k.kid FROM Kurs k WHERE NOT EXISTS (SELECT 1 FROM Tar t WHERE t.sid = s.sid AND t.kid = k.kid));</code></li>
-            <li><span class="opt-label">D</span> <code>SELECT navn FROM Student s JOIN Kurs k ON 1 = 1;</code></li>
+            <li><span class="opt-label">B</span> <code>SELECT DISTINCT navn FROM Student s WHERE s.sid IN (SELECT sid FROM Tar GROUP BY sid);</code></li>
+            <li><span class="opt-label">C</span> <code>SELECT navn FROM Student s WHERE NOT EXISTS (SELECT 1 FROM Kurs k WHERE NOT EXISTS (SELECT 1 FROM Tar t WHERE t.sid = s.sid AND t.kid = k.kid));</code></li>
+            <li><span class="opt-label">D</span> <code>SELECT DISTINCT s.navn FROM Student s JOIN Kurs k ON 1 = 1 ORDER BY s.navn;</code></li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -469,10 +469,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">En <em>kategori</em> (også kalt union type) i utvidet ER er forskjellig fra en vanlig spesialisering (ISA). Hvordan?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> En kategori har én superklasse og flere subklasser; en spesialisering har omvendt struktur.</li>
-            <li><span class="opt-label">B</span> En kategori er en subklasse hvis instanser er en union av instanser fra <em>flere ulike</em> superklasser; en spesialisering har én superklasse.</li>
-            <li><span class="opt-label">C</span> En kategori er den samme som en svak entitet — bare en annen notasjon.</li>
-            <li><span class="opt-label">D</span> En kategori er en ISA-relasjon der alle subklassene er disjunkte; spesialisering tillater overlapp.</li>
+            <li><span class="opt-label">A</span> En kategori har én superklasse og flere subklasser, mens en spesialisering har omvendt struktur i diagrammet.</li>
+            <li><span class="opt-label">B</span> En kategori er en subklasse hvis instanser er union fra <em>flere ulike</em> superklasser; spesialisering har én superklasse.</li>
+            <li><span class="opt-label">C</span> En kategori er det samme som en svak entitet i ER-modellen — det er bare to forskjellige notasjoner for begrepet.</li>
+            <li><span class="opt-label">D</span> En kategori er en ISA-relasjon der alle subklassene er disjunkte, mens spesialisering tillater overlapp mellom dem.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -497,10 +497,10 @@ SELECT aner FROM Aner;</pre>
           <pre class="q-code">F = { bnr → kid,   bnr → totalpris,   kid → kby }</pre>
           <p class="q-text">Kandidatnøkkelen er {bnr}. Hvilken normalform er Bestilling brutt mot?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> 3NF — <code>bnr → kid → kby</code> er en transitiv avhengighet av PK via en ikke-prim-attributt.</li>
-            <li><span class="opt-label">B</span> 2NF — <code>kid → kby</code> er en delvis avhengighet av PK.</li>
-            <li><span class="opt-label">C</span> 1NF — kby er ikke atomær.</li>
-            <li><span class="opt-label">D</span> Ingen — tabellen er på BCNF.</li>
+            <li><span class="opt-label">A</span> 3NF — <code>bnr → kid → kby</code> er transitiv avhengighet av PK via en ikke-prim-attributt.</li>
+            <li><span class="opt-label">B</span> 2NF — <code>kid → kby</code> er en delvis avhengighet av en del av primærnøkkelen.</li>
+            <li><span class="opt-label">C</span> 1NF — kby er ikke atomær fordi feltet kan inneholde strukturerte data.</li>
+            <li><span class="opt-label">D</span> Ingen normalform — tabellen er allerede på BCNF og trenger ingen normalisering.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -531,10 +531,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hvorfor implementerer DBMS-er sin egen buffer manager i stedet for å stole utelukkende på operativsystemets filcache?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> OS-er har ikke filcache — DBMS må implementere alt selv.</li>
-            <li><span class="opt-label">B</span> Bare for å spare RAM — DB-bufferen er alltid mindre enn OS-cachen.</li>
-            <li><span class="opt-label">C</span> DBMS-et trenger fin kontroll over evictions (LRU vs MRU vs hint), prefetching basert på spørringsplanen, og garantert tilstedeværelse av "pinned" sider — ting OS-cachen ikke kan tilby.</li>
-            <li><span class="opt-label">D</span> Fordi OS-cache lager kopier og dermed bryter ACID-egenskapen Atomicity.</li>
+            <li><span class="opt-label">A</span> Operativsystemer har ikke filcache, og DBMS-et må derfor implementere all caching helt selv fra bunnen.</li>
+            <li><span class="opt-label">B</span> Bare for å spare RAM på maskinen — DB-bufferen er alltid mindre i størrelse enn operativsystemets cache i praksis.</li>
+            <li><span class="opt-label">C</span> DBMS-et trenger fin kontroll over evictions, prefetching basert på spørringsplanen og garantert tilstedeværelse av pinned sider.</li>
+            <li><span class="opt-label">D</span> Fordi OS-cachen lager ekstra kopier av data og bryter dermed med ACID-egenskapen Atomicity for transaksjoner.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -557,10 +557,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">I extendible hashing har en blokk lokal depth d. Hva betyr dette eksakt?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> d er antall poster som passer i blokken.</li>
-            <li><span class="opt-label">B</span> d er hvor mange splits blokken har vært gjennom siden filen ble opprettet.</li>
-            <li><span class="opt-label">C</span> d er antall directory-entries som peker på nettopp denne blokken.</li>
-            <li><span class="opt-label">D</span> d er antall hash-bits som er nødvendig for å skille denne blokken fra andre — alle nøkler i blokken har samme suffiks/prefiks av lengde d, og det finnes 2^(GD−d) directory-entries som peker på blokken.</li>
+            <li><span class="opt-label">A</span> d er antall datapostene som passer inn i blokken før den må splittes på grunn av plassmangel.</li>
+            <li><span class="opt-label">B</span> d er hvor mange splits blokken har vært gjennom siden filen ble opprettet i utgangspunktet.</li>
+            <li><span class="opt-label">C</span> d er antall directory-entries som peker direkte på nettopp denne blokken i strukturen.</li>
+            <li><span class="opt-label">D</span> d er antall hash-bits som trengs for å skille blokken fra andre — alle nøkler har samme prefiks av lengde d, og 2^(GD−d) directory-entries peker hit.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -583,10 +583,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">En post med flere variabel-lengde felter kan lagres med en delimiter mellom feltene (f.eks. NUL-byte). Hva er hovedulempen ved denne strategien sammenlignet med en offset-vektor?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Delimiter-strategien er treig fordi den krever zip-komprimering før skriving.</li>
-            <li><span class="opt-label">B</span> Vi må skanne posten lineært for å finne et bestemt felt — direkte aksess i konstant tid er ikke mulig uten ekstra arbeid.</li>
-            <li><span class="opt-label">C</span> Delimiter-strategien kan ikke representere felter med variabel lengde.</li>
-            <li><span class="opt-label">D</span> Posten må være padded til en fast størrelse — sløser plass.</li>
+            <li><span class="opt-label">A</span> Delimiter-strategien er treig fordi den krever zip-komprimering før hver eneste skriving til disk.</li>
+            <li><span class="opt-label">B</span> Vi må skanne posten lineært for å finne et bestemt felt — direkte aksess i konstant tid er ikke mulig.</li>
+            <li><span class="opt-label">C</span> Delimiter-strategien kan ikke representere felter som har variabel lengde i datapostene på disk.</li>
+            <li><span class="opt-label">D</span> Posten må padded til en fast størrelse, og dette unødig sløser med diskplass i datafilen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -635,10 +635,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hvorfor regnes B+-tre-blokker ofte med en 2/3 fyllgrad, og ikke 100 %?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Fordi DBMS-et alltid reserverer 1/3 av blokken til logging.</li>
-            <li><span class="opt-label">B</span> Fordi en B+-tre-blokk har inntil 1/3 av plassen brukt opp til peker-hodet (parent, neste, prev).</li>
-            <li><span class="opt-label">C</span> Det er en empirisk gjennomsnittlig fyllgrad for B+-tre-blokker etter mange innsettinger og slettinger — splits gir typisk en 50/50-fordeling, men over tid jevner det seg ut til ca. 67 %.</li>
-            <li><span class="opt-label">D</span> Fordi 1/3 av blokken alltid reserveres til neste forventede splits, slik at innsettinger blir raskere.</li>
+            <li><span class="opt-label">A</span> Det er fordi DBMS-et alltid reserverer akkurat 1/3 av blokken til intern WAL-logging i seg selv.</li>
+            <li><span class="opt-label">B</span> Fordi en B+-tre-blokk har inntil 1/3 av plassen brukt opp til peker-hodet (parent, neste og prev pekere).</li>
+            <li><span class="opt-label">C</span> Empirisk gjennomsnittlig fyllgrad etter mange innsettinger og slettinger — splits gir 50/50, men over tid jevner det seg til ca. 67 %.</li>
+            <li><span class="opt-label">D</span> Fordi 1/3 av blokken alltid reserveres til neste forventede splits, slik at innsettinger blir raskere senere i bruk.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -661,10 +661,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hvilken påstand om "write amplification" i LSM-trær er korrekt?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Write amplification er null i LSM-trær — det er en av de vesentlige fordelene.</li>
-            <li><span class="opt-label">B</span> Write amplification er nøyaktig 1: hver post skrives én gang når memtable flushes.</li>
-            <li><span class="opt-label">C</span> Write amplification i LSM er per definisjon høyere enn i B+-trær fordi compaction ikke eksisterer i B+-trær.</li>
-            <li><span class="opt-label">D</span> Write amplification er hvor mange ganger den samme posten skrives totalt — i en N-nivå LSM med leveled compaction skrives en post i gjennomsnitt N ganger (én per nivå-overgang).</li>
+            <li><span class="opt-label">A</span> Write amplification er null i LSM-trær — det er nettopp dette som er en av de vesentligste fordelene med dem.</li>
+            <li><span class="opt-label">B</span> Write amplification er nøyaktig 1 i alle tilfeller: hver post skrives kun én gang når memtable flushes til disk.</li>
+            <li><span class="opt-label">C</span> Write amplification i LSM er per definisjon høyere enn i B+-trær fordi compaction-prosessen ikke eksisterer i B+-trær.</li>
+            <li><span class="opt-label">D</span> Write amplification er hvor mange ganger samme post skrives totalt — i en N-nivå LSM med leveled compaction skrives en post N ganger.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -715,10 +715,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Når lønner sort-merge join (J3) seg sammenlignet med hash join (J4) eller nested loop?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Når begge tabellene er små nok til å passe i RAM.</li>
-            <li><span class="opt-label">B</span> Når join-attributtet er en streng — sortering håndterer kollisjoner bedre enn hashing.</li>
-            <li><span class="opt-label">C</span> Når begge inputene allerede er sortert på join-attributtet (eller sorteringen kan utnyttes videre, f.eks. til ORDER BY) — da er kostnaden bare lineær merge, og ekstra sortering kan unngås helt.</li>
-            <li><span class="opt-label">D</span> Sort-merge er alltid raskere enn hash join for store tabeller.</li>
+            <li><span class="opt-label">A</span> Når begge tabellene er små nok til å kunne passe samtidig i hovedminnet på maskinen.</li>
+            <li><span class="opt-label">B</span> Når join-attributtet er en lang streng, fordi sortering håndterer kollisjoner bedre enn hashing.</li>
+            <li><span class="opt-label">C</span> Når begge inputene allerede er sortert på join-attributtet (eller sorteringen kan brukes til ORDER BY) — da er kostnaden bare lineær merge.</li>
+            <li><span class="opt-label">D</span> Sort-merge er alltid raskere enn hash join for store tabeller med svært mange rader.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -741,10 +741,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er kjernemekanismen i partition-hash join (J4)?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Begge tabellene sorteres etter join-attributtet før de joines med en lineær merge.</li>
-            <li><span class="opt-label">B</span> Join-attributtet hashes for å partisjonere begge tabellene; deretter bygges en in-memory hashtabell på den minste sidens partisjon (build), og den større sidens partisjon "probes" mot den. Krever at hver build-partisjon får plass i RAM.</li>
-            <li><span class="opt-label">C</span> En hashtabell over join-attributtet vedlikeholdes på disk og oppdateres ved hver innsetting i en av tabellene.</li>
-            <li><span class="opt-label">D</span> Tabellene leses parallelt fra disk og kombineres i en hash-bitmap som indikerer matchede par.</li>
+            <li><span class="opt-label">A</span> Begge tabellene sorteres først etter join-attributtet, før de slås sammen med en lineær merge i en separat fase.</li>
+            <li><span class="opt-label">B</span> Join-attributtet hashes for å partisjonere begge tabellene; deretter bygges en hashtabell på minste partisjon som den større probes mot.</li>
+            <li><span class="opt-label">C</span> En hashtabell over join-attributtet vedlikeholdes permanent på disk og oppdateres ved hver innsetting i en av tabellene.</li>
+            <li><span class="opt-label">D</span> Tabellene leses parallelt fra disk og kombineres i en intern hash-bitmap som indikerer matchede par av rader mellom dem.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -795,10 +795,10 @@ SELECT aner FROM Aner;</pre>
           <pre class="q-code">w1(X, 200); r2(X); w2(Y); a1; c2;</pre>
           <p class="q-text">(<code>a1</code> = T1 aborterer.) Hva er problemet?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> T2 har lest en verdi T1 skrev (dirty read), så committet sin egen state. Når T1 aborterer kan ikke T2 rulles tilbake — schedulen er ikke recoverable.</li>
-            <li><span class="opt-label">B</span> Lost update: T2 sin skriv overskriver T1 sin før T1 er committed.</li>
-            <li><span class="opt-label">C</span> Phantom: T2 ser en rad som T1 senere fjerner.</li>
-            <li><span class="opt-label">D</span> Ingen problem — schedulen er strict.</li>
+            <li><span class="opt-label">A</span> T2 har lest en verdi T1 skrev (dirty read) og committet egen state. Når T1 aborterer kan ikke T2 rulles tilbake.</li>
+            <li><span class="opt-label">B</span> Lost update: T2 sin skriv overskriver T1 sin før T1 er ferdig committed, slik at endringen forsvinner.</li>
+            <li><span class="opt-label">C</span> Phantom: T2 ser en rad som T1 senere fjerner i sin egen pågående transaksjon før commit-tidspunkt.</li>
+            <li><span class="opt-label">D</span> Ingen problem — schedulen er allerede strict og dermed rekoverable og fri for anomalier her.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -821,10 +821,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er den kjerneideen i MVCC (Multi-Version Concurrency Control) sammenlignet med 2PL?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> MVCC bruker både låser og versjoner samtidig — alt i 2PL pluss en versjonskjede per rad.</li>
-            <li><span class="opt-label">B</span> MVCC lagrer flere versjoner av hver rad — lesere ser en konsistent versjon (snapshot) uten å ta lås, og blokkerer ikke skrivere; bare skriv-skriv-konflikter krever låsing eller abort.</li>
-            <li><span class="opt-label">C</span> MVCC fjerner låsing helt; konflikter løses kun ved retry på applikasjonsnivå.</li>
-            <li><span class="opt-label">D</span> MVCC og 2PL er to navn på samme mekanisme i moderne DBMS-er.</li>
+            <li><span class="opt-label">A</span> MVCC bruker både låser og versjoner samtidig — alt fra 2PL pluss en versjonskjede som vedlikeholdes per rad i tabellen.</li>
+            <li><span class="opt-label">B</span> MVCC lagrer flere versjoner av hver rad — lesere ser en konsistent snapshot uten lås og blokkerer ikke skrivere. Bare skriv-skriv-konflikter krever låsing.</li>
+            <li><span class="opt-label">C</span> MVCC fjerner alt av låsing helt fra DBMS-et; konflikter løses utelukkende ved retry på applikasjonsnivå over.</li>
+            <li><span class="opt-label">D</span> MVCC og 2PL er bare to forskjellige navn på den samme mekanismen i de fleste moderne DBMS-er i dag.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -847,10 +847,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Under snapshot isolation kan en kjent anomali oppstå: <em>write skew</em>. Hva karakteriserer den?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> To transaksjoner overskriver hver sin sin verdi av samme rad uten å se hverandres skriv.</li>
-            <li><span class="opt-label">B</span> En transaksjon leser en rad to ganger og får forskjellige verdier.</li>
-            <li><span class="opt-label">C</span> To transaksjoner leser et felles datasett, hver oppdaterer en <em>annen</em> del av det basert på denne lesingen, og deres kombinerte effekt bryter en invariant som hver enkelt sjekket separat (f.eks. "minst én lege på vakt").</li>
-            <li><span class="opt-label">D</span> En transaksjon committer en skriv mens en annen er midt i en lengre lesing — tilsvarer dirty read.</li>
+            <li><span class="opt-label">A</span> To transaksjoner overskriver hver sin verdi av samme rad uten å se hverandres skriv først, og siste skriv vinner.</li>
+            <li><span class="opt-label">B</span> En transaksjon leser samme rad to ganger og får forskjellige verdier mellom de to lesingene i samme transaksjon.</li>
+            <li><span class="opt-label">C</span> To transaksjoner leser et felles datasett, hver oppdaterer en <em>annen</em> del basert på lesingen, og effekten bryter en invariant som hver enkelt sjekket.</li>
+            <li><span class="opt-label">D</span> En transaksjon committer en skriv mens en annen er midt i en lengre lesing — dette er det samme som en dirty read.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -876,9 +876,9 @@ SELECT aner FROM Aner;</pre>
           <p class="q-text">REDO-fasen vurderer loggpost LSN=82 som oppdaterer P2. På disk har P2 pageLSN=78. Skal loggposten redoes?</p>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span> Nei, fordi DPT.recLSN(P2) = 85 &gt; LSN = 82 — endringen er allerede kjent å være flushed til disk.</li>
-            <li><span class="opt-label">B</span> Ja, fordi T-en fortsatt er aktiv.</li>
-            <li><span class="opt-label">C</span> Ja, fordi pageLSN &lt; LSN.</li>
-            <li><span class="opt-label">D</span> Nei, fordi loggposten ligger før checkpointet.</li>
+            <li><span class="opt-label">B</span> Ja, fordi transaksjonen fortsatt er aktiv etter at analyse-fasen er ferdig med sin skanning.</li>
+            <li><span class="opt-label">C</span> Ja, fordi pageLSN er mindre enn loggens LSN, og endringen er derfor ikke synlig på disk ennå.</li>
+            <li><span class="opt-label">D</span> Nei, fordi selve loggposten ligger før checkpointet og dermed allerede må være flushed til disk.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -901,10 +901,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Buffer-management policies for transaksjoner kombineres i en 2 × 2-matrise: steal/no-steal × force/no-force. Hvilken kombinasjon bruker ARIES, og hvorfor?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> No-steal + force: enkleste å implementere, krever ingen logging.</li>
-            <li><span class="opt-label">B</span> No-steal + no-force: gir best ytelse for små transaksjoner.</li>
-            <li><span class="opt-label">C</span> Steal + force: kombinerer fleksibilitet med Durability uten REDO-logg.</li>
-            <li><span class="opt-label">D</span> Steal + no-force: maksimal fleksibilitet — buffer-manager kan flushe uncommitted endringer (steal) og trenger ikke flushe ved commit (no-force). Krever både UNDO-logg og REDO-logg.</li>
+            <li><span class="opt-label">A</span> No-steal + force: enkleste politikk å implementere, krever ikke logging og er enkel i daglig drift.</li>
+            <li><span class="opt-label">B</span> No-steal + no-force: gir best ytelse for små og raske transaksjoner som er korte i tid totalt.</li>
+            <li><span class="opt-label">C</span> Steal + force: kombinerer god fleksibilitet med Durability uten å trenge en egen REDO-logg.</li>
+            <li><span class="opt-label">D</span> Steal + no-force: maksimal fleksibilitet — buffer-manager kan flushe uncommitted endringer og trenger ikke flushe ved commit.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

@@ -101,10 +101,10 @@
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedgrunnen til at applikasjoner bruker et DBMS i stedet for å lagre data i flate filer direkte?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> DBMS-er er alltid raskere enn filsystemer fordi de bruker B+-trær internt.</li>
-            <li><span class="opt-label">B</span> DBMS-er gir samtidighetskontroll, recovery, integritet og deklarative spørringer — noe applikasjonen ellers måtte implementert selv på toppen av filsystemet.</li>
-            <li><span class="opt-label">C</span> Filer på disk kan ikke lagre tabulære data — bare DBMS-er kan representere relasjoner.</li>
-            <li><span class="opt-label">D</span> Operativsystemer hindrer applikasjoner fra å skrive direkte til disk; DBMS-er omgår denne restriksjonen.</li>
+            <li><span class="opt-label">A</span> DBMS-er er alltid raskere enn filsystemer fordi de bruker B+-trær internt til all dataaksess.</li>
+            <li><span class="opt-label">B</span> DBMS-er gir samtidighetskontroll, recovery, integritet og deklarative spørringer som applikasjonen ellers måtte implementert selv.</li>
+            <li><span class="opt-label">C</span> Filer på disk kan ikke lagre tabulære data — bare DBMS-er kan representere ekte relasjonsstruktur.</li>
+            <li><span class="opt-label">D</span> Operativsystemer hindrer applikasjoner fra å skrive direkte til disk, og DBMS-er omgår denne restriksjonen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -257,10 +257,10 @@ Bok(bid, fid, tittel)</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er den vesentlige forskjellen mellom en <em>korrelert</em> og en <em>ukorrelert</em> subquery, sett fra utførelsessynspunkt?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> En korrelert subquery returnerer alltid bare én rad; en ukorrelert kan returnere mange.</li>
-            <li><span class="opt-label">B</span> En korrelert subquery må alltid bruke <code>EXISTS</code>; en ukorrelert kan bruke <code>IN</code>.</li>
-            <li><span class="opt-label">C</span> En korrelert subquery refererer kolonner fra den ytre spørringen og må re-evalueres for hver ytre rad; en ukorrelert har ingen slik referanse og kan beregnes én gang.</li>
-            <li><span class="opt-label">D</span> En ukorrelert subquery kan ikke skrive til den ytre spørringens datasett; korrelert kan.</li>
+            <li><span class="opt-label">A</span> En korrelert subquery returnerer alltid bare én enkelt rad, mens en ukorrelert subquery kan returnere mange rader.</li>
+            <li><span class="opt-label">B</span> En korrelert subquery må alltid bruke <code>EXISTS</code> som operator, mens en ukorrelert kan bruke <code>IN</code>.</li>
+            <li><span class="opt-label">C</span> En korrelert subquery refererer kolonner fra ytre spørring og må re-evalueres per ytre rad; en ukorrelert beregnes én gang.</li>
+            <li><span class="opt-label">D</span> En ukorrelert subquery kan ikke skrive til den ytre spørringens datasett, mens en korrelert subquery kan gjøre det.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -315,10 +315,10 @@ Bok(bid, fid, tittel)</pre>
           <pre class="q-code">INSERT INTO HoyLonn VALUES (101, 'Per', 600000);</pre>
           <p class="q-text">Hva skjer?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Innsettingen lykkes; raden vises i den underliggende tabellen, men ikke i viewet.</li>
-            <li><span class="opt-label">B</span> Innsettingen lykkes; viewet er bare et filter, ikke en garanti.</li>
-            <li><span class="opt-label">C</span> En kjøretidsfeil kastes som forklarer at INSERT-er på views aldri er tillatt.</li>
-            <li><span class="opt-label">D</span> Innsettingen avvises fordi raden ville blitt usynlig i viewet (lønn 600&nbsp;000 oppfyller ikke <code>lonn &gt; 700000</code>).</li>
+            <li><span class="opt-label">A</span> Innsettingen lykkes; raden vises i den underliggende tabellen men ikke gjennom selve viewet.</li>
+            <li><span class="opt-label">B</span> Innsettingen lykkes; viewet er kun et lesefilter og ikke en innsettingsgaranti for DBMS-et.</li>
+            <li><span class="opt-label">C</span> En kjøretidsfeil kastes som forklarer at INSERT-operasjoner på views aldri er tillatt i SQL.</li>
+            <li><span class="opt-label">D</span> Innsettingen avvises fordi raden ville blitt usynlig i viewet (600&nbsp;000 oppfyller ikke <code>lonn &gt; 700000</code>).</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -341,10 +341,10 @@ Bok(bid, fid, tittel)</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva karakteriserer en <em>statement-level</em> trigger sammenlignet med en <em>row-level</em> trigger?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Statement-level kjøres en gang per affektert rad, mens row-level kjøres én gang totalt.</li>
-            <li><span class="opt-label">B</span> Statement-level kjøres én gang per utløsende SQL-setning, uavhengig av hvor mange rader som påvirkes; row-level kjøres én gang per rad.</li>
-            <li><span class="opt-label">C</span> Statement-level kan ikke se på de affekterte radene; row-level kan ikke se den utløsende setningen.</li>
-            <li><span class="opt-label">D</span> Statement-level fungerer kun mot views; row-level fungerer kun mot tabeller.</li>
+            <li><span class="opt-label">A</span> Statement-level kjøres en gang per affektert rad i tabellen, mens row-level kjøres én gang totalt for setningen.</li>
+            <li><span class="opt-label">B</span> Statement-level kjøres én gang per utløsende SQL-setning uansett antall rader, mens row-level kjøres én gang per rad.</li>
+            <li><span class="opt-label">C</span> Statement-level kan ikke se på de affekterte radene, og row-level kan ikke se den utløsende setningens kontekst.</li>
+            <li><span class="opt-label">D</span> Statement-level fungerer kun mot views, mens row-level fungerer kun mot vanlige tabeller i databasen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -565,10 +565,10 @@ ORDER BY lonn DESC;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva ligger på løvnivå (level=0) i et <em>clustered</em> versus et <em>unclustered</em> B+-tre?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Begge har (key, RID)-poster; forskjellen er kun at clustered har færre nivåer.</li>
-            <li><span class="opt-label">B</span> Clustered: hele dataradene, sortert etter søkenøkkelen. Unclustered: (key, RID)-poster som peker inn i en separat datastruktur (heap eller annen indeks).</li>
-            <li><span class="opt-label">C</span> Clustered: bare nøkkelverdiene; unclustered: hele dataradene.</li>
-            <li><span class="opt-label">D</span> Clustered krever at hver rad ligger i sin egen blokk; unclustered tillater flere rader per blokk.</li>
+            <li><span class="opt-label">A</span> Begge har (key, RID)-poster, og forskjellen er kun at clustered-trær har færre nivåer i strukturen.</li>
+            <li><span class="opt-label">B</span> Clustered har hele dataradene sortert etter søkenøkkelen; unclustered har (key, RID)-poster som peker til separat struktur.</li>
+            <li><span class="opt-label">C</span> Clustered løvnivå inneholder kun nøkkelverdiene, mens unclustered løvnivå inneholder hele dataradene direkte.</li>
+            <li><span class="opt-label">D</span> Clustered krever at hver rad ligger i sin egen blokk, mens unclustered tillater flere rader per blokk.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -617,10 +617,10 @@ ORDER BY lonn DESC;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedformålet med <em>compaction</em> i et LSM-tre?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Å konvertere det fulle treet til et B+-tre når antall SST-er overskrider en terskel.</li>
-            <li><span class="opt-label">B</span> Å sjekke alle FK-constraints batch-vis for å unngå brudd på integritet.</li>
-            <li><span class="opt-label">C</span> Å slå sammen flere SST-filer til større, fjerne overskrevne/slettede nøkler, og holde antall lese-aksesser nede.</li>
-            <li><span class="opt-label">D</span> Å fryse memtable-en og hindre videre skriv mens recovery-en pågår.</li>
+            <li><span class="opt-label">A</span> Å konvertere hele LSM-treet til et B+-tre når antall SST-filer overskrider en gitt terskel.</li>
+            <li><span class="opt-label">B</span> Å sjekke alle FK-constraints batch-vis i bakgrunnen for å unngå brudd på integritet i databasen.</li>
+            <li><span class="opt-label">C</span> Å slå sammen flere SST-filer til større, fjerne overskrevne/slettede nøkler, og holde lese-aksesser nede.</li>
+            <li><span class="opt-label">D</span> Å fryse memtable-en og hindre videre skriv mens en pågående recovery-prosess kjører ferdig.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -779,10 +779,10 @@ ORDER BY lonn DESC;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedegenskapen ved <em>conservative</em> (statisk) 2PL?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Alle låser frigis umiddelbart etter hver operasjon — som gir høy gjennomstrømning.</li>
-            <li><span class="opt-label">B</span> Det skiller seg fra strict 2PL kun ved at exclusive-låser frigis tidligere; shared-låser holdes til commit.</li>
-            <li><span class="opt-label">C</span> Det bruker time-stamps i stedet for låser — derav "konservativt".</li>
-            <li><span class="opt-label">D</span> Hver transaksjon ber om alle låsene den trenger på forhånd; transaksjonen starter ikke før alle låser er innvilget. Resultat: ingen deadlocks (men redusert samtidighet).</li>
+            <li><span class="opt-label">A</span> Alle låser frigis umiddelbart etter hver enkelt operasjon, noe som gir høy gjennomstrømning og samtidighet i schedulen.</li>
+            <li><span class="opt-label">B</span> Det skiller seg fra strict 2PL kun ved at exclusive-låser frigis tidligere, mens shared-låser holdes helt til commit-tidspunktet.</li>
+            <li><span class="opt-label">C</span> Det bruker tidsstempler i stedet for låser for å serialisere — det er nettopp derfor det kalles "konservativt".</li>
+            <li><span class="opt-label">D</span> Hver transaksjon ber om alle låsene den trenger på forhånd og starter ikke før alle er innvilget. Ingen deadlocks oppstår.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -844,10 +844,10 @@ ORDER BY lonn DESC;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva sier Write-Ahead Logging (WAL) protokollen, og hvilken konsekvens har "force-log-at-commit"?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> WAL: enhver ufullstendig (ikke commit-et) endring må logges <em>før</em> den modifiserte data-blokken skrives til disk. Force-log-at-commit: ved en commit må commit-loggposten (og alle tidligere logger for den transaksjonen) være på disk før commit returneres til klienten.</li>
-            <li><span class="opt-label">B</span> WAL: data-blokken må skrives til disk samtidig som loggposten. Force-log-at-commit: tx-loggen flushes asynkront av en bakgrunnstråd hvert N. sekund.</li>
-            <li><span class="opt-label">C</span> WAL: loggposter buffres til checkpoint, og skrives først da. Force-log-at-commit: data-blokker flushes ved hver commit.</li>
-            <li><span class="opt-label">D</span> WAL: i ARIES skrives REDO-logg til en separat disk og UNDO-logg til hovedminnet. Force-log-at-commit: garanterer at REDO-loggen er skrevet før noe annet.</li>
+            <li><span class="opt-label">A</span> WAL: enhver ikke-committet endring må logges <em>før</em> data-blokken skrives til disk. Force-log-at-commit: commit-loggposten må være på disk før commit returneres til klienten.</li>
+            <li><span class="opt-label">B</span> WAL: data-blokken må skrives til disk samtidig som den tilhørende loggposten. Force-log-at-commit: tx-loggen flushes asynkront av en bakgrunnstråd med jevne mellomrom.</li>
+            <li><span class="opt-label">C</span> WAL: alle loggposter buffres helt til neste checkpoint, og skrives først da til disk. Force-log-at-commit: alle data-blokker flushes ved hver eneste commit.</li>
+            <li><span class="opt-label">D</span> WAL: i ARIES skrives REDO-logg til en separat disk og UNDO-logg til hovedminnet. Force-log-at-commit: garanterer at REDO-loggen er skrevet først av alt.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -870,10 +870,10 @@ ORDER BY lonn DESC;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er hensikten med en Compensation Log Record (CLR) i ARIES, og hvorfor undoes den aldri?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> CLR-en logger commit-tidspunktet for en winner-transaksjon; den undoes ikke fordi commits er irreversible.</li>
-            <li><span class="opt-label">B</span> CLR-en lagrer LSN-en til siste checkpoint; den undoes ikke fordi den representerer recovery-state, ikke en datatransaksjon.</li>
-            <li><span class="opt-label">C</span> CLR-en logger en UNDO-handling utført under recovery (eller rollback). Den undoes aldri — det ville startet en ufruktbar UNDO-løkke. CLR-ens "undoNextLSN" peker forbi den så restart kan resume undo-en uten å dobbel-undoe.</li>
-            <li><span class="opt-label">D</span> CLR-en er en redundant kopi av en vanlig loggpost, og brukes bare for ekstra sikkerhet i replikering.</li>
+            <li><span class="opt-label">A</span> CLR-en logger commit-tidspunktet for en winner-transaksjon, og den undoes ikke fordi commits per definisjon er irreversible operasjoner.</li>
+            <li><span class="opt-label">B</span> CLR-en lagrer LSN-en til siste checkpoint, og den undoes ikke fordi den representerer recovery-state og ikke en vanlig datatransaksjon.</li>
+            <li><span class="opt-label">C</span> CLR-en logger en UNDO-handling utført under recovery eller rollback. Den undoes aldri — det ville startet en uendelig løkke. undoNextLSN peker forbi den.</li>
+            <li><span class="opt-label">D</span> CLR-en er en redundant kopi av en vanlig loggpost, og brukes hovedsakelig for ekstra sikkerhet i forbindelse med replikering av databasen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

@@ -142,10 +142,10 @@
         <div class="exam-q__body">
           <p class="q-text">Hvilket utsagn om supernøkkel og kandidatnøkkel er korrekt?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> En kandidatnøkkel er en supernøkkel som er minimal — fjerning av ett attributt gir en mengde som ikke lenger er supernøkkel.</li>
-            <li><span class="opt-label">B</span> Enhver supernøkkel er også en kandidatnøkkel, men ikke nødvendigvis omvendt.</li>
-            <li><span class="opt-label">C</span> En tabell kan ha flere primærnøkler så lenge alle er kandidatnøkler.</li>
-            <li><span class="opt-label">D</span> En kandidatnøkkel kan inneholde NULL-verdier; en primærnøkkel kan ikke.</li>
+            <li><span class="opt-label">A</span> En kandidatnøkkel er en minimal supernøkkel — ingen ekte delmengde av den er selv supernøkkel.</li>
+            <li><span class="opt-label">B</span> Enhver supernøkkel er også en kandidatnøkkel, men ikke alltid omvendt slik teorien tilsier.</li>
+            <li><span class="opt-label">C</span> En tabell kan godt ha flere primærnøkler så lenge alle samtidig er kandidatnøkler.</li>
+            <li><span class="opt-label">D</span> En kandidatnøkkel kan inneholde NULL-verdier mens en primærnøkkel aldri kan ha det.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -306,10 +306,10 @@ Enrolled(sid, course)</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva karakteriserer en <em>updatable view</em> i SQL?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Alle views er updatable så lenge de spør fra én eneste tabell, uavhengig av aggregat-funksjoner.</li>
-            <li><span class="opt-label">B</span> En view er updatable når den ikke bruker DISTINCT, GROUP BY, HAVING eller aggregater, og hver kolonne kan spores entydig til én underliggende kolonne.</li>
-            <li><span class="opt-label">C</span> Views kan aldri oppdateres direkte i SQL-standarden; man må alltid bruke INSTEAD OF-triggere.</li>
-            <li><span class="opt-label">D</span> En view blir automatisk updatable så snart man legger til <code>WITH CHECK OPTION</code>.</li>
+            <li><span class="opt-label">A</span> Alle views er updatable så lenge de spør fra én eneste tabell, uavhengig av aggregat-funksjoner i SELECT.</li>
+            <li><span class="opt-label">B</span> En view er updatable hvis den unngår DISTINCT, GROUP BY og aggregater, og hver kolonne mapper til én ekte kolonne.</li>
+            <li><span class="opt-label">C</span> Views kan aldri oppdateres direkte i SQL-standarden — man må alltid bruke INSTEAD OF-triggere på dem.</li>
+            <li><span class="opt-label">D</span> En view blir automatisk updatable så snart man legger til <code>WITH CHECK OPTION</code> i definisjonen.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -392,9 +392,9 @@ SELECT mid FROM Boss;</pre>
         <div class="exam-q__body">
           <p class="q-text">Et ER-diagram inneholder en svak entitet <code>Dependent</code> med diskriminator <code>name</code>, totalt avhengig av en sterk entitet <code>Employee</code> (PK <code>ssn</code>). Hvor mange tabeller får vi etter mapping til relasjonsmodellen, og hva blir primærnøkkelen til <code>Dependent</code>?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> 1 tabell; (ssn) er PK.</li>
-            <li><span class="opt-label">B</span> 1 tabell; (ssn, name) er PK.</li>
-            <li><span class="opt-label">C</span> 2 tabeller; Dependent får (name) som PK.</li>
+            <li><span class="opt-label">A</span> 1 sammenslått tabell der (ssn) er PK og name blir et attributt.</li>
+            <li><span class="opt-label">B</span> 1 sammenslått tabell der (ssn, name) tilsammen utgjør PK.</li>
+            <li><span class="opt-label">C</span> 2 tabeller; Dependent får (name) som PK uten FK-referanse til Employee.</li>
             <li><span class="opt-label">D</span> 2 tabeller; Dependent får (ssn, name) som PK, og ssn er FK til Employee.</li>
           </ul>
           <details class="fasit-details">
@@ -596,10 +596,10 @@ CREATE TABLE Employee (
         <div class="exam-q__body">
           <p class="q-text">I extendible hashing settes en ny nøkkel inn i en blokk som er full, og hvor lokal dybde er lik global dybde. Hva skjer?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Bare blokken splittes; directory-en endres ikke.</li>
-            <li><span class="opt-label">B</span> En overflow-blokk kobles til den fulle blokken.</li>
+            <li><span class="opt-label">A</span> Bare den fulle blokken splittes i to; directory-en endres ikke i denne situasjonen.</li>
+            <li><span class="opt-label">B</span> En overflow-blokk kobles på den fulle blokken og lagrer den nye nøkkelen der.</li>
             <li><span class="opt-label">C</span> Directory-en dobles, blokken splittes, og lokal dybde i begge nye blokker øker med én.</li>
-            <li><span class="opt-label">D</span> Alle blokker rehasheres med en ny hash-funksjon.</li>
+            <li><span class="opt-label">D</span> Alle blokker rehasheres med en ny hash-funksjon for å fordele nøklene jevnt.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -910,10 +910,10 @@ CREATE TABLE Employee (
           <pre class="q-code">(P1, recLSN=198), (P2, recLSN=199), (P3, recLSN=203), (P4, recLSN=206)</pre>
           <p class="q-text">Ved start av REDO-fasen leser vi P1 fra disk og finner pageLSN=204 i blokkhodet. Loggposten med LSN=198 oppdaterer P1. Skal denne loggposten redoes?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Ja, fordi P1 finnes i DPT.</li>
-            <li><span class="opt-label">B</span> Ja, fordi recLSN er lik LSN.</li>
+            <li><span class="opt-label">A</span> Ja, fordi P1 finnes i DPT-tabellen etter analyse-fasen.</li>
+            <li><span class="opt-label">B</span> Ja, fordi recLSN i DPT er lik loggpostens LSN her.</li>
             <li><span class="opt-label">C</span> Nei, fordi pageLSN på P1 (204) er større enn loggpostens LSN (198).</li>
-            <li><span class="opt-label">D</span> Nei, fordi T1 har committet.</li>
+            <li><span class="opt-label">D</span> Nei, fordi T1 allerede har committet før crashet skjedde.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

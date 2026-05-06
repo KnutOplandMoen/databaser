@@ -267,11 +267,14 @@ takes(sid, cid)</pre>
           <p class="q-text">Hvilken SQL finner studentene som har tatt <em>alle</em> kursene?</p>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span><pre class="q-code">SELECT sid FROM takes
-GROUP BY sid HAVING COUNT(DISTINCT cid) = 1;</pre></li>
+GROUP BY sid HAVING COUNT(DISTINCT cid) = 1
+ORDER BY sid;</pre></li>
             <li><span class="opt-label">B</span><pre class="q-code">SELECT s.sid FROM student s WHERE s.sid IN
-  (SELECT sid FROM takes WHERE cid = 'DB');</pre></li>
-            <li><span class="opt-label">C</span><pre class="q-code">SELECT sid FROM takes
-WHERE cid IN (SELECT cid FROM course);</pre></li>
+  (SELECT sid FROM takes WHERE cid = 'DB'
+   GROUP BY sid);</pre></li>
+            <li><span class="opt-label">C</span><pre class="q-code">SELECT DISTINCT sid FROM takes
+WHERE cid IN (SELECT cid FROM course
+              WHERE cid IS NOT NULL);</pre></li>
             <li><span class="opt-label">D</span><pre class="q-code">SELECT s.sid FROM student s
 WHERE NOT EXISTS (
     SELECT cid FROM course c
@@ -326,9 +329,9 @@ WHERE NOT EXISTS (
         <div class="exam-q__body">
           <p class="q-text">Hvilket av følgende kriterier må typisk være oppfylt for at en view skal være <em>oppdaterbar</em> (updatable)?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Viewet inneholder GROUP BY og aggregeringsfunksjoner.</li>
-            <li><span class="opt-label">B</span> Viewet er materialisert og lagret separat på disk.</li>
-            <li><span class="opt-label">C</span> Viewet bruker UNION mellom to ulike tabeller.</li>
+            <li><span class="opt-label">A</span> Viewet inneholder GROUP BY-klausul og aggregeringsfunksjoner i SELECT-listen.</li>
+            <li><span class="opt-label">B</span> Viewet er materialisert og lagret separat som ekte rader på disken et annet sted.</li>
+            <li><span class="opt-label">C</span> Viewet bruker UNION-operatoren mellom to forskjellige tabeller i kildedataene.</li>
             <li><span class="opt-label">D</span> Viewet er definert over én enkelt tabell uten DISTINCT eller aggregater.</li>
           </ul>
           <details class="fasit-details">
