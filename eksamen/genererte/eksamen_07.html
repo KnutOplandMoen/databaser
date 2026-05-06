@@ -266,15 +266,21 @@ course(cid)
 takes(sid, cid)</pre>
           <p class="q-text">Hvilken SQL finner studentene som har tatt <em>alle</em> kursene?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span><pre class="q-code">SELECT sid FROM takes
-GROUP BY sid HAVING COUNT(DISTINCT cid) = 1
-ORDER BY sid;</pre></li>
-            <li><span class="opt-label">B</span><pre class="q-code">SELECT s.sid FROM student s WHERE s.sid IN
-  (SELECT sid FROM takes WHERE cid = 'DB'
-   GROUP BY sid);</pre></li>
-            <li><span class="opt-label">C</span><pre class="q-code">SELECT DISTINCT sid FROM takes
-WHERE cid IN (SELECT cid FROM course
-              WHERE cid IS NOT NULL);</pre></li>
+            <li><span class="opt-label">A</span><pre class="q-code">SELECT sid FROM takes t
+WHERE t.cid IS NOT NULL
+GROUP BY t.sid
+HAVING COUNT(DISTINCT t.cid) = 1
+ORDER BY t.sid;</pre></li>
+            <li><span class="opt-label">B</span><pre class="q-code">SELECT DISTINCT s.sid FROM student s
+WHERE s.sid IN
+  (SELECT t.sid FROM takes t WHERE t.cid = 'DB'
+   GROUP BY t.sid HAVING COUNT(*) &gt;= 1)
+ORDER BY s.sid;</pre></li>
+            <li><span class="opt-label">C</span><pre class="q-code">SELECT DISTINCT t.sid FROM takes t
+WHERE t.cid IN
+  (SELECT c.cid FROM course c
+   WHERE c.cid IS NOT NULL)
+ORDER BY t.sid;</pre></li>
             <li><span class="opt-label">D</span><pre class="q-code">SELECT s.sid FROM student s
 WHERE NOT EXISTS (
     SELECT cid FROM course c

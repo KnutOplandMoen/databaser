@@ -265,14 +265,16 @@ WHERE sid IN (SELECT sid FROM takes WHERE cid = 'DB');</pre>
             <li><span class="opt-label">A</span><pre class="q-code">SELECT s.name FROM student s
 WHERE EXISTS (SELECT * FROM takes t
               WHERE t.sid = s.sid AND t.cid = 'DB');</pre></li>
-            <li><span class="opt-label">B</span><pre class="q-code">SELECT DISTINCT s.name FROM student s, takes t
-WHERE s.sid = t.sid AND t.cid = 'DB';</pre></li>
-            <li><span class="opt-label">C</span><pre class="q-code">SELECT name FROM student s
+            <li><span class="opt-label">B</span><pre class="q-code">SELECT DISTINCT name FROM student s, takes t
+WHERE s.sid = t.sid
+ORDER BY name;</pre></li>
+            <li><span class="opt-label">C</span><pre class="q-code">SELECT DISTINCT name FROM student s
 WHERE NOT EXISTS (SELECT * FROM takes t
-                  WHERE t.sid = s.sid AND t.cid &lt;&gt; 'DB');</pre></li>
-            <li><span class="opt-label">D</span><pre class="q-code">SELECT DISTINCT s.name FROM student s
+                  WHERE t.cid = 'DB');</pre></li>
+            <li><span class="opt-label">D</span><pre class="q-code">SELECT name FROM student s
 LEFT JOIN takes t USING (sid)
-WHERE t.cid = 'DB';</pre></li>
+WHERE t.cid = 'DB'
+ORDER BY name;</pre></li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>

@@ -309,9 +309,9 @@ Tar(sid, kid)</pre>
           <p class="q-text">Vi vil finne studenter som tar <em>alle</em> kurs (relasjonsalgebra-divisjon). Hvilken SQL-spørring oppnår dette?</p>
           <ul class="exam-q__opts">
             <li><span class="opt-label">A</span> <code>SELECT navn FROM Student s JOIN Tar t ON s.sid = t.sid GROUP BY s.sid, s.navn HAVING COUNT(*) = (SELECT COUNT(*) FROM Tar);</code></li>
-            <li><span class="opt-label">B</span> <code>SELECT DISTINCT navn FROM Student s WHERE s.sid IN (SELECT sid FROM Tar GROUP BY sid);</code></li>
+            <li><span class="opt-label">B</span> <code>SELECT DISTINCT s.navn FROM Student s WHERE s.sid IN (SELECT t.sid FROM Tar t GROUP BY t.sid HAVING COUNT(*) &gt;= 1);</code></li>
             <li><span class="opt-label">C</span> <code>SELECT navn FROM Student s WHERE NOT EXISTS (SELECT 1 FROM Kurs k WHERE NOT EXISTS (SELECT 1 FROM Tar t WHERE t.sid = s.sid AND t.kid = k.kid));</code></li>
-            <li><span class="opt-label">D</span> <code>SELECT DISTINCT s.navn FROM Student s JOIN Kurs k ON 1 = 1 ORDER BY s.navn;</code></li>
+            <li><span class="opt-label">D</span> <code>SELECT DISTINCT s.navn FROM Student s JOIN Kurs k ON 1 = 1 GROUP BY s.sid, s.navn ORDER BY s.navn;</code></li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -557,10 +557,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">I extendible hashing har en blokk lokal depth d. Hva betyr dette eksakt?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> d er antall datapostene som passer inn i blokken før den må splittes på grunn av plassmangel.</li>
-            <li><span class="opt-label">B</span> d er hvor mange splits blokken har vært gjennom siden filen ble opprettet i utgangspunktet.</li>
-            <li><span class="opt-label">C</span> d er antall directory-entries som peker direkte på nettopp denne blokken i strukturen.</li>
-            <li><span class="opt-label">D</span> d er antall hash-bits som trengs for å skille blokken fra andre — alle nøkler har samme prefiks av lengde d, og 2^(GD−d) directory-entries peker hit.</li>
+            <li><span class="opt-label">A</span> d angir antall datapostene som passer inn i blokken før den må splittes pga. plassmangel og overflyt mot directory.</li>
+            <li><span class="opt-label">B</span> d angir hvor mange splits denne spesifikke blokken har vært gjennom siden filen ble opprettet i utgangspunktet av systemet.</li>
+            <li><span class="opt-label">C</span> d angir antall directory-entries som peker direkte på nettopp denne blokken i hash-strukturen for filen totalt.</li>
+            <li><span class="opt-label">D</span> d angir antall hash-bits som trengs for å skille blokken fra andre — nøkler i blokken har samme prefiks av lengde d.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -715,10 +715,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Når lønner sort-merge join (J3) seg sammenlignet med hash join (J4) eller nested loop?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Når begge tabellene er små nok til å kunne passe samtidig i hovedminnet på maskinen.</li>
-            <li><span class="opt-label">B</span> Når join-attributtet er en lang streng, fordi sortering håndterer kollisjoner bedre enn hashing.</li>
-            <li><span class="opt-label">C</span> Når begge inputene allerede er sortert på join-attributtet (eller sorteringen kan brukes til ORDER BY) — da er kostnaden bare lineær merge.</li>
-            <li><span class="opt-label">D</span> Sort-merge er alltid raskere enn hash join for store tabeller med svært mange rader.</li>
+            <li><span class="opt-label">A</span> Når begge tabellene er små nok til å kunne passe samtidig i hovedminnet på maskinen som kjører spørringen.</li>
+            <li><span class="opt-label">B</span> Når join-attributtet er en lang streng, fordi sortering generelt håndterer kollisjoner bedre enn hashing gjør.</li>
+            <li><span class="opt-label">C</span> Når begge inputene allerede er sortert på join-attributtet (eller sorteringen kan brukes til ORDER BY) — kun lineær merge.</li>
+            <li><span class="opt-label">D</span> Sort-merge er alltid raskere enn hash join for store tabeller med svært mange rader på disken i praksis.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
@@ -821,10 +821,10 @@ SELECT aner FROM Aner;</pre>
         <div class="exam-q__body">
           <p class="q-text">Hva er den kjerneideen i MVCC (Multi-Version Concurrency Control) sammenlignet med 2PL?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> MVCC bruker både låser og versjoner samtidig — alt fra 2PL pluss en versjonskjede som vedlikeholdes per rad i tabellen.</li>
-            <li><span class="opt-label">B</span> MVCC lagrer flere versjoner av hver rad — lesere ser en konsistent snapshot uten lås og blokkerer ikke skrivere. Bare skriv-skriv-konflikter krever låsing.</li>
-            <li><span class="opt-label">C</span> MVCC fjerner alt av låsing helt fra DBMS-et; konflikter løses utelukkende ved retry på applikasjonsnivå over.</li>
-            <li><span class="opt-label">D</span> MVCC og 2PL er bare to forskjellige navn på den samme mekanismen i de fleste moderne DBMS-er i dag.</li>
+            <li><span class="opt-label">A</span> MVCC bruker både låser og versjoner samtidig — alt fra 2PL pluss en versjonskjede som vedlikeholdes per rad i tabellen i basen.</li>
+            <li><span class="opt-label">B</span> MVCC lagrer flere versjoner av hver rad — lesere ser konsistent snapshot uten lås, og bare skriv-skriv-konflikter krever låsing.</li>
+            <li><span class="opt-label">C</span> MVCC fjerner alt av låsing helt fra DBMS-et; konflikter løses utelukkende ved retry på applikasjonsnivå over i klienten.</li>
+            <li><span class="opt-label">D</span> MVCC og 2PL er bare to forskjellige navn på den samme grunnleggende mekanismen i mange moderne DBMS-er som finnes i dag.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
