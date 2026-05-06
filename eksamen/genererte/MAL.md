@@ -9,8 +9,9 @@ Dette dokumentet beskriver hvordan en øvingseksamen bør se ut når vi lager ny
 - **Format:** Kun **flervalgsspørsmål** (multiple choice). Ingen tegning, ingen langsvar, ingen "skriv SQL i en boks".
 - **Interaktivt:** Hvert sett er en HTML-side. Brukeren klikker på et alternativ; siden fargelegger riktig svar grønt og feil svar rødt, og åpner automatisk en `<details>`-blokk med grundig forklaring (fasit + hvorfor de andre er feil + lenke til pensum). Bruk [exam.js](exam.js) og [exam.css](exam.css) — de håndterer denne logikken så lenge HTML-strukturen i §2 følges.
 - **Vekting:** Del 1 ≈ 40 %, Del 2 ≈ 60 %.
-- **Lengde per oppgavesett:** 25–30 oppgaver totalt (ca. 12–14 i Del 1, ca. 14–18 i Del 2). Hver oppgave har et poengtall som summerer til 100.
-- **Tidsramme (anbefalt):** 3 timer for et komplett sett — speiler eksamen.
+- **Lengde per oppgavesett:** **40–50 oppgaver totalt** (ca. 16–20 i Del 1, ca. 24–30 i Del 2). Hver oppgave har et poengtall som summerer til 100. Den lengre formen tvinger oss til å gå *bredere* (alle delkapitler dekkes) og *dypere* (flere edge cases, flere ledd i hver utregning) enn et 25-oppgavesett klarer.
+- **Vanskelighetsgrad:** Settene skal *utfordre* en student som har lest pensum. Unngå å bare ha "definisjonsspørsmål" der svaret er en bokstavelig setning fra boken, selv om det går fint å ha noen slike oppgaver, men bruk helst *anvendelse*: gi et konkret scenario, en log, en tabell, et schema, og krev at studenten *resonnerer*. Se på tidligere eksamener for å få et intrykk av dette og hvordan oppgavene b
+- **Tidsramme (anbefalt):** 4 timer for et komplett sett — speiler en lengre, breiere eksamen.
 
 > **Viktig om gamle eksamener:** [vår_2025.md](../vår_2025.md) og [midterm_2026.md](../midterm_2026.md) ligger som referanse for *stilen*, ikke fasit. Bruk dem til å forstå tonen, vanskelighetsgraden og oppgavetypene — men **ikke replikér oppgaver**. I tillegg må vi teste deler av pensum som ikke ble berørt der (særlig Del 1 sine kapitler om views/triggere/funksjoner/rekursjon, og deler av Del 2 som hashing, sortering og isolation levels). Variér tall, skjemaer og scenarier hver gang.
 
@@ -121,11 +122,11 @@ Det betyr at **fasitens innhold er det brukeren ser etter et svar** — det skal
 
 ---
 
-## 3. Del 1 — Theodoros (~40 %, ca. 12–14 oppgaver)
+## 3. Del 1 — Theodoros (~40 %, ca. 16–20 oppgaver)
 
-Stilen ligner [midterm_2026.md](../midterm_2026.md): korte konseptspørsmål + små tabeller man "kjører" SQL/RA mot i hodet. Hver eksamen skal dekke alle de syv blokkene under, med minst én oppgave per blokk.
+Stilen ligner [midterm_2026.md](../midterm_2026.md): korte konseptspørsmål + små tabeller man "kjører" SQL/RA mot i hodet. Hver eksamen skal dekke alle de syv blokkene under, med minst antallet oppgaver indikert. Med 16–20 oppgaver i Del 1 har vi rom for *flere ulike vinklinger* per blokk — ikke bare én "definisjonsoppgave" og én "regneoppgave", men f.eks. tre ulike SQL-bugs som hver tester sin egen feilmønster.
 
-### 3.1 Introduksjon (Kap. 1) — 1 oppgave
+### 3.1 Introduksjon (Kap. 1) — 1–2 oppgaver
 Kap. 1 er en oversiktsforelesning, men har konseptuelt MC-stoff som er lett å glemme:
 - **Tre-skjema-arkitekturen** (fysisk / logisk / view) og **datauavhengighet** (logisk vs fysisk).
 - **DDL vs DML** — hva uttrykker DDL (skjema, integritetskrav), hva uttrykker DML (innhold)?
@@ -134,7 +135,7 @@ Kap. 1 er en oversiktsforelesning, men har konseptuelt MC-stoff som er lett å g
 - **DBMS vs filsystem**: hvorfor ikke bare bruke filer? (lost update, redundans, integritet, samtidighet, recovery).
 - **Skjema vs instans**: skjemaet endres sjelden, instansen ofte.
 
-### 3.2 Relasjonsmodell og relasjonsalgebra (Kap. 2 + 3.2 + 4.1) — 2 oppgaver
+### 3.2 Relasjonsmodell og relasjonsalgebra (Kap. 2 + 3.2 + 4.1) — 2–3 oppgaver
 Spørsmålstyper som **må** representeres over tid:
 - Hvilke operatorer er fundamentale i RA? (selection, projection, union, set difference, cross product, rename — *ikke* intersection, join, division)
 - Beregn antall tupler i resultatet av et RA-uttrykk (σ, π, ⋈, ⋈ₙ, ÷, ∪, ∩, −).
@@ -143,20 +144,20 @@ Spørsmålstyper som **må** representeres over tid:
 - Nøkkelbegreper: superkey vs candidate key vs primary key vs foreign key.
 - Domain, attributt, schema, instans.
 
-### 3.3 SQL — DDL, spørringer, aggregater (3.1–3.7, 3.9) — 2 oppgaver
+### 3.3 SQL — DDL, spørringer, aggregater (3.1–3.7, 3.9) — 2–3 oppgaver
 - Les en `CREATE TABLE`-setning: hvilken er gyldig? Hvilken constraint er brutt? Hva blir typen til en kolonne?
 - Resultat av en `SELECT` med `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`, `LIMIT` mot en gitt liten tabell — svaralternativer er konkrete tall eller verdier.
 - Rekkefølgen SQL-klausuler logisk evalueres i (FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY).
 - Aggregater (`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`) og hva som skjer med NULL.
 - DISTINCT, set-operatorer (UNION, INTERSECT, EXCEPT).
 
-### 3.4 SQL — joins og subqueries (3.8, 4.1) — 2 oppgaver
+### 3.4 SQL — joins og subqueries (3.8, 4.1) — 2–3 oppgaver
 - Resultat av self-joins, inner/outer joins.
 - Korrelert vs ukorrelert subquery — hvilken gir samme resultat?
 - `IN`, `EXISTS`, `ANY`, `ALL`, `NOT EXISTS` — semantikk og ekvivalenser.
 - Omskriv en nøstet spørring til en flat join (eller motsatt) — "hvilken av disse er ekvivalent?".
 
-### 3.5 SQL — views, transaksjoner, integritet, indekser, autorisasjon, prosedyrer, triggere, rekursjon (4.2–4.7, 5.2–5.4, 16.5.1, 17.1) — 2–3 oppgaver
+### 3.5 SQL — views, transaksjoner, integritet, indekser, autorisasjon, prosedyrer, triggere, rekursjon (4.2–4.7, 5.2–5.4, 16.5.1, 17.1) — 3–4 oppgaver
 **Dette området ble underrepresentert i midterm — pass særlig på her.**
 - Hva er en view? Materialiserte views vs vanlige views. Updatable views.
 - `CHECK`, `NOT NULL`, `UNIQUE`, `FOREIGN KEY ... ON DELETE/UPDATE CASCADE/SET NULL/RESTRICT`.
@@ -166,7 +167,7 @@ Spørsmålstyper som **må** representeres over tid:
 - `GRANT`/`REVOKE`-syntaks.
 - `CREATE INDEX` — hva slags indeks lages, og hva betyr det for ytelse?
 
-### 3.6 ER-modellering og ER → relasjonsskjema (6.1–6.7, 6.9, 7.1) — 2 oppgaver
+### 3.6 ER-modellering og ER → relasjonsskjema (6.1–6.7, 6.9, 7.1) — 2–3 oppgaver
 - Tolk et lite ER-diagram (vist som SVG/bilde eller beskrivelse): hvor mange tabeller trengs?
 - Kardinaliteter (1:1, 1:N, M:N) og total/partial deltakelse.
 - Svake entiteter — hvordan mappes de?
