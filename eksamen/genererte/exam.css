@@ -206,3 +206,88 @@
   font-size: 0.9rem;
   color: #6b7280;
 }
+
+/* --- Poeng-tracer (sticky widget) --- */
+
+.exam-tracker {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  z-index: 50;
+  width: 220px;
+  padding: 0.7rem 0.9rem;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.82rem;
+  color: #111827;
+  user-select: none;
+}
+
+.exam-tracker__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.exam-tracker__label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+.exam-tracker__score {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.exam-tracker__earned {
+  color: #047857;
+}
+
+.exam-tracker__sep {
+  color: #9ca3af;
+  margin: 0 0.15rem;
+}
+
+.exam-tracker__bar {
+  margin: 0.5rem 0;
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.exam-tracker__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 220ms ease;
+}
+
+.exam-tracker__sub {
+  font-size: 0.74rem;
+  color: #6b7280;
+}
+
+.exam-tracker.is-complete {
+  border-color: #10b981;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.18);
+}
+
+@media (max-width: 720px) {
+  .exam-tracker {
+    width: 180px;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    padding: 0.55rem 0.75rem;
+  }
+  .exam-tracker__score { font-size: 0.92rem; }
+}
