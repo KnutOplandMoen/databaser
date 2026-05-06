@@ -58,14 +58,15 @@
 .exam-q__opts > li {
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  padding: 0.65rem 0.85rem;
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
+  padding: 0.65rem 0.85rem 0.65rem 2.6rem;
+  position: relative;
   transition: background-color 120ms, border-color 120ms;
 }
 
 .opt-label {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.65rem;
   font-weight: 600;
   color: #4338ca;
   min-width: 1.25rem;
@@ -102,7 +103,9 @@
 
 .exam-q__opts > li.is-correct::after {
   content: "✓";
-  margin-left: auto;
+  position: absolute;
+  right: 0.85rem;
+  top: 0.65rem;
   color: #047857;
   font-weight: 700;
 }
@@ -118,7 +121,9 @@
 
 .exam-q__opts > li.is-wrong::after {
   content: "✗";
-  margin-left: auto;
+  position: absolute;
+  right: 0.85rem;
+  top: 0.65rem;
   color: #b91c1c;
   font-weight: 700;
 }
