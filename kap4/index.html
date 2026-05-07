@@ -336,6 +336,222 @@
         </ul>
         <div class="mcq-feedback">Hele attributtmengden er nøkkel, så alle FD-er har trivielt supernøkkel som venstreside → BCNF. Men kryssproduktet av barn og telefoner gir redundans — fanges av MVD-er som ikke har supernøkkel-venstreside, altså brudd på 4NF. Splitt på MVD-en for å eliminere kryssproduktet.</div>
       </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 13 · Middels · Deltakelse → SQL</div>
+        <div class="q-text">I ER-diagrammet er deltakelsen fra <code>Ansatt</code> til relasjonen <code>JobberI</code> <strong>total</strong> (dobbel linje). Hva blir den naturlige SQL-konsekvensen for fremmednøkkelen som peker til <code>Avdeling</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Fremmednøkkelen må tillate <code>NULL</code> fordi total betyr «valgfri» avdeling.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Fremmednøkkelen bør være <code>NOT NULL</code> — hver ansatt må ha en gyldig avdeling.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Total deltakelse betyr at det må ligge en rad i mellomtabell for hver avdeling.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Total deltakelse har ingen mapping til SQL; den er kun notasjon.</button></li>
+        </ul>
+        <div class="mcq-feedback">Total deltakelse = instansen <em>må</em> delta i relasjonen. Ved 1:N med FK på ansatt-siden betyr det at FK til avdeling ikke kan være usatt.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 14 · Lett · ER → tabell</div>
+        <div class="q-text">Entiteten <code>Person</code> har det <strong>komposite</strong> attributtet <code>Adresse(gate, postnr, by)</code>. Hvordan oversettes dette typisk til én tabell?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Én kolonne <code>adresse</code> som JSON-streng med alle feltene.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Separate kolonner <code>gate</code>, <code>postnr</code>, <code>by</code> i <code>Person</code>-tabellen («flatpakking»).</button></li>
+          <li><button class="mcq-opt" data-correct="0">Kun én egen tabell <code>Adresse</code> uten FK til <code>Person</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Én rad per adresse-komponent i hovedtabellen (gir multivaluert celle).</button></li>
+        </ul>
+        <div class="mcq-feedback">Komposite attributter brytes ned til atomære kolonner i samme tabell som entiteten. Det er standard reduksjonsregel i 4B.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 15 · Middels · 1:N</div>
+        <div class="q-text">Relasjonen <code>HarAnsatt</code> er <strong>1:N</strong> mellom <code>Avdeling</code> (1-siden) og <code>Ansatt</code> (N-siden). Hvor plasseres fremmednøkkelen i relasjonsskjemaet (uten mellomtabell)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">I <code>Avdeling</code> som peker til én «representant-ansatt».</button></li>
+          <li><button class="mcq-opt" data-correct="1">I <code>Ansatt</code> som peker til <code>Avdeling</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">I begge tabellene — symmetrisk FK for redundans.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Kun i en ny tabell — 1:N krever alltid junction table.</button></li>
+        </ul>
+        <div class="mcq-feedback">På N-siden kan hver rad bare ha én FK-verdi; den representerer «hvilken én-entitet» denne mange-siden tilhører. Derfor havner avdelings-nøkkelen i Ansatt.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 16 · Vanskelig · Min/max-notasjon</div>
+        <div class="q-text">Kanten fra <code>Kunde</code> til <code>Bestiller</code> er merket <code>(0, *)</code>, og kanten fra <code>Ordre</code> til <code>Bestiller</code> er <code>(1, 1)</code>. Hva beskriver dette?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Hver ordre kan ha 0 eller mange kunder; hver kunde har nøyaktig én ordre.</button></li>
+          <li><button class="mcq-opt" data-correct="1">En ordre er alltid knyttet til nøyaktig én kunde; en kunde kan ha ingen eller mange ordrer.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Dette er en M:N-relasjon med valgfri deltakelse.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Min/max kan ikke brukes sammen med kardinalitet — notasjonen er ugyldig.</button></li>
+        </ul>
+        <div class="mcq-feedback">Les (<code>min</code>, <code>max</code>) på hver entitets kant. Ordre (1,1) = hver ordre deltar nøyaktig én gang → én kunde. Kunde (0,*) = en kunde kan ha 0–∞ ordrer. Det er 1:N fra Kunde til Ordre.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 17 · Lett · Deriverte attributter</div>
+        <div class="q-text">Et <strong>derivert</strong> attributt (stiplet oval i ER) er typisk…</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">…lagret som egen tabell med egen surrogate-nøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="1">…beregnet ved spørring fra andre lagrede attributter (lagres ofte ikke).</button></li>
+          <li><button class="mcq-opt" data-correct="0">…det samme som et flerverdi-attributt.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…alltid en del av primærnøkkelen.</button></li>
+        </ul>
+        <div class="mcq-feedback">Alder ut fra fødselsdato er klassisk: lagrer du begge, får du lett oppdateringsanomali. Derfor regnes deriverte felter ofte som «virtuelle».</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 18 · Middels · Armstrong</div>
+        <div class="q-text">Du har allerede bevist <code>X → Y</code>. Hvilken av Armstrongs grunnaksiomer brukes for å utlede <code>XZ → YZ</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Refleksivitet</button></li>
+          <li><button class="mcq-opt" data-correct="1">Augmentasjon</button></li>
+          <li><button class="mcq-opt" data-correct="0">Transitivitet</button></li>
+          <li><button class="mcq-opt" data-correct="0">Dekomposisjon</button></li>
+        </ul>
+        <div class="mcq-feedback">Augmentasjon: fra <code>X → Y</code> legger vi til samme attributter på begge sider og får <code>XZ → YZ</code>.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 19 · Vanskelig · 2NF</div>
+        <div class="q-text">Når er et relasjonsskjema <strong>automatisk</strong> i 2NF (gitt at det er i 1NF)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Når hver FD har supernøkkel på venstresiden.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Når alle kandidatnøkler består av <em>én</em> attributt — da finnes ingen «del av nøkkel» å være partielt avhengig av.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Når skjemaet allerede er 3NF.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Når det ikke finnes transitivitet mellom ikke-nøkkel-attributter.</button></li>
+        </ul>
+        <div class="mcq-feedback">2NF handler om partiell avhengighet av en <em>del</em> av en sammensatt kandidatnøkkel. Hver kandidatnøkkel er enkel → tomt sett av slike brudd → trivelt 2NF.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 20 · Vanskelig · 3NF vs BCNF (klassiker)</div>
+        <div class="q-text"><code>R(A,B,C,D)</code> med FD-er <code>{AB→C, AB→D, C→A}</code>. Kandidatnøkler er <code>{A,B}</code> og <code>{B,C}</code>. Hvilken normalform er <code>R</code> i?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">2NF, men ikke 3NF</button></li>
+          <li><button class="mcq-opt" data-correct="0">BCNF</button></li>
+          <li><button class="mcq-opt" data-correct="1">3NF, men ikke BCNF</button></li>
+          <li><button class="mcq-opt" data-correct="0">1NF, men ikke 2NF</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>C→A</code> har venstreside som ikke er supernøkkel (<code>{C}⁺ = {C,A}</code>), men <code>A</code> er prime (del av {A,B}) — da oppfyller FD-en 3NF-unntaket, men bryter BCNF.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 21 · Middels · Lossless join</div>
+        <div class="q-text"><code>R(A,B,C)</code> med <code>F = {A→B, B→C}</code>. Vi splitter i <code>R₁(A,B)</code> og <code>R₂(B,C)</code>. Er dekomposisjonen lossless?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Nei — <code>A</code> finnes bare i <code>R₁</code>, join kan tape informasjon.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Ja — <code>R₁ ∩ R₂ = {B}</code> er supernøkkel for <code>R₂</code> siden <code>B→C</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Ja — fordi hver FD bevares i sitt eget delskjema.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Nei — union av attributter er ikke hele <code>R</code>.</button></li>
+        </ul>
+        <div class="mcq-feedback">Lukning: <code>{B}⁺ = {B,C} = R₂</code>. Skjæringen er supernøkkel for ett av delskjemaene → lossless. (NB: dependency preservation følger også her — bonus — men hovedpoenget er lukningstesten.)</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 22 · Middels · Sletteanomali</div>
+        <div class="q-text">I et samlet skjema <code>EmnePåStudie(studie, emnekode, studieleder)</code> der studieleder bare avhenger av <code>studie</code>, hva er den typiske <strong>sletteanomalien</strong>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Du kan ikke registrere et emne før studiet har fått studieleder.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Når siste emne for et studie slettes, forsvinner informasjonen om studieleder sammen med raden.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Hvis du endrer emnekode, må du oppdatere alle studenter samtidig.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Du får duplikat rader fordi (<code>studie</code>, <code>emnekode</code>) ikke kan være nøkkel.</button></li>
+        </ul>
+        <div class="mcq-feedback">Sletteanomali = sletting av «riktig» informasjon drar med seg et faktum som egentlig skulle overlevd (her: lederen for studiet). Første alternativ beskriver innsettingsanomali.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 23 · Vanskelig · BCNF-brudd</div>
+        <div class="q-text"><code>TaEmne(student, emne, lærer)</code> med FD-er <code>{(student, emne) → lærer; lærer → emne}</code> (én lærer underviser bare ét emne). Hvilken FD bryter BCNF?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Ingen — skjemaet er allerede BCNF.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Kun <code>(student, emne) → lærer</code></button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>lærer → emne</code> — venstresiden er ikke supernøkkel for hele <code>TaEmne</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Begge FD-ene bryter BCNF likt mye.</button></li>
+        </ul>
+        <div class="mcq-feedback"><code>(student, emne)</code> er supernøkel-venstreside. Men <code>lærer → emne</code>: <code>{lærer}⁺</code> gir bare lærer og emne, ikke student — så den FD-en forårsaker klassisk BCNF-brudd.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 24 · Middels · Avledet vs lagret</div>
+        <div class="q-text">Hvorfor lagrer man normalt <em>ikke</em> et derivert attributt sammen med basis-attributtene det kommer fra?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">SQL forbyr lagring av beregnede kolonner.</button></li>
+          <li><button class="mcq-opt" data-correct="1">For å unngå redundans og risiko for at lagret avledet verdi ikke oppdateres når basis endres.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Fordi deriverte attributter alltid bryter 1NF.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Fordi de kun finnes på svake entiteter.</button></li>
+        </ul>
+        <div class="mcq-feedback">Redundans + potensiell inkonsistens er kjernen. (Materialiserte/ genererte kolonner kan brukes bevisst, men da er det et bevisst designvalg.)</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 25 · Vanskelig · Minimal cover</div>
+        <div class="q-text">Hvorfor beregnes en <strong>minimal cover</strong> (<code>F_c</code>) før 3NF-syntese i lærebøker?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Fordi BCNF-dekomponering krever minimal cover.</button></li>
+          <li><button class="mcq-opt" data-correct="1">For å fjerne redundans i FD-mengden og få én ryddig tabell per «uavhengig» constraint — nødvendig for syntesealgoritmen.</button></li>
+          <li><button class="mcq-opt" data-correct="0">For å utvide FD-mengden med alle mulige implikasjoner av F.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Minimal cover brukes kun til å finne kandidatnøkler raskere enn lukning.</button></li>
+        </ul>
+        <div class="mcq-feedback">3NF-syntese: lag tabeller fra minimerte FD-er; uten minimering får du overflødige eller overlappende tabeller som ikke reflekterer en ren syntese.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 26 · Middels · Prime-attributt</div>
+        <div class="q-text">Et attributt er <strong>prime</strong> hvis…</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">…det er del av primærnøkkelen <em>og ingen andre</em> nøkler.</button></li>
+          <li><button class="mcq-opt" data-correct="1">…det inngår i minst én kandidatnøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…det aldri står på høyresiden av en FD.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…det er surrogate-nøkkel av typen SERIAL.</button></li>
+        </ul>
+        <div class="mcq-feedback">Prime = kan være del av <em>noen</em> minimal supernøkkel, ikke bare den valgte PK-en.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 27 · Vanskelig · Relasjon med attributter</div>
+        <div class="q-text">ER-relasjonen <code>Registrert</code> mellom <code>Student</code> og <code>Emne</code> er M:N og har attributtet <code>karakter</code>. Hvor havner <code>karakter</code> i relasjonsskjemaet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Som egen kolonne på <code>Student</code> (én karakter per student).</button></li>
+          <li><button class="mcq-opt" data-correct="1">I mellomtabellen sammen med fremmednøklene til student og emne.</button></li>
+          <li><button class="mcq-opt" data-correct="0">I <code>Emne</code>-tabellen som flerverdi-kolonne.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Som egen tabell uten kobling til student/emne.</button></li>
+        </ul>
+        <div class="mcq-feedback">Attributter på relasjonstypen følger alltid «relasjonens tabell» — ved M:N er det mellomtabellen.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 28 · Vanskelig · Multivaluert × 1NF</div>
+        <div class="q-text">Tabellen <code>Student</code> har kolonnen <code>hobby</code> der hver rad inneholder komma-separert liste («fotball, sjakk»). Hva er problemet i normalform-språk?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Skjemaet er i BCNF, men ikke i 4NF.</button></li>
+          <li><button class="mcq-opt" data-correct="1">1NF-brudd — cellen er ikke atomær; hobbyer bør splittes til egen tabell eller rader.</button></li>
+          <li><button class="mcq-opt" data-correct="0">3NF-brudd pga. transitiv avhengighet.</button></li>
+          <li><button class="mcq-opt" data-correct="0">2NF-brudd pga. partiell avhengighet av primærnøkkel.</button></li>
+        </ul>
+        <div class="mcq-feedback">Kommaseparert liste er klassisk «ikke-atomær celle». Egentlig ønsker man <code>StudentHobby(student, hobby)</code>.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 29 · Middels · Fremmednøkkel</div>
+        <div class="q-text">En fremmednøkkel i tabell <code>T</code> refererer typisk til…</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">…enhver attributtmengde i <code>T</code> som er unik.</button></li>
+          <li><button class="mcq-opt" data-correct="1">…primærnøkkelen (eller annen unik nøkkel) i en referert tabell.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…kun supernøkler som ikke er kandidatnøkler.</button></li>
+          <li><button class="mcq-opt" data-correct="0">…automatisk alle kolonner i databasen med samme datatype.</button></li>
+        </ul>
+        <div class="mcq-feedback">Referansiell integritet: FK-verdier må matche en eksisterende rad i mål-tabellen — standard er PK, alternativt UNIQUE constraint.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 30 · Vanskelig · Flere kandidatnøkler</div>
+        <div class="q-text"><code>Bruker</code> har kandidatnøklene <code>{fnr}</code>, <code>{epost}</code> og <code>{brukerid}</code>. Hvor mange primærnøkler kan tabellen ha i SQL?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Tre — én per kandidatnøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Én <code>PRIMARY KEY</code>; de andre markeres som <code>UNIQUE</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Null — SQL tillater ikke flere unike kombinasjoner.</button></li>
+          <li><button class="mcq-opt" data-correct="0">To — du kan dele tabellen i to halvdeler med hver sin PK.</button></li>
+        </ul>
+        <div class="mcq-feedback">Kandidatnøkkel ≠ PRIMARY KEY: du velger én PK; øvrige kandidatnøkler får UNIQUE NOT NULL-constraints.</div>
+      </div>
     </div>
   </section>
 
