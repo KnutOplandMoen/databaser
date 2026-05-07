@@ -96,7 +96,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 1</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 1 — Datauavhengighet</span>
+          <span class="exam-q__topic">Kap. 1</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva betyr det at en database har <em>logisk datauavhengighet</em>?</p>
@@ -122,7 +122,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 2</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 2 — Fundamentale RA-operatorer</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken av følgende operatorer i relasjonsalgebra er <strong>ikke</strong> fundamental (dvs. den kan defineres ut fra andre)?</p>
@@ -148,7 +148,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 3</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 2 — RA med set difference</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Følgende tabeller er gitt:</p>
@@ -192,7 +192,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 4</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 2 — LEFT JOIN-størrelse</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabell R har 100 rader, tabell S har 50 rader. INNER JOIN R ⋈ S produserer 80 rader, hvor 30 distinkte R-rader matcher minst én S-rad (noen R-rader matcher flere S-rader). Hvor mange rader produserer R LEFT JOIN S på samme join-betingelse?</p>
@@ -218,7 +218,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 5</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — Alias i WHERE</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vurder spørringen:</p>
@@ -248,7 +248,7 @@ WHERE aarslonn &gt; 600000;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 6</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — GROUP BY + HAVING med NULL</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabellen <code>salg</code>:</p>
@@ -288,7 +288,7 @@ HAVING SUM(belop) &gt; 100;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 7</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — DISTINCT og NULL</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabellkolonnen <code>pris</code> inneholder verdiene: 10, 10, NULL, 20, NULL, 30. Hva returnerer <code>SELECT COUNT(DISTINCT pris) FROM ...</code>?</p>
@@ -315,7 +315,7 @@ HAVING SUM(belop) &gt; 100;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 8</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — NOT IN med NULL</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi har:</p>
@@ -344,7 +344,7 @@ WHERE avd_id NOT IN (SELECT manager_avd_id FROM avdeling);</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 9</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — LEFT JOIN-feller</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vurder de to spørringene:</p>
@@ -376,7 +376,7 @@ SELECT a.id FROM A LEFT JOIN B ON A.id = B.id AND B.x &gt; 5;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 10</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — Korrelert subspørring</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken av spørringene er <em>korrelert</em>?</p>
@@ -402,7 +402,7 @@ SELECT a.id FROM A LEFT JOIN B ON A.id = B.id AND B.x &gt; 5;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 11</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — WITH RECURSIVE</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabellen <code>ansatt(id, navn, sjef_id)</code> har følgende struktur (id → sjef_id):</p>
@@ -441,7 +441,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 12</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — FK ON DELETE SET NULL vs NOT NULL</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Skjemaet:</p>
@@ -474,7 +474,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 13</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — Materialisert vs vanlig view</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedforskjellen mellom et materialisert view og et vanlig (virtuelt) view?</p>
@@ -500,7 +500,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 14</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Svak entitet → relasjon</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Et ER-diagram inneholder entiteten <strong>Bygning</strong> (PK: <code>byggId</code>) og den svake entiteten <strong>Rom</strong>, som identifiseres med <code>romNr</code> innen sin Bygning (en svak entitet med identifiserende relasjon til Bygning). Hvor mange tabeller trengs i relasjonsskjemaet, og hva blir Roms primærnøkkel?</p>
@@ -526,7 +526,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 15</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — ISA-mapping</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Et ISA-hierarki har <strong>Kjøretøy</strong> som superklasse, og {Bil, Lastebil, Motorsykkel} som <em>disjunkte og totale</em> subklasser. Hver subklasse har egne attributter pluss superklassens. Hvilken mapping bruker færrest tabeller <em>og</em> unngår NULL-felter?</p>
@@ -552,7 +552,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 16</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Kandidatnøkler fra FD-er</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Gitt R(A, B, C, D, E) med FD-mengden:</p>
@@ -585,7 +585,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 17</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Høyeste normalform</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabellen <code>R(ansattId, navn, avdId, avdNavn)</code> har <code>ansattId</code> som primærnøkkel. I tillegg gjelder FD-en <code>avdId → avdNavn</code> (hver avdeling har ett unikt navn). Hva er den høyeste normalformen R er på?</p>
@@ -611,7 +611,7 @@ SELECT COUNT(*) FROM kjede;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 18</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — 3NF vs BCNF</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabell <code>Time(kurs, rom, tidspunkt)</code> med FD-er:</p>
@@ -648,7 +648,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 19</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Heapfile-blokkberegning</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En heapfil lagrer 12 000 poster med fast lengde 80 bytes per post. Blokkstørrelsen er 2048 bytes (ingen header-overhead). Hvor mange blokker bruker filen ved 100 % fyllgrad?</p>
@@ -674,7 +674,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 20</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Variable-length record</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilket av følgende formater for variable-length records gir <em>direkte (O(1))</em> tilgang til attributt nummer i?</p>
@@ -700,7 +700,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 21</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Statisk hashing med overflyt</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Statisk hashing med 5 buckets (h(K) = K mod 5) og kapasitet 2 poster per primær-bucket. Vi setter inn nøklene <code>8, 13, 17, 22, 27, 33, 38</code> i denne rekkefølgen. Hver overflyt-blokk holder 2 poster. Hvor mange overflyt-blokker trenges totalt?</p>
@@ -729,7 +729,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 22</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Extendible hashing directory</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En extendible hash-directory har global depth (GD) = 3 og 4 distinkte buckets. Local depths (LD) for de fire bucketene er <code>3, 3, 2, 1</code>. Hvor mange directory-entries peker til bucketen med LD = 1?</p>
@@ -759,7 +759,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 23</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Buffer manager pinning</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedformålet med å "pinne" (pin) en side i buffer-poolen?</p>
@@ -785,7 +785,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 24</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — B+-tre løvnivå</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En B+-tre indeks lagrer 20 000 poster på løvnivå. Hver post er 100 bytes, blokkstørrelse 4096 bytes, fyllgrad 2/3. Hvor mange blokker er det på løvnivået?</p>
@@ -811,7 +811,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 25</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — B+-tre antall nivåer</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Med 741 løvblokker fra forrige oppgave: hver intern node lagrer (key, BlockId)-par der key=8 bytes, BlockId=4 bytes, fyllgrad 2/3. Hvor mange <em>nivåer</em> har treet (løvnivå pluss interne)?</p>
@@ -840,7 +840,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 26</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — Clustered vs unclustered</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er forskjellen på clustered og unclustered B+-tre på primærnøkkelen?</p>
@@ -866,7 +866,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 27</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — Løv-splitt mekanikk</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En B+-tre løvblokk har plass til 6 nøkler og er full med <code>[10, 20, 30, 40, 50, 60]</code>. Vi setter inn 35. Etter splitt blir resultatet <code>[10, 20, 30]</code> og <code>[35, 40, 50, 60]</code>. Hva propageres opp til foreldre-noden?</p>
@@ -892,7 +892,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 28</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — LSM vs B+-tre</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilket scenario favoriserer en LSM-tre fremfor et B+-tre?</p>
@@ -918,7 +918,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 29</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Sortering vs unclustered indeks</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Heap-fil H har 800 blokker og 200 000 poster. Det finnes en <em>unclustered</em> B+-tre indeks på attributt X med 3 nivåer (rot + intermediate + 600 løvblokker). Spørringen er <code>SELECT * FROM H ORDER BY X;</code> Med 10 buffer-blokker tilgjengelig for sortering — hvilken plan har lavest I/O?</p>
@@ -944,7 +944,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 30</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Selektivitetsterskel</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Heap-fil med 1 000 blokker og 100 000 poster. Unclustered B+-tre på attributt Y, 3 nivåer (omtrent 10 løvblokker per spørring i et range-treff). Vi kjører <code>WHERE Y &gt; c</code> med varierende selektivitet. Omtrent ved hvilken selektivitet begynner full scan å slå unclustered-indeksen?</p>
@@ -973,7 +973,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 31</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Ekstern merge-sort</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi sorterer 1 500 blokker med 12 buffer-rammer tilgjengelig. Antallet av initielle sorterte runs er <code>nR = ceil(1500/12) = 125</code>. Merge-graden er <code>dM = 11</code> (12 − 1 utgangsbuffer). Hvor mange totale I/O-er bruker sorteringen?</p>
@@ -999,7 +999,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 32</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Block nested loop join</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Block nested loop join mellom R (200 blokker) og S (1 000 blokker), med buffer-størrelse 10 blokker. R brukes som ytre relasjon. Hvor mange blokk-leseoperasjoner i alt?</p>
@@ -1025,7 +1025,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 33</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Hash join build/probe</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedforutsetningen for at en partition-hash join skal kunne fullføres uten ytterligere passes?</p>
@@ -1051,7 +1051,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 34</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 15 — ACID-mekanismer</span>
+          <span class="exam-q__topic">Kap. 15</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken mekanisme i et DBMS sikrer primært <em>Durability</em> i ACID?</p>
@@ -1077,7 +1077,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 35</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 16 — Konfliktserialiserbarhet</span>
+          <span class="exam-q__topic">Kap. 16</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vurder schedule:</p>
@@ -1109,7 +1109,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 36</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 16 — Isolation levels</span>
+          <span class="exam-q__topic">Kap. 16</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken anomali blokkeres av <code>READ COMMITTED</code> men ikke av <code>READ UNCOMMITTED</code>?</p>
@@ -1139,7 +1139,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 37</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 16 — Recoverability</span>
+          <span class="exam-q__topic">Kap. 16</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Klassifiser schedule:</p>
@@ -1166,7 +1166,7 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 38</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Deadlock-deteksjon</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tre transaksjoner i et 2PL-system:</p>
@@ -1196,7 +1196,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 39</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Basic vs strict 2PL</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er den vesentlige forskjellen på <em>basic</em> 2PL og <em>strict</em> 2PL?</p>
@@ -1222,7 +1222,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 40</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — MVCC snapshot</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">I et MVCC-basert system: T1 starter ved tidspunkt t=10 og tar et snapshot. T2 oppdaterer rad R (verdi 100 → 200) og committer ved t=15. T1 leser R ved t=20. Hva ser T1?</p>
@@ -1248,7 +1248,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 41</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Strict 2PL ⊂ ACA</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilket utsagn om sammenhengen mellom strict 2PL og ACA-schedules er sant?</p>
@@ -1274,7 +1274,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 42</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — DPT etter analyse</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">ARIES-logg:</p>
@@ -1316,7 +1316,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 43</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — UNDO-skop</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Samme scenario som Spørsmål 42. Etter analyse-fasen er ATT (Active Transaction Table) = {T1, T3} (T2 committet, så fjernet). Hvilke loggposter UNDO-fasen anvender invers operasjon på (i hvilken rekkefølge)?</p>
@@ -1342,7 +1342,7 @@ T3: SLock(C);  så senere XLock(A)</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 44</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — CLR-egenskaper</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er sant om Compensation Log Records (CLR) i ARIES?</p>

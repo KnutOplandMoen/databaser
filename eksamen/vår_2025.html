@@ -145,7 +145,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 1 — B+-trær</span>
           <span class="exam-q__points">5 %</span>
-          <span class="exam-q__topic">Kap. 6 — Løvnivå</span>
+          <span class="exam-q__topic">Kap. 6</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi har et clustered B+-tre hvor vi setter inn 20&nbsp;200 studentposter à 120 byte. Nøkkelen <code>studNr</code> er 4 byte, RecordID er 12 byte, BlockId er 8 byte, blokken er 4096 byte. Hvor mange blokker finnes på løvnivå (level=0) etter at alle postene er satt inn? Anta 2/3 fyllgrad.</p>
@@ -173,7 +173,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 2 — B+-tre level 1</span>
           <span class="exam-q__points">5 %</span>
-          <span class="exam-q__topic">Kap. 6 — Indre nivå</span>
+          <span class="exam-q__topic">Kap. 6</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Samme oppsett som Problem 1. Hvor mange blokker finnes på <code>level=1</code> i B+-treet?</p>
@@ -201,7 +201,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 3 — Access paths</span>
           <span class="exam-q__points">5 %</span>
-          <span class="exam-q__topic">Kap. 7 — PK-oppslag</span>
+          <span class="exam-q__topic">Kap. 7</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Clustered B+-tre på <code>AnsattId</code>: 1000 løvblokker, 3 nivåer. Unclustered B+-tre på <code>EtterNavn</code>: 500 løvblokker, 3 nivåer. Spørring:</p>
@@ -231,7 +231,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 4 — Access paths</span>
           <span class="exam-q__points">5 %</span>
-          <span class="exam-q__topic">Kap. 7 — Unclustered + heap</span>
+          <span class="exam-q__topic">Kap. 7</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Samme oppsett som Problem 3. Spørring:</p>
@@ -261,7 +261,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 5 — Access paths</span>
           <span class="exam-q__points">5 %</span>
-          <span class="exam-q__topic">Kap. 7 — Sortert skann</span>
+          <span class="exam-q__topic">Kap. 7</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Samme oppsett som Problem 3. Spørring:</p>
@@ -291,7 +291,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 6 — Konfliktserialiserbarhet</span>
           <span class="exam-q__points">6 %</span>
-          <span class="exam-q__topic">Kap. 8 — Schedules</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilke av disse historiene er konfliktserialiserbare? (<em>multi-select</em>)</p>
@@ -322,7 +322,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 7 — ARIES analyse-fase</span>
           <span class="exam-q__points">8 %</span>
-          <span class="exam-q__topic">Kap. 8 — DPT</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Etter et krasj (ARIES). Sjekkpunkt LSN=107 hadde tx-tabell <code>(T1, lastLSN=105, Active)</code>, <code>(T2, lastLSN=104, Active)</code>, og DPT <code>(A, recLSN=102), (B, recLSN=103)</code>. Hvilke elementer er med i DPT etter analysen? (<em>multi-select</em>)</p>
@@ -360,7 +360,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 8 — ARIES sikkert flushed</span>
           <span class="exam-q__points">8 %</span>
-          <span class="exam-q__topic">Kap. 8 — Steal/no-force</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Sjekkpunkt LSN=107: tx-tabell <code>(T1, lastLSN=105, Active), (T2, lastLSN=104, Active)</code>, DPT <code>(A, recLSN=102), (C, recLSN=105)</code>. Ved kjøring av loggpost LSN=105 ble plassen til Page B «stjålet» fra bufferet (skitten side som kastes ut skrives først til disk ved steal-policy + WAL). <strong>Hvilken page ble, som direkte følge av denne hendelsen, skrevet ut til disk?</strong> (<em>multi-select</em> — kun ett riktig blant sidene)</p>
@@ -390,7 +390,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 9 — Lock setting</span>
           <span class="exam-q__points">7 %</span>
-          <span class="exam-q__topic">Kap. 8 — Rigorous 2PL</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi har en bestemt låsetilstand (figur i papireksamen) som er resultatet av rigorous 2PL. Hvilken sekvens kunne ha produsert tilstanden?</p>
@@ -418,7 +418,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 10 — Commit-rekkefølge med rigorous 2PL</span>
           <span class="exam-q__points">7 %</span>
-          <span class="exam-q__topic">Kap. 8 — 2PL-utføring</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Sekvens som kommer inn til scheduleren:</p>
@@ -461,7 +461,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 11 — Normalisering</span>
           <span class="exam-q__points">4 %</span>
-          <span class="exam-q__topic">Kap. 4 — Høyeste NF</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabellen <code>Geography(CountryCode, CountryName, Population, Continent)</code> med</p>
@@ -495,7 +495,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 12 — BCNF-dekomponering</span>
           <span class="exam-q__points">8 %</span>
-          <span class="exam-q__topic">Kap. 4 — Dekomponering</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabell:</p>
@@ -544,7 +544,7 @@ Result(StudentNo, ExamNo, Grade)
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 13 — Relasjonsalgebra</span>
           <span class="exam-q__points">8 %</span>
-          <span class="exam-q__topic">Kap. 2 — RA-graf</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Skjema:</p>
@@ -590,7 +590,7 @@ Fylke(FylkesNr, Navn, AdministrasjonsBy, Areal)
         <header class="exam-q__head">
           <span class="exam-q__num">Problem 14 — ER-modellering: EiT</span>
           <span class="exam-q__points">19 %</span>
-          <span class="exam-q__topic">Kap. 4 — ER-diagram</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Lag en ER-modell for Eksperter i Team (EiT). Bruk hele pensumet (spesialisering, kategorier). Ta utgangspunkt i beskrivelsen av EiT under (oppsummert):</p>

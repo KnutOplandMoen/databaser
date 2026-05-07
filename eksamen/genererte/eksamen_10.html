@@ -96,7 +96,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 1</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 1 — DBMS vs filsystem</span>
+          <span class="exam-q__topic">Kap. 1</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er den primære fordelen et DBMS gir over et flatt filsystem for applikasjoner som lagrer strukturert data?</p>
@@ -122,7 +122,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 2</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 2 — Theta join semantikk</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Uttrykket <code>R ⋈<sub>R.x &lt; S.y</sub> S</code> betegner:</p>
@@ -148,7 +148,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 3</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 2 — Theta-join utregning</span>
+          <span class="exam-q__topic">Kap. 2</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Gitt:</p>
@@ -198,7 +198,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 4</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — GROUP BY-regler</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilket utsagn om <code>GROUP BY</code> i standard SQL er korrekt?</p>
@@ -224,7 +224,7 @@
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 5</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — JOIN + GROUP BY + HAVING</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Skjema:</p>
@@ -265,7 +265,7 @@ HAVING COUNT(*) &gt; 5;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 6</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — UNION vs UNION ALL</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Tabell <code>t1.x</code> = {1, 2, 2, 3} og <code>t2.x</code> = {2, 4}. Hvor mange rader returnerer <code>SELECT x FROM t1 UNION SELECT x FROM t2;</code>?</p>
@@ -291,7 +291,7 @@ HAVING COUNT(*) &gt; 5;</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 7</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — EXISTS-semantikk</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Skjema og data:</p>
@@ -331,7 +331,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 8</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — GRANT cascade</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Bruker A har gitt <code>GRANT SELECT ON tabell TO B WITH GRANT OPTION</code>. B har deretter gitt <code>GRANT SELECT ON tabell TO C</code>. Nå utfører A: <code>REVOKE SELECT ON tabell FROM B CASCADE</code>. Hvilke privilegier blir igjen?</p>
@@ -357,7 +357,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 9</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — Trigger-rekkefølge</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi setter inn en rad i en tabell som har: (i) en BEFORE INSERT-trigger som modifiserer NEW-raden, (ii) en CHECK-betingelse på en kolonne, og (iii) en AFTER INSERT-trigger som logger til revisjonstabell. I hvilken rekkefølge utføres disse?</p>
@@ -383,7 +383,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 10</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — Composite indeks</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi har <code>CREATE INDEX idx ON tabell(x, y)</code>. Hvilken spørring drar mest nytte av denne indeksen?</p>
@@ -409,7 +409,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 11</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 3 — ON UPDATE CASCADE</span>
+          <span class="exam-q__topic">Kap. 3</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text"><code>parent.id</code> er PK referert av <code>child.parent_id</code> via FK med <code>ON UPDATE CASCADE</code>. Vi utfører <code>UPDATE parent SET id = 9 WHERE id = 5;</code> Hva skjer med child-rader som peker på 5?</p>
@@ -435,7 +435,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 12</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — M:N med relasjons-attributt</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Vi modellerer <strong>Bruker</strong> M:N <strong>Spilleliste</strong>, med relasjons-attributtet <code>lagtTil</code> (tidspunkt brukeren la til spillelisten). Hvor mange tabeller trenges i relasjonsskjemaet, og hvor lagres <code>lagtTil</code>?</p>
@@ -461,7 +461,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 13</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — ER aggregation</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">I en database modelleres at "et lag spiller i en serie", og at denne (lag, serie)-relasjonen i sin tur kan motta sponsing fra en bedrift. Hvilken ER-konstruksjon brukes typisk for å modellere dette?</p>
@@ -487,7 +487,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 14</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Kardinalitet</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">"Hvert kurs har nøyaktig én underviser; en underviser kan undervise ett eller flere kurs." I (min, max)-notasjon mot relasjonen <em>Underviser-Kurs</em>:</p>
@@ -513,7 +513,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 15</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — BCNF-dekomponering</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">R(A, B, C, D) med F = {A → B, B → C, C → D}. Hvilken dekomponering er <em>både</em> lossless og dependency-preserving og <em>i tillegg</em> har alle delrelasjoner på BCNF?</p>
@@ -544,7 +544,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 16</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — 2NF-brudd</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilket av følgende skjemaer bryter med 2NF (men er på 1NF)?</p>
@@ -570,7 +570,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 17</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Minimum cover</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Gitt F = {A → B, B → C, A → C, AB → D}. Hvilket sett er en minimum cover av F?</p>
@@ -596,7 +596,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 18</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 4 — Lossless og dependency-preserving</span>
+          <span class="exam-q__topic">Kap. 4</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">R(A,B,C,D) med F = {A→B, B→C, C→D} dekomponeres til R1(A,B) og R2(B,C,D). Hvilken egenskap har dekomponeringen?</p>
@@ -631,7 +631,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 19</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — RID-tilgang</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er kostnaden for å hente en post når man har dens RID (Record ID, dvs. (sideId, slotNr))?</p>
@@ -657,7 +657,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 20</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Heap-skann med selektivitet</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En heap-fil har 800 blokker og 100 000 poster. Vi kjører <code>WHERE x = c</code>, og det finnes ingen indeks på x. Hvor mange blokker leses ved optimal utføring?</p>
@@ -683,7 +683,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 21</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Hash-funksjon</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken egenskap er viktigst for en hash-funksjon brukt i statisk hashing?</p>
@@ -709,7 +709,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 22</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Extendible hashing splitt</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">I et extendible hashing-skjema med GD = 2 og 3 distinkte buckets med LD-er <code>2, 2, 1</code>: hvor mange directory-entries peker på bucketen med LD = 1?</p>
@@ -735,7 +735,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 23</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 8 — Heap fri-listehåndtering</span>
+          <span class="exam-q__topic">Kap. 8</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En heap-fil holder en separat lenkliste over <em>delvis fulle</em> blokker (med ledig plass). Hvorfor er denne separasjonen nyttig?</p>
@@ -761,7 +761,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 24</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — B+-tre løvnivå</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">35 000 poster, 120 byte per post, blokkstørrelse 8192 byte, fyllgrad 2/3. Hvor mange blokker er det på løvnivået?</p>
@@ -787,7 +787,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 25</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — Composite-key B+-tre</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En B+-tre-indeks er på composite-keyen <code>(by, postnr)</code>. Hvilken WHERE-klausul kan effektivt utnytte indeksen for et range-treff?</p>
@@ -813,7 +813,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 26</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — Splitt-propagasjon</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">En splitt på løvnivået i et B+-tre kan i verste fall propagere oppover. Hvor stopper propageringen senest?</p>
@@ -839,7 +839,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 27</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 11 — LSM-tre bloom filter</span>
+          <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">LSM-trær bruker ofte bloom filters per SST-fil. Hvilken funksjon har de?</p>
@@ -865,7 +865,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 28</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Index nested loop join</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Index-nested-loop join er typisk billigere enn block-nested-loop når:</p>
@@ -891,7 +891,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 29</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Sort-merge join kost</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Sort-merge join på R (300 blokker) og S (700 blokker), med 11 buffer-rammer. Begge relasjoner må sorteres først (de er ikke pre-sorterte). Hva er total I/O-kost?</p>
@@ -918,7 +918,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 30</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Optimizer-statistikk</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken statistikk er typisk lagret i DBMS-katalogen og brukt av query-optimizeren for å estimere selektivitet?</p>
@@ -944,7 +944,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 31</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 13 — Pipelining vs materialisering</span>
+          <span class="exam-q__topic">Kap. 13</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedfordelen med <em>pipelining</em> mellom operatorer i en query-plan?</p>
@@ -970,7 +970,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 32</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 16 — Konfliktserialiserbarhet (4 transaksjoner)</span>
+          <span class="exam-q__topic">Kap. 16</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Schedule:</p>
@@ -1005,7 +1005,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 33</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 16 — Phantom problem</span>
+          <span class="exam-q__topic">Kap. 16</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvilken anomali beskriver <em>phantom read</em>?</p>
@@ -1031,7 +1031,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 34</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Lås-granularitet</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Multi-granularity locking bruker <em>intent locks</em> (IS, IX, SIX). Hvorfor?</p>
@@ -1057,7 +1057,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 35</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Wait-die vs wound-wait</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">I <em>wait-die</em>-protokollen (en deadlock-prevention-teknikk basert på timestamps): hva skjer når en eldre transaksjon T<sub>i</sub> trenger en lås holdt av en yngre transaksjon T<sub>j</sub>?</p>
@@ -1083,7 +1083,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 36</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — 2PL og deadlock</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">2PL (basic) garanterer:</p>
@@ -1109,7 +1109,7 @@ WHERE EXISTS (SELECT 1 FROM sang s
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 37</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 17 — Lås-tabell sporing</span>
+          <span class="exam-q__topic">Kap. 17</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Schedule i et strict 2PL-system:</p>
@@ -1138,7 +1138,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 38</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — Force/no-force × steal/no-steal</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">ARIES bruker hvilken kombinasjon av force/no-force og steal/no-steal?</p>
@@ -1164,7 +1164,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 39</span>
           <span class="exam-q__points">3 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — Winners og losers</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">ARIES-logg:</p>
@@ -1204,7 +1204,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 40</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — Fuzzy checkpoint</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva er hovedforskjellen på en <em>fuzzy</em> checkpoint og en <em>sharp</em> (consistent) checkpoint?</p>
@@ -1230,7 +1230,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 41</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — Idempotens i recovery</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvorfor er det viktig at REDO-operasjoner er idempotente i ARIES?</p>
@@ -1256,7 +1256,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 42</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — Group commit</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Group commit er en optimalisering der:</p>
@@ -1282,7 +1282,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 43</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — REDO-startpunkt</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hvor i loggen begynner REDO-fasen i ARIES?</p>
@@ -1308,7 +1308,7 @@ T2:                    SLock(A); read(A); XLock(B); ...</pre>
         <header class="exam-q__head">
           <span class="exam-q__num">Spørsmål 44</span>
           <span class="exam-q__points">2 poeng</span>
-          <span class="exam-q__topic">Kap. 18 — WAL-regelen</span>
+          <span class="exam-q__topic">Kap. 18</span>
         </header>
         <div class="exam-q__body">
           <p class="q-text">Hva slår WAL-protokollen (Write-Ahead Logging) fast?</p>
