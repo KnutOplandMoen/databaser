@@ -284,7 +284,7 @@
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">15 spørsmål som dekker hele kapittelet — fra modell til algebra. Ikke bla til svaret før du har et eget forsøk.</p>
+      <p class="section-intro">30 spørsmål som dekker hele kapittelet — fra modell til algebra. De første 15 er reveal-spørsmål; de neste 15 er flervalg med blandet vanskelighet, inkludert noen veldig vanskelige.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett · Modell</div>
@@ -421,9 +421,189 @@
         </div>
       </div>
 
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 16 · Lett · σ vs. π</div>
+        <div class="q-text">Hva er hovedforskjellen mellom <code>σ</code> (select) og <code>π</code> (project)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">σ velger kolonner; π velger rader</button></li>
+          <li><button class="mcq-opt" data-correct="1">σ velger rader (basert på predikat); π velger kolonner og fjerner duplikater</button></li>
+          <li><button class="mcq-opt" data-correct="0">σ er for SQL; π er for relasjonsalgebra</button></li>
+          <li><button class="mcq-opt" data-correct="0">De er ekvivalente — bare ulik notasjon</button></li>
+        </ul>
+        <div class="mcq-feedback">σ_p (R) returnerer rader i R som tilfredsstiller predikatet p. π_attr_list (R) returnerer den projeksjonen av R på de gitte attributtene, med duplikater fjernet (siden RA jobber med mengder).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 17 · Middels · Project og duplikater</div>
+        <div class="q-text">Tabellen <code>instructor</code> har 12 rader. Du beregner <code>π<sub>dept_name</sub>(instructor)</code> der det finnes 6 distinkte avdelinger. Hvor mange rader får du?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">12 — projeksjon endrer ikke radantall</button></li>
+          <li><button class="mcq-opt" data-correct="1">6 — duplikater fjernes fordi RA jobber med mengder</button></li>
+          <li><button class="mcq-opt" data-correct="0">Avhengig av rekkefølgen på radene</button></li>
+          <li><button class="mcq-opt" data-correct="0">Udefinert — π returnerer alltid tom relasjon</button></li>
+        </ul>
+        <div class="mcq-feedback">RA-projeksjon fjerner duplikater. SQL <code>SELECT dept_name FROM instructor</code> ville derimot returnert 12 rader (multimengde) — du må eksplisitt skrive <code>DISTINCT</code> for samme oppførsel som π.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 18 · Vanskelig · Self-join uten ρ</div>
+        <div class="q-text">Hvorfor må vi bruke <code>ρ</code> (rename) når vi vil sammenligne to rader i samme relasjon med hverandre — f.eks. «finn alle ansatte som tjener mer enn ansatt nr. 12121»?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">For optimaliseringsformål — ρ gir hint til evalueringsmotoren</button></li>
+          <li><button class="mcq-opt" data-correct="1">Uten ρ kan vi ikke skille de to «kopiene» av relasjonen i kartesisk produkt — alle attributter ville hatt samme navn og blitt tvetydige</button></li>
+          <li><button class="mcq-opt" data-correct="0">ρ er bare obligatorisk i SQL, ikke i RA</button></li>
+          <li><button class="mcq-opt" data-correct="0">Det må vi ikke — RA-motoren skiller automatisk</button></li>
+        </ul>
+        <div class="mcq-feedback">Når en relasjon brukes to ganger i samme uttrykk, må vi navngi forekomstene ulikt. <code>ρ<sub>i</sub>(instructor) × ρ<sub>w</sub>(instructor)</code> gir oss <code>i.salary</code> og <code>w.salary</code> som distinkte kolonner. SQL-aliaset <code>FROM instructor i, instructor w</code> er det praktiske motstykket.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 19 · Middels · Kardinalitet av ×</div>
+        <div class="q-text">|R| = 100 og |S| = 50. Hva er |R × S|, og hva blir kardinaliteten typisk redusert til etter <code>σ<sub>R.id = S.id</sub>(R × S)</code> hvis matchen er 1-til-1?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">|R × S| = 150; etter select: 50</button></li>
+          <li><button class="mcq-opt" data-correct="1">|R × S| = 5000; etter select: opptil 50 (begrenset av den minste relasjonen)</button></li>
+          <li><button class="mcq-opt" data-correct="0">|R × S| = 100; etter select: 100</button></li>
+          <li><button class="mcq-opt" data-correct="0">|R × S| = 1; etter select: 1</button></li>
+        </ul>
+        <div class="mcq-feedback">|R × S| = |R| · |S|. Inner join gir maks |R|+|S|, og opptil min(|R|,|S|) ved 1-til-1. Dette er motivasjonen for at optimalisatoren aldri faktisk materialiserer det fullstendige kartesiske produktet — den evaluerer joinen direkte.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 20 · Vanskelig · Set difference</div>
+        <div class="q-text">Hvilket av disse RA-uttrykkene gir «ansatte som ikke underviser noe emne» (anti-join)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">instructor − teaches</button></li>
+          <li><button class="mcq-opt" data-correct="1">π<sub>id</sub>(instructor) − π<sub>id</sub>(teaches)</button></li>
+          <li><button class="mcq-opt" data-correct="0">instructor ⋈ teaches</button></li>
+          <li><button class="mcq-opt" data-correct="0">instructor ∪ teaches</button></li>
+        </ul>
+        <div class="mcq-feedback">Set difference krever at begge sidene har samme skjema. Vi projiserer på id i begge for å få sammenlignbare relasjoner, og tar differansen. Direkte <code>instructor − teaches</code> ville krevd at de to relasjonene hadde identisk skjema, noe de ikke har.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 21 · Vanskelig · Theta-join</div>
+        <div class="q-text">Hvilket uttrykk finner alle par av (instruktør, kurs) der instruktørens lønn er <em>mindre enn</em> kursets honorar?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">instructor ⋈ course (natural join på lønn)</button></li>
+          <li><button class="mcq-opt" data-correct="1">instructor ⋈<sub>instructor.salary &lt; course.fee</sub> course</button></li>
+          <li><button class="mcq-opt" data-correct="0">instructor ∪ course</button></li>
+          <li><button class="mcq-opt" data-correct="0">π<sub>salary, fee</sub>(instructor × course)</button></li>
+        </ul>
+        <div class="mcq-feedback">Theta-join lar predikatet være vilkårlig — ikke bare likhet. Natural join begrenser til equijoin på likt-navngitte attributter. Generelt: <code>R ⋈<sub>θ</sub> S = σ<sub>θ</sub>(R × S)</code>.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 22 · Veldig vanskelig · «For alle»-spørring</div>
+        <div class="q-text">Hvordan uttrykker du i RA «studenter som har tatt <em>alle</em> emner i CS-avdelingen», når RA ikke har en forall-kvantor som primitiv?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Med en aggregering γ<sub>count(*)</sub> som teller emner</button></li>
+          <li><button class="mcq-opt" data-correct="1">Med dobbel set-difference: π<sub>sid</sub>(student) − π<sub>sid</sub>((π<sub>sid</sub>(student) × π<sub>cid</sub>(σ<sub>dept='CS'</sub>(course))) − π<sub>sid, cid</sub>(takes)) — eller med divisjonsoperatoren ÷</button></li>
+          <li><button class="mcq-opt" data-correct="0">Med <code>EXISTS</code>-kvantoren i RA</button></li>
+          <li><button class="mcq-opt" data-correct="0">Det er ikke mulig — RA er ikke uttrykksfullt nok</button></li>
+        </ul>
+        <div class="mcq-feedback">Trikset er dobbel negasjon: «studenter for hvem det <em>ikke</em> finnes et CS-emne de <em>ikke</em> har tatt». I SQL skrives det med <code>NOT EXISTS NOT EXISTS</code>. Divisjonsoperatoren ÷ er en avledet operator nettopp for dette mønsteret. RA <em>er</em> like uttrykksfullt som førsteordens predikatlogikk — bare uten ferdig forall-syntaks.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 23 · Middels · γ aggregering</div>
+        <div class="q-text">Hva betyr <code><sub>dept_name</sub>γ<sub>avg(salary)</sub>(instructor)</code> i RA?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Gjennomsnittslønn i hele tabellen</button></li>
+          <li><button class="mcq-opt" data-correct="1">Gjennomsnittslønn per avdeling — én rad per dept_name med tilhørende avg(salary)</button></li>
+          <li><button class="mcq-opt" data-correct="0">Lønnen til hver ansatt og deres avdeling</button></li>
+          <li><button class="mcq-opt" data-correct="0">Antall ansatte per avdeling</button></li>
+        </ul>
+        <div class="mcq-feedback">Notasjonen er <code><sub>grupperingsattributter</sub>γ<sub>aggregatfunksjoner</sub></code>. Dette tilsvarer SQL: <code>SELECT dept_name, AVG(salary) FROM instructor GROUP BY dept_name</code>.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 24 · Lett · ρ rename</div>
+        <div class="q-text">Hva oppnår <code>ρ<sub>employee(eid, ename, dept, lønn)</sub>(instructor)</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Sletter instructor og oppretter employee</button></li>
+          <li><button class="mcq-opt" data-correct="1">Gir relasjonen instructor det nye navnet «employee» og navngir hver kolonne om til (eid, ename, dept, lønn)</button></li>
+          <li><button class="mcq-opt" data-correct="0">Endrer datatype på alle kolonner</button></li>
+          <li><button class="mcq-opt" data-correct="0">Trekker ut bare den første raden</button></li>
+        </ul>
+        <div class="mcq-feedback">ρ kan både gi nytt relasjonsnavn og navngi attributter om. Brukes blant annet for å gjøre union-kompatible relasjoner like, og for å skille forekomster i self-join.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 25 · Vanskelig · NULL i aggregat</div>
+        <div class="q-text">Tabellen <code>instructor(id, name, salary)</code> har 5 rader, der 2 har NULL i salary. Hva returnerer <code>SUM(salary)</code> og <code>COUNT(*)</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Begge returnerer NULL — fordi det finnes NULL-er</button></li>
+          <li><button class="mcq-opt" data-correct="1">SUM(salary) summerer de 3 ikke-NULL-verdiene; COUNT(*) returnerer 5</button></li>
+          <li><button class="mcq-opt" data-correct="0">SUM(salary) returnerer 0; COUNT(*) returnerer 5</button></li>
+          <li><button class="mcq-opt" data-correct="0">SUM(salary) feiler med en runtime-error</button></li>
+        </ul>
+        <div class="mcq-feedback">Aggregatfunksjoner unntatt COUNT(*) ignorerer NULL. <code>COUNT(salary)</code> ville derimot returnert 3 (hopper over NULL). Hvis ALLE verdier er NULL, returnerer SUM/AVG/MIN/MAX → NULL (ikke 0).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 26 · Middels · Tre integriteter</div>
+        <div class="q-text">Hvilken type integritet brytes hvis man setter inn en rad med <code>dept_name = 'Foo'</code> i instructor, mens 'Foo' ikke finnes i department?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Entitetsintegritet</button></li>
+          <li><button class="mcq-opt" data-correct="1">Referansiell integritet (FK-constraint)</button></li>
+          <li><button class="mcq-opt" data-correct="0">Domeneintegritet</button></li>
+          <li><button class="mcq-opt" data-correct="0">ACID-isolasjon</button></li>
+        </ul>
+        <div class="mcq-feedback">Entitetsintegritet = ingen NULL i PK. Domeneintegritet = verdier hører til kolonnens domene (type/CHECK). Referansiell integritet = FK-verdier må matche en eksisterende rad i refererte tabell — dette er det som brytes her.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 27 · Vanskelig · Composite candidate keys</div>
+        <div class="q-text">En tabell <code>Booking(rom, dato, time, brukerId)</code> brukes for å reservere møterom. Hvilken er den naturlige minimale kandidatnøkkelen, og hvorfor ikke bare {brukerId}?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">{brukerId} — fordi hver bruker er unik</button></li>
+          <li><button class="mcq-opt" data-correct="1">{rom, dato, time} — én reservasjon per romslot. {brukerId} alene er ikke unik fordi en bruker kan reservere flere slots.</button></li>
+          <li><button class="mcq-opt" data-correct="0">{dato} — én reservasjon per dato</button></li>
+          <li><button class="mcq-opt" data-correct="0">{rom} — kun én bruker per rom</button></li>
+        </ul>
+        <div class="mcq-feedback">Kandidatnøkkelen følger forretningsregelen: «hva identifiserer en reservasjon entydig?». Det er kombinasjonen rom+dato+time. Composite keys kan være tre eller flere attributter — det er fullt lovlig så lenge de er minimale.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 28 · Veldig vanskelig · Optimization-ekvivalens</div>
+        <div class="q-text">Optimalisatoren skal omforme <code>π<sub>name</sub>(σ<sub>salary&gt;100000</sub>(instructor ⋈ department))</code> til en billigere ekvivalent. Hvilken er faktisk ekvivalent?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">π<sub>name</sub>(σ<sub>salary&gt;100000</sub>(instructor) ⋈ department) — bare hvis salary kun finnes i instructor</button></li>
+          <li><button class="mcq-opt" data-correct="1">Begge alternativene 1 og «(σ<sub>salary&gt;100000</sub>(instructor)) ⋈ department» er korrekte hvis salary finnes kun i instructor og inner join — push selection ned før join</button></li>
+          <li><button class="mcq-opt" data-correct="0">π<sub>salary</sub>(σ<sub>name</sub>(...)) — bare bytte rekkefølge på π og σ</button></li>
+          <li><button class="mcq-opt" data-correct="0">Ingen omforming er trygg — RA er ikke kommutativ</button></li>
+        </ul>
+        <div class="mcq-feedback">«Push selection past join» er en sentral optimaliseringsregel: når predikatet bare nevner attributter fra én side av joinen, kan det evalueres før joinen — det reduserer størrelsen på relasjonen som skal joinres. NB: gjelder ikke ubetinget for outer joins der NULL kan endre semantikken.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 29 · Middels · Ekvivalente RA-uttrykk</div>
+        <div class="q-text">Hvilke to uttrykk er ekvivalente?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">σ<sub>p</sub>(R) og π<sub>p</sub>(R)</button></li>
+          <li><button class="mcq-opt" data-correct="1">R ⋈<sub>p</sub> S og σ<sub>p</sub>(R × S) — definisjonen av theta-join</button></li>
+          <li><button class="mcq-opt" data-correct="0">R ∪ S og R × S</button></li>
+          <li><button class="mcq-opt" data-correct="0">π<sub>A</sub>(R) og σ<sub>A</sub>(R) — alltid samme resultat</button></li>
+        </ul>
+        <div class="mcq-feedback">Theta-join er definert som kartesisk produkt etterfulgt av seleksjon. Det er nettopp denne ekvivalensen som lar optimalisatoren omformulere mellom dem etter behov.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 30 · Veldig vanskelig · Fundamentale operatorer</div>
+        <div class="q-text">RA har <strong>seks</strong> fundamentale operatorer. Resten (join, intersection, divisjon, ...) er avledede. Hvilken liste er <em>nøyaktig</em> de seks fundamentale?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">σ, π, ⋈, ∪, ∩, ρ</button></li>
+          <li><button class="mcq-opt" data-correct="1">σ, π, ×, ∪, −, ρ</button></li>
+          <li><button class="mcq-opt" data-correct="0">σ, π, ⋈, ⟕, γ, ρ</button></li>
+          <li><button class="mcq-opt" data-correct="0">SELECT, FROM, WHERE, JOIN, GROUP BY, HAVING</button></li>
+        </ul>
+        <div class="mcq-feedback">De seks fundamentale: select (σ), project (π), kartesisk produkt (×), union (∪), differanse (−), rename (ρ). Avledet: join (= σ etter ×), intersection (= R−(R−S)), divisjon (= dobbel project + difference), aggregering γ (utvidelse, ikke i den fundamentale algebraen). Hvis du fjerner én av de seks, mister du uttrykksfullhet.</div>
+      </div>
+
       <div class="callout">
         <span class="label">Klar for kapittel 3?</span>
-        <p>Når disse 15 sitter, er du klar for SQL — som tar hele algebraen og kler den i syntaks. Gå videre til <a href="../kap3/">kapittel 3</a>.</p>
+        <p>Når disse 30 sitter, er du klar for SQL — som tar hele algebraen og kler den i syntaks. Gå videre til <a href="../kap3/">kapittel 3</a>.</p>
       </div>
     </div>
   </section>
