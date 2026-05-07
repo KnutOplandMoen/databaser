@@ -272,7 +272,7 @@
     <div class="container">
       <div class="section-badge">05 · Test deg selv</div>
       <h2>Konsept-quiz</h2>
-      <p class="section-intro">Tolv flervalgsspørsmål på tvers av hele kapitlet. Detaljerte spørsmål per tema finner du på hver delside.</p>
+      <p class="section-intro">30 flervalgsspørsmål på tvers av hele kapitlet — fra DDL-grunnsyntaks til avanserte triggere, indekser og deferrable constraints. Detaljerte spørsmål per tema finner du på hver delside.</p>
 
       <div class="quiz mcq" data-quiz-mcq>
         <div class="q-label">Q1 · Lett</div>
@@ -416,6 +416,222 @@
           <li><button class="mcq-opt">Det fungerer kun på views, ikke tabeller</button></li>
         </ul>
         <div class="mcq-feedback">Mottakeren kan GRANT-e videre. Når kilden REVOKE-er, faller hele kjeden av delegasjoner kaskadert (cascading revoke).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q13 · Middels</div>
+        <div class="q-text">Hva er forskjellen på <code>WHERE</code> og <code>HAVING</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Ingen — de er synonymer</button></li>
+          <li><button class="mcq-opt" data-correct="1">WHERE filtrerer rader <em>før</em> GROUP BY; HAVING filtrerer grupper <em>etter</em> aggregering</button></li>
+          <li><button class="mcq-opt">WHERE er for SELECT, HAVING er for UPDATE</button></li>
+          <li><button class="mcq-opt">HAVING må alltid stå før WHERE</button></li>
+        </ul>
+        <div class="mcq-feedback">SQL-ens logiske evalueringsrekkefølge er FROM → WHERE → GROUP BY → HAVING → SELECT. Du kan ikke bruke aggregat (AVG, COUNT) i WHERE — de eksisterer ikke før etter GROUP BY.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q14 · Vanskelig</div>
+        <div class="q-text">Spørringen <code>SELECT dept_name, name, AVG(salary) FROM instructor GROUP BY dept_name</code> er ugyldig i standard SQL. Hvorfor?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">AVG kan ikke brukes med GROUP BY</button></li>
+          <li><button class="mcq-opt" data-correct="1">name er ikke i GROUP BY-listen og er ikke pakket i et aggregat — det er ikke entydig hvilken name som hører til en avdelingsgruppe</button></li>
+          <li><button class="mcq-opt">FROM må ha alias når man bruker GROUP BY</button></li>
+          <li><button class="mcq-opt">GROUP BY krever HAVING</button></li>
+        </ul>
+        <div class="mcq-feedback">Standardregel: alle attributter i SELECT må enten være i GROUP BY eller pakket i en aggregatfunksjon. Mer enn én name kan finnes per dept_name — hvilken skal vises? MySQL er notorisk for å akseptere dette og returnere en vilkårlig rad; det er en utvidelse, ikke standard.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q15 · Middels</div>
+        <div class="q-text">Hva er forskjellen mellom <code>UNION</code> og <code>UNION ALL</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="1">UNION fjerner duplikater i resultatet; UNION ALL beholder dem (og er typisk raskere)</button></li>
+          <li><button class="mcq-opt">UNION er for tall, UNION ALL er for tekst</button></li>
+          <li><button class="mcq-opt">UNION ALL krever like skjemaer; UNION krever ikke det</button></li>
+          <li><button class="mcq-opt">De er synonymer</button></li>
+        </ul>
+        <div class="mcq-feedback">Begge krever union-kompatible skjemaer. UNION må sortere/hashe for å finne duplikater — ekstra arbeid. Hvis du vet at duplikater enten ikke finnes eller skal beholdes, bruk UNION ALL.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q16 · Vanskelig</div>
+        <div class="q-text"><code>SELECT i.name, t.course_id FROM instructor i LEFT OUTER JOIN teaches t ON i.id = t.id</code>. Hva returneres for instruktører som ikke underviser noe?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Ingen rad — de filtreres bort</button></li>
+          <li><button class="mcq-opt" data-correct="1">Én rad med name fylt inn og course_id = NULL</button></li>
+          <li><button class="mcq-opt">Like mange rader som det finnes kurs i hele databasen</button></li>
+          <li><button class="mcq-opt">En feilmelding</button></li>
+        </ul>
+        <div class="mcq-feedback">LEFT OUTER JOIN beholder alle rader fra venstre side; de som mangler match får NULL i alle attributter fra høyre. Brukes blant annet til å finne <em>fraværende</em> matcher: <code>WHERE t.id IS NULL</code> filtrerer til kun instruktører uten undervisning (anti-join).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q17 · Vanskelig</div>
+        <div class="q-text">Hvorfor er <code>NATURAL JOIN</code> regnet som «skjør» i produksjonskode?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Den er tregere enn andre join-varianter</button></li>
+          <li><button class="mcq-opt" data-correct="1">Hvis noen legger til en likt-navngitt kolonne i en av tabellene (f.eks. <code>created_at</code>), endres semantikken stille — joinen begynner å matche på den nye kolonnen også</button></li>
+          <li><button class="mcq-opt">Den kan ikke brukes med outer join</button></li>
+          <li><button class="mcq-opt">NULL-verdier får tilfeldig oppførsel</button></li>
+        </ul>
+        <div class="mcq-feedback">NATURAL JOIN matcher implisitt på <em>alle</em> felles attributtnavn. En skjemaendring som er trygg for andre spørringer, kan endre semantikken til en NATURAL JOIN uten kompileringsfeil. Eksplisitt <code>JOIN ... ON</code> er mer robust.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q18 · Lett</div>
+        <div class="q-text">Hvilken kommando avslutter en transaksjon og gjør endringene permanente?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">END TRANSACTION;</button></li>
+          <li><button class="mcq-opt" data-correct="1">COMMIT;</button></li>
+          <li><button class="mcq-opt">SAVE;</button></li>
+          <li><button class="mcq-opt">PERSIST;</button></li>
+        </ul>
+        <div class="mcq-feedback">COMMIT skriver transaksjonens endringer permanent til disk (via WAL). ROLLBACK avbryter og kaster endringene. SAVEPOINT setter et merkepunkt man kan rulle tilbake til uten å avbryte hele transaksjonen.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q19 · Vanskelig</div>
+        <div class="q-text">En <em>korrelert</em> subquery er kjennetegnet av at den …</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">… returnerer akkurat én verdi</button></li>
+          <li><button class="mcq-opt" data-correct="1">… refererer til en kolonne fra den ytre spørringen, og må logisk re-evalueres for hver ytre rad</button></li>
+          <li><button class="mcq-opt">… er definert med WITH-klausulen</button></li>
+          <li><button class="mcq-opt">… alltid er raskere enn en join</button></li>
+        </ul>
+        <div class="mcq-feedback">Eksempel: <code>WHERE salary &gt; (SELECT AVG(salary) FROM instructor i2 WHERE i2.dept_name = i.dept_name)</code> — den indre referer til <code>i.dept_name</code> fra ytre. Optimalisatoren prøver ofte å skrive om dette til join + GROUP BY for ytelse.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q20 · Middels</div>
+        <div class="q-text">Hvilket utsagn er sant om <code>WITH CHECK OPTION</code> på et view?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Det gjør viewet read-only</button></li>
+          <li><button class="mcq-opt" data-correct="1">Det hindrer INSERT/UPDATE som ville produsert rader som faller utenfor viewets WHERE-klausul</button></li>
+          <li><button class="mcq-opt">Det validerer datatypene før innsetting</button></li>
+          <li><button class="mcq-opt">Det krever at brukeren har CHECK-privilegiet</button></li>
+        </ul>
+        <div class="mcq-feedback">Uten CHECK OPTION kan en bruker sette inn en rad som havner utenfor det filtrerte viewet og dermed forsvinner fra deres egen visning. Med CHECK OPTION avvises slike INSERT-er.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q21 · Vanskelig</div>
+        <div class="q-text">Når må man bruke en <strong>trigger</strong> i stedet for en <code>CHECK</code>-constraint for å håndheve en regel?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Aldri — CHECK kan håndheve alle regler</button></li>
+          <li><button class="mcq-opt" data-correct="1">Når regelen krysser flere rader eller flere tabeller, eller krever en kompleks beregning som ikke kan uttrykkes som et radvis predikat</button></li>
+          <li><button class="mcq-opt">Når regelen handler om numeriske verdier</button></li>
+          <li><button class="mcq-opt">Når man vil at regelen skal kjøres asynkront</button></li>
+        </ul>
+        <div class="mcq-feedback">CHECK er per-rad (med visse SQL-implementasjoner som tillater subquery, men det er sjelden støttet bredt). Trigger er nødvendig når du f.eks. vil at totalbudsjettet til en avdeling ikke skal overstige et tak — det krever å summere over flere rader. ASSERTION er SQL-standardens svar, men er sjelden implementert.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q22 · Veldig vanskelig</div>
+        <div class="q-text">En <code>WITH RECURSIVE</code>-spørring som regner ut transitiv lukning av en graf risikerer å aldri terminere. Hva er det <em>brukerens</em> ansvar (ikke DBMS-ens)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">DBMS-en oppdager automatisk uendelige løkker og avslutter</button></li>
+          <li><button class="mcq-opt" data-correct="1">Sørge for at det rekursive leddet enten ikke produserer nye rader på et tidspunkt (basert på UNION-semantikk som filtrerer duplikater i UNION-uten-ALL), eller eksplisitt begrense rekursjonsdybden med en teller</button></li>
+          <li><button class="mcq-opt">Bruke ROLLBACK etter hver iterasjon</button></li>
+          <li><button class="mcq-opt">Skrive rekursjonen i Java i stedet</button></li>
+        </ul>
+        <div class="mcq-feedback">Den klassiske transitiv-lukning-spørringen bruker <code>UNION</code> (uten ALL) for å droppe duplikater — så når ingen nye par dukker opp, terminerer rekursjonen. Med <code>UNION ALL</code> trenger du eksplisitt en avbruddsbetingelse (f.eks. <code>WHERE depth &lt; 100</code>) ellers risikerer du å iterere uendelig.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q23 · Middels</div>
+        <div class="q-text">Hva er forskjellen på <code>x = ANY (subq)</code> og <code>x = ALL (subq)</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">ANY krever lik datatype, ALL gjør det ikke</button></li>
+          <li><button class="mcq-opt" data-correct="1">ANY er TRUE hvis x matcher minst én verdi i subq (ekvivalent med IN); ALL er TRUE bare hvis x matcher hver verdi (= ALL er sjelden TRUE for &gt;1 verdi)</button></li>
+          <li><button class="mcq-opt">ALL er for indekser; ANY er for sekvensielle skann</button></li>
+          <li><button class="mcq-opt">De er synonymer</button></li>
+        </ul>
+        <div class="mcq-feedback">SOME er synonym for ANY. <code>x &gt; ALL (subq)</code> betyr «x er større enn alle verdier i subq» — nyttig for max-mønstre. <code>x &gt; ANY</code> betyr «x er større enn minst én» — som å si x er ikke det minste.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q24 · Lett</div>
+        <div class="q-text">Hvilken DDL-kommando legger til en ny kolonne i en eksisterende tabell?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">CREATE TABLE r ADD COLUMN c INT;</button></li>
+          <li><button class="mcq-opt">UPDATE r ADD c INT;</button></li>
+          <li><button class="mcq-opt" data-correct="1">ALTER TABLE r ADD COLUMN c INT;</button></li>
+          <li><button class="mcq-opt">EXTEND TABLE r SET c INT;</button></li>
+        </ul>
+        <div class="mcq-feedback">ALTER TABLE er DDL-kommandoen for skjemaendringer: ADD/DROP COLUMN, ADD/DROP CONSTRAINT, RENAME, osv. På store tabeller kan dette være kostbart — DBMS-en må eventuelt skrive om hele tabellen.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q25 · Vanskelig</div>
+        <div class="q-text">En <strong>BEFORE INSERT</strong>-trigger kan endre verdiene som settes inn (via <code>NEW</code>-raden). Hvorfor er en <strong>AFTER INSERT</strong>-trigger ikke i stand til det samme?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">AFTER har ikke tilgang til NEW</button></li>
+          <li><button class="mcq-opt" data-correct="1">Etter at INSERT er utført, er raden allerede skrevet; modifikasjoner via NEW ville krevd en ny UPDATE — som igjen kunne trigget triggere rekursivt</button></li>
+          <li><button class="mcq-opt">SQL-standarden forbyr det</button></li>
+          <li><button class="mcq-opt">AFTER triggere kjører i et eget transaksjonsrom</button></li>
+        </ul>
+        <div class="mcq-feedback">BEFORE-triggere er for å validere/forme data før de skrives. AFTER-triggere er for sideeffekter (logging, kaskaderende oppdateringer i andre tabeller). Hvis du vil endre selve raden, må det gjøres i BEFORE.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q26 · Middels</div>
+        <div class="q-text">Hva matcher <code>WHERE name LIKE '_a%'</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Bare strenger som starter med _a</button></li>
+          <li><button class="mcq-opt" data-correct="1">Strenger der andre tegn er 'a' (uavhengig av første tegn og resten)</button></li>
+          <li><button class="mcq-opt">Strenger som inneholder 'a' et eller annet sted</button></li>
+          <li><button class="mcq-opt">Bare strenger med nøyaktig to tegn der andre er 'a'</button></li>
+        </ul>
+        <div class="mcq-feedback">I LIKE: <code>_</code> matcher ett vilkårlig tegn, <code>%</code> matcher null eller flere vilkårlige tegn. <code>'_a%'</code> ⇒ ett tegn, så 'a', så hva som helst. «Sara», «Pavel», «Maria» matcher; «Adam» og «aron» matcher ikke (a er første tegn, ikke andre).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q27 · Veldig vanskelig</div>
+        <div class="q-text">Du har spørringen <code>SELECT * FROM orders WHERE customer_id = ? AND order_date BETWEEN ? AND ?</code> som kjører ofte. Du oppretter en <em>sammensatt</em> indeks. Hvilken kolonnerekkefølge gir best ytelse?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">(order_date, customer_id) — datoer er typisk høyere selektivitet</button></li>
+          <li><button class="mcq-opt" data-correct="1">(customer_id, order_date) — likhetspredikatet kommer først, etterfulgt av range-predikatet</button></li>
+          <li><button class="mcq-opt">Rekkefølgen spiller ingen rolle</button></li>
+          <li><button class="mcq-opt">Lag to separate enkeltkolonneindekser i stedet</button></li>
+        </ul>
+        <div class="mcq-feedback">Tommelfingerregelen: likhetsfilter først, range-filter sist. Med (customer_id, order_date) kan indeksen finne alle rader for en bestemt kunde sammenhengende, og deretter range-skanne datoene. Motsatt rekkefølge tvinger filtrering på alle datoer først.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q28 · Vanskelig</div>
+        <div class="q-text">Hva løser <code>DEFERRABLE INITIALLY DEFERRED</code> på en FK-constraint?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Det fjerner constraint-en helt</button></li>
+          <li><button class="mcq-opt" data-correct="1">Det utsetter integritetssjekken til transaksjonen committer — nyttig for selvrefererende eller sirkulære FK-er der mellomtilstand er ulovlig, men slutt-tilstand er gyldig</button></li>
+          <li><button class="mcq-opt">Det gjør constraint-en valgfri (DBA kan slå den av)</button></li>
+          <li><button class="mcq-opt">Det disabler kaskadering på sletting</button></li>
+        </ul>
+        <div class="mcq-feedback">Klassisk eksempel: en tabell <code>employee(id, manager_id)</code> der manager_id er FK til samme tabell. Når du setter inn både ledere og deres ansatte i én transaksjon, kan ikke den første raden ha en gyldig manager_id ennå — men ved transaksjonsslutt er alt på plass. DEFERRED utsetter sjekken til COMMIT.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q29 · Middels</div>
+        <div class="q-text">Hva er forskjellen på en <code>FUNCTION</code> og en <code>PROCEDURE</code> i SQL?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Funksjoner er raskere</button></li>
+          <li><button class="mcq-opt" data-correct="1">Funksjoner returnerer en verdi/relasjon og brukes som uttrykk; prosedyrer kalles med CALL, kan ha OUT-parametre, og brukes for arbeidsflyter med side-effekter</button></li>
+          <li><button class="mcq-opt">Prosedyrer kan bare brukes inne i triggere</button></li>
+          <li><button class="mcq-opt">Funksjoner krever superbruker-privilegier</button></li>
+        </ul>
+        <div class="mcq-feedback">Funksjon: brukes der et uttrykk er forventet (SELECT, WHERE). Prosedyre: kalles eksplisitt, har potensielt flere ut-parametre, og er for handlinger snarere enn beregninger.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Q30 · Veldig vanskelig</div>
+        <div class="q-text">SQL-standardens <code>CREATE ASSERTION</code> tillater integritetsregler på tvers av flere tabeller (f.eks. «hver instruktør må ha minst ett tildelt kurs»). Hvorfor er den nesten aldri implementert i ekte DBMS-er?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Det er en bug i standarden</button></li>
+          <li><button class="mcq-opt" data-correct="1">Hver oppdatering på <em>noen</em> involvert tabell ville utløst en revurdering av hele assertion-en — potensielt en kostbar global join. I praksis bruker man triggere som tester betingelsen lokalt etter spesifikke endringer.</button></li>
+          <li><button class="mcq-opt">Den krever spesialhardware</button></li>
+          <li><button class="mcq-opt">Den var bare en idé som ikke ble vedtatt</button></li>
+        </ul>
+        <div class="mcq-feedback">Ytelsesbekymringen er reell: en general-purpose assertion tilsvarer å kjøre en integritetssjekk-spørring etter hver eneste UPDATE i hele databasen. Triggere lar deg være målrettet og kun reagere på relevante endringer — derfor bruker man dem i praksis selv om assertion ville vært mer elegant.</div>
       </div>
 
       <p style="margin-top:1.6rem; font-size:0.95rem; color: var(--ink-faded);">Klar for mer fordypning? Hopp til <a href="ddl-og-spoerringer.html">3A — DDL og spørringer</a>.</p>
