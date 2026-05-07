@@ -869,20 +869,20 @@ FD2: rom, tidspunkt → kurs    (rom + tidspunkt identifiserer kurset)</pre>
           <span class="exam-q__topic">Kap. 11</span>
         </header>
         <div class="exam-q__body">
-          <p class="q-text">En B+-tre løvblokk har plass til 6 nøkler og er full med <code>[10, 20, 30, 40, 50, 60]</code>. Vi setter inn 35. Etter splitt blir resultatet <code>[10, 20, 30]</code> og <code>[35, 40, 50, 60]</code>. Hva propageres opp til foreldre-noden?</p>
+          <p class="q-text">En B+-tre løvblokk har plass til 6 nøkler og er full med <code>[10, 20, 30, 40, 50, 60]</code>. Vi setter inn 35. Bratsberg-konvensjonen (kompendium-kap. 10): først splittes blokken — halvparten av nøklene flyttes til en ny høyre-blokk → <code>[10, 20, 30]</code> og <code>[40, 50, 60]</code>. Deretter settes 35 inn i blokken som har plass: <code>[10, 20, 30, 35]</code> og <code>[40, 50, 60]</code>. Hva propageres opp til foreldre-noden?</p>
           <ul class="exam-q__opts">
-            <li><span class="opt-label">A</span> Verdien 30 (største i venstre løv), <em>flyttet</em> opp.</li>
-            <li><span class="opt-label">B</span> Verdien 35 (minste i høyre løv), <em>kopiert</em> opp (forblir i løvet).</li>
-            <li><span class="opt-label">C</span> Verdien 35 (minste i høyre løv), <em>flyttet</em> opp (fjernet fra løvet).</li>
-            <li><span class="opt-label">D</span> Median 40 av de 7 opprinnelige nøklene, kopiert opp.</li>
+            <li><span class="opt-label">A</span> Verdien 35 (største i venstre løv etter innsetting), <em>flyttet</em> opp.</li>
+            <li><span class="opt-label">B</span> Verdien 40 (minste i høyre løv), <em>kopiert</em> opp (forblir i løvet).</li>
+            <li><span class="opt-label">C</span> Verdien 40 (minste i høyre løv), <em>flyttet</em> opp (fjernet fra løvet).</li>
+            <li><span class="opt-label">D</span> Median 35 av de 7 nøklene (de 6 originale + den nye), kopiert opp.</li>
           </ul>
           <details class="fasit-details">
             <summary>Vis fasit</summary>
             <div class="fasit-body">
               <span class="fasit-correct">Riktig svar: B</span>
-              <p>I et B+-tre må <em>alle</em> nøkler finnes på løvnivå (det er invariansen som lar oss scanne løvnivået sekvensielt). Splitt-nøkkelen er minste nøkkel i nye høyre-løv (her 35), og den <em>kopieres</em> opp til foreldre-noden mens den forblir i løvet. (Dette skiller B+-tre fra B-tre, der nøkkelen ville blitt <em>flyttet</em> opp og fjernet fra det indre nivået.)</p>
-              <p>A bruker en uvanlig konvensjon. C ville bryte invariansen — 35 må fortsatt være på løvnivå. D bommer på splitt-prosedyren.</p>
-              <p class="ref">Pensum: <a href="../../kap6/btrees.html">Kap. 6 — B+-trær</a></p>
+              <p>Per splitt-prosedyren i Bratsberg-kompendiet (kap. 10) flyttes halvparten av nøklene til ny høyre-blokk <em>før</em> den nye nøkkelen settes inn. Etter at 35 er plassert i venstre-blokken, er den minste nøkkelen i høyre-blokken 40 — og det er <em>denne</em> separator-nøkkelen som propageres opp til foreldre-noden. På løvnivå <em>kopieres</em> separatoren opp (alle nøkler må fortsatt finnes på løvnivå for at sekvensiell skanning skal fungere); det skiller B+-tre fra B-tre, hvor separatoren ved indre splitt blir <em>flyttet</em>.</p>
+              <p>A bryter med konvensjonen — venstre-løvets største (35) blir ikke separator i denne prosedyren; det er minste i høyre-løv som blir det. Et vanlig fallgrop er å «sette inn først, deretter splitte midt på de 7 nøklene», som ville gjort 35 til separator — men det er <em>ikke</em> algoritmen kompendiet beskriver. C ville bryte invariansen: 40 må fortsatt være på løvnivå. D blander sammen Bratsberg-konvensjonen med standard B-tre-splitt der medianen propageres.</p>
+              <p class="ref">Pensum: <a href="../../kap6/btrees.html#innsetting">Kap. 6 — B+-trær: Innsetting og splitt</a></p>
             </div>
           </details>
         </div>

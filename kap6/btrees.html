@@ -396,6 +396,14 @@
         <li>Recovery-loggen (loggen brukt til å gjenopprette etter krasj — kap 8) kan da ha én post for splitten og én for innsettingen — separat redo og atomicitet.</li>
       </ul>
 
+      <h4>Verdt å huske: rekkefølgen påvirker hvilken nøkkel som propageres</h4>
+      <p>Når den nye nøkkelen havner i <em>midten</em> av bladet, gir konvensjonen «splitt først, sett inn etterpå» et annet resultat enn «sett inn virtuelt, splitt midt på de 7». Eksempel: full løvblokk <code>[10, 20, 30, 40, 50, 60]</code> (kapasitet 6), insert 35.</p>
+      <ul>
+        <li><strong>Bratsberg-konvensjon (splitt først):</strong> halvparten flyttes → <code>[10, 20, 30]</code> og <code>[40, 50, 60]</code>. 35 settes inn i venstre (35 &lt; 40) → <code>[10, 20, 30, 35]</code> og <code>[40, 50, 60]</code>. Minste i høyre = <strong>40</strong>, kopieres opp.</li>
+        <li><strong>Alternativ (sett inn først, splitt midt på 7):</strong> de 7 nøklene blir <code>[10, 20, 30, 35, 40, 50, 60]</code>, splittet midt på → <code>[10, 20, 30]</code> og <code>[35, 40, 50, 60]</code>. Minste i høyre = <strong>35</strong>, kopieres opp.</li>
+      </ul>
+      <p>Begge er gyldige B+-trær, men de er <em>ikke</em> samme algoritme. På denne kursen følger vi Bratsberg — så <strong>40</strong> er det som propageres opp i eksempelet over. Innsetting-før-splitt-i-midten er en vanlig fallgrop fordi mange engelskspråklige lærebøker bruker den varianten.</p>
+
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 4 · Middels</div>
         <div class="q-text">En insert i et stort B+-tre med 4 nivåer fyller bladet og forårsaker en splitt. Foreldrenoden har plass. Hvor mange blokker må <em>skrives</em> til disk i verste fall?</div>
@@ -437,6 +445,28 @@
       </div>
 
       <p style="font-size:0.94rem;color:var(--ink-faded);margin-top:1rem"><em>Tips:</em> Kjør eksempel-sekvensen fra notatene trinnvis (start med tilbakestilling, deretter sett inn 2, 5, 14, 22, 27, 33, 3, 7, 16, 24 i denne rekkefølgen) — du vil se nøyaktig de samme trinnene som kompendiet viser.</p>
+
+      <details class="decision">
+        <summary>Verifiser: stemmer animasjonen med Bratsberg-algoritmen?</summary>
+        <div class="decision-body">
+          <p>Demo-sekvensen <code>2, 5, 14, 22, 27, 33, 3, 7, 16, 24</code> trigger fire bladsplitter (ved insert 22, 33, 7, 24). Tabellen sporer hver splitt både med <strong>Bratsberg</strong> («splitt først, sett inn etterpå») og med <strong>animasjons-koden</strong> («sett inn virtuelt, splitt midt på de 4 nøklene»):</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Insert</th><th>Full løv</th><th>Bratsberg-trinn</th><th>Animasjons-trinn</th><th>Resultat</th><th>Promote</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>22</td><td>[2,5,14]</td><td>splitt → [2,5] og [14]; sett inn 22 (22&gt;14)</td><td>virtuelt [2,5,14,22]; splitt midt → [2,5] og [14,22]</td><td>[2,5] og [14,22]</td><td>14</td></tr>
+                <tr><td>33</td><td>[14,22,27]</td><td>splitt → [14,22] og [27]; sett inn 33 (33&gt;27)</td><td>virtuelt [14,22,27,33]; splitt midt → [14,22] og [27,33]</td><td>[14,22] og [27,33]</td><td>27</td></tr>
+                <tr><td>7</td><td>[2,3,5]</td><td>splitt → [2,3] og [5]; sett inn 7 (7&gt;5)</td><td>virtuelt [2,3,5,7]; splitt midt → [2,3] og [5,7]</td><td>[2,3] og [5,7]</td><td>5</td></tr>
+                <tr><td>24</td><td>[14,16,22]</td><td>splitt → [14,16] og [22]; sett inn 24 (24&gt;22)</td><td>virtuelt [14,16,22,24]; splitt midt → [14,16] og [22,24]</td><td>[14,16] og [22,24]</td><td>22</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Alle fire splitter gir <em>identisk</em> resultat under begge konvensjoner. Grunnen: i denne sekvensen lander hver nye nøkkel som <strong>størst</strong> i bladet sitt — da spiller det ingen rolle om man splitter før eller etter. Forskjellen mellom konvensjonene synes først når en ny nøkkel lander <em>mellom</em> eksisterende nøkler i et fullt blad (jf. eksempelet med 35 inn i [10, 20, 30, 40, 50, 60] over).</p>
+          <p>Konklusjon: animasjonen viser Bratsberg-trinnene korrekt for hele demo-sekvensen, og de fire bladsplittene matcher kompendiet 1:1.</p>
+        </div>
+      </details>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 6 · Vanskelig</div>
