@@ -187,6 +187,18 @@
           <div class="answer">Verdien er ikke atomisk — den har indre struktur som applikasjonen må parse. Du mister muligheten til å indeksere og spørre direkte («finn alt med tag = 'db'»). Standardløsningen er en separat tabell <code>article_tag(article_id, tag)</code> — én rad per kombinasjon.</div>
         </div>
       </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Kontrollspørsmål · MCQ</div>
+        <div class="q-text">Hvilken av disse tabellene <em>bryter</em> 1. normalform?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0"><code>Person(fnr, navn, fødselsdato)</code> hvor fødselsdato er en DATE</button></li>
+          <li><button class="mcq-opt" data-correct="1"><code>Bruker(epost, telefonnumre)</code> hvor telefonnumre er en JSON-array av numre</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>Bruker_telefon(epost, telefonnummer)</code> med én rad per telefonnummer per bruker</button></li>
+          <li><button class="mcq-opt" data-correct="0"><code>Adresse(person_id, gate, postnr, poststed)</code> hvor adressen er splittet i atomære deler</button></li>
+        </ul>
+        <div class="mcq-feedback">1NF krever atomære attributtverdier. En JSON-array er en sammensatt verdi som du må parse for å spørre på enkeltelementer. Den korrekte løsningen er nettopp den tredje varianten — en egen tabell med én rad per telefonnummer (jf. flerverdi-attributt → egen tabell ved ER-oversettelse, kap 4B).</div>
+      </div>
     </div>
   </section>
 

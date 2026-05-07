@@ -285,6 +285,18 @@
    ≡   instructor ⋈<sub>instructor.ID = teaches.ID</sub> teaches</code></pre>
 
       <p>Algebraen utleder altså join fra to mer fundamentale operasjoner.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Relasjon <code>R(A, B)</code> har 5 tupler, og <code>S(C, D)</code> har 3 tupler. Hvor mange tupler har <code>R × S</code>, og hvilket skjema?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">5 tupler, skjema (A, B) — kartesisk produkt fjerner duplikater fra S</button></li>
+          <li><button class="mcq-opt" data-correct="0">8 tupler, skjema (A, B, C, D) — produktet er en union av rader</button></li>
+          <li><button class="mcq-opt" data-correct="1">15 tupler, skjema (A, B, C, D) — hver R-rad kombineres med hver S-rad</button></li>
+          <li><button class="mcq-opt" data-correct="0">15 tupler, skjema (A, B) — produktet beholder bare R sitt skjema</button></li>
+        </ul>
+        <div class="mcq-feedback">|R × S| = |R| · |S| = 5 · 3 = 15. Skjemaet er sammenstillingen av begge skjemaene. Akkurat dette gjør operatoren upraktisk å bruke alene — kombinert med σ blir det en join.</div>
+      </div>
     </div>
   </section>
 
@@ -483,6 +495,18 @@
 S2018 ← π<sub>course_id</sub>(σ<sub>semester="Spring" ∧ year=2018</sub>(section))
 F2017 ∪ S2018</code></pre>
       <p>Tilordningen er ikke en operator i seg selv — den er bare leselig syntaks for å bygge større uttrykk steg for steg.</p>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hvilken oppgave løser <code>ρ</code>-operatoren som de andre fundamentale operatorene ikke kan løse alene?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Den fjerner duplikater fra et resultat — uten den ville π returnert mengder med duplikater</button></li>
+          <li><button class="mcq-opt" data-correct="1">Den lar oss bruke samme relasjon to ganger i et uttrykk (self-join), eller gi attributter nye navn så union/intersect blir mulig</button></li>
+          <li><button class="mcq-opt" data-correct="0">Den optimaliserer rekkefølgen på operasjoner i spørreplanen</button></li>
+          <li><button class="mcq-opt" data-correct="0">Den oversetter et algebra-uttrykk til SQL</button></li>
+        </ul>
+        <div class="mcq-feedback">Uten ρ kan vi ikke skille to forekomster av samme relasjon i en self-join (instructor × instructor er tvetydig — hvilken ID er hvilken?). ρ tilsvarer SQL-aliasen <code>FROM t AS x</code>.</div>
+      </div>
     </div>
   </section>
 
