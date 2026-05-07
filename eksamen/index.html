@@ -127,6 +127,44 @@
   .ex-info p { color: var(--ink-soft); }
   .ex-info ul { color: var(--ink-soft); margin: 0; }
 
+  .ex-grade-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    max-width: 540px;
+  }
+  .ex-grade-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.9rem;
+  }
+  .ex-grade-field label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.35rem;
+  }
+  .ex-grade-field input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    padding: 0.6rem 0.65rem;
+  }
+  .ex-grade-total {
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+  .ex-grade-total strong {
+    color: var(--rust);
+    font-size: 1.1rem;
+  }
+
   @media (max-width: 720px) {
     .ex-hero h1 { font-size: 2.8rem; }
     .ex-info { grid-template-columns: 1fr; gap: 1.2rem; }
@@ -425,6 +463,32 @@
       </div>
     </div>
   </section>
+
+  <section class="ex-section">
+    <div class="container">
+      <h2><em>Løpende</em> karakter</h2>
+      <p class="section-desc">
+        Legg inn poeng (0–100) for midtveiseksamen, prosjekt og avsluttende eksamen for å se total karakter med vekting 30/30/40.
+      </p>
+      <div class="ex-grade-card">
+        <div class="ex-grade-grid">
+          <div class="ex-grade-field">
+            <label for="midterm-score">Midtveiseksamen (30 %)</label>
+            <input id="midterm-score" type="number" min="0" max="100" step="0.1" value="0">
+          </div>
+          <div class="ex-grade-field">
+            <label for="project-score">Prosjekt (30 %)</label>
+            <input id="project-score" type="number" min="0" max="100" step="0.1" value="0">
+          </div>
+          <div class="ex-grade-field">
+            <label for="exam-score">Avsluttende eksamen (40 %)</label>
+            <input id="exam-score" type="number" min="0" max="100" step="0.1" value="0">
+          </div>
+        </div>
+        <p class="ex-grade-total">Total karakter: <strong id="total-grade">0.00</strong> / 100</p>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -435,5 +499,33 @@
 </footer>
 
 <script src="../chat-widget.js"></script>
+<script>
+  (function () {
+    const midtermInput = document.getElementById('midterm-score');
+    const projectInput = document.getElementById('project-score');
+    const examInput = document.getElementById('exam-score');
+    const totalGrade = document.getElementById('total-grade');
+
+    function valueOrZero(input) {
+      const value = Number.parseFloat(input.value);
+      if (!Number.isFinite(value)) return 0;
+      return Math.min(Math.max(value, 0), 100);
+    }
+
+    function updateTotal() {
+      const total =
+        (valueOrZero(midtermInput) * 0.3) +
+        (valueOrZero(projectInput) * 0.3) +
+        (valueOrZero(examInput) * 0.4);
+      totalGrade.textContent = total.toFixed(2);
+    }
+
+    [midtermInput, projectInput, examInput].forEach((input) => {
+      input.addEventListener('input', updateTotal);
+    });
+
+    updateTotal();
+  })();
+</script>
 </body>
 </html>
