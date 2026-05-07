@@ -474,15 +474,15 @@
         <div class="ex-grade-grid">
           <div class="ex-grade-field">
             <label for="midterm-score">Midtveiseksamen (30 %)</label>
-            <input id="midterm-score" type="number" min="0" max="100" step="0.1" value="0">
+            <input id="midterm-score" type="number" min="0" max="100" step="0.1" value="0" aria-label="Midtveiseksamen prosent, 30 prosent av totalen">
           </div>
           <div class="ex-grade-field">
             <label for="project-score">Prosjekt (30 %)</label>
-            <input id="project-score" type="number" min="0" max="100" step="0.1" value="0">
+            <input id="project-score" type="number" min="0" max="100" step="0.1" value="0" aria-label="Prosjektprosent, 30 prosent av totalen">
           </div>
           <div class="ex-grade-field">
             <label for="exam-score">Avsluttende eksamen (40 %)</label>
-            <input id="exam-score" type="number" min="0" max="100" step="0.1" value="0">
+            <input id="exam-score" type="number" min="0" max="100" step="0.1" value="0" aria-label="Avsluttende eksamen prosent, 40 prosent av totalen">
           </div>
         </div>
         <p class="ex-grade-total">Total karakter: <strong id="total-grade">0.00</strong> / 100</p>
@@ -507,7 +507,7 @@
     const totalGrade = document.getElementById('total-grade');
 
     function getClampedScore(input) {
-      const value = Number.parseFloat(input.value);
+      const value = parseFloat(input.value);
       if (!Number.isFinite(value)) return 0;
       return Math.min(Math.max(value, 0), 100);
     }
