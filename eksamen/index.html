@@ -506,7 +506,7 @@
     const examInput = document.getElementById('exam-score');
     const totalGrade = document.getElementById('total-grade');
 
-    function valueOrZero(input) {
+    function getClampedScore(input) {
       const value = Number.parseFloat(input.value);
       if (!Number.isFinite(value)) return 0;
       return Math.min(Math.max(value, 0), 100);
@@ -514,9 +514,9 @@
 
     function updateTotal() {
       const total =
-        (valueOrZero(midtermInput) * 0.3) +
-        (valueOrZero(projectInput) * 0.3) +
-        (valueOrZero(examInput) * 0.4);
+        (getClampedScore(midtermInput) * 0.3) +
+        (getClampedScore(projectInput) * 0.3) +
+        (getClampedScore(examInput) * 0.4);
       totalGrade.textContent = total.toFixed(2);
     }
 
