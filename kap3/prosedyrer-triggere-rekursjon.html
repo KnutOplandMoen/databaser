@@ -135,6 +135,30 @@
         <li><code>OUT</code> — settes av prosedyren.</li>
         <li><code>INOUT</code> — leses inn <em>og</em> settes ut.</li>
       </ul>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Hva er den viktigste forskjellen mellom en SQL-<em>funksjon</em> og en SQL-<em>prosedyre</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Funksjoner kjøres raskere enn prosedyrer fordi de er kompilert.</button></li>
+          <li><button class="mcq-opt" data-correct="1">En funksjon returnerer en verdi/relasjon og brukes som et uttrykk; en prosedyre kalles med CALL, kan ha OUT-parametre, og kan ha side-effekter på basetabellene.</button></li>
+          <li><button class="mcq-opt">Prosedyrer kan bare brukes inni triggere.</button></li>
+          <li><button class="mcq-opt">Funksjoner og prosedyrer er synonymer i SQL-standarden.</button></li>
+        </ul>
+        <div class="mcq-feedback">Funksjoner brukes der et uttrykk er forventet (i SELECT, WHERE, …) og returnerer ett resultat. Prosedyrer kalles eksplisitt og er primært for arbeidsflyter med side-effekter — INSERT/UPDATE/DELETE pluss eventuelt OUT-parametre.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Lett</div>
+        <div class="q-text">I prosedyrekoden ovenfor — hva gjør <code>CONTINUE HANDLER FOR NOT FOUND</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Avbryter prosedyren med en feilmelding hvis FETCH ikke finner data.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Setter en variabel (her <code>done</code>) til TRUE når kursoren har gått tom, slik at løkken kan avsluttes pent.</button></li>
+          <li><button class="mcq-opt">Hopper tilbake til toppen av løkken hver gang en rad mangler.</button></li>
+          <li><button class="mcq-opt">Indikerer at COMMIT skal kjøres etter siste rad.</button></li>
+        </ul>
+        <div class="mcq-feedback">CONTINUE HANDLER betyr «la kontrollen fortsette etter handler-kroppen». NOT FOUND-tilstanden trigges når FETCH når slutten av kursoren — vi setter <code>done = TRUE</code>, og IF-en i løkken bryter ut.</div>
+      </div>
     </div>
   </section>
 

@@ -689,6 +689,18 @@
   <span class="sql-kw">END</span>;</code></pre>
 
       <p><code>CASE</code> er det nærmeste SQL kommer en if/else, og fungerer både i <code>SELECT</code>, <code>WHERE</code> og <code>SET</code>.</p>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Du skal gi alle ansatte med <code>salary ≤ 100000</code> en lønnsøkning på 5 %, og resten 3 %, i én kjøring. Hvilken SQL er korrekt?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Kjør to UPDATE etter hverandre — ingen annen måte i SQL.</button></li>
+          <li><button class="mcq-opt" data-correct="1">UPDATE instructor SET salary = CASE WHEN salary &lt;= 100000 THEN salary * 1.05 ELSE salary * 1.03 END;</button></li>
+          <li><button class="mcq-opt">UPDATE instructor SET salary = IF(salary &lt;= 100000, salary * 1.05, salary * 1.03);</button></li>
+          <li><button class="mcq-opt">UPDATE instructor SET salary = salary * 1.05 WHERE salary &lt;= 100000 OR salary * 1.03;</button></li>
+        </ul>
+        <div class="mcq-feedback">CASE WHEN ... THEN ... ELSE ... END er SQL-standardens betingede uttrykk og kan brukes hvor som helst et uttrykk er lov — også inne i SET. To-UPDATE-løsningen virker, men er ikke nødvendig: hvis du kjører dem i feil rekkefølge, får ansatte i grenseland to økninger. IF() finnes i MySQL, men er ikke standard.</div>
+      </div>
     </div>
   </section>
 

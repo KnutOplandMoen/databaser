@@ -107,6 +107,36 @@
         <li><strong>Sikkerhet</strong> — gi en bruker tilgang til viewet, ikke basetabellen, så de bare ser delen som er relevant for dem.</li>
         <li><strong>Logisk uavhengighet</strong> — endre underliggende skjema, men behold viewets «kontrakt» mot applikasjonen.</li>
       </ul>
+
+      <h3>Vedlikehold av materialiserte views</h3>
+      <p>Et materialisert view er en kopi som må holdes synkron med basetabellene. Tre strategier — fra dyrt-men-ferskt til billig-men-utdatert:</p>
+      <div class="fact-grid">
+        <div class="fact-card">
+          <div class="fc-key">Recompute (eager)</div>
+          <div class="fc-val">Etter hver oppdatering på basetabellen kjøres viewets SELECT på nytt fra bunnen. Alltid friskt, men kan dominere kostnaden av små endringer.</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Incremental maintenance</div>
+          <div class="fc-val">Beregn bare <em>differansen</em>: når en rad settes inn / slettes / oppdateres, finn ut hvilke rader i viewet som påvirkes og oppdater dem. Krever at view-spørringen kan deltas-uttrykkes (mulig for SPJ + aggregater).</div>
+        </div>
+        <div class="fact-card">
+          <div class="fc-key">Lazy / periodic refresh</div>
+          <div class="fc-val">Viewet er ute av sync mellom oppdateringer. Refreshes manuelt (<code>REFRESH MATERIALIZED VIEW</code>) eller etter en tidsplan. Akseptabelt for rapportering der ferskhet ikke er kritisk.</div>
+        </div>
+      </div>
+      <p>Valget er en avveining mellom <em>oppdateringskost</em>, <em>lesekost</em> og <em>krav til ferskhet</em>. Materialiserte views er typisk valg når lesetrykket er mye høyere enn skrivetrykket.</p>
+
+      <div class="quiz mcq" data-quiz-mcq>
+        <div class="q-label">Sjekkpunkt · Middels</div>
+        <div class="q-text">Et materialisert view <code>monthly_sales</code> aggregerer salgstall over en stor faktatabell. Tabellen oppdateres tusenvis av ganger i timen, men rapportene leses bare hver kveld. Hvilken vedlikeholdsstrategi passer best?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt">Eager recompute etter hver INSERT i basetabellen — slik er ferskheten garantert.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Lazy / periodic refresh om kvelden før rapportene leses — oppdateringskostnad spres bort fra skrivebanen.</button></li>
+          <li><button class="mcq-opt">Skift til virtuelt view — materialiserte views er aldri lønnsomme.</button></li>
+          <li><button class="mcq-opt">Drop viewet og kjør spørringen direkte hver gang en rapport bestilles.</button></li>
+        </ul>
+        <div class="mcq-feedback">Eager recompute er katastrofalt for skrivetrykket. Inkrementelt vedlikehold ville passet hvis spørringen lar seg deltas-uttrykke og man trenger ferskere data. Periodisk refresh utnytter at rapportene leses sjelden — vi tåler å være litt utdatert.</div>
+      </div>
     </div>
   </section>
 
