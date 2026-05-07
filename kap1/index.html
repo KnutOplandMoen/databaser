@@ -1224,7 +1224,7 @@ WHERE  instructor.dept_name = 'History';</code></pre>
   <section id="quiz">
     <div class="container">
       <h2>Test deg selv</h2>
-      <p class="section-intro">Et siste sett spørsmål som dekker hele kapittelet — fra terminologi til hvor­for-spørsmål.</p>
+      <p class="section-intro">30 spørsmål som dekker hele kapittelet — fra grunnterminologi til vanskelige avveininger og parallellitetsproblemer. De ti første er reveal-spørsmål; de neste tjue er flervalg.</p>
 
       <div class="quiz" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett</div>
@@ -1314,6 +1314,246 @@ WHERE  instructor.dept_name = 'History';</code></pre>
           <button class="reveal-btn">Se svar</button>
           <div class="answer">Web-applikasjoner med eksplosive data­volum (sosiale medier, e-handel) hadde to behov tradisjonelle relasjons­databaser strevde med: (1) <em>horisontal skalering</em> over mange maskiner, og (2) <em>fleksible, ofte semi-strukturerte data</em>. NoSQL-systemer (Cassandra, MongoDB, …) byttet bort streng konsistens (CAP-teoremet — valgte tilgjengelighet og partisjons­toleranse over konsistens) og deklarative spørringer mot enklere skalering, eventual consistency, og skjema-flexibilitet. I dag har mange NoSQL-systemer beveget seg tilbake mot sterke garantier, og NewSQL-systemer prøver å gi det beste av begge.</div>
         </div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 11 · Middels · Arkitekturer</div>
+        <div class="q-text">Hvilken databasearkitektur har <em>én server-maskin som utfører arbeid på vegne av flere klient-maskiner</em>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Sentralisert (én CPU, delt minne)</button></li>
+          <li><button class="mcq-opt" data-correct="1">Klient–server</button></li>
+          <li><button class="mcq-opt" data-correct="0">Parallell (mange kjerner, shared nothing)</button></li>
+          <li><button class="mcq-opt" data-correct="0">Distribuert (geografisk spredt)</button></li>
+        </ul>
+        <div class="mcq-feedback">Klient-server er bærebjelken i en webapplikasjon: nettleser eller mobilapp = klient, databasen kjører på en server. Parallell og distribuert er nivåer over (skalere ut på flere maskiner).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 12 · Vanskelig · DML</div>
+        <div class="q-text">Hva er forskjellen på <em>prosedural</em> og <em>deklarativ</em> DML, og hvilken er SQL?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Prosedural beskriver <em>hva</em> du vil ha; deklarativ beskriver <em>hvordan</em> det hentes. SQL er prosedural.</button></li>
+          <li><button class="mcq-opt" data-correct="1">Prosedural beskriver <em>hvordan</em> data hentes (steg for steg); deklarativ beskriver <em>hva</em> du vil ha. SQL er deklarativ — du sier hva, optimalisatoren velger hvordan.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Begge er ekvivalente; forskjellen er kun syntaks.</button></li>
+          <li><button class="mcq-opt" data-correct="0">Prosedural er kun tilgjengelig som API; deklarativ er kun tilgjengelig som SQL-streng.</button></li>
+        </ul>
+        <div class="mcq-feedback">SQL er deklarativ. Det er nettopp dette skillet som lar databasesystemet optimalisere fritt — prosedural kode låser implementasjonen. Relasjonsalgebra er på en måte den prosedurale «ekvivalenten» som SQL kompileres til.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 13 · Middels · Komponenter</div>
+        <div class="q-text">Hvilken komponent i DBMS-en er ansvarlig for å oversette en SQL-spørring til en effektiv evalueringsplan?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Buffer manager</button></li>
+          <li><button class="mcq-opt" data-correct="0">Transaksjonsmanager</button></li>
+          <li><button class="mcq-opt" data-correct="1">DML-kompilatoren / query optimizer</button></li>
+          <li><button class="mcq-opt" data-correct="0">Authorization manager</button></li>
+        </ul>
+        <div class="mcq-feedback">DML-kompilatoren parser SQL, oversetter til relasjonsalgebra, optimaliserer ved å velge rekkefølge og algoritmer (hash join vs. merge join, indeksbruk osv.), og leverer en plan til evalueringsmotoren.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 14 · Lett · Data dictionary</div>
+        <div class="q-text">Hva lagres i <strong>data dictionary</strong> (også kalt katalogen)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Selve dataene (radene i tabellene)</button></li>
+          <li><button class="mcq-opt" data-correct="1">Metadata: skjemainformasjon, integritetsregler, autorisasjon, indekslister</button></li>
+          <li><button class="mcq-opt" data-correct="0">Loggen for transaksjoner som har commit-et</button></li>
+          <li><button class="mcq-opt" data-correct="0">Brukerens applikasjonskode</button></li>
+        </ul>
+        <div class="mcq-feedback">«Data om data». Når DBMS-en parser <code>SELECT name FROM instructor</code>, slår den opp i data dictionary for å vite at instructor har en kolonne name og hvilken type den har.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 15 · Vanskelig · Buffer manager</div>
+        <div class="q-text">Hvorfor er <strong>buffer manager</strong> så kritisk for ytelsen til en database?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Den krypterer data før det skrives til disk</button></li>
+          <li><button class="mcq-opt" data-correct="1">Den holder ofte brukte sider i RAM så vi slipper diskaksess (som er flere størrelsesordener tregere) — og bestemmer hvilke sider som skal kastes ut når minnet er fullt</button></li>
+          <li><button class="mcq-opt" data-correct="0">Den oversetter SQL til relasjonsalgebra</button></li>
+          <li><button class="mcq-opt" data-correct="0">Den koordinerer mellom flere parallelle servere</button></li>
+        </ul>
+        <div class="mcq-feedback">Diskaksess koster ~10ms; RAM-aksess ~100ns. En spørring som «holder seg i bufferen» kan være 100 000× raskere. Erstatningsstrategier (LRU, clock) er sentrale i kap 7. Buffer manager er en del av storage manager-komponenten i F1.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 16 · Middels · Designfaser</div>
+        <div class="q-text">Hvilken rekkefølge har de tre fasene i databasedesign?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Fysisk → Logisk → Konseptuell</button></li>
+          <li><button class="mcq-opt" data-correct="1">Konseptuell (ER) → Logisk (relasjonsskjema) → Fysisk (indekser, partisjonering)</button></li>
+          <li><button class="mcq-opt" data-correct="0">Logisk → Konseptuell → Fysisk</button></li>
+          <li><button class="mcq-opt" data-correct="0">Konseptuell og logisk er samme fase; fysisk er separat</button></li>
+        </ul>
+        <div class="mcq-feedback">Du starter abstrakt (hva domenet handler om), oversetter til en konkret datamodell (her: relasjoner), og bestemmer til slutt hvordan det skal lagres. Hver fase tar avgjørelser som forrige fase ikke trengte å bry seg om.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 17 · Vanskelig · ACID-presisjon</div>
+        <div class="q-text">Hva skiller <em>Atomicity</em> fra <em>Consistency</em> i ACID?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">De er synonymer — bare ulike navn for samme egenskap</button></li>
+          <li><button class="mcq-opt" data-correct="1">Atomicity er en mekanisk garanti: alle endringer i en transaksjon utføres, eller ingen. Consistency er en logisk garanti: hver transaksjon flytter databasen fra én gyldig tilstand til en annen (i forhold til integritetsregler).</button></li>
+          <li><button class="mcq-opt" data-correct="0">Atomicity gjelder enkelttabeller; Consistency gjelder flere tabeller</button></li>
+          <li><button class="mcq-opt" data-correct="0">Atomicity er database-egenskap; Consistency er applikasjonsansvar</button></li>
+        </ul>
+        <div class="mcq-feedback">Atomicity er én alt-eller-ingenting-egenskap. Consistency forutsetter Atomicity, men sier i tillegg at hver enkelt transaksjon, kjørt alene, ikke skal etterlate databasen i en ulovlig tilstand (negativ saldo, brutt FK, osv.). Begge er nødvendige.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 18 · Veldig vanskelig · Race condition</div>
+        <div class="q-text">To transaksjoner T₁ og T₂ leser hver konto-saldoen 1000, beregner +500 (T₁) og +200 (T₂), og skriver tilbake. Hva skjer uten isolasjon? Hva er sluttsaldoen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">1700 — DBMS-en summerer endringene automatisk</button></li>
+          <li><button class="mcq-opt" data-correct="1">Enten 1500 eller 1200 — den som skriver sist «vinner» og overskriver den andres oppdatering. Dette kalles lost update.</button></li>
+          <li><button class="mcq-opt" data-correct="0">1000 — atomicity garanterer at de kansellerer hverandre</button></li>
+          <li><button class="mcq-opt" data-correct="0">Feilmelding — DBMS-en oppdager konflikten</button></li>
+        </ul>
+        <div class="mcq-feedback">Klassisk lost update: begge leser 1000, regner uavhengig, skriver tilbake. Den siste skrivingen overstyrer. Isolation (med låser eller MVCC) hindrer dette: én transaksjon må vente på at den andre commit-er. Dette er motivasjonen for transaksjonsbegrepet og hele kap 8.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 19 · Middels · Specialized users</div>
+        <div class="q-text">«Specialized users» er den fjerde brukerkategorien i F1. Hva karakteriserer dem?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">De har ekstra DBA-privilegier som vanlige utviklere ikke har</button></li>
+          <li><button class="mcq-opt" data-correct="1">De skriver applikasjoner som ikke passer i tradisjonell datatabell-modell — CAD, grafikk, lyd, video, geo­data</button></li>
+          <li><button class="mcq-opt" data-correct="0">De er konsulenter som spesialiserer seg på én DBMS-leverandør</button></li>
+          <li><button class="mcq-opt" data-correct="0">De er systemadministratorer for serverne</button></li>
+        </ul>
+        <div class="mcq-feedback">Specialized users bygger applikasjoner som krever utvidet datamodell (object-relational, spatial, multimedia). De jobber typisk med utvidelsesmoduler eller alternative databaser tilpasset domenet.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 20 · Lett · DBA</div>
+        <div class="q-text">Hvilken oppgave hører <em>ikke</em> til DBA-rollen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Skjemadefinisjon og oppdatering</button></li>
+          <li><button class="mcq-opt" data-correct="0">Granting og revoking av brukerrettigheter</button></li>
+          <li><button class="mcq-opt" data-correct="1">Å skrive forretningslogikken som applikasjonen bruker</button></li>
+          <li><button class="mcq-opt" data-correct="0">Periodisk backup og overvåkning av jobber</button></li>
+        </ul>
+        <div class="mcq-feedback">DBA tar seg av databaseplattformen. Forretningslogikk er applikasjonsutviklerens domene. Skillet er viktig: DBA gir utviklere tilgang og verktøy; utviklerne bygger applikasjonen oppå.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 21 · Vanskelig · Embedded SQL vs API</div>
+        <div class="q-text">F1 nevner to måter applikasjonsprogrammer aksesserer en database. Hva er forskjellen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Embedded SQL er for nybegynnere; API-er er for senior-utviklere</button></li>
+          <li><button class="mcq-opt" data-correct="1">Embedded SQL er språkutvidelser der SQL-setninger blandes med vertsspråket og pre-prosesseres; API-er (ODBC, JDBC) er biblioteker som sender SQL som strenger til databasen ved kjøretid</button></li>
+          <li><button class="mcq-opt" data-correct="0">Embedded SQL kan kun brukes med Oracle; ODBC kan brukes med alle</button></li>
+          <li><button class="mcq-opt" data-correct="0">Embedded SQL fungerer bare med utvidet, tilpasset C-kompilator; API-er er for andre språk</button></li>
+        </ul>
+        <div class="mcq-feedback">Embedded SQL var vanlig i C, COBOL m.fl. — preprosessoren oversetter <code>EXEC SQL ...</code> til vanlige funksjonskall. API-er som JDBC og ODBC er mer fleksible: spørringer kan bygges dynamisk og leveres ved kjøretid. Moderne web-applikasjoner bruker hovedsakelig API-er.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 22 · Middels · Hvorfor NoSQL</div>
+        <div class="q-text">Hvilken motivasjon drev fremveksten av NoSQL-systemer på 2000-tallet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">SQL var for komplisert å skrive</button></li>
+          <li><button class="mcq-opt" data-correct="1">Behov for å skalere horisontalt over mange maskiner med fleksible/semi-strukturerte data — noe tradisjonelle relasjonsdatabaser strevde med</button></li>
+          <li><button class="mcq-opt" data-correct="0">Relasjonsmodellen ble bevist matematisk inkonsistent</button></li>
+          <li><button class="mcq-opt" data-correct="0">Open source ble forbudt for relasjonsdatabaser</button></li>
+        </ul>
+        <div class="mcq-feedback">Web-skala (Google, Facebook, Amazon) skapte data-volum og fleksibilitet-krav som SQL-systemer ikke håndterte enkelt. NoSQL ofret deklarative spørringer og streng konsistens for skalering. I dag har mange NoSQL-systemer beveget seg tilbake mot SQL-lignende grensesnitt og sterkere garantier (NewSQL).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 23 · Veldig vanskelig · CAP-teoremet</div>
+        <div class="q-text">CAP-teoremet (Brewer) sier at i et distribuert system kan man maksimalt garantere to av tre egenskaper. Hvilke?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Concurrency, Atomicity, Persistence</button></li>
+          <li><button class="mcq-opt" data-correct="1">Consistency, Availability, Partition tolerance — under nettverkspartisjon må man velge mellom konsistens og tilgjengelighet</button></li>
+          <li><button class="mcq-opt" data-correct="0">Caching, Authorization, Performance</button></li>
+          <li><button class="mcq-opt" data-correct="0">Compactness, Atomicity, Permanence</button></li>
+        </ul>
+        <div class="mcq-feedback">CAP er hjørnesteinen i NoSQL-debatten. P (partition tolerance) må velges i et virkelig distribuert system — dermed må man velge mellom C og A. CP (sterke transaksjoner, men ned ved partisjon — som tradisjonell SQL) eller AP (alltid tilgjengelig, men kan returnere foreldede data — som DynamoDB i visse moduser).</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 24 · Vanskelig · Logisk dataindependence</div>
+        <div class="q-text">Hva er <em>logisk</em> dataindependence (i kontrast til <em>fysisk</em>)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Evnen til å endre den fysiske lagringen uten å endre applikasjoner</button></li>
+          <li><button class="mcq-opt" data-correct="1">Evnen til å endre det logiske skjemaet (legge til kolonner, splitte tabeller) uten å forandre applikasjoner som bruker views/grensesnitt</button></li>
+          <li><button class="mcq-opt" data-correct="0">Evnen til å bruke databasen uten internett</button></li>
+          <li><button class="mcq-opt" data-correct="0">Evnen til å skalere over mange maskiner</button></li>
+        </ul>
+        <div class="mcq-feedback">Tre-nivå-arkitekturen (fysisk, logisk, view) gjør at endringer på ett nivå isoleres. Fysisk dataindependence (legge til indeks) er enkelt; logisk dataindependence er hardere fordi applikasjoner ofte er bundet til skjema-detaljer. Views hjelper: hvis applikasjonen bruker viewet, kan logiske skjemaendringer absorberes der.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 25 · Middels · Eldre datamodeller</div>
+        <div class="q-text">Hvilke datamodeller dominerte før relasjonsmodellen tok over på 1980-tallet?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Objekt-orientert og dokumentbaserte modeller</button></li>
+          <li><button class="mcq-opt" data-correct="1">Hierarkiske og nettverksmodeller</button></li>
+          <li><button class="mcq-opt" data-correct="0">XML-databaser og graf-databaser</button></li>
+          <li><button class="mcq-opt" data-correct="0">Relasjonsmodellen er den første formelle datamodellen</button></li>
+        </ul>
+        <div class="mcq-feedback">Hierarkiske (IBM IMS) og nettverksmodeller (CODASYL) var bransjestandard på 60- og 70-tallet, men krevde at applikasjonen «navigerte» pekerstrukturer manuelt. Codd's relasjonsmodell (1970) tilbød en ren matematisk basis og deklarativ spørrespråk, og vant gradvis terreng på 80-tallet.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 26 · Lett · Atomicity</div>
+        <div class="q-text">En bankoverføring krediterer konto A og debiterer konto B. Strømmen går mellom de to operasjonene. Hva garanterer Atomicity?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">At pengene ikke forsvinner — banken garanterer dem</button></li>
+          <li><button class="mcq-opt" data-correct="1">At enten begge endringene gjennomføres, eller ingen — overgangen skal være som om den aldri startet</button></li>
+          <li><button class="mcq-opt" data-correct="0">At begge operasjonene utføres samtidig på forskjellige tråder</button></li>
+          <li><button class="mcq-opt" data-correct="0">At andre transaksjoner ikke kan skrive til kontoene under overføringen</button></li>
+        </ul>
+        <div class="mcq-feedback">Atomicity = «alt-eller-ingenting». Etter en krasj rulles uavsluttede transaksjoner tilbake. Det andre svaret («ingen kan skrive samtidig») beskriver Isolation, ikke Atomicity.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 27 · Vanskelig · Query processor-komponenter</div>
+        <div class="q-text">Når en SELECT går gjennom DBMS-en, i hvilken rekkefølge går den gjennom hovedkomponentene?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Query evaluation engine → Optimizer → Parser → Storage manager</button></li>
+          <li><button class="mcq-opt" data-correct="1">Parser & translator → Optimizer → Evaluation engine → Storage manager</button></li>
+          <li><button class="mcq-opt" data-correct="0">Storage manager → Buffer → Parser → Result</button></li>
+          <li><button class="mcq-opt" data-correct="0">Buffer manager → Authorization → Parser → Result</button></li>
+        </ul>
+        <div class="mcq-feedback">SQL-strengen parses (syntakstre), oversettes til relasjonsalgebra, optimaliseres (velger beste plan), evalueres (kjører faktiske operasjoner), som ber storage manager om å lese data fra disk via buffer manager.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 28 · Middels · Skjema vs instans</div>
+        <div class="q-text">Hvilket av disse er en <em>skjema</em>-endring (ikke en instans-endring)?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">INSERT av en ny ansatt</button></li>
+          <li><button class="mcq-opt" data-correct="0">UPDATE av en lønn</button></li>
+          <li><button class="mcq-opt" data-correct="1">ALTER TABLE — legge til en ny kolonne</button></li>
+          <li><button class="mcq-opt" data-correct="0">DELETE av en avdeling</button></li>
+        </ul>
+        <div class="mcq-feedback">Skjemaet er strukturen (kolonner, typer, constraints). Instansen er innholdet (radene). DDL (CREATE/ALTER/DROP) endrer skjema; DML (INSERT/UPDATE/DELETE) endrer instans.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 29 · Veldig vanskelig · Consistency uten Isolation</div>
+        <div class="q-text">Hver enkelt transaksjon i en database er bevist konsistent (oppfyller alle integritetsregler isolert sett). Likevel kan databasen ende opp i en ulovlig tilstand. Hvilken ACID-egenskap mangler?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Atomicity — fordi en transaksjon kan halv-utføres</button></li>
+          <li><button class="mcq-opt" data-correct="1">Isolation — to konsistente transaksjoner som flettes vilkårlig kan krenke regler ingen av dem ville krenket alene</button></li>
+          <li><button class="mcq-opt" data-correct="0">Durability — fordi dataene ikke er på disk</button></li>
+          <li><button class="mcq-opt" data-correct="0">Consistency er definert per-transaksjon, så den må oppfylles automatisk</button></li>
+        </ul>
+        <div class="mcq-feedback">Klassisk eksempel: «sum av saldoer skal ikke bli negativ» er en regel hver transaksjon respekterer alene. Men to parallelle uttak fra samme konto kan begge lese saldo 500, begge ta ut 400, og begge commit-e — sluttsaldo blir −300. Isolation hindrer dette ved å serialisere i kritiske punkter.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 30 · Vanskelig · WAL og recovery</div>
+        <div class="q-text">Recovery manager bruker <em>Write-Ahead Logging</em> (WAL). Hva er den definerende regelen?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Loggen skrives kun etter commit</button></li>
+          <li><button class="mcq-opt" data-correct="1">Loggposten for en endring må være på disk <em>før</em> den endrede dataen kan flushes ut av bufferen — og før transaksjonen kan committe</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bufferen må flushes til disk før hver enkelt SQL-setning</button></li>
+          <li><button class="mcq-opt" data-correct="0">Alle transaksjoner skrives synkront uten buffer</button></li>
+        </ul>
+        <div class="mcq-feedback">WAL er det som gjør Durability mulig uten å flushe alle data til disk konstant. Etter en krasj leser recovery manager loggen, ruller frem committede transaksjoner som ikke nådde disk, og ruller tilbake uavsluttede. Detaljer i kap 8 (ARIES).</div>
       </div>
 
       <p style="margin-top:2.5rem; text-align:center; color:var(--ink-faded); font-style:italic;">Når du synes disse spørsmålene sitter, er du klar for <a href="../kap2/">Kapittel 2 — Relasjonsmodellen</a>.</p>
