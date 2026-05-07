@@ -350,15 +350,15 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 14 · Lett · ER → tabell</div>
-        <div class="q-text">Entiteten <code>Person</code> har det <strong>komposite</strong> attributtet <code>Adresse(gate, postnr, by)</code>. Hvordan oversettes dette typisk til én tabell?</div>
+        <div class="q-label">Spørsmål 14 · Veldig vanskelig · Lukning og kandidatnøkler</div>
+        <div class="q-text">R(A, B, C, D, E) med F = {AB → C, C → D, D → A, BD → E}. Hvor mange kandidatnøkler har R, og hvilke er de?</div>
         <ul class="mcq-options">
-          <li><button class="mcq-opt" data-correct="0">Én kolonne <code>adresse</code> som JSON-streng med alle feltene.</button></li>
-          <li><button class="mcq-opt" data-correct="1">Separate kolonner <code>gate</code>, <code>postnr</code>, <code>by</code> i <code>Person</code>-tabellen («flatpakking»).</button></li>
-          <li><button class="mcq-opt" data-correct="0">Kun én egen tabell <code>Adresse</code> uten FK til <code>Person</code>.</button></li>
-          <li><button class="mcq-opt" data-correct="0">Én rad per adresse-komponent i hovedtabellen (gir multivaluert celle).</button></li>
+          <li><button class="mcq-opt" data-correct="0">1 — kun {A, B}</button></li>
+          <li><button class="mcq-opt" data-correct="0">2 — {A, B} og {B, C}</button></li>
+          <li><button class="mcq-opt" data-correct="1">3 — {A, B}, {B, C} og {B, D}</button></li>
+          <li><button class="mcq-opt" data-correct="0">4 — {A, B}, {B, C}, {B, D} og {B, E}</button></li>
         </ul>
-        <div class="mcq-feedback">Komposite attributter brytes ned til atomære kolonner i samme tabell som entiteten. Det er standard reduksjonsregel i 4B.</div>
+        <div class="mcq-feedback">B er aldri på høyresiden av en FD, så B må være med i hver kandidatnøkkel. Test parene: {A,B}⁺ = {A,B,C,D,E} via AB→C, C→D, BD→E ✓. {B,C}⁺ = {B,C,D,A,E} via C→D, D→A, BD→E ✓. {B,D}⁺ = {B,D,A,E,C} via D→A, BD→E, AB→C ✓. {B,E}⁺ = {B,E} — ingen FD utløses → ikke supernøkkel. Resultat: 3 kandidatnøkler.</div>
       </div>
 
       <div class="quiz mcq" data-quiz>
