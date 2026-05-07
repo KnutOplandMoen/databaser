@@ -386,15 +386,15 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 17 · Lett · Deriverte attributter</div>
-        <div class="q-text">Et <strong>derivert</strong> attributt (stiplet oval i ER) er typisk…</div>
+        <div class="q-label">Spørsmål 17 · Veldig vanskelig · Minimal cover</div>
+        <div class="q-text">F = {A → BC, AB → D, B → C, AC → D}. Hva er en minimal cover Fc av F?</div>
         <ul class="mcq-options">
-          <li><button class="mcq-opt" data-correct="0">…lagret som egen tabell med egen surrogate-nøkkel.</button></li>
-          <li><button class="mcq-opt" data-correct="1">…beregnet ved spørring fra andre lagrede attributter (lagres ofte ikke).</button></li>
-          <li><button class="mcq-opt" data-correct="0">…det samme som et flerverdi-attributt.</button></li>
-          <li><button class="mcq-opt" data-correct="0">…alltid en del av primærnøkkelen.</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A → B, A → C, A → D, B → C}</button></li>
+          <li><button class="mcq-opt" data-correct="1">{A → B, B → C, A → D}</button></li>
+          <li><button class="mcq-opt" data-correct="0">{A → BC, B → C, AB → D}</button></li>
+          <li><button class="mcq-opt" data-correct="0">F er allerede minimal</button></li>
         </ul>
-        <div class="mcq-feedback">Alder ut fra fødselsdato er klassisk: lagrer du begge, får du lett oppdateringsanomali. Derfor regnes deriverte felter ofte som «virtuelle».</div>
+        <div class="mcq-feedback">Steg 1 — dekomponer høyresider: {A→B, A→C, AB→D, B→C, AC→D}. Steg 2 — fjern overflødige attributter på venstresider: AB→D blir A→D (siden A alene gir B via A→B, og dermed AB-konsekvensen). AC→D blir A→D (siden A alene gir C via A→B, B→C). Steg 3 — fjern overflødige FD-er: A→C er overflødig (A→B + B→C). Resultat: {A→B, B→C, A→D}.</div>
       </div>
 
       <div class="quiz mcq" data-quiz>
@@ -446,15 +446,15 @@
       </div>
 
       <div class="quiz mcq" data-quiz>
-        <div class="q-label">Spørsmål 22 · Middels · Sletteanomali</div>
-        <div class="q-text">I et samlet skjema <code>EmnePåStudie(studie, emnekode, studieleder)</code> der studieleder bare avhenger av <code>studie</code>, hva er den typiske <strong>sletteanomalien</strong>?</div>
+        <div class="q-label">Spørsmål 22 · Veldig vanskelig · 3NF vs. BCNF i praksis</div>
+        <div class="q-text">R(A, B, C, D, E) med F = {A → BC, CD → E, B → D, E → A}. Hvilken normalform er R i?</div>
         <ul class="mcq-options">
-          <li><button class="mcq-opt" data-correct="0">Du kan ikke registrere et emne før studiet har fått studieleder.</button></li>
-          <li><button class="mcq-opt" data-correct="1">Når siste emne for et studie slettes, forsvinner informasjonen om studieleder sammen med raden.</button></li>
-          <li><button class="mcq-opt" data-correct="0">Hvis du endrer emnekode, må du oppdatere alle studenter samtidig.</button></li>
-          <li><button class="mcq-opt" data-correct="0">Du får duplikat rader fordi (<code>studie</code>, <code>emnekode</code>) ikke kan være nøkkel.</button></li>
+          <li><button class="mcq-opt" data-correct="0">BCNF — alle venstresider er supernøkler</button></li>
+          <li><button class="mcq-opt" data-correct="1">3NF, men ikke BCNF — B → D bryter BCNF, men D er prime (med i kandidatnøkkelen {C, D})</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bare 2NF — fordi B → D er en partiell avhengighet</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bare 1NF — kandidatnøkkelen er ikke entydig</button></li>
         </ul>
-        <div class="mcq-feedback">Sletteanomali = sletting av «riktig» informasjon drar med seg et faktum som egentlig skulle overlevd (her: lederen for studiet). Første alternativ beskriver innsettingsanomali.</div>
+        <div class="mcq-feedback">Beregn lukninger: {A}⁺ via A→BC, B→D, CD→E gir hele R; {E}⁺ via E→A gir hele R; {CD}⁺ via CD→E gir hele R. Kandidatnøkler: {A}, {E}, {CD}. FD-en B → D: {B}⁺ = {B,D} — B er <em>ikke</em> supernøkkel, så BCNF brytes. Men D er med i kandidatnøkkelen {C,D}, så D er prime — 3NF tolererer dette via «β−α er i en kandidatnøkkel»-unntaket.</div>
       </div>
 
       <div class="quiz mcq" data-quiz>
