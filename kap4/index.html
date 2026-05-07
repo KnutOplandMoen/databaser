@@ -191,7 +191,7 @@
   <section id="quiz">
     <div class="container">
       <h2>Sluttquiz · Test <em>helheten</em></h2>
-      <p class="section-intro">Elleve spørsmål på tvers av 4A, 4B og 4C. Klikk på svaralternativene — riktig svar låser oppgaven; feil kan du prøve igjen.</p>
+      <p class="section-intro">Tolv spørsmål på tvers av 4A, 4B og 4C. Klikk på svaralternativene — riktig svar låser oppgaven; feil kan du prøve igjen.</p>
 
       <div class="quiz mcq" data-quiz>
         <div class="q-label">Spørsmål 1 · Lett · ER-modellen</div>
@@ -323,6 +323,18 @@
           <li><button class="mcq-opt" data-correct="0">Bruk 1NF og legg alt i én bred tabell.</button></li>
         </ul>
         <div class="mcq-feedback">Lærebokas anbefaling: gå for BCNF når mulig, fordi SQL likevel bare kan håndheve nøkkel-FD-er effektivt — så «mistet» dependency preservation ville ha vært en illusjon i 3NF også.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Spørsmål 12 · Vanskelig · 4NF og MVD</div>
+        <div class="q-text">Skjemaet <code>inst_info(id, child_name, phone)</code> registrerer barn og telefonnumre for forelesere. Det finnes ingen ikke-trivielle FD-er. Hvilken normalform oppfyller skjemaet, og hva er løsningen hvis det er problematisk?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">Ikke i 1NF — fordi child_name og phone er flerverdi.</button></li>
+          <li><button class="mcq-opt" data-correct="0">I 4NF — siden det ikke finnes ikke-trivielle FD-er, er det automatisk i alle normalformer.</button></li>
+          <li><button class="mcq-opt" data-correct="1">I BCNF, men ikke i 4NF — MVD-ene <code>id ↠ child_name</code> og <code>id ↠ phone</code> bryter 4NF. Splitt i <code>(id, child_name)</code> og <code>(id, phone)</code>.</button></li>
+          <li><button class="mcq-opt" data-correct="0">I 3NF, men ikke i BCNF — fordi nøkkelen er sammensatt av alle attributter.</button></li>
+        </ul>
+        <div class="mcq-feedback">Hele attributtmengden er nøkkel, så alle FD-er har trivielt supernøkkel som venstreside → BCNF. Men kryssproduktet av barn og telefoner gir redundans — fanges av MVD-er som ikke har supernøkkel-venstreside, altså brudd på 4NF. Splitt på MVD-en for å eliminere kryssproduktet.</div>
       </div>
     </div>
   </section>
@@ -484,26 +496,6 @@
               <p><code>(1,1)</code> på Ansatt-siden = total deltakelse + maks 1 → hver ansatt jobber i nøyaktig én avdeling. <code>(0, *)</code> på Avdeling-siden = partiell deltakelse + ubegrenset → en avdeling kan ha 0 eller mange ansatte. Sum: 1:N med total deltakelse fra Ansatt-siden.</p>
               <p>B snur betydningen av (1,1) og (0,*). C antar total fra begge sider — feil siden Avdeling har min=0. D er feil — siden Ansatt har max=1, kan dette ikke være M:N.</p>
               <p class="fc-ref">Pensum: <a href="er-modellen.html#deltakelse">Kap. 4A — Notasjon for kardinalitet</a></p>
-            </div>
-          </div>
-        </article>
-
-        <article class="flashcard" data-fc-type="begrep">
-          <header class="flashcard__head">
-            <span class="flashcard__topic">Kap. 4A — ISA-hierarki</span>
-            <span class="flashcard__diff">Vanskelig</span>
-          </header>
-          <div class="flashcard__inner">
-            <div class="flashcard__front">
-              <p class="fc-question">Forklar <em>ISA-hierarki</em> (specialization/generalization) i ER, og de tre strategiene for å oversette det til relasjonsskjema.</p>
-            </div>
-            <div class="flashcard__back">
-              <p>ISA = "is-a"-relasjon mellom <strong>supertype</strong> (Person) og <strong>subtyper</strong> (Student, Ansatt). Kan være <em>disjoint</em> (en person er kun én subtype) eller <em>overlapping</em>; <em>total</em> (alle Person må være en subtype) eller <em>partiell</em>.</p>
-              <p><strong>Strategi 1 — én tabell per type:</strong> én tabell for supertypen og en for hver subtype med kun subtype-spesifikke attributter + FK til supertype. 3NF-vennlig, krever join.</p>
-              <p><strong>Strategi 2 — én tabell per subtype</strong> (ingen supertype-tabell). Hver subtype duplikerer supertype-attributtene. Funker kun for <em>disjoint og total</em>.</p>
-              <p><strong>Strategi 3 — én bred tabell</strong> med alle attributter pluss en typeangiver-kolonne. Mange null-verdier, men ingen joins.</p>
-              <p>Valget avhenger av spørringsmønstre, totalitet og overlapping.</p>
-              <p class="fc-ref">Pensum: <a href="er-modellen.html#oppsummering">Kap. 4A — Oppsummering</a></p>
             </div>
           </div>
         </article>

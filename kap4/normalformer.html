@@ -39,6 +39,7 @@
         <a href="#bcnf"><span>07</span> BCNF</a>
         <a href="#worked"><span>08</span> Gjennomarbeidet eksempel</a>
         <a href="#tradeoff"><span>09</span> 3NF vs. BCNF</a>
+        <a href="#fournf"><span>10</span> 4NF og multivaluerte avhengigheter</a>
       </nav>
     </div>
   </header>
@@ -376,11 +377,15 @@
           <div class="nf-name">BCNF</div>
           <div class="nf-desc"><strong>Hver ikke-triviell FD har supernøkkel som venstreside.</strong> Strengere enn 3NF. Eliminerer all redundans som kan oppdages med FD-er — men kan tape dependency preservation.</div>
         </div>
+        <div class="nf-rung">
+          <div class="nf-name">4NF</div>
+          <div class="nf-desc"><strong>BCNF utvidet til multivaluerte avhengigheter (MVD).</strong> Selv et skjema i BCNF kan ha redundans hvis to uavhengige flerverdi-fakta lagres sammen. 4NF krever at hver ikke-triviell MVD <code>α ↠ β</code> har <code>α</code> som supernøkkel. Detaljer i seksjon 10.</div>
+        </div>
       </div>
 
       <div class="callout">
         <span class="label">Hierarkiet</span>
-        <p>BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF. Et BCNF-skjema er automatisk i 3NF, og videre i 2NF og 1NF.</p>
+        <p>4NF ⊂ BCNF ⊂ 3NF ⊂ 2NF ⊂ 1NF. Et 4NF-skjema er automatisk i BCNF, og videre nedover stigen.</p>
       </div>
 
       <h3>3NF i ord</h3>
@@ -567,12 +572,96 @@
         <div class="recap-pill"><strong>1NF</strong> atomære verdier</div>
         <div class="recap-pill"><strong>3NF</strong> α supernøkkel, eller β−α i kandidatnøkkel</div>
         <div class="recap-pill"><strong>BCNF</strong> α supernøkkel — alltid</div>
+        <div class="recap-pill"><strong>MVD</strong> α ↠ β: to uavhengige flerverdi-fakta</div>
+        <div class="recap-pill"><strong>4NF</strong> hver ikke-triviell MVD har α som supernøkkel</div>
         <div class="recap-pill"><strong>BCNF-algoritme</strong> finn brudd, splitt på α∪β og R−(β−α)</div>
       </div>
 
       <div class="callout callout-good">
         <span class="label">Du er ferdig med kapittel 4</span>
-        <p>Vil du teste hele kapittelet samlet? Gå tilbake til <a href="./">oversikten</a> og ta sluttquizen — tolv spørsmål på tvers av 4A, 4B og 4C.</p>
+        <p>Vil du teste hele kapittelet samlet? Gå tilbake til <a href="./">oversikten</a> og ta sluttquizen — spørsmål på tvers av 4A, 4B og 4C.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 10 ───────────── -->
+  <section id="fournf">
+    <div class="container">
+      <div class="section-badge">10 · 4NF og multivaluerte avhengigheter</div>
+      <h2>Når BCNF <em>ikke er nok</em></h2>
+
+      <p>Et skjema kan være i BCNF og fortsatt ha redundans — så lenge det er to <em>uavhengige</em> flerverdi-fakta lagret i samme tabell. Dette er det F9 (slide 53–56) bruker som motivasjon for 4NF.</p>
+
+      <h3>Eksempel som motiverer 4NF</h3>
+      <p>Vi vil registrere både <em>barn</em> og <em>telefonnumre</em> for hver foreleser:</p>
+
+      <table class="example-table">
+        <caption><code>inst_info(id, child_name, phone)</code> — i BCNF, men problematisk</caption>
+        <thead><tr><th>id</th><th>child_name</th><th>phone</th></tr></thead>
+        <tbody>
+          <tr><td>99999</td><td>David</td><td>512-555-1234</td></tr>
+          <tr><td>99999</td><td>David</td><td>512-555-4321</td></tr>
+          <tr><td>99999</td><td>William</td><td>512-555-1234</td></tr>
+          <tr><td>99999</td><td>William</td><td>512-555-4321</td></tr>
+        </tbody>
+      </table>
+
+      <p>Her finnes ingen ikke-trivielle FD-er — kombinasjonen (id, child_name, phone) er nøkkelen. Skjemaet er altså i BCNF. Likevel må vi registrere <em>kryssproduktet</em> av barn og telefoner: 2 barn × 2 telefoner = 4 rader. Legger vi til ett telefonnummer, må vi sette inn én ny rad <em>per barn</em>. Dette er redundans som FD-er ikke fanger.</p>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Multivaluert avhengighet (MVD)</div>
+        <p>Gitt <code>R</code> med <code>α ⊆ R</code> og <code>β ⊆ R</code>. MVD-en <code>α ↠ β</code> holder hvis: når to tupler er enige om <code>α</code>, så kan vi «bytte» deres β-verdier og fortsatt få lovlige tupler i relasjonen. Med andre ord: β er funksjonelt <em>uavhengig</em> av <code>R − α − β</code> gitt <code>α</code>.</p>
+      </div>
+
+      <p>I tabellen ovenfor: <code>id ↠ child_name</code> og <code>id ↠ phone</code>. Disse er ikke-trivielle, og <code>id</code> er ikke supernøkkel — derfor brytes 4NF.</p>
+
+      <div class="def-box">
+        <span class="def-label">Definisjon</span>
+        <div class="def-term">Fjerde normalform (4NF)</div>
+        <p><code>R</code> er i 4NF dersom for hver ikke-triviell MVD <code>α ↠ β</code> som holder, gjelder:</p>
+        <ul>
+          <li><code>α ↠ β</code> er triviell (<code>β ⊆ α</code> eller <code>α ∪ β = R</code>), eller</li>
+          <li><code>α</code> er supernøkkel for R.</li>
+        </ul>
+        <p>Hvis <code>R</code> er i 4NF, er det automatisk i BCNF.</p>
+      </div>
+
+      <h3>Løsningen: splitt på MVD</h3>
+      <p>Dekomponer <code>inst_info</code> i to skjemaer:</p>
+      <ul>
+        <li><code>inst_child(id, child_name)</code></li>
+        <li><code>inst_phone(id, phone)</code></li>
+      </ul>
+      <p>Begge er i 4NF — MVD-ene er nå trivielle innenfor hver del, og join på <code>id</code> rekonstruerer den opprinnelige relasjonen lossless. Vi har gått fra 4 rader til 2 + 2 = 4 rader for dette tilfellet, men generelt fra <em>n × m</em> til <em>n + m</em>.</p>
+
+      <div class="callout callout-blue">
+        <span class="label">Hvor mye 4NF i praksis?</span>
+        <p>I praksis dukker MVD-er opp først og fremst der man har slått sammen to <em>uavhengige</em> flerverdi-egenskaper i samme tabell. God ER-modellering (egne tabeller for flerverdi-attributter, jf. F8) gir 4NF nesten gratis. F9 nevner 4NF, men eksamensoppgaver fra Theodoros's del fokuserer på 3NF og BCNF.</p>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · Middels</div>
+        <div class="q-text">Skjemaet <code>inst_info(id, child_name, phone)</code> har ingen ikke-trivielle FD-er. Hvilken normalform er det <em>høyeste</em> det oppfyller?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">3NF (men ikke BCNF)</button></li>
+          <li><button class="mcq-opt" data-correct="1">BCNF (men ikke 4NF)</button></li>
+          <li><button class="mcq-opt" data-correct="0">4NF</button></li>
+          <li><button class="mcq-opt" data-correct="0">Bare 1NF</button></li>
+        </ul>
+        <div class="mcq-feedback">Med (id, child_name, phone) som eneste nøkkel er hele relasjonsskjemaet supernøkkel, så alle (trivielle) FD-er har supernøkkel som venstreside → BCNF. Men MVD-ene <code>id ↠ child_name</code> og <code>id ↠ phone</code> er ikke-trivielle og <code>id</code> er ikke supernøkkel → ikke 4NF.</div>
+      </div>
+
+      <div class="quiz mcq" data-quiz>
+        <div class="q-label">Sjekk · MCQ</div>
+        <div class="q-text">Hva er forskjellen på en FD <code>α → β</code> og en MVD <code>α ↠ β</code>?</div>
+        <ul class="mcq-options">
+          <li><button class="mcq-opt" data-correct="0">FD-er er strengere enn MVD-er — hver MVD impliserer en FD</button></li>
+          <li><button class="mcq-opt" data-correct="1">FD <code>α → β</code> sier at α bestemmer én verdi for β; MVD <code>α ↠ β</code> sier at α bestemmer en <em>mengde</em> verdier for β, uavhengig av andre attributter</button></li>
+          <li><button class="mcq-opt" data-correct="0">MVD-er gjelder bare relasjoner med tre eller flere attributter, mens FD-er gjelder alle</button></li>
+          <li><button class="mcq-opt" data-correct="0">Det er bare ulik notasjon — semantikken er identisk</button></li>
+        </ul>
+        <div class="mcq-feedback">Hver FD impliserer en MVD (men ikke omvendt). MVD-en <code>id ↠ phone</code> er sann hver gang en foreleser kan ha flere telefonnumre uavhengig av hvor mange barn hen har — det er en svakere betingelse enn FD.</div>
       </div>
     </div>
   </section>
